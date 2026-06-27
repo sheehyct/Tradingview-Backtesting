@@ -1,0 +1,40 @@
+[project]
+name = "tradingview-backtesting"
+version = "0.1.0"
+description = "Timeframe-continuity strategy exploration on crypto/HIP-3 perps. Backtest vehicle = TradingView strategy(); Python is the post-hoc analysis layer (regime tagging, distribution + ablation analysis on Strategy-Tester exports)."
+readme = "README.md"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "pandas>=2.1.0",
+    "numpy>=1.26.0",
+    "scipy>=1.16.0",
+    "matplotlib>=3.10.0",
+    "plotly>=6.0.0",
+    "requests>=2.32.0",
+    "python-dotenv>=1.1.0",
+    "pyyaml>=6.0.0",
+    "rich>=13.7.0",
+    "typer>=0.12.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=7.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+]
+# Optional reference-data pulls for regime tagging (install when needed):
+#   uv add --group data hyperliquid-python-sdk
+data = [
+    "hyperliquid-python-sdk>=0.23.0",
+]
+
+[tool.uv]
+managed = true
+default-groups = ["dev"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100

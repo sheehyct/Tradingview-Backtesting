@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "tradingview": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "C:\\Strat_Trading_Bot\\tradingview-mcp-jackson\\src\\server.js"
+      ],
+      "env": {}
+    },
+    "openmemory": {
+      "type": "http",
+      "url": "https://openmemory-atlas-monitoring.up.railway.app/mcp"
+    }
+  }
+}

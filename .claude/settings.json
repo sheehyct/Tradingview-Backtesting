@@ -1,0 +1,55 @@
+{
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "tradingview",
+    "openmemory"
+  ],
+  "permissions": {
+    "deny": [
+      "mcp__tradingview__ui_evaluate"
+    ],
+    "additionalDirectories": [
+      "C:\\Strat_Trading_Bot\\tradingview-mcp-jackson"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Write|Edit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3.12 \"C:/Strat_Trading_Bot/.claude/hooks/safety_guard.py\" --scope trading",
+            "timeout": 10,
+            "statusMessage": "Trading safety check..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3.12 \"C:/Strat_Trading_Bot/.claude/hooks/post_edit_lint.py\"",
+            "timeout": 15,
+            "statusMessage": "Running ruff lint..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"C:/Strat_Trading_Bot/.claude/hooks/stop_test_gate.sh\"",
+            "timeout": 300,
+            "statusMessage": "Running test gate..."
+          }
+        ]
+      }
+    ]
+  }
+}

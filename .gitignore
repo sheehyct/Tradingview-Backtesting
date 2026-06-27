@@ -1,0 +1,75 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Virtual environments
+.venv
+env/
+venv/
+ENV/
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Jupyter
+.ipynb_checkpoints
+
+# IDEs / OS
+.vscode/settings.json
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ============================================
+# SECURITY CRITICAL - NEVER COMMIT
+# ============================================
+.env
+.env.*
+!.env.template
+*.key
+*.secret
+credentials.json
+secrets.json
+# Claude Code LOCAL settings may hold secrets/paths -- keep local.
+.claude/settings.local.json
+
+# ============================================
+# DATA / BACKTEST EXPORTS - large or regenerable
+# ============================================
+# Strategy Tester CSV exports + reference candle pulls are large/regenerable.
+# Small JSON sweep SUMMARIES are intentionally tracked (results/*.json kept).
+*.csv
+*.parquet
+*.h5
+*.db
+*.sqlite
+data/
+market_data/
+validation/screenshots/*.png
+
+# Logs / temp
+logs/
+*.log
+tmp/
+temp/
+*.tmp
+
+# ============================================
+# INTENTIONALLY TRACKED (note vs vbt-workspace)
+# ============================================
+# .mcp.json is TRACKED here on purpose: the tradingview + openmemory blocks
+# contain NO secrets, so committing makes the MCP wiring reproducible on clone.
+# (This fixes the vbt-workspace gotcha where gitignored .mcp.json did not travel.)

@@ -1,0 +1,2 @@
+# Strategy-Tester exports + sweep summaries land here.
+# Large data (*.csv, *.parquet) is gitignored; small JSON sweep summaries are tracked.
