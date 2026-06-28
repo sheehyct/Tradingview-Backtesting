@@ -1,0 +1,142 @@
+//@version=5
+// =====================================================================================
+// Baseline Timeframe-Continuity Strategy  [TVB-1]
+// -------------------------------------------------------------------------------------
+// Purpose : CONTROL baseline for the timeframe-continuity exploration (charter Section 5).
+//           {2-trigger (raw level cross) + TFO FTC-gate + state-stop} -- single layer,
+//           fixed size, fixed a-priori timeframe set. Built to be ablated AGAINST and to be
+//           broken, not deployed. Get the mechanics provably correct first.
+// Gate    : FTFC = chart close vs each ENABLED timeframe's period-OPEN (charter Section 3.2;
+//           matches the TFO indicator's `close > o_n`). Aggregate up / down / neutral(grey).
+// Trigger : Raw prior-bar level break via breakout STOP orders -> intrabar fill, once-per-bar
+//           placement, NO calc_on_every_tick (charter Section 3.4; README hard-req #2).
+// Stop    : State-stop, CLOSE-based -> exit when the gate de-aligns (grey/opposite) at bar
+//           close (charter Section 3.5). No fixed target.
+// Presets : Control A = M/W/D/60 on a 60m chart ;  Control B = 60/30/15 on a 15m chart.
+//           File defaults below = Control B. For Control A: enable M/W/D/60 (y1..y4), disable
+//           30/15 (y5,y6), set chart to 60m. >> Chart TF MUST equal the lowest enabled TF. <<
+//           Set leverage=1 for sizing-agnostic edge reads (PF/win-rate are leverage-invariant).
+// Traps   : Every request.security uses lookahead_off (charter Section 7.1 -- THE trap).
+//           Enable the bar-magnifier in the Strategy Tester (Section 7.2) or intrabar fills
+//           read optimistic.
+// Sizing  : leverage x current-equity notional (input, default 2x) -- a TUNABLE knob for the
+//           leverage sweep (generating data, NOT selecting). NOTE (position-sizing-risk skill):
+//           fixed leverage on a high-vol perp is aggressive; the principled method is
+//           volatility targeting -- notional = (target_risk x equity) / instrument_risk -- a
+//           later refinement. Read the SIZING-AGNOSTIC metrics (win rate, profit factor, avg
+//           win/loss); the headline PnL% just scales with leverage.
+// =====================================================================================
+
+strategy("Baseline TFC [TVB-1]", overlay = true,
+     default_qty_type   = strategy.percent_of_equity,
+     default_qty_value  = 100,
+     initial_capital    = 10000,
+     pyramiding         = 0,
+     process_orders_on_close = false,   // exits fill at next bar open (realistic, laggier state-stop)
+     calc_on_every_tick = false,        // intrabar entry comes from the stop ORDER, not tick recalc
+     commission_type    = strategy.commission.percent,
+     commission_value   = 0.05,         // ~OKX perp taker; HIP-3 ~2x -- adjust per venue
+     slippage           = 1)
+
+// ----------------------------------- Inputs -----------------------------------
+var string g_dir = "Direction"
+allow_long  = input.bool(true,  "Allow Long",  group = g_dir)
+allow_short = input.bool(true,  "Allow Short", group = g_dir)
+
+var string g_size = "Sizing"
+leverage = input.float(2.0, "Leverage (x equity notional)", minval = 0.1, step = 0.5, group = g_size, tooltip = "Notional = leverage x current equity. 1 = full equity (1x). Sweep this; headline PnL scales with it. Vol-targeting is the principled alternative (see header).")
+
+var string g_tf = "Gate Timeframes (FTFC set)  --  enable lowest = chart TF"
+// Defaults below = Control B (60/30/15).  For Control A: set chart to 60m, enable M/W/D/60.
+y1  = input.bool(false, "", inline = "1", group = g_tf)
+tf1 = input.timeframe("M",  "TF 1", inline = "1", group = g_tf)
+y2  = input.bool(false, "", inline = "2", group = g_tf)
+tf2 = input.timeframe("W",  "TF 2", inline = "2", group = g_tf)
+y3  = input.bool(false, "", inline = "3", group = g_tf)
+tf3 = input.timeframe("D",  "TF 3", inline = "3", group = g_tf)
+y4  = input.bool(true,  "", inline = "4", group = g_tf)
+tf4 = input.timeframe("60", "TF 4", inline = "4", group = g_tf)
+y5  = input.bool(true,  "", inline = "5", group = g_tf)
+tf5 = input.timeframe("30", "TF 5", inline = "5", group = g_tf)
+y6  = input.bool(true,  "", inline = "6", group = g_tf)
+tf6 = input.timeframe("15", "TF 6", inline = "6", group = g_tf)
+
+var string g_viz = "Display"
+show_state = input.bool(true, "Color bars by gate state", group = g_viz)
+show_levels = input.bool(true, "Plot FTFC floor/ceiling (period opens)", group = g_viz)
+
+// ----------------------------------- Gate (FTFC) -----------------------------------
+// lookahead_off is mandatory (charter 7.1). The OPEN of a period is fixed when the period
+// begins, so requesting it with lookahead_off returns the CURRENT period's open with no
+// future leak and no repaint -- the safe replacement for the TFO indicator's lookahead_on.
+f_open(simple string tf) =>
+    request.security(syminfo.tickerid, tf, open, barmerge.gaps_off, barmerge.lookahead_off)
+
+o1 = f_open(tf1)
+o2 = f_open(tf2)
+o3 = f_open(tf3)
+o4 = f_open(tf4)
+o5 = f_open(tf5)
+o6 = f_open(tf6)
+
+use_arr  = array.from(y1, y2, y3, y4, y5, y6)
+open_arr = array.from(o1, o2, o3, o4, o5, o6)
+
+ftfc_up = true
+ftfc_dn = true
+int n_enabled = 0
+float hi_open = na   // highest enabled period-open -> price floor for FTFC up
+float lo_open = na   // lowest  enabled period-open -> price ceiling for FTFC down
+for i = 0 to array.size(use_arr) - 1
+    if array.get(use_arr, i)
+        n_enabled += 1
+        op = array.get(open_arr, i)
+        hi_open := na(hi_open) ? op : math.max(hi_open, op)
+        lo_open := na(lo_open) ? op : math.min(lo_open, op)
+        if close > op
+            ftfc_dn := false        // this TF is green -> kills a down-alignment
+        else if close < op
+            ftfc_up := false        // this TF is red   -> kills an up-alignment
+        else
+            ftfc_up := false        // exactly at the open -> neutral on this TF -> kills both
+            ftfc_dn := false
+if n_enabled == 0
+    ftfc_up := false
+    ftfc_dn := false
+
+// ----------------------------------- State-stop exit -----------------------------------
+// Close-based: if the gate is no longer aligned in the trade direction at this bar's close,
+// exit. With process_orders_on_close=false the market order fills at the next bar's open.
+long_open  = strategy.position_size > 0
+short_open = strategy.position_size < 0
+
+if long_open and not ftfc_up
+    strategy.close("Long", comment = "state-stop")
+if short_open and not ftfc_dn
+    strategy.close("Short", comment = "state-stop")
+
+// ----------------------------------- Trigger + entries -----------------------------------
+// While flat and gate-aligned, arm a breakout stop at the just-closed bar's extreme. The
+// broker emulator fills it intrabar the instant price trades through the level (charter 3.4).
+// Re-armed each bar so the trigger tracks the most recent closed bar's high/low.
+flat = strategy.position_size == 0
+qty = (strategy.equity * leverage) / close   // notional = leverage x current equity
+if flat
+    if allow_long and ftfc_up
+        strategy.entry("Long", strategy.long, qty = qty, stop = high)
+    else
+        strategy.cancel("Long")
+    if allow_short and ftfc_dn
+        strategy.entry("Short", strategy.short, qty = qty, stop = low)
+    else
+        strategy.cancel("Short")
+else
+    strategy.cancel("Long")
+    strategy.cancel("Short")
+
+// ----------------------------------- Visualization (audit aid) -----------------------------------
+state_col = ftfc_up ? color.new(color.green, 55) : ftfc_dn ? color.new(color.red, 55) : color.new(color.gray, 70)
+barcolor(show_state ? state_col : na)
+
+plot(show_levels ? hi_open : na, "FTFC up floor (max open)", color = color.new(color.green, 40), style = plot.style_stepline)
+plot(show_levels ? lo_open : na, "FTFC dn ceiling (min open)", color = color.new(color.red, 40), style = plot.style_stepline)

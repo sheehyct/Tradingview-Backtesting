@@ -1,0 +1,359 @@
+//@version=5
+indicator("Timeframe Continuity [TFO]", "Timeframe Continuity [TFO]", true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500) 
+
+get_size(string size) =>
+    result = switch size
+        'Tiny' => size.tiny
+        'Small' => size.small
+        'Normal' => size.normal
+        'Large' => size.large
+        'Huge' => size.huge
+        => size.auto
+
+// -------------------------------------------------- Inputs --------------------------------------------------
+var g1 = "Settings"
+tfc_table = input.bool(true, "TFC Table", inline = "TFCT", tooltip = "Show a table describing timeframe continuity on all selected timeframes", group = g1)
+table_position = input.string('Top Right', "", inline = 'TFCT', options = ['Bottom Center', 'Bottom Left', 'Bottom Right', 'Middle Center', 'Middle Left', 'Middle Right', 'Top Center', 'Top Left', 'Top Right'], group = g1)
+display = input.string('Horizontal', "", inline = 'TFCT', options = ['Horizontal', 'Vertical'], group = g1)
+paint_ftfc = input.bool(true, "TFC Candles", inline = "FTFC", tooltip = "Candle colors for full timeframe continuity up, down, or conflicting/neutral, respectively", group = g1)
+ftfc_up_color = input.color(color.rgb(0, 255, 0), "", inline = "FTFC", group = g1)
+ftfc_dn_color = input.color(color.rgb(255, 0, 0), "", inline = "FTFC", group = g1)
+ftfc_nu_color = input.color(color.gray, "", inline = "FTFC", group = g1)
+ftfc_lines = input.bool(true, "TFC Prices", tooltip = "Show where price must be above or below to achieve full timeframe continuity up or down, respectively", group = g1)
+ftfc_labels = input.bool(false, "Labels", inline = "LABEL", group = g1)
+ftfc_label_type = input.string("Flip", "", inline = "LABEL", options = ['Flip', 'Any'], tooltip = "Flip will only plot labels for the first FTFC Up/Down instance. Any will plot labels for any new indication of FTFC", group = g1)
+show_mbhl = input.bool(false, "Mother Bar High & Low", tooltip = "If a given timeframe is currently trading as an inside bar, it will plot the previous high and low that must be exceeded to no longer be an inside bar", group = g1)
+line_width = input.int(2, "Style", 1, group = g1)
+
+var g3 = "Timeframes"
+y1 = input.bool(false, "", inline = "1", group = g3)
+tf1 = input.timeframe("M", "", inline = "1", group = g3)
+y2 = input.bool(false, "", inline = "1", group = g3)
+tf2 = input.timeframe("W", "", inline = "1", group = g3)
+y3 = input.bool(true, "", inline = "2", group = g3)
+tf3 = input.timeframe("D", "", inline = "2", group = g3)
+y4 = input.bool(true, "", inline = "2", group = g3)
+tf4 = input.timeframe("240", "", inline = "2", group = g3)
+y5 = input.bool(true, "", inline = "3", group = g3)
+tf5 = input.timeframe("60", "", inline = "3", group = g3)
+y6 = input.bool(false, "", inline = "3", group = g3)
+tf6 = input.timeframe("30", "", inline = "3", group = g3)
+y7 = input.bool(false, "", inline = "4", group = g3)
+tf7 = input.timeframe("15", "", inline = "4", group = g3)
+y8 = input.bool(false, "", inline = "4", group = g3)
+tf8 = input.timeframe("10", "", inline = "4", group = g3)
+y9 = input.bool(false, "", inline = "5", group = g3)
+tf9 = input.timeframe("5", "", inline = "5", group = g3)
+y10 = input.bool(false, "", inline = "5", group = g3)
+tf10 = input.timeframe("1", "", inline = "5", group = g3)
+
+var g2 = "TFC Highlight"
+draw_bull_box = input.bool(false, "Highlight TFC Up", inline = "BULL_BOX", group = g2)
+draw_bear_box = input.bool(false, "Highlight TFC Down", inline = "BEAR_BOX", group = g2)
+draw_neut_box = input.bool(false, "Highlight TFC Neutral", inline = "NEUT_BOX", group = g2)
+
+bull_box_color = input.color(color.new(color.teal, 80), "", inline = "BULL_BOX", group = g2)
+bear_box_color = input.color(color.new(color.red, 80), "", inline = "BEAR_BOX", group = g2)
+neut_box_color = input.color(color.new(color.gray, 80), "", inline = "NEUT_BOX", group = g2)
+
+var g4 = "Table"
+lbl_size = get_size(input.string('Normal', "Text", inline = "SIZE", options = ['Auto', 'Tiny', 'Small', 'Normal', 'Large', 'Huge'], tooltip = "The size of all labels", group = g4))
+text_color = input.color(color.white, "", inline = "SIZE", group = g4) 
+up_close_color = input.color(color.rgb(0, 255, 0), "Up-Close", group = g4) 
+dn_close_color = input.color(color.rgb(255, 0, 0), "Down-Close", group = g4)
+inside_up_color = input.color(color.new(color.blue, 0), "Inside-Up-Close", group = g4) 
+inside_dn_color = input.color(color.new(color.purple, 0), "Inside-Down-Close", group = g4)
+// -------------------------------------------------- Inputs --------------------------------------------------
+
+
+// -------------------------------------------------- Variables --------------------------------------------------
+[o1, h1, l1] = request.security(syminfo.tickerid, tf1, [open, high, low], barmerge.gaps_off, barmerge.lookahead_on)
+[o2, h2, l2] = request.security(syminfo.tickerid, tf2, [open, high, low], barmerge.gaps_off, barmerge.lookahead_on)
+[o3, h3, l3] = request.security(syminfo.tickerid, tf3, [open, high, low], barmerge.gaps_off, barmerge.lookahead_on)
+[o4, h4, l4] = request.security(syminfo.tickerid, tf4, [open, high, low], barmerge.gaps_off, barmerge.lookahead_on)
+[o5, h5, l5] = request.security(syminfo.tickerid, tf5, [open, high, low], barmerge.gaps_off, barmerge.lookahead_on)
+[o6, h6, l6] = request.security(syminfo.tickerid, tf6, [open, high, low], barmerge.gaps_off, barmerge.lookahead_on)
+[o7, h7, l7] = request.security(syminfo.tickerid, tf7, [open, high, low], barmerge.gaps_off, barmerge.lookahead_on)
+[o8, h8, l8] = request.security(syminfo.tickerid, tf8, [open, high, low], barmerge.gaps_off, barmerge.lookahead_on)
+[o9, h9, l9] = request.security(syminfo.tickerid, tf9, [open, high, low], barmerge.gaps_off, barmerge.lookahead_on)
+[o10, h10, l10] = request.security(syminfo.tickerid, tf10, [open, high, low], barmerge.gaps_off, barmerge.lookahead_on)
+
+var tf1_h = array.new_float()
+var tf2_h = array.new_float()
+var tf3_h = array.new_float()
+var tf4_h = array.new_float()
+var tf5_h = array.new_float()
+var tf6_h = array.new_float()
+var tf7_h = array.new_float()
+var tf8_h = array.new_float()
+var tf9_h = array.new_float()
+var tf10_h = array.new_float()
+
+var tf1_l = array.new_float()
+var tf2_l = array.new_float()
+var tf3_l = array.new_float()
+var tf4_l = array.new_float()
+var tf5_l = array.new_float()
+var tf6_l = array.new_float()
+var tf7_l = array.new_float()
+var tf8_l = array.new_float()
+var tf9_l = array.new_float()
+var tf10_l = array.new_float()
+
+var mbh_1 = line.new(na, na, na, na, color = color.new(ftfc_up_color, 0), extend = extend.right, width = line_width)
+var mbh_2 = line.new(na, na, na, na, color = color.new(ftfc_up_color, 0), extend = extend.right, width = line_width)
+var mbh_3 = line.new(na, na, na, na, color = color.new(ftfc_up_color, 0), extend = extend.right, width = line_width)
+var mbh_4 = line.new(na, na, na, na, color = color.new(ftfc_up_color, 0), extend = extend.right, width = line_width)
+var mbh_5 = line.new(na, na, na, na, color = color.new(ftfc_up_color, 0), extend = extend.right, width = line_width)
+var mbh_6 = line.new(na, na, na, na, color = color.new(ftfc_up_color, 0), extend = extend.right, width = line_width)
+var mbh_7 = line.new(na, na, na, na, color = color.new(ftfc_up_color, 0), extend = extend.right, width = line_width)
+var mbh_8 = line.new(na, na, na, na, color = color.new(ftfc_up_color, 0), extend = extend.right, width = line_width)
+var mbh_9 = line.new(na, na, na, na, color = color.new(ftfc_up_color, 0), extend = extend.right, width = line_width)
+var mbh_10 = line.new(na, na, na, na, color = color.new(ftfc_up_color, 0), extend = extend.right, width = line_width)
+
+var mbl_1 = line.new(na, na, na, na, color = color.new(ftfc_dn_color, 0), extend = extend.right, width = line_width)
+var mbl_2 = line.new(na, na, na, na, color = color.new(ftfc_dn_color, 0), extend = extend.right, width = line_width)
+var mbl_3 = line.new(na, na, na, na, color = color.new(ftfc_dn_color, 0), extend = extend.right, width = line_width)
+var mbl_4 = line.new(na, na, na, na, color = color.new(ftfc_dn_color, 0), extend = extend.right, width = line_width)
+var mbl_5 = line.new(na, na, na, na, color = color.new(ftfc_dn_color, 0), extend = extend.right, width = line_width)
+var mbl_6 = line.new(na, na, na, na, color = color.new(ftfc_dn_color, 0), extend = extend.right, width = line_width)
+var mbl_7 = line.new(na, na, na, na, color = color.new(ftfc_dn_color, 0), extend = extend.right, width = line_width)
+var mbl_8 = line.new(na, na, na, na, color = color.new(ftfc_dn_color, 0), extend = extend.right, width = line_width)
+var mbl_9 = line.new(na, na, na, na, color = color.new(ftfc_dn_color, 0), extend = extend.right, width = line_width)
+var mbl_10 = line.new(na, na, na, na, color = color.new(ftfc_dn_color, 0), extend = extend.right, width = line_width)
+
+var mbh_label_1 = label.new(na, na, str.tostring(tf1) + " H", size = lbl_size, color = ftfc_up_color, textcolor = text_color, style = label.style_label_down)
+var mbh_label_2 = label.new(na, na, str.tostring(tf2) + " H", size = lbl_size, color = ftfc_up_color, textcolor = text_color, style = label.style_label_down)
+var mbh_label_3 = label.new(na, na, str.tostring(tf3) + " H", size = lbl_size, color = ftfc_up_color, textcolor = text_color, style = label.style_label_down)
+var mbh_label_4 = label.new(na, na, str.tostring(tf4) + " H", size = lbl_size, color = ftfc_up_color, textcolor = text_color, style = label.style_label_down)
+var mbh_label_5 = label.new(na, na, str.tostring(tf5) + " H", size = lbl_size, color = ftfc_up_color, textcolor = text_color, style = label.style_label_down)
+var mbh_label_6 = label.new(na, na, str.tostring(tf6) + " H", size = lbl_size, color = ftfc_up_color, textcolor = text_color, style = label.style_label_down)
+var mbh_label_7 = label.new(na, na, str.tostring(tf7) + " H", size = lbl_size, color = ftfc_up_color, textcolor = text_color, style = label.style_label_down)
+var mbh_label_8 = label.new(na, na, str.tostring(tf8) + " H", size = lbl_size, color = ftfc_up_color, textcolor = text_color, style = label.style_label_down)
+var mbh_label_9 = label.new(na, na, str.tostring(tf9) + " H", size = lbl_size, color = ftfc_up_color, textcolor = text_color, style = label.style_label_down)
+var mbh_label_10 = label.new(na, na, str.tostring(tf10) + " H", size = lbl_size, color = ftfc_up_color, textcolor = text_color, style = label.style_label_down)
+
+var mbl_label_1 = label.new(na, na, str.tostring(tf1) + " L", size = lbl_size, color = ftfc_dn_color, textcolor = text_color, style = label.style_label_up)
+var mbl_label_2 = label.new(na, na, str.tostring(tf2) + " L", size = lbl_size, color = ftfc_dn_color, textcolor = text_color, style = label.style_label_up)
+var mbl_label_3 = label.new(na, na, str.tostring(tf3) + " L", size = lbl_size, color = ftfc_dn_color, textcolor = text_color, style = label.style_label_up)
+var mbl_label_4 = label.new(na, na, str.tostring(tf4) + " L", size = lbl_size, color = ftfc_dn_color, textcolor = text_color, style = label.style_label_up)
+var mbl_label_5 = label.new(na, na, str.tostring(tf5) + " L", size = lbl_size, color = ftfc_dn_color, textcolor = text_color, style = label.style_label_up)
+var mbl_label_6 = label.new(na, na, str.tostring(tf6) + " L", size = lbl_size, color = ftfc_dn_color, textcolor = text_color, style = label.style_label_up)
+var mbl_label_7 = label.new(na, na, str.tostring(tf7) + " L", size = lbl_size, color = ftfc_dn_color, textcolor = text_color, style = label.style_label_up)
+var mbl_label_8 = label.new(na, na, str.tostring(tf8) + " L", size = lbl_size, color = ftfc_dn_color, textcolor = text_color, style = label.style_label_up)
+var mbl_label_9 = label.new(na, na, str.tostring(tf9) + " L", size = lbl_size, color = ftfc_dn_color, textcolor = text_color, style = label.style_label_up)
+var mbl_label_10 = label.new(na, na, str.tostring(tf10) + " L", size = lbl_size, color = ftfc_dn_color, textcolor = text_color, style = label.style_label_up)
+// -------------------------------------------------- Variables --------------------------------------------------
+
+
+// -------------------------------------------------- Functions --------------------------------------------------
+get_table_pos(pos) =>
+    result = switch pos
+        "Bottom Center" => position.bottom_center
+        "Bottom Left" => position.bottom_left
+        "Bottom Right" => position.bottom_right
+        "Middle Center" => position.middle_center
+        "Middle Left" => position.middle_left
+        "Middle Right" => position.middle_right
+        "Top Center" => position.top_center
+        "Top Left" => position.top_left
+        "Top Right" => position.top_right
+    result
+
+update_hl(_ah, _al, _tf, _h, _l) =>
+    if timeframe.change(_tf)
+        _ah.unshift(_h[1])
+        _al.unshift(_l[1])
+    if _ah.size() > 3
+        _ah.pop()
+        _al.pop()
+
+check_tfc(_tfc, _ah, _al, _h, _l) =>
+    color table_color = na
+    if _ah.size() > 0
+        if _h <= _ah.get(0) and _l >= _al.get(0)
+            if _tfc
+                table_color := inside_up_color
+            else
+                table_color := inside_dn_color
+        else
+            if _tfc
+                table_color := up_close_color
+            else
+                table_color := dn_close_color
+        table_color
+
+draw_lines(_h, _l, _ah, _al, _mbh, _mbl, _mbhl, _mbll, _idx, _u) =>
+    i = _idx - 1
+    if _ah.size() > 0 and _u.get(i)
+        if _h <= _ah.get(0) and _l >= _al.get(0)
+            _mbh.set_xy1(bar_index, _ah.get(0))
+            _mbh.set_xy2(bar_index + 1, _ah.get(0))
+            _mbhl.set_xy(bar_index, _ah.get(0))
+            
+            _mbl.set_xy1(bar_index, _al.get(0))
+            _mbl.set_xy2(bar_index + 1, _al.get(0))
+            _mbll.set_xy(bar_index, _al.get(0))
+        else
+            _mbh.set_xy1(na, na)
+            _mbh.set_xy2(na, na)
+            _mbhl.set_xy(na, na)
+            
+            _mbl.set_xy1(na, na)
+            _mbl.set_xy2(na, na)
+            _mbll.set_xy(na, na)
+// -------------------------------------------------- Functions --------------------------------------------------
+
+
+// -------------------------------------------------- Logic --------------------------------------------------
+update_hl(tf1_h, tf1_l, tf1, h1, l1)
+update_hl(tf2_h, tf2_l, tf2, h2, l2)
+update_hl(tf3_h, tf3_l, tf3, h3, l3)
+update_hl(tf4_h, tf4_l, tf4, h4, l4)
+update_hl(tf5_h, tf5_l, tf5, h5, l5)
+update_hl(tf6_h, tf6_l, tf6, h6, l6)
+update_hl(tf7_h, tf7_l, tf7, h7, l7)
+update_hl(tf8_h, tf8_l, tf8, h8, l8)
+update_hl(tf9_h, tf9_l, tf9, h9, l9)
+update_hl(tf10_h, tf10_l, tf10, h10, l10)
+
+// Check if up-close
+tfc1 = close > o1
+tfc2 = close > o2
+tfc3 = close > o3
+tfc4 = close > o4
+tfc5 = close > o5
+tfc6 = close > o6
+tfc7 = close > o7
+tfc8 = close > o8
+tfc9 = close > o9
+tfc10 = close > o10
+
+use_arr = array.from(y1, y2, y3, y4, y5, y6, y7, y8, y9, y10)
+open_arr = array.from(o1, o2, o3, o4, o5, o6, o7, o8, o9, o10)
+tfc_arr = array.from(tfc1, tfc2, tfc3, tfc4, tfc5, tfc6, tfc7, tfc8, tfc9, tfc10)
+
+// Determine FTFC
+ftfc_up = true
+ftfc_dn = true
+
+var bool ftfc_up_last = na
+opens = array.new_float()
+
+for i = 0 to tfc_arr.size() - 1
+    if use_arr.get(i) 
+        opens.push(open_arr.get(i))
+        if tfc_arr.get(i)
+            ftfc_dn := false
+        else
+            ftfc_up := false
+
+plot(ftfc_lines?opens.max():na, color = ftfc_up_color, linewidth = line_width)
+plot(ftfc_lines?opens.min():na, color = ftfc_dn_color, linewidth = line_width)
+
+if ftfc_up and not ftfc_up[1]
+    ftfc_up_last := true
+    if ftfc_labels
+        if ftfc_label_type == 'Flip' ? (ftfc_up_last and not ftfc_up_last[1]) : true
+            label.new(bar_index, low, "FTFC Up", color = ftfc_up_color, size = lbl_size, textcolor = text_color, style = label.style_label_up)
+if ftfc_dn and not ftfc_dn[1]
+    ftfc_up_last := false
+    if ftfc_labels
+        if ftfc_label_type == 'Flip' ? (not ftfc_up_last and ftfc_up_last[1]) : true
+            label.new(bar_index, high, "FTFC Down", color = ftfc_dn_color, size = lbl_size, textcolor = text_color, style = label.style_label_down)
+
+// Change bar color according to FTFC
+barcolor(not paint_ftfc ? na : ftfc_up ? ftfc_up_color : ftfc_dn ? ftfc_dn_color : ftfc_nu_color)
+
+if show_mbhl
+    draw_lines(h1, l1, tf1_h, tf1_l, mbh_1, mbl_1, mbh_label_1, mbl_label_1, 1, use_arr)
+    draw_lines(h2, l2, tf2_h, tf2_l, mbh_2, mbl_2, mbh_label_2, mbl_label_2, 2, use_arr)
+    draw_lines(h3, l3, tf3_h, tf3_l, mbh_3, mbl_3, mbh_label_3, mbl_label_3, 3, use_arr)
+    draw_lines(h4, l4, tf4_h, tf4_l, mbh_4, mbl_4, mbh_label_4, mbl_label_4, 4, use_arr)
+    draw_lines(h5, l5, tf5_h, tf5_l, mbh_5, mbl_5, mbh_label_5, mbl_label_5, 5, use_arr)
+    draw_lines(h6, l6, tf6_h, tf6_l, mbh_6, mbl_6, mbh_label_6, mbl_label_6, 6, use_arr)
+    draw_lines(h7, l7, tf7_h, tf7_l, mbh_7, mbl_7, mbh_label_7, mbl_label_7, 7, use_arr)
+    draw_lines(h8, l8, tf8_h, tf8_l, mbh_8, mbl_8, mbh_label_8, mbl_label_8, 8, use_arr)
+    draw_lines(h9, l9, tf9_h, tf9_l, mbh_9, mbl_9, mbh_label_9, mbl_label_9, 9, use_arr)
+    draw_lines(h10, l10, tf10_h, tf10_l, mbh_10, mbl_10, mbh_label_10, mbl_label_10, 10, use_arr)
+// -------------------------------------------------- Logic --------------------------------------------------
+
+
+// -------------------------------------------------- Table --------------------------------------------------
+// Create TFC table
+var table tfc = table.new(get_table_pos(table_position), 10, 10, chart.bg_color, chart.fg_color, 2, chart.fg_color, 1)
+var horizontal = display == 'Horizontal'
+
+if barstate.islast and tfc_table
+    if y1 
+        table.cell(tfc, horizontal ? 0 : 0, horizontal ? 0 : 0, str.tostring(tf1), text_color = text_color, bgcolor = check_tfc(tfc1, tf1_h, tf1_l, h1, l1), text_size = lbl_size)
+    if y2
+        table.cell(tfc, horizontal ? 1 : 0, horizontal ? 0 : 1, str.tostring(tf2), text_color = text_color, bgcolor = check_tfc(tfc2, tf2_h, tf2_l, h2, l2), text_size = lbl_size)
+    if y3
+        table.cell(tfc, horizontal ? 2 : 0, horizontal ? 0 : 2, str.tostring(tf3), text_color = text_color, bgcolor = check_tfc(tfc3, tf3_h, tf3_l, h3, l3), text_size = lbl_size)
+    if y4
+        table.cell(tfc, horizontal ? 3 : 0, horizontal ? 0 : 3, str.tostring(tf4), text_color = text_color, bgcolor = check_tfc(tfc4, tf4_h, tf4_l, h4, l4), text_size = lbl_size)
+    if y5
+        table.cell(tfc, horizontal ? 4 : 0, horizontal ? 0 : 4, str.tostring(tf5), text_color = text_color, bgcolor = check_tfc(tfc5, tf5_h, tf5_l, h5, l5), text_size = lbl_size)
+    if y6 
+        table.cell(tfc, horizontal ? 5 : 0, horizontal ? 0 : 5, str.tostring(tf6), text_color = text_color, bgcolor = check_tfc(tfc6, tf6_h, tf6_l, h6, l6), text_size = lbl_size)
+    if y7
+        table.cell(tfc, horizontal ? 6 : 0, horizontal ? 0 : 6, str.tostring(tf7), text_color = text_color, bgcolor = check_tfc(tfc7, tf7_h, tf7_l, h7, l7), text_size = lbl_size)
+    if y8
+        table.cell(tfc, horizontal ? 7 : 0, horizontal ? 0 : 7, str.tostring(tf8), text_color = text_color, bgcolor = check_tfc(tfc8, tf8_h, tf8_l, h8, l8), text_size = lbl_size)
+    if y9
+        table.cell(tfc, horizontal ? 8 : 0, horizontal ? 0 : 8, str.tostring(tf9), text_color = text_color, bgcolor = check_tfc(tfc9, tf9_h, tf9_l, h9, l9), text_size = lbl_size)
+    if y10
+        table.cell(tfc, horizontal ? 9 : 0, horizontal ? 0 : 9, str.tostring(tf10), text_color = text_color, bgcolor = check_tfc(tfc10, tf10_h, tf10_l, h10, l10), text_size = lbl_size)
+// -------------------------------------------------- Table --------------------------------------------------
+
+// -------------------------------------------------- Boxes --------------------------------------------------
+var box box_bull = na
+var box box_bear = na
+var box box_neut = na
+
+var box_mode = 0
+
+new_bull_box = not ftfc_up[1] and ftfc_up
+new_bear_box = not ftfc_dn[1] and ftfc_dn
+new_neut_box = (ftfc_up[1] or ftfc_dn[1]) and not (ftfc_up or ftfc_dn)
+
+
+if new_bull_box
+    box_mode := 1
+    if draw_bull_box
+        box_bull := box.new(time, high, time, low, xloc = xloc.bar_time, border_color = na, bgcolor = bull_box_color)
+else
+    if new_bear_box or new_neut_box
+        box_bull := na
+    else
+        if box_mode == 1 and draw_bull_box
+            box_bull.set_rightbottom(time, math.min(box_bull.get_bottom(), low))
+            box_bull.set_top(math.max(box_bull.get_top(), high))
+
+      
+if new_bear_box
+    box_mode := -1
+    if draw_bear_box  
+        box_bear := box.new(time, high, time, low, xloc = xloc.bar_time, border_color = na, bgcolor = bear_box_color)
+else
+    if new_bull_box or new_neut_box
+        box_bear := na
+    else
+        if box_mode == -1 and draw_bear_box
+            box_bear.set_rightbottom(time, math.min(box_bear.get_bottom(), low))
+            box_bear.set_top(math.max(box_bear.get_top(), high))
+
+        
+if new_neut_box
+    box_mode := 0
+    if draw_neut_box
+        box_neut := box.new(time, high, time, low, xloc = xloc.bar_time, border_color = na, bgcolor = neut_box_color)
+else
+    if new_bear_box or new_neut_box
+        box_neut := na
+    else
+        if box_mode == 0 and draw_neut_box
+            box_neut.set_rightbottom(time, math.min(box_neut.get_bottom(), low))
+            box_neut.set_top(math.max(box_neut.get_top(), high))
+// -------------------------------------------------- Boxes --------------------------------------------------

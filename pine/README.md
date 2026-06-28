@@ -42,3 +42,23 @@ layer `60/30/15`) and then NOT tuned on the sample. Two TFO layers (charter Sect
 
 Everything beyond the baseline (compression filter, reversal-vs-continuation, vol-conditional
 timeframe sets) is tested by **ablation against this control**, never added by default.
+
+## Implemented: `baseline_continuity.pine` (TVB-1)
+
+ONE parameterized `strategy()` expresses both a-priori controls via the gate-timeframe inputs:
+
+| Control | Gate set | Chart TF | Set inputs |
+|---------|----------|----------|------------|
+| **B** (file default) | `60/30/15` | 15m | enable y4/y5/y6 (60/30/15) |
+| **A** | `M/W/D/60` | 60m | enable y1/y2/y3/y4 (M/W/D/60), disable y5/y6 |
+
+Mechanics: trigger = breakout STOP at the prior bar's high/low (intrabar fill, no
+`calc_on_every_tick`); gate = `close > period-open` per enabled TF (`lookahead_off`);
+exit = close-based state-stop when the gate de-aligns. `leverage` input scales notional
+(set `=1` for sizing-agnostic edge reads -- PF/win-rate are leverage-invariant).
+
+**TVB-1 result (`OKX:MSTRUSDT.P`, Feb 25 - Jun 28 2026, 1x):** Control B = 2263 trades, PF 0.645,
+~ -81% (churn/fees kill a raw-positive signal: zero-fee PF 1.284). Control A = 258 trades, PF
+1.131 at OKX fees but **PF 0.921 at HIP-3 fees (0.10%)** -> not deployable at real venue cost.
+Lever is **turnover / per-trade edge**, not the gate alone. Next: two-layer regime+execution
+(charter Section 3.3). See `docs/HANDOFF.md` TVB-1.
