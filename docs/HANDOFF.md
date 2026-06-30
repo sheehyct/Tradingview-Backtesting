@@ -5,6 +5,86 @@
 
 ---
 
+## Session TVB-2: TV MCP reader fix + clean controls + fee saga resolved (COMPLETE)
+
+**Date:** 2026-06-30
+**Status:** COMPLETE -- TV MCP Strategy Tester readers FIXED + deployed + verified live; controls A/B
+re-characterized cleanly; fee model resolved to GROUND TRUTH (real xyz taker ~10x cheaper than
+assumed), REVERSING the "B dead by fees" verdict; binding constraint re-identified as slippage.
+
+### What was accomplished
+- **TV MCP reader FIXED + deployed + verified (P1, the session's main effort).** The new TV Strategy
+  Tester UI broke the `tradingview-mcp-jackson` readers. Root cause was NOT what TVB-1 assumed:
+  (a) finder false-positive -- matched `s.performance`, a profiling method on EVERY study, so it
+  grabbed the first indicator; and `metaInfo().isStrategy` does not exist in the new UI. (b) data
+  shape -- `reportData()`/`ordersData()` are methods; metrics in `reportData().performance.{all,long,
+  short}`; trades in `reportData().trades`. Fixed all three readers (getStrategyResults/getTrades/
+  getEquity) to detect via `isTVScriptStrategy` and pull the new shapes. Verified live on
+  OKX:MSTRUSDT.P. Committed to jackson `main` (commit `fb2a788`).
+  - The TVB-1 "relaunch to load the diagnostic" premise was a red herring: the diagnostic ran but its
+    output was dropped by the reader's node-side outer return (field-pick). The right instrument was
+    a standalone CDP probe reusing jackson's `connection.js` evaluate() -- iterate freely vs live TV,
+    restart the MCP only to DEPLOY.
+- **Controls A/B re-characterized cleanly** (clean JSON, no screenshots). 2x2 (A/B x fee 0%/0.1%),
+  same window (Feb 25 - Jun 30, ~-30% downtrend), 1x, bidirectional:
+  - B (60/30/15, 15m): 2301 trades; @0% +85.8% PF 1.186; @0.1% -98.1% PF 0.400 (commission 10545 > capital).
+  - A (M/W/D/60, 60m): 261 trades; @0% +48.2% PF 1.373 Sharpe 1.84; @0.1% -12.0% PF 0.906.
+  - Replicates + extends TVB-1; A dominates B risk-adjusted at ~9x fewer trades.
+  - NOTE: the on-chart strategy was found as a HYBRID (M/W/D/60 on a 15m chart) -- neither control;
+    inputs decoded to pin config. A vanished template-added instance was long-only (the "all-long"
+    389-trade run); the bidirectional instance is the real one.
+- **Fee saga RESOLVED to ground truth (the session's biggest finding).** User supplied real HL fills.
+  An initial fee/notional inference gave a wrong "97% maker" read; the user's "I trade market orders"
+  testimony flagged it; re-classified by HL's authoritative `crossed` flag (validated: native-crypto
+  taker = HL published 0.0432% exactly). Result: xyz is 86.5% TAKER, and the real xyz TAKER rate is
+  CHEAP -- ~0.0086% modal / 0.0125% notional-weighted, ~8-12x BELOW the 0.1% the backtest used.
+  - REVERSES the fee verdict: at real cost A ~= +38-42% (clear winner), B ~= +5-25% (near breakeven),
+    NOT dead. "Turnover fatal for B" was largely a fee artifact (~10x too high). These are GEOMETRIC-
+    MODEL estimates -- must be CONFIRMED by actual re-run.
+  - BUT the binding constraint MOVED to SLIPPAGE: user fills market/taker both legs; B = 2301
+    round-trips = 2301x slippage; B near-breakeven at zero slippage is exactly where realistic
+    slippage decides the sign. Charter S6 flag: a real mechanism (cheap fees) must not launder an
+    optimistic "deployable" verdict.
+
+### Context for next session
+- Reader WORKS -- clean JSON via data_get_strategy_results/data_get_trades/data_get_equity. TV must
+  run on CDP (MSIX: `Get-AppxPackage *TradingView*` + Start-Process `--remote-debugging-port=9222`).
+  Each Claude relaunch kills the Claude-launched TV -> relaunch it.
+- The A/B-at-real-fee numbers are MODEL estimates, NOT fresh backtests -- re-run at 0.0086% and 0.0125%.
+- SLIPPAGE is the new binding constraint (deferred so far) -- model before any deployability call.
+- Strategy `35dVw8` (`Baseline TFC [TVB-1]` / slot "VIX Spike Alert" / id `USER;e7c8...`) left at
+  M/W/D/60, 0.1% fee, 15m chart (as-found hybrid). Input ids: in_2=M, in_4=W, in_6=D, in_8=60,
+  in_10=30, in_12=15 (bool enables); in_23 = commission percent.
+- P2a (HTF-open currency) + P2b (period-open recon + tick-offset + TF guard) still pending; the
+  `Timeframe Continuity [TFO]` indicator is now on the chart for the overlay.
+
+### Files created/modified
+- NEW `docs/TVB2_control_AB_rerun.md` (control 2x2 + fee model + ground-truth resolution; canonical).
+- MOD `docs/HANDOFF.md`, `.session_startup_prompt.md`.
+- SEPARATE repo (committed): `tradingview-mcp-jackson/src/core/data.js` reader fix (`fb2a788`, main).
+- Memory: updated `tvb1-tv-mcp-reader-newui` (FIXED + new-API ref); new `feedback-relaunch-is-cheap`;
+  new `tvb2-fee-resolved-real-taker`.
+- User-side: `Downloads/TVB2_fee_handling.md` (Claude Desktop fee analysis -- superseded by the repo datasheet).
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range below) and write a
+> verbatim assessment to docs/reviews/tvb2-codex-audit.md. See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: `bd2c760..HEAD` on `main` (workspace) + `fb2a788` in `tradingview-mcp-jackson` (reader fix)
+- Scope / what changed: TV MCP reader fix (jackson); clean A/B control re-characterization; fee model
+  resolved to ground truth (real taker ~10x cheaper -> verdict reversed; slippage now binding).
+- Focus areas (scrutinize these): (1) fee ground-truth method (HL `crossed` flag + validation);
+  (2) the geometric-model A/B-at-real-fee estimates -- should be confirmed by actual re-run, not trusted;
+  (3) the "slippage is now binding, esp. for B" claim and the churn math; (4) whether the
+  "breakout entry is intrinsically taker -> maker is not a free fee swap" reasoning holds;
+  (5) reader-fix correctness in `jackson/src/core/data.js`.
+- Reviewed by: pending
+- Findings: (blank until docs/reviews/tvb2-codex-audit.md exists)
+
+---
+
 ## Session TVB-1: Baseline continuity strategy + A/B fee characterization (COMPLETE)
 
 **Date:** 2026-06-28
