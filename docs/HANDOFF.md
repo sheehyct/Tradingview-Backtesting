@@ -52,6 +52,40 @@ HIP-3 fees; turnover identified as the dominant lever.
 - Leverage is NOT an edge lever (per-trade metrics invariant; compounded curve concave +
   liquidation cap). Characterize at 1x; size via vol-targeting on a ROBUST edge later.
 
+### Codex external audit + Claude critical review (post-TVB-1)
+Codex audited `baseline_continuity.pine` + the TFO indicator (full verbatim text in
+`docs/reviews/tvb1-codex-audit.md` -- read it against this synthesis, don't trust either blindly).
+My critical synthesis -- do NOT assume Codex right; the starred item cuts both ways:
+
+- **No classic lookahead LEAK in the baseline** (HTF `open` + `lookahead_off`). The TFO indicator
+  IS unsafe as a backtest source (HTF `high/low` under `lookahead_on`) but we never used it as one.
+  => TVB-1 results are NOT leak-inflated fiction. CONFIRMED.
+- ***MUST VERIFY -- HTF-open currency.** My code comment asserts `lookahead_off` returns the
+  CURRENT period's open. That was OVERCONFIDENT and may be WRONG: `lookahead_off` reveals an HTF
+  bar aligned to its CLOSE and applies to the whole `[o,h,l]` tuple, so for true HTFs (D/W/M on a
+  60m chart) it may return the PRIOR period's open => a stale/lagged gate. This is a FIDELITY bug,
+  NOT a leak (prior open is fully known; results stay honest). VERIFY empirically: overlay the
+  strategy's FTFC bar-coloring vs the TFO indicator (lookahead_on = current period). Match => fine;
+  differ => stale opens. Either way ADOPT the unambiguous local reconstruction:
+  `f_period_open(tf) => ta.valuewhen(timeframe.change(tf), open, 0)` (no `request.security`).
+- **Model fidelity (valid):** the baseline is a "prior-close TFC-gate + resting breakout stop",
+  NOT "check TFC at the exact intrabar break". Both legitimate; ours is the conservative, safe one.
+- **The 1m reframe (the gem -- resolves the parked 1m idea):** for "TFC-at-the-break", run on a
+  LOWER chart TF (1m/2m/5m) for intrabar fidelity but reconstruct the EXECUTION-TF (15/30/60) prior
+  highs/lows for the TRIGGER and check the gate intrabar -- do NOT trigger off 1m bars (the naive
+  version's flaw). A distinct VARIANT to build/compare, not a fix.
+- **Adopt (low-risk fidelity):** trigger tick-offset (`stop = high + syminfo.mintick` /
+  `low - syminfo.mintick`) to force a strict break vs equal-high touch (matches strat-methodology
+  `H[1]+tick`); enforce chart-TF <= enabled-TF via `runtime.error`.
+- **Variant, NOT control (charter ablation discipline):** catastrophic price fail-safe stop and the
+  re-entry governor are charter Section 8 open questions -- test as ablations, do NOT bake into the
+  minimal control (fail-safe matters more once leverage > 1; state-stop is close-based).
+- **`close == open`:** TFO treats equality as down; ours as neutral (intentional). Negligible on
+  liquid perps; only matters for exact TFO replication.
+- **Proposed next-session order:** VERIFY HTF-open currency -> adopt local period-open recon +
+  tick-offset + TF guard -> RERUN A/B fee characterization (confirm findings hold) -> THEN
+  two-layer / TFC-at-break variant / governor as ablations.
+
 ### Files created/modified
 - NEW `pine/baseline_continuity.pine`; MOD `pine/README.md` (control presets), `docs/HANDOFF.md`,
   `.session_startup_prompt.md`.
