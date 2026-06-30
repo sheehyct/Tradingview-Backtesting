@@ -119,6 +119,11 @@ transfer here and assuming it does is itself an unexamined prior (charter Sectio
   seeded in `.session_startup_prompt.md` by `/session-end`.
 - Session start: read `docs/HANDOFF.md`, then `.session_startup_prompt.md`, then this file.
   `/session-start` automates it. Session end: `/session-end`.
+- External review: `/session-end` runs the `scripts/secret_scan.py` gate then pushes to the
+  PUBLIC remote (`origin`). Each HANDOFF entry carries an `### External Review` block for
+  Codex/cloud review; returned reviews land in `docs/reviews/tvb{N}-codex-audit.md` and
+  `/session-start` folds them in. NEVER bypass the secret-scan gate (no `--no-verify`); the
+  remote is world-visible. Contract: `docs/EXTERNAL_REVIEW_PROTOCOL.md`.
 - Timestamps: market data in UTC (24/7 perps); system events in UTC.
 
 ## 9. Account / live-trading constraints

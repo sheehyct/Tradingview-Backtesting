@@ -23,6 +23,7 @@ Replace contents with the next session's plan:
 **Current Branch:** `{branch}`
 **Commit state:** {pushed/local}
 **Plan Mode:** {ON/OFF recommendation}
+**Prior-session review:** {REQUESTED -- next session checks docs/reviews/tvb{N}-codex-audit.md}
 
 ---
 
@@ -60,6 +61,19 @@ Add a new entry at the TOP:
 ### Files created/modified
 {list}
 
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb{N}-codex-audit.md.
+> See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED | RETURNED | ADDRESSED | ACCEPTED | N/A
+- Commits to review: `{base}..{head}` on `main`  (or "local working tree @ {sha}")
+- Scope / what changed: {one or two lines}
+- Focus areas (scrutinize these): {e.g. request.security lookahead, model fidelity, fee/turnover math}
+- Reviewed by: {local Codex CLI | cloud Codex app | Claude Code web | pending}
+- Findings: {blank until docs/reviews/tvb{N}-codex-audit.md exists}
+
 ---
 ```
 
@@ -79,7 +93,26 @@ Confirm the return shows a memory id before continuing.
 Show the user a proposed conventional-commit message + `git diff --stat`, and WAIT for
 confirmation before committing. Never commit without confirmation.
 
-## Step 5: Output session summary
+## Step 5: Secret-Scan Gate and Push
+
+The remote is PUBLIC and feeds cloud review, so "pushed and current" is the default
+end state. After the commit is made, gate then push:
+
+1. Run the secret-scan gate:
+   ```bash
+   uv run python scripts/secret_scan.py --range origin/main   # normal
+   uv run python scripts/secret_scan.py                        # first push (no origin/main yet) / full audit
+   ```
+2. If it exits 0 (clean): `git push origin main` (first push: `git push -u origin main`).
+   Then fill the `Commits to review:` field in the HANDOFF `### External Review` block.
+3. If it exits non-zero (CRITICAL/HIGH finding): **DO NOT PUSH.** Remove the secret /
+   gitignore the file / add a reviewed entry to `scripts/secret_scan_allowlist.txt`,
+   then re-run. Never bypass with `--no-verify`.
+
+Reviews can also be produced locally (Codex CLI) -- either way they land in
+`docs/reviews/tvb{N}-codex-audit.md`. See `docs/EXTERNAL_REVIEW_PROTOCOL.md`.
+
+## Step 6: Output session summary
 
 A short ACCOMPLISHED / BLOCKERS / NEXT PRIORITIES / PLAN MODE recommendation block.
 
@@ -88,4 +121,6 @@ A short ACCOMPLISHED / BLOCKERS / NEXT PRIORITIES / PLAN MODE recommendation blo
 - Do NOT commit without user confirmation.
 - Do NOT skip quality checks.
 - Do NOT archive HANDOFF.md without confirmation.
+- ALWAYS push after a clean secret-scan gate -- cloud review reads the remote, not your local tree.
+- NEVER bypass scripts/secret_scan.py (no `--no-verify`); fix the finding instead. Repo is PUBLIC.
 - Keep summaries concise but complete.
