@@ -5,6 +5,25 @@
 
 ---
 
+## Interim 2026-07-01: Fable 5 preflight review (one-off; review only, no session work)
+
+Pre-TVB-3 fresh-eyes review by Fable 5 (TVB-1/2 ran on Opus 4.8 while Fable 5 was offline).
+Full findings: `docs/reviews/tvb3-preflight-fable5-review.md`. Summary:
+- All 4 Codex TVB-2 findings CONFIRMED against sources -- adopt all (slippage recording,
+  sanitized fee artifact, 0.0864% checklist patch, reader `debug_sources` propagation).
+- NEW N1: the HTF-open gate is near-certainly STALE (`request.security` + `lookahead_off`
+  returns the PRIOR period's open on historical bars) AND backtest-vs-live asymmetric
+  (realtime returns the developing bar) -- a repaint-class divergence, stronger than the
+  TVB-1 "fidelity, not a leak" framing. P2a/P2b therefore RESEQUENCED BEFORE the real-fee
+  re-runs (else the four runs characterize the wrong gate and get redone).
+- NEW N2: the geometric fee model was VERIFIED -- anchored at the 0% actuals it reproduces
+  both 0.1% actuals to ~0.1pp; the A +38..42% / B +5..25% real-fee estimates are well
+  grounded; the re-run is confirmation, and a material deviation would itself be a finding.
+- `.session_startup_prompt.md` NEXT order amended accordingly (user-approved 2026-07-01).
+  No implementation files were changed by the review.
+
+---
+
 ## Session TVB-2: TV MCP reader fix + clean controls + fee saga resolved (COMPLETE)
 
 **Date:** 2026-06-30
@@ -71,7 +90,7 @@ assumed), REVERSING the "B dead by fees" verdict; binding constraint re-identifi
 > For Codex / other external review agents: review THIS session's work (range below) and write a
 > verbatim assessment to docs/reviews/tvb2-codex-audit.md. See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: REQUESTED
+- Review status: RETURNED
 - Commits to review: `bd2c760..HEAD` on `main` (workspace) + `fb2a788` in `tradingview-mcp-jackson` (reader fix)
 - Scope / what changed: TV MCP reader fix (jackson); clean A/B control re-characterization; fee model
   resolved to ground truth (real taker ~10x cheaper -> verdict reversed; slippage now binding).
@@ -80,8 +99,8 @@ assumed), REVERSING the "B dead by fees" verdict; binding constraint re-identifi
   (3) the "slippage is now binding, esp. for B" claim and the churn math; (4) whether the
   "breakout entry is intrinsically taker -> maker is not a free fee swap" reasoning holds;
   (5) reader-fix correctness in `jackson/src/core/data.js`.
-- Reviewed by: pending
-- Findings: (blank until docs/reviews/tvb2-codex-audit.md exists)
+- Reviewed by: local Codex CLI
+- Findings: see `docs/reviews/tvb2-codex-audit.md` (overall NEEDS-CHANGES; 2 medium, 2 low)
 
 ---
 
