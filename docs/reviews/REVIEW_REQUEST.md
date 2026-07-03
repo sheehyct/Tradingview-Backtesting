@@ -10,7 +10,9 @@
 
 ## Status
 
-- Status: REQUESTED  <!-- REQUESTED | RETURNED (audit file written) -->
+- Status: RETURNED (2026-07-03, local Codex CLI -- APPROVE-WITH-NITS, 2 LOW;
+  audit at `docs/reviews/tvb5-codex-audit.md`; critical synthesis in the TVB-6
+  HANDOFF entry)  <!-- REQUESTED | RETURNED (audit file written) -->
 - Session under review: TVB-5 -- S8 ratified; pre-registered 3x3 TF-set sweep
   across 4 samples (35 runs); regime layer characterized as universal damage
   containment; xyz-vs-OKX venue gap flagged (unverified)

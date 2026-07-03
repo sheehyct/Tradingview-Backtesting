@@ -95,7 +95,8 @@ all sanity gates green).
 > write a verbatim assessment to docs/reviews/tvb5-codex-audit.md. See
 > docs/reviews/REVIEW_REQUEST.md (the pointer) and docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: REQUESTED
+- Review status: RETURNED (2026-07-03, local Codex CLI -- APPROVE-WITH-NITS, 2 LOW; audit
+  at `docs/reviews/tvb5-codex-audit.md`; critical synthesis in the TVB-6 entry)
 - Commits to review: `b99dccb^..d622be1` on `main` (= `6c855cf..d622be1`; sanity-checked:
   `git diff --name-status` lists all 57 session files). RANGE-PIN RULE applied: the caret
   keeps `b99dccb` (ratification + review fold-in) inside the reviewed diff.
@@ -111,8 +112,13 @@ all sanity gates green).
   and is the unverified-provenance caution adequate? (5) pre-registration integrity --
   were the in-flight amendments (BTC fallback, W-venue upgrade) justified or
   result-driven? (6) the S8 ratification arithmetic (~zero-expectancy suppressed stream).
-- Reviewed by: pending
-- Findings: (blank until docs/reviews/tvb5-codex-audit.md exists)
+- Reviewed by: Codex CLI (2026-07-03)
+- Findings: 2 LOW, no blockers. (1) tv_dump closed-basis parser relies on the observed
+  `reportData().trades` tail-open ordering with no fail-loud assertion -- add one. (2)
+  "universal damage containment" should be worded "universal across tested samples/cells"
+  in the next synthesis. Checks passed: range pin, no-request.security posture,
+  window_compound method + tests, venue-gap arithmetic re-derived from dumps, S8
+  arithmetic (~0.00225%/trade gross), pre-registration amendments read as justified.
 
 ---
 
