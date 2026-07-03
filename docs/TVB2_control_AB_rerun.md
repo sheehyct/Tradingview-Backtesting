@@ -921,3 +921,57 @@ bigger than we thought," it is "B-class net results are venue-texture noise." Th
 structural readings (orderings, containment, regime-speed gradient) replicate across
 venues; per-venue MAGNITUDES at the churn end do not generalize. Both venues do agree
 R1E1 is solidly positive at real fee -- sign robust, magnitude not.
+
+**DECIDED (with user, 2026-07-03): xyz MSTRUSDC.P is the PRIMARY backtest chart for
+MSTR work.** Rationale: it is the target venue (dissolves the charter S7.3
+venue-mismatch trap for MSTR) and its TV 15m history is DEEPER than the OKX proxy's
+(Dec-2 vs Feb-25 floor). OKX:MSTRUSDT.P is retained as the standing cross-venue
+sign-robustness check -- per the knife-edge finding, sign agreement across venues now
+outranks any single venue's magnitude as the reported result. Follow-through: xyz-native
+headline rows for the 60m cells the TVB-5 venue pass did not run (ctrlA, R1E3), with a
+regression re-read of the committed WV cells first.
+
+### xyz-native headline rows (primary-chart baseline table)
+
+Re-stage regression first (fresh TV launch, study re-added as `SCn1V9`, id map verified
+against Pine source -- unchanged): ctrlB @0.0125 net +7.94% / 4,308 closed vs TVB-5's
++7.98% / 4,306+1-open; R1E1 @0.0125 +59.96% / 1,302 vs +60.01% / 1,300+1-open. PF/DD/
+Sharpe match to the reported precision on both -- tail drift only (~2h more data).
+GREEN; the new `tv_dump.mjs` fail-loud assertions (Codex TVB-5 LOW 1: list length ==
+closed+open, entry-time ordering; raw exit ts `xt` now preserved per row) passed on
+every dump below.
+
+Full backfill window (Dec 2 15:00Z -> Jul 3 20:00Z), HIP3XYZ:MSTRUSDC.P, all sanity
+gates green (marginCalls 0, open <= 1, floor 19,779/5,104 bars verified before every
+read):
+
+| cell | chart | trades (L/S closed) | @0 | @0.0125 | PF / DD / Sharpe @0.0125 | dump |
+|---|---|---|---|---|---|---|
+| ctrlB | 15m | 4308 (2151/2157) | +216.85 (TVB-5) | **+7.94** | 1.014 / 58.9 / 0.14 | tvb6_WV_ctrlB_0125 |
+| R1E1 | 15m | 1302 (669/633) | +121.46 (TVB-5) | **+59.96** | 1.239 / 23.9 / 0.44 | tvb6_WV_R1E1_0125 |
+| ctrlA | 60m | 474 (241/233) | +65.62 | **+47.10** | 1.220 / 19.3 / 0.65 | tvb6_WV_ctrlA_* |
+| R1E3 | 60m | 408 (206/202) | +61.92 | **+46.21** | 1.240 / 19.6 / 0.73 | tvb6_WV_R1E3_* |
+
+Window slices (window_compound over the new dumps, closed trades entered in-window):
+
+| cell, fee | shared Feb25-> (vs OKX W1) | prefix Dec2-Feb25 (kill-window) |
+|---|---|---|
+| ctrlA @0.0125 | **+44.06%** (OKX +38.45) | **+2.12%** (L -15.6 / S +20.9) |
+| ctrlA @0 | +56.76% | +5.64% |
+| R1E3 @0.0125 | **+39.75%** (OKX +33.80) | **+4.63%** (L -12.6 / S +19.8) |
+| R1E3 @0 | +50.26% | +7.76% |
+
+**Reads (flagged, not tuned on):**
+1. Shared-window venue lift on the slow cells is MODEST and same-sign (ctrlA +44.1 vs
+   +38.5; R1E3 +39.8 vs +33.8) -- ~0.01%/trade, the knife-edge story at low churn:
+   venue texture matters less when you trade 300x instead of 2,800x.
+2. **The Dec-Feb kill-regime is TURNOVER-DEPENDENT, not absolute.** The same window
+   that takes ctrlB to -40.09% and R1E1 to -12.61% leaves ctrlA at +2.12% and R1E3 at
+   +4.63% (positive GROSS and NET). The chop kills the churn cells; the slow 60m cells
+   tread water through it -- with shorts carrying the prefix (+20% short vs -15% long
+   on ctrlA). Refines TVB-5 SP6: "kill-regime" = where per-trade edge dips slightly
+   negative; only high-turnover configs compound that into disaster.
+3. R1E1 (+59.96) tops both 60m cells on the full xyz window at real fee -- but its
+   kill-window loss (-12.61) vs R1E3's gain (+4.63) is the risk-shape difference the
+   headline number hides. Same S8/containment caveats as TVB-5; no deployability
+   language.
