@@ -1009,6 +1009,18 @@ modeled (belongs to the slippage/cost-realism item, still open). This closes the
 solvency precondition; deployability language remains gated on slippage realism at
 size. All backtest %s in this document are 1x (100%-of-equity notional, no leverage).
 
+Leverage-clearance corollary (isolated margin): the backtest describes reality only
+while the liquidation threshold clears every intra-trade MAE. Sample clearance:
+~7.4x short / ~9.8x long (worst observed MAE 8.11% / 5.43%). ABOVE clearance,
+liquidation acts as an intrabar hard stop the (close-based, state-stop) backtest
+never modeled -- the measured strategy no longer exists at that leverage; e.g. at a
+venue-max 20x (mm 2.5%, liq ~ +/-2.5%) the p99 MAE band (2.4-4.5%) implies routine
+noise knockouts. Below clearance, per-position isolated leverage with a small posted
+margin is strictly risk-REDUCING vs 1x-all-in cross for the same notional (caps the
+catastrophe/gap loss at the posted margin) -- leverage is the OUTPUT of
+exposure-vs-margin choices, not a return dial. Sizing proper (vol-target /
+loss-limit / multi-instrument) remains future work at the scanner-integration stage.
+
 ### Slippage sensitivity band + tick-size asymmetry (venue-gap decomposition REVISED)
 
 **Tick-size discovery (verified via CDP symbolInfo): xyz MSTRUSDC.P mintick = 0.001;
