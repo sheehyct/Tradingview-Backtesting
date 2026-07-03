@@ -838,3 +838,64 @@ language anywhere above; the W1 top cells (R1E1/ctrlA/R1E3 at +34-40% @0.0125) r
 single-instrument, single-regime results whose gross edge disappears in the Dec-Feb prefix
 of the very same instrument. The system as characterized is a REGIME-LOCAL edge with a
 universal containment layer, not an all-weather strategy.
+
+## TVB-6 (2026-07-03): xyz backfill VERIFIED against Hyperliquid venue candles
+
+Resolves TVB-5 surprise 1 (the open question gating every xyz number). Method: pull HL
+candles for `xyz:MSTR` from the public info API (`candleSnapshot`), export the TV
+`HIP3XYZ:MSTRUSDC.P` series via CDP (`scripts/tv_bars.mjs`, new), compare OHLCV
+bar-by-bar on the timestamp intersection. Reproduce with
+`uv run python analysis/verify_xyz_backfill.py` against the committed evidence
+(`analysis/reference/tvb6_*.json`, 7 files). NOTE: the evidence is TIME-PERISHABLE --
+HL serves only the most-recent ~5000 candles per interval (15m floor 2026-05-12, 1h
+floor 2025-12-07 at pull time), so these raw pulls cannot be re-fetched later; the
+committed JSONs are the reproducibility.
+
+**API floor facts (pulled 2026-07-03 ~20:00Z):** HL 4h/1d are UNCAPPED and start
+2025-12-02 -- the venue's actual listing date, which the TV backfill start matches
+exactly. TV's first 60m bar (Dec 2 15:00Z) equals HL's first 4h candle (12:00Z bucket)
+on all four fields AND volume (6365.513), i.e. first trades occurred 15:00-16:00Z and
+TV is missing nothing at the start. All HL series are gap-free (placeholder candles on
+zero-trade intervals); TV omits zero-trade bars instead (behavior difference, not data
+loss).
+
+**Comparison results (all five checks; per-field float-exact match rates):**
+
+| check | window | overlap | all-4-exact | vol-match | max rel err |
+|---|---|---|---|---|---|
+| 15m native vs HL 15m | May12->Jul3 | 4,971 | 98.73% | 99.92% | 3.7e-03 |
+| 60m native vs HL 1h | Dec7->Jul3 | 4,989 | 97.41% | 99.92% | 2.7e-02 |
+| 1D native vs HL 1d | Dec2->Jul3 (full) | 214 | 85.05% (opens 100%, closes 99.5%) | 98.6% | 2.7e-02 |
+| TV60m->4h vs HL 4h | Dec2->Dec7 hole | 30 | 96.67% | 100% | 4.0e-04 |
+| TV15m->60m internal | Dec2->Jul3 (full) | 5,103 | 99.98% | 99.98% | 1.9e-04 (live bar) |
+
+60m diff rates are the SAME in the Dec-Feb chop (97.47%) and the Feb-Jul trend (97.36%)
+-- no regime-dependent data-quality issue.
+
+**Residuals, fully characterized:** (a) 39/40 HL-only 15m bars are zero-trade
+placeholders; exactly ONE traded bar is missing from TV (2026-06-28 16:00Z, 25 trades,
+vol 323.3 -- reappears in the 60m volume diff to the decimal: a one-off TV ingestion
+blip). (b) The non-exact bars are wick-level: TV's high/low is consistently slightly
+MORE extreme than HL's candle (worst single case 2026-01-04: TV day-high 172.65 vs HL
+167.95, 2.7%) -- direction-consistent with HL's snapshot scrubbing/rebuilding a few
+extreme prints that TV's live ingest kept. (c) Last-bar diffs are live-bar snapshot
+timing, not data. (d) Honest residual: the PRE-May-12 15m subdivision cannot be checked
+natively (HL 15m cap); it is pinned by the internal 15m->60m aggregation being exact
+against the HL-verified 60m series INCLUDING volume -- fabricating subdivisions that
+aggregate float-exactly to venue OHLCV+volume is not a plausible failure mode.
+
+**VERDICT: the TV xyz backfill is genuine Hyperliquid venue data.** The TVB-5 venue gap
+(shared window ctrlB @0.0125: xyz +80.17% vs OKX -9.05%) is therefore REAL price-behavior
+difference between the venues, not a data artifact -- OKX was the CONSERVATIVE proxy for
+the target venue. Impact bound for the residuals: wick diffs touch ~1.3-2.6% of bars at
+<0.5% magnitude (one 2.7% outlier); TV-more-extreme wicks marginally over-trigger stop
+entries in both directions -- orders of magnitude too small to produce an 89pp gap.
+Per the Codex TVB-5 wording rule this verdict is sample-scoped: verified for MSTRUSDC.P
+over Dec-2->Jul-3; a new xyz instrument or a TV feed change re-opens the question (and
+SP500USDC.P has no backfill to verify -- its history only accrues from 2026-07-03).
+
+WHY the venues differ that much is a separate (mechanism) question -- NOT answered by
+this verification; candidates: wick/basis structure on the thinner oracle-priced book
+interacting with stop-entry fills, and venue-local liquidity events. Tooling: NEW
+`scripts/tv_bars.mjs` (CDP main-series OHLCV export), NEW `analysis/verify_xyz_backfill.py`
+(+4 tests; suite 13/13).
