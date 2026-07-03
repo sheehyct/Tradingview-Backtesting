@@ -22,7 +22,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `{pending push -- pin b99dccb^..HEAD after session-end push}` |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `b99dccb^..d622be1` (= `6c855cf..d622be1`; verified: 57 files) |
 
 RANGE-PIN RULE (Codex TVB-4 finding 1): git ranges EXCLUDE the left endpoint;
 the caret in `b99dccb^..` keeps the first session commit (ratification +

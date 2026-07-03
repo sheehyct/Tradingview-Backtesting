@@ -96,9 +96,9 @@ all sanity gates green).
 > docs/reviews/REVIEW_REQUEST.md (the pointer) and docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: `b99dccb^..{head}` on `main` -- pinned to concrete shas after push
-  (see REVIEW_REQUEST.md for the final range). RANGE-PIN RULE applied: the caret keeps
-  `b99dccb` (ratification + review fold-in) inside the reviewed diff.
+- Commits to review: `b99dccb^..d622be1` on `main` (= `6c855cf..d622be1`; sanity-checked:
+  `git diff --name-status` lists all 57 session files). RANGE-PIN RULE applied: the caret
+  keeps `b99dccb` (ratification + review fold-in) inside the reviewed diff.
 - Scope / what changed: S8 ratification write-up; Codex TVB-4 fold-in (tv_dump
   closed-basis fix, range-pin rule, repro dumps); pre-registered 3x3 TF-set sweep across
   4 samples (35 runs) + results reading; window_compound analysis tool + tests.
