@@ -455,3 +455,49 @@ with the magnifier flag ON, nudging commission to 0.02% recomputed to +31.5%, an
 5. Operational: trade/fill timestamps stay bar-granular with the magnifier ON (all 320 A
    entries stamp on exact hour boundaries), so fill times CANNOT be used to audit whether
    the magnifier applied -- use the recompute-control method above.
+
+## TVB-4 (2026-07-03): preflight 2 -- kind-window bug-test (charter S1, brittle-on-purpose)
+
+Protocol fixed a-priori: (1) pick the obviously-favorable window from PRICE DATA ALONE
+(sliding-window scan of the 60m closes, no strategy output consulted); (2) at ZERO fee the
+gate's trades inside that window must be unmissably profitable and directionally coherent,
+else hunt a logic bug before generating sweep data. Windows found by the scan:
+KIND-UP = Apr 12 13:00Z -> Apr 22 13:00Z (+43.8% B&H, max in-window DD 7.9%), with core
+Apr 12-17 (+36.0%, DD 3.9%); KIND-DOWN mirror = Jun 16 10:00Z -> Jun 26 10:00Z (-36.5% B&H).
+Method: zero-fee full runs; per-trade percents from `reportData().trades` compounded over
+trades ENTERED in-window (100%-equity sizing makes product(1+pp) the right aggregate;
+validated full-list: B 81.6% == reported net; A 50.4% vs 49.5% incl. open trade).
+
+| Control | Window | Trades (L/S) | Win % | Compounded | Longs | Shorts |
+|---|---|---|---|---|---|---|
+| A | KIND-UP Apr12-22 | 35 (34/1) | 37% | **+20.2%** | +20.6% | -0.3% |
+| A | KIND-UP-CORE Apr12-17 | 20 (19/1) | 50% | **+24.7%** | +25.1% | -0.3% |
+| A | KIND-DOWN Jun16-26 | 36 (0/36) | 28% | **+8.9%** | -- | +8.9% |
+| B | KIND-UP Apr12-22 | 211 (108/103) | 40% | **+19.5%** | +26.0% | -5.1% |
+| B | KIND-UP-CORE Apr12-17 | 106 (58/48) | 42% | **+23.7%** | +21.3% | +2.0% |
+| B | KIND-DOWN Jun16-26 | 220 (95/125) | 37% | **+15.7%** | -0.1% | +15.8% |
+
+**VERDICT: PASS -- no logic-bug signature.** Both controls are unmissably positive zero-fee
+in the kind windows, and the direction gating is coherent where it matters most: A takes
+ZERO longs inside the -36.5% crash and 34-of-35 longs inside the rally -- the FTFC
+directional agreement is real, not an artifact.
+
+**Findings (surprises are deliverables):**
+1. **A's down-capture is structurally weak, and it is NOT a fee story.** +8.9% captured of
+   a -36.5% crash (25% capture) vs +24.7% of a +36% rally core (69% capture), at ZERO fee,
+   in the kindest possible short regime, 28% win rate. The full-run long-heavy skew
+   (long +34.7% / short +3.9%) is now visible as a structural short-side weakness --
+   plausibly the close-based state-stop giving back violent counter-trend bounces, which
+   crashes have more of. Question to carry, not verdict.
+2. **B spends ~half its kind-window trades FIGHTING the trend.** In the Apr rally B took
+   108 longs (+26.0%) and 103 shorts (-5.1%); the 60/30/15 set flips short on every
+   pullback deep enough to crack the 60m open. Direct, data-generated motivation for the
+   charter 3.3 two-layer design: an HTF regime layer would have suppressed ~103
+   counter-trend shorts inside a +43.8% rally. (Generated for a different question --
+   noted, not selected on.)
+3. Win rates stay 28-50% even in the kindest windows; the edge is the ~2:1 win/loss
+   asymmetry, not hit rate -- normal for stop-entry trend-following, worth remembering
+   when a sweep row shows a "bad" win rate.
+4. Method note for future probes: in `reportData().trades`, direction is `e.tp`
+   ("le"/"se"); `e.b` is a BAR INDEX (an initial all-long misread came from decoding
+   `e.b` as a buy flag -- caught by the impossible zero-shorts-in-a-crash split).
