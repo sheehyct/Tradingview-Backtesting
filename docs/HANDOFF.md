@@ -5,6 +5,143 @@
 
 ---
 
+## Session TVB-6: xyz backfill VERIFIED + adopted; venue gap decomposed; solvency + slippage gates; governor v1->v2 KEPT (COMPLETE)
+
+**Date:** 2026-07-03
+**Status:** COMPLETE -- every startup priority done plus the full governor arc.
+Fable 5 solo session (verification, analysis, design-with-user, Pine build, ablation).
+
+### Codex TVB-5 review -- critical synthesis (RETURNED, APPROVE-WITH-NITS, 2 LOW)
+Both findings AGREED and actioned same-session: (1) tv_dump ordering assumption ->
+fail-loud assertions (list length == closed+open, entry-time ordering) + raw exit
+timestamp (`xt`) preserved per row; verified passing on every live dump. (2)
+"universal damage containment" -> sample-scoped wording used in all new datasheet
+sections and this synthesis. The audit's independent re-derivations (venue-gap
+arithmetic, S8 ~0.00225%/trade, pre-registration integrity) all matched our record;
+nothing disputed.
+
+### What was accomplished
+1. **xyz TV backfill VERIFIED = genuine HL venue data** (priority 1, the gate).
+   HL candles pulled for `xyz:MSTR` (API floors: 15m 2026-05-12, 1h 2025-12-07
+   capped at ~5000; 4h/1d UNCAPPED from the 2025-12-02 listing = TV backfill start).
+   Bar-by-bar: 97-99% float-exact OHLCV INCLUDING VOLUME at 15m/60m/1D; Dec2-Dec7
+   hole closed via 4h aggregation (29/30 exact, 30/30 volume); pre-May 15m pinned by
+   exact internal 15m->60m aggregation (5102/5103). Residuals characterized (wick
+   scrub pattern TV-more-extreme, one missing traded bar Jun-28 reconciling to the
+   decimal, placeholder asymmetry). Evidence TIME-PERISHABLE -> 7 raw files committed
+   (`tvb6_{tv,hl}_xyzMSTR_*.json`); reproduce via
+   `uv run python analysis/verify_xyz_backfill.py` (NEW, +4 tests).
+2. **Venue gap DECOMPOSED -- the TVB-5 surprise is ~half modeling artifact.**
+   Mechanism peek: venues near-identical (close corr 0.9923; cum close path -18.00
+   vs -18.09) -> the 89pp ctrlB gap needs only ~2.5bp/trade. Then the tick-size
+   discovery: OKX mintick 0.01 vs xyz 0.001 -- the "slippage = 1 tick/fill"
+   convention charged OKX ~10x more per fill. Equal-$ comparison (xyz s10): closes
+   ~49% of the R1E1 gap (+83.07 -> +61.78 vs OKX +39.88) and ~61% of ctrlB's.
+   Remaining gap = real venue texture; knife-edge conclusion REINFORCED (churn-config
+   sign = venue-texture noise). NEW xyz CONVENTION: report s1 AND s10, never s1 alone.
+3. **xyz MSTRUSDC.P ADOPTED as primary MSTR chart** (DECIDED with user; target venue
+   + deeper 15m history; OKX = standing sign check). Re-stage regression GREEN
+   (ctrlB/R1E1 reproduce TVB-5 WV within tail drift); NEW xyz-native 60m rows:
+   ctrlA 474tr +65.62 @0 / +47.10 @0.0125; R1E3 408tr +61.92 / +46.21. Slices:
+   modest same-sign venue lift on slow cells; **kill-regime is TURNOVER-DEPENDENT**
+   (Dec-Feb: ctrlA +2.12 / R1E3 +4.63 NET through the window that took ctrlB to
+   -40.09 and R1E1 to -12.61) -- refines TVB-5 SP6.
+4. **Short-leg MAE / 1x-cash solvency CLEARED** (Codex TVB-3 finding 2; skill
+   position-sizing-risk invoked). HL margin model (maxLev 10 -> mm 5%): 1x short liq
+   at +90.5%; worst observed short MAE across 3,225 shorts = 8.11%; zero breaches
+   even at the 5x threshold; max survivable short lev at sample-worst ~7.4x (long
+   ~9.8x). TV margin-0/0 = fair model of 1x cash. NEW `analysis/trade_mae.py`
+   (+4 tests); tv_dump upgraded to TVB-6 trade format (ep/xp/ddp/rnp). Leverage
+   discussion with user recorded: isolated leverage = knock-out option; below
+   clearance it is risk-REDUCING vs 1x-all-in cross; above clearance the backtest no
+   longer describes the strategy. All %s in the record are 1x.
+5. **Slippage sensitivity band** {1,10,25,50} ticks pre-registered (SB1-SB4) then
+   run: ctrlB +7.94/-37.56/-74.92/-94.52; R1E1 +59.96/+34.76/+1.29/-37.07; ctrlA
+   +47.10/.../+4.79; R1E3 +46.21/.../+9.19. SB2 refuted on magnitude (100%-equity
+   compounding amplifies linear cost); 60m cells positive even at 50t.
+6. **Re-entry governor (charter S8) -- designed WITH user, v1 -> v2, KEPT.**
+   Zero-parameter LEVEL RATCHET (losing exit -> same-direction re-entry only beyond
+   the failed trigger). v1 reset (winning exit OR completed opposite trade) exposed
+   **reset starvation under stand_aside** (opposite fills blocked -> one failed long
+   ratchets out a whole regime episode; R1E1 1302->488 trades, gross +121->+27) --
+   the two-layer baseline caught what the single-layer control hid. v2 reset =
+   continuity event (exec-gate FULL OPPOSITE alignment), fresh pre-registration
+   (V1-V4), re-run: R1E1+gov2 **+71.80 @0.0125 s1 / +45.71 s10** vs ungoverned
+   +59.96/+34.76, higher gross (+134.8 vs +121.5 @0), better PF/DD; R1E3 inert
+   (+0.84pp). **Pre-registered keep-rule MET -> v2 ratchet KEPT for the two-layer
+   baseline** (input default stays off = regression anchor). Both regressions
+   byte-identical (4,308-trade prefix match) at pineVersion 19 and 20.
+7. **Underwater reality check (user flag, quantified):** ctrlB @0.0125 spent 204/213
+   days below HWM (recrossed Jul-1 -- the +8% headline IS the final surge); R1E1
+   149d; R1E1+gov2 124d; slow cells ~70d. Standing caveat in the datasheet: the
+   underwater profile, not the endpoint, is the honest risk picture; everything
+   remains one instrument, one 7-month path.
+8. **Tooling/ops:** NEW `scripts/tv_bars.mjs` (CDP OHLCV export). tv_dump TVB-6
+   format + assertions. Codex nit 1 done; nit 2 wording applied throughout. Jackson
+   MCP Monaco finder FIXED (`27757bc` in tradingview-mcp-jackson): TV 2026-07 ships a
+   fiber-less DECOY `.monaco-editor.pine-editor-monaco` node that dead-ended the
+   first-match finder; multi-candidate fiber walk now; MCP picks it up on restart
+   (this session used a direct-CDP bridge; the header "Add to chart" text button is
+   gone -- use the circular-arrows update icon).
+
+### Context for next session
+- TVB-7 job 1 = governor v2 cross-instrument re-verification (OKX MSTR + BTC
+  spot-check): is the lift structural or xyz-path-local? Keep-verdict is provisional.
+- USER DIRECTION: port to VectorBT Pro as a BREADTH engine (many symbols, longer
+  history, incl. regular equities as a DIFFERENT regime family). TV = fidelity
+  anchor. HARD GATE: VBT must reproduce TV xyz cells trade-for-trade on the committed
+  venue-verified bars before any VBT number enters the record. Plan mode for the
+  design. See memory `project-vbt-breadth-engine`.
+- Cost realism still open: venue-absolute slippage (live L2 sampling) + perp funding.
+- NO deployability language anywhere: regime-local edge + containment + governor,
+  single-sample; the system is one layer of a larger picture (HIP-3 screener attach
+  path -- memory `project-one-layer-screener-attach`).
+
+### Files created/modified
+- NEW `analysis/verify_xyz_backfill.py`, `analysis/trade_mae.py` + tests (suite 17/17).
+- NEW `scripts/tv_bars.mjs`; MOD `scripts/tv_dump.mjs` (TVB-6 format + assertions).
+- MOD `pine/baseline_continuity.pine` (governor v2; slot pineVersion 20.0; id map +1
+  shift: in_25 gov_mode, in_33 comm, in_34 slip, in_35/36 margins, in_42 magnifier).
+- NEW `analysis/reference/`: 7 backfill-evidence files (tvb6_{tv,hl}_*), 6 xyz-native
+  dumps (tvb6_WV_*), 12 slippage-band dumps (*_s{10,25,50}), 14 governor dumps
+  (*gov_*, *gov2_*).
+- MOD `docs/TVB2_control_AB_rerun.md` (six TVB-6 sections -- the session's core record).
+- MOD `docs/HANDOFF.md`, `docs/reviews/REVIEW_REQUEST.md`, `.session_startup_prompt.md`.
+- Sibling repo tradingview-mcp-jackson: `27757bc` (Monaco finder fix; local only).
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range below)
+> and write a verbatim assessment to docs/reviews/tvb6-codex-audit.md. See
+> docs/reviews/REVIEW_REQUEST.md (the pointer) and docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: `43fb973^..{head}` on `main` (pinned after push; RANGE-PIN RULE:
+  caret keeps the first session commit -- the review-return flip -- in the diff;
+  sanity-check `git diff --name-status`). Sibling repo tradingview-mcp-jackson
+  `27757bc` at `C:\Strat_Trading_Bot\tradingview-mcp-jackson` -- local transport only.
+- Scope / what changed: xyz backfill verification vs HL venue candles (+evidence);
+  venue-gap decomposition (tick-size artifact); xyz adoption + native rows; MAE/
+  solvency gate; slippage band; re-entry governor v1->v2 (Pine) + ablations; tv_dump
+  assertions; Monaco finder fix.
+- Focus areas (scrutinize these): (1) verify_xyz_backfill method -- is 97-99%
+  float-exact + aggregation closure SUFFICIENT for "genuine venue data", and is the
+  pre-May-12 15m residual honestly bounded? (2) the tick-size decomposition -- is
+  "xyz s10 == OKX s1 in $/fill" a sound equalizer, and is "half artifact / half
+  texture" over-claimed? (3) trade_mae.py -- MAE-vs-entry off bar extremes
+  (conservative on the entry bar?), HL liquidation model (mm = 1/(2*maxLev)),
+  max-survivable-leverage inverse; (4) the governor Pine -- trigger capture
+  (high[1]+tick on the fill bar), same-bar ordering of loss-detection vs alignment
+  reset, closedtrades.profit semantics (net of fees?), any repaint path; (5) the
+  v1->v2 amendment epistemics -- mechanism-driven fix or post-hoc tuning? was the
+  keep-rule applied as pre-registered? (6) byte-identity regressions as evidence
+  (prefix match method). Standing: request.security lookahead (still none -- local
+  ta.valuewhen only), model fidelity, fee/turnover math.
+- Reviewed by: pending
+- Findings: (blank until docs/reviews/tvb6-codex-audit.md exists)
+
+---
+
 ## Session TVB-5: S8 ratified; TF-set sweep across 4 samples; regime layer = containment; venue gap flagged (COMPLETE)
 
 **Date:** 2026-07-03

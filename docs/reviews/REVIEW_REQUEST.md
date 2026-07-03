@@ -10,80 +10,91 @@
 
 ## Status
 
-- Status: RETURNED (2026-07-03, local Codex CLI -- APPROVE-WITH-NITS, 2 LOW;
-  audit at `docs/reviews/tvb5-codex-audit.md`; critical synthesis in the TVB-6
-  HANDOFF entry)  <!-- REQUESTED | RETURNED (audit file written) -->
-- Session under review: TVB-5 -- S8 ratified; pre-registered 3x3 TF-set sweep
-  across 4 samples (35 runs); regime layer characterized as universal damage
-  containment; xyz-vs-OKX venue gap flagged (unverified)
+- Status: REQUESTED  <!-- REQUESTED | RETURNED (audit file written) -->
+- Session under review: TVB-6 -- xyz backfill verified vs HL venue candles + adopted
+  as primary; venue gap decomposed (tick-size artifact ~half); MAE/solvency cleared;
+  slippage band; re-entry governor v1->v2 built + KEPT by pre-registered rule
 - Requested: 2026-07-03
-- Write the audit to: `docs/reviews/tvb5-codex-audit.md` (copy
+- Write the audit to: `docs/reviews/tvb6-codex-audit.md` (copy
   `docs/reviews/_TEMPLATE.md`)
 
 ## Commits to review
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `b99dccb^..d622be1` (= `6c855cf..d622be1`; verified: 57 files) |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `{pending push -- pinned by the session-end follow-up commit}` |
+| tradingview-mcp-jackson (sibling, LOCAL transport only) | `C:\Strat_Trading_Bot\tradingview-mcp-jackson` | `27757bc` (Monaco finder multi-candidate fix) |
 
 RANGE-PIN RULE (Codex TVB-4 finding 1): git ranges EXCLUDE the left endpoint;
-the caret in `b99dccb^..` keeps the first session commit (ratification +
-review fold-in) inside the reviewed diff. Sanity-check with
+pin `{first}^..{head}` (the caret keeps the first session commit -- the TVB-5
+review-return flip `43fb973` -- inside the reviewed diff). Sanity-check with
 `git diff --name-status <range>`.
 
 ## Read first (in this order)
 
 1. `CLAUDE.md` -- epistemic stance + backtest traps (Sections 2, 6).
 2. `docs/ATLAS_Timeframe_Continuity_Charter.md` -- Section 0 + Section 5
-   (exploration protocol) + Section 6 (the "correlated follower" failure mode,
-   observed empirically this session).
-3. `docs/HANDOFF.md` -- the TVB-5 entry at the top (what was done and why).
-4. `docs/TVB2_control_AB_rerun.md` -- the TVB-5 sections at the end:
-   ratification, reproducibility re-run, sweep PRE-REGISTRATION, sweep RESULTS
-   (tables, scorecard, surprises).
+   (exploration protocol) + Section 8 (the re-entry governor open question this
+   session answers provisionally).
+3. `docs/HANDOFF.md` -- the TVB-6 entry at the top (what was done and why).
+4. `docs/TVB2_control_AB_rerun.md` -- the six TVB-6 sections at the end: backfill
+   verification, mechanism peek + tick-size decomposition, xyz-native rows,
+   MAE/solvency, slippage band, governor v1/v2 pre-registrations + results.
 5. `docs/EXTERNAL_REVIEW_PROTOCOL.md` -- the reviewer contract.
 
 ## Scope / what changed
 
-S8 ratification (stand_aside; reg_mode stays input, default off). Codex TVB-4
-fold-in: `scripts/tv_dump.mjs` closed-basis L/S fix; range-pin rule in
-session-end; all six TVB-4 ablation rows re-run + committed (`tvb5_R*.json`).
-Pre-registered 3x3 timeframe-set sweep (regime {M/W/D, W/D/12h, D/12h/4h} x
-exec {60/30/15, 240/60/15, 240/120/60}, all stand_aside) across four samples:
-OKX MSTR Feb-Jul grid; OKX BTC 15m Dec-Jul; OKX BTC 60m 2024-2026; xyz
-MSTRUSDC.P Dec-Jul (venue comparison). NEW `analysis/window_compound.py`
-(+tests): window-sliced product(1+pp) compounding over dump trade lists.
-29 sweep dumps committed under `analysis/reference/tvb5_*`.
+xyz TV backfill cross-validated against Hyperliquid venue candles (97-99%
+float-exact OHLCV incl. volume; 7 TIME-PERISHABLE evidence files committed --
+HL serves only ~5000 recent candles/interval, these pulls cannot be re-fetched).
+Venue gap decomposed: OKX mintick 0.01 vs xyz 0.001 made the "1 tick/fill"
+slippage convention charge OKX ~10x more per fill; equal-$ comparison closes
+~half the gap. xyz MSTRUSDC.P adopted as primary MSTR chart (user decision).
+Short-leg MAE/1x-cash solvency cleared (worst short MAE 8.11% vs +90.5% HL liq
+threshold; `analysis/trade_mae.py`). Slippage band {1,10,25,50} ticks. Re-entry
+governor: zero-parameter level ratchet (Pine, gov_mode input default off); v1
+exposed reset starvation under stand_aside (recorded as a finding); v2
+(exec-gate full-opposite-alignment reset) KEPT by the pre-registered keep-rule
+(R1E1+gov2 +71.80/+45.71 vs ungoverned +59.96/+34.76 @0.0125 s1/s10).
+`scripts/tv_dump.mjs` fail-loud assertions + enriched trade rows (et/xt/ep/xp/
+ddp/rnp). NEW `scripts/tv_bars.mjs`, `analysis/verify_xyz_backfill.py`,
+`analysis/trade_mae.py` (+8 tests; suite 17/17).
 
 ## Focus areas (scrutinize these)
 
-1. `analysis/window_compound.py` method validity: is product(1+pp) over CLOSED
-   trades ENTERED in-window the right aggregate under 100%-equity sizing? Open
-   -trade exclusion, half-open window semantics, ms timestamps.
-2. The tv_dump closed-basis assumption (`scripts/tv_dump.mjs`): is
-   `reportData().trades` guaranteed entry-ordered with open positions at the
-   END, so `first totalTrades entries == closed set`?
-3. The sweep READING (datasheet TVB-5 RESULTS): are "universal damage
-   containment" and "regime speed is monotone-destructive" over-claimed from
-   9 cells x 4 samples? Is the anti-selective fast-regime mechanism read sound?
-4. The venue-gap surprise: is the shared-window xyz-vs-OKX comparison
-   methodologically sound (same fee model, method-matched compounding, trade
-   counts 2708 vs 2815)? Is the unverified-provenance caution adequate, or is
-   any language already over-trusting the xyz backfill?
-5. Pre-registration integrity: the in-flight amendments (SP500USDC.P no-backfill
-   -> BTC fallback per the pre-registered rule; W-venue upgrade to full-window
-   runs + analytical slicing) -- justified deviations or result-driven drift?
-6. The S8 ratification arithmetic (~zero-expectancy suppressed stream:
-   1.8470/1.7663 over ~1,892 trades vs 0.025% round-trip cost).
+1. `analysis/verify_xyz_backfill.py` method: is 97-99% float-exact on the
+   timestamp intersection + 4h closure + internal 15m->60m aggregation
+   SUFFICIENT for "genuine venue data"? Is the pre-May-12 15m residual (native
+   HL 15m capped) honestly bounded? Are the wick-diff residuals (TV more
+   extreme, worst 2.7% one bar) correctly judged immaterial?
+2. The tick-size decomposition: is "xyz 10 ticks == OKX 1 tick in $/fill" a
+   sound equalizer given near-unity price ratio? Is "roughly half artifact,
+   half texture" over-claimed from two configs?
+3. `analysis/trade_mae.py`: MAE vs ENTRY off bar extremes (entry-bar extreme may
+   precede the intrabar entry -- is "conservative" correct in BOTH directions?);
+   HL liquidation model r* = (1+L)/(L*(1+mm)), mm = 1/(2*maxLev); the
+   max-survivable-leverage inverse; the cross-check vs TV's per-trade ddp.
+4. The governor Pine (`pine/baseline_continuity.pine`): trigger capture as
+   high[1]/low[1] +/- tick on the fill bar (is that ALWAYS the live stop's
+   level?); same-bar ordering (loss-detection then alignment reset); does
+   `strategy.closedtrades.profit` include commission (the "scratch = losing"
+   boundary); any repaint/lookahead path introduced.
+5. v1 -> v2 amendment epistemics: mechanism-driven interaction fix (reset
+   starvation under stand_aside) or post-hoc tuning? Was the v2 keep-rule
+   applied exactly as pre-registered (beat ungoverned at BOTH s1 and s10)?
+   Are the v1 results honestly retained?
+6. Byte-identity regression method: is the 4,308-trade prefix match (et/dir/pp)
+   strong evidence the governor-off path is unchanged across pineVersion
+   18 -> 19 -> 20?
 
 Standing priorities on ANY TVB review: `request.security` lookahead in Pine
-(note: this strategy uses NO request.security -- local `ta.valuewhen` recon;
-Pine unchanged this session), model fidelity (is the backtest measuring what it
-claims?), overfitting / sample-vs-structural reasoning, fee/turnover math.
+(note: still NONE -- local `ta.valuewhen` reconstruction only), model fidelity
+(is the backtest measuring what it claims?), overfitting / sample-vs-structural
+reasoning, fee/turnover math.
 
 ## Output contract
 
-- Verbatim audit -> `docs/reviews/tvb5-codex-audit.md` (template:
+- Verbatim audit -> `docs/reviews/tvb6-codex-audit.md` (template:
   `docs/reviews/_TEMPLATE.md`, skeptic preamble included).
 - Be concrete; cite `file:line` and Pine/TV docs. Never paste a
   secret/IP/account value into a review file.

@@ -68,14 +68,14 @@ def aggregate(bars: dict[int, list[float]], step_ms: int) -> dict[int, list[floa
     """
     out: dict[int, list[float]] = {}
     for ts in sorted(bars):
-        o, h, l, c, v = bars[ts][:5]
+        o, h, lo, c, v = bars[ts][:5]
         bucket = ts - (ts % step_ms)
         cur = out.get(bucket)
         if cur is None:
-            out[bucket] = [o, h, l, c, v]
+            out[bucket] = [o, h, lo, c, v]
         else:
             cur[1] = max(cur[1], h)
-            cur[2] = min(cur[2], l)
+            cur[2] = min(cur[2], lo)
             cur[3] = c
             cur[4] += v
     return out

@@ -8,8 +8,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "analysis"))
 from verify_xyz_backfill import HOUR_MS, aggregate, diff_stats
 
 
-def _bar(o, h, l, c, v=0.0):
-    return [o, h, l, c, v]
+def _bar(o, h, lo, c, v=0.0):
+    return [o, h, lo, c, v]
 
 
 def test_aggregate_folds_ohlcv_within_bucket():
