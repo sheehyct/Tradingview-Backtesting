@@ -644,3 +644,197 @@ TVB-4 open-inclusive split, as expected. Trade-list side-note for future probes:
 position appears in `reportData().trades` as a pseudo-closed row whose exit is a
 mark-to-market at a WALL-CLOCK ms timestamp (not a bar boundary); closed set = first
 `performance.all.totalTrades` list entries (entry-ordered).
+
+## TVB-5 (2026-07-03): priority-4 timeframe-set sweep -- PRE-REGISTRATION (locked before any run)
+
+Design chosen a-priori WITH the user (charter S5/S8.3); sets are structural candidates and
+will NOT be tuned on results. Ablation vs controls, not a tournament: no winner is crowned;
+the spread, the mechanism reads on poor cells, and flagged surprises are the deliverables.
+
+**Grid (3 regime x 3 exec, all reg_mode=stand_aside per the ratified S8 rule):**
+
+| code | Regime set | structural reason (fixed a-priori) |
+|---|---|---|
+| R1 | M/W/D | incumbent calendar-institutional anchor (baseline regime) |
+| R2 | W/D/12h | 24/7-native: drops the near-static month, adds the 12h UTC half-day; prediction: less P5 tax, more chop admitted |
+| R3 | D/12h/4h | fast regime; stress-tests S8/P5 from the other side; prediction: converges toward B-alone |
+
+| code | Exec set (chart TF = lowest gate TF) | structural reason |
+|---|---|---|
+| E1 | 60/30/15 (15m chart) | incumbent Control-B execution |
+| E2 | 240/60/15 (15m chart) | span stretched upward 16:4:1; does a stricter exec span SUBSTITUTE for the regime layer? |
+| E3 | 240/120/60 (60m chart) | A-like turnover with the two-layer structure intact; most fee-robust column expected |
+
+**Windows / passes (fixed before results):**
+- **W1** OKX:MSTRUSDT.P, Feb 25 floor -> present: full grid x {0, 0.0125} fees + fresh
+  Control-A re-read (60m). R1E1 cells already dumped (tvb5_R1a/R1c above).
+- **W2 (instrument robustness)** Trade[XYZ] HIP-3 Hyperliquid:SP500USDC.P, 15m, same
+  calendar window: B-alone + R1E1 baseline @ {0, 0.0125}; remaining 15m grid cells
+  (R{1,2,3} x E{1,2}) @0.0125; Control A @0.0125. SELECTION RULE (a-priori): use
+  SP500USDC.P if its 15m history floor is on or before 2026-03-15; else fall back to
+  OKX:BTCUSDT.P. Index-class perp on the TARGET venue = maximum instrument diversity
+  available there.
+- **W-venue (fidelity check, NEW -- HIP-3 listings hit TV 2026-07-02)** Trade[XYZ]
+  MSTRUSDC.P 15m, same window: B-alone + R1E1 stand_aside @0.0125 (+@0) vs the OKX
+  MSTRUSDT.P equivalents. Directly measures the standing "OKX->HL venue gap" caveat on the
+  SAME underlying. Expectation: same sign/direction, different magnitude; a large gap
+  QUANTIFIES the caveat, a small gap validates the proxy.
+- **W3 (time robustness)** OKX:BTCUSDT.P, 60m chart (floor expected ~1.5y back):
+  Control A + R{1,2,3} x E3 @0.0125 (+@0 for decomposition); ONE size_down spot-check on
+  R1E3 (S8 decision-robustness in a different sample, NOT a tuning pass). The named
+  kill-regime hunt (sharp alternating trends / extended chop sub-windows) lives here.
+
+**Pre-registered predictions:**
+- SP1: regime-speed gradient -- trade count rises R1 -> R2 -> R3; the P5 late-entry tax
+  shrinks in the same order; R3 lands closest to B-alone.
+- SP2: exec-span substitution -- E2 cuts trades vs E1, with SMALLER marginal benefit under
+  slower regimes (layer redundancy visible as sub-additive improvements).
+- SP3: E3 is the most fee-robust column (lowest fee sensitivity 0 -> 0.0125).
+- SP4: the 9-cell spread at real fee is WIDE and the incumbent R1E1 does NOT top the table;
+  a tight cluster of great results is itself a red flag to investigate.
+- SP5: W2 preserves directions but shifts magnitudes substantially; tight replication would
+  itself be suspicious (shared macro window).
+- SP6: W3 contains at least one sub-regime where the two-layer UNDERPERFORMS its control --
+  locating the kill-regime is a deliverable, not a failure.
+
+Dump naming: `analysis/reference/tvb5_{W1|W2|WV|W3}_R{r}E{e}_{fee}.json` (fee 0 | 0086 |
+0125); controls `tvb5_{W}_ctrlA_{fee}.json` / `tvb5_{W}_ctrlB_{fee}.json`. Sanity gates
+EVERY run: marginCalls 0, open trades <= 1, history at floor before reading, closed-basis
+L/S. Fees: commission only at 0.0086/0.0125 percent per fill + slippage 1 tick/fill (the
+TVB-3 convention); NEVER report a single-fee verdict.
+
+## TVB-5 (2026-07-03): sweep RESULTS (35 runs, all sanity gates green)
+
+**Window discovery notes (pre-registration amendments, justified in-flight):**
+Trade[XYZ] SP500USDC.P has NO TV backfill (feed starts 2026-07-03 18:00Z -- listed on the
+dex ~yesterday) -> the pre-registered fallback fired, W2 = OKX:BTCUSDT.P. But xyz
+**MSTRUSDC.P HAS deep backfill** (19,772 15m bars to 2025-12-02) -> W-venue upgraded: full
+7-month runs + analytical window-slicing via `analysis/window_compound.py` (per-trade pp is
+size-invariant; product(1+pp) over in-window entries -- the validated kind-window method;
+unit-tested, 9/9 suite green). BTC 15m floors 2025-12-01 (~20.6k bar cap); BTC 60m reaches
+**2024-01-01** (2.5 years) -- W3 got a far longer look-back than planned.
+
+### W1 -- OKX:MSTRUSDT.P grid (Feb 25 10:00Z -> Jul 3 ~18:00Z)
+
+| cell | chart | trades (L/S closed) | @0 | @0.0125 | PF / DD / Sharpe @0.0125 |
+|---|---|---|---|---|---|
+| ctrlB (B-alone) | 15m | 2815 (1362/1453) | +83.84 | **-9.06** | 0.980 / 37.3 / -0.11 |
+| ctrlA (M/W/D/60) | 60m | 321 (168/153) | +50.03 | **+38.45** | 1.243 / 16.4 / 0.87 |
+| R1E1 (baseline) | 15m | 923 (488/435) | +76.18 | **+39.86** | 1.193 / 14.3 / 0.75 |
+| R1E2 | 15m | 824 (432/392) | +58.18 | +28.72 | 1.154 / 14.5 / 0.98 |
+| R1E3 | 60m | 277 (143/134) | +43.41 | +33.80 | 1.253 / 13.9 / 0.93 |
+| R2E1 | 15m | 1108 (545/563) | +62.08 | +22.85 | 1.093 / 14.6 / 0.75 |
+| R2E2 | 15m | 1035 (504/531) | +45.68 | +12.45 | 1.056 / 16.7 / 0.65 |
+| R2E3 | 60m | 342 (165/177) | +24.23 | +14.03 | 1.089 / 24.7 / 0.65 |
+| R3E1 | 15m | 1600 (795/805) | +13.33 | **-24.05** | 0.909 / 31.0 / -0.67 |
+| R3E2 | 15m | 1653 (821/832) | +16.88 | -22.70 | 0.917 / 29.9 / -0.66 |
+| R3E3 | 60m | 541 (261/280) | +7.27 | -6.32 | 0.970 / 31.4 / -0.21 |
+
+Spread at real fee: **-24.05 to +39.86** across 9 a-priori cells -- wide, as wanted.
+Regime-set columns are MONOTONE: R1 (M/W/D) > R2 (W/D/12h) > R3 (D/12h/4h) in every exec
+column, at both fees, on every risk metric.
+
+### W2 -- OKX:BTCUSDT.P 15m (Dec 1 -> Jul 3; instrument robustness)
+
+| cell | trades | @0 | @0.0125 | PF @0.0125 |
+|---|---|---|---|---|
+| ctrlB | 4835 | -11.82 | **-73.67** | 0.771 |
+| R1E1 | 1303 | +14.64 | **-17.23** | 0.899 |
+| R1E2 | 1170 | -- | -20.03 | 0.869 |
+| R2E1 | 1881 | -- | -33.24 | 0.824 |
+| R2E2 | 1763 | -- | -37.49 | 0.791 |
+| R3E1 | 2711 | -- | -44.05 | 0.829 |
+| R3E2 | 2795 | -- | -47.66 | 0.816 |
+
+Sub-window split (window_compound, @0.0125): ctrlB shared-window -52.3% / prefix -44.8%;
+R1E1 shared -11.5% / prefix -6.5%. **The strategy has NO edge on BTC in any tested
+stretch** -- B-alone is negative even at ZERO fee (-11.8%). Yet the regime-column ordering
+(R1 > R2 > R3) and the layer benefit (ctrlB -73.67 -> R1E1 -17.23) replicate exactly.
+
+### W3 -- OKX:BTCUSDT.P 60m, 2024-01-01 -> 2026-07-03 (2.5y; time robustness + kill-regime)
+
+| cell | trades | @0 | @0.0125 | PF / DD @0.0125 |
+|---|---|---|---|---|
+| E3-only (reg off) | 5212 | -- | **-90.43** | 0.805 / 90.7 |
+| R1E3 size_down | 4771 | -- | -68.10 | 0.852 / 69.2 |
+| R1E3 stand_aside | 1780 | -1.22 | **-36.71** | 0.907 / 44.7 |
+| R2E3 | 2552 | -25.69 | -60.74 | 0.853 / 62.2 |
+| R3E3 | 3896 | -40.03 | -77.36 | 0.822 / 77.7 |
+| ctrlA | 2070 | +8.88 | -35.12 | 0.918 / 49.7 |
+
+S8 spot-check: **off -90.43 < size_down -68.10 < stand_aside -36.71** -- the TVB-4 grey
+ordering holds in a 2.5-year, different-instrument sample. R1E3 gross over 2.5y = -1.22%:
+the continuity edge on BTC is ZERO before fees.
+
+### W-venue -- Trade[XYZ] MSTRUSDC.P 15m (Dec 2 -> Jul 3) vs the OKX proxy
+
+Full-window runs: ctrlB @0 +216.85 (4306 tr) / @0.0125 +7.98 (PF 1.015, DD 58.9);
+R1E1 @0 +121.46 (1300 tr) / @0.0125 +60.01 (PF 1.239, DD 23.9).
+
+Shared-window comparison (Feb 25 10:00Z ->, method-matched compounding, closed trades):
+
+| config, fee | OKX MSTRUSDT.P | xyz MSTRUSDC.P | trade counts |
+|---|---|---|---|
+| ctrlB @0.0125 | **-9.05%** (L+19.3/S-23.8) | **+80.17%** (L+59.8/S+12.8) | 2815 vs 2708 |
+| R1E1 @0.0125 | +39.88% (L+29.8/S+7.8) | **+83.07%** (L+37.6/S+33.0) | 923 vs 917 |
+| ctrlB @0 | +83.85% | +254.54% | -- |
+| R1E1 @0 | +76.18% | +130.22% | -- |
+
+Prefix (Dec 2 -> Feb 25, the pre-crash stretch, xyz): ctrlB @0 **-10.68%** / @0.0125
+-40.09%; R1E1 @0 -3.83% / @0.0125 -12.61%. **The kill-regime is located ON the target
+instrument:** the same system that makes +254% gross in Feb-Jul chops to negative gross in
+Dec-Feb.
+
+### Predictions scorecard (pre-registered above)
+
+- **SP1 half-REFUTED (mechanism found):** trade count does rise R1->R2->R3, but value
+  FALLS monotonically and R3 lands BELOW B-alone even at zero fee (W1: +13.3 vs +83.8
+  gross). The fast regime is ANTI-selective, not convergent: at D/12h/4h scale the regime
+  is a lagged momentum signal correlated with the exec layer -- it re-admits chop late and
+  blocks trend births. This is the charter S6 "second strategy with its own error,
+  correlated with what it chases" failure mode, observed empirically. The M/W/D "late-entry
+  tax" (P5) is the price of the ONLY regime slow enough to be a filter instead of a
+  follower.
+- **SP2 REFUTED:** E2 (240/60/15) does not substitute for the regime layer -- it degrades
+  every pairing it touches (R1E2 +28.72 < R1E1 +39.86). Widening the exec span is not a
+  regime layer.
+- **SP3 CONFIRMED strongly:** E3 fee sensitivity 9.6-13.6pp vs 29-40pp for E1/E2 columns.
+- **SP4 REFUTED (flagged honestly):** the incumbent R1E1 DID top W1 at real fee (+39.86,
+  narrowly over ctrlA +38.45 and R1E3 +33.80). The spread was wide as predicted. Note the
+  caveat: the S8 grey rule inside R1E1 was data-decided on this same window (TVB-4); the
+  robustness passes are what keep this from being circular -- and they show the edge is
+  regime-local, not that the config is special.
+- **SP5 CONFIRMED:** BTC preserves every ORDERING (layer benefit, regime-speed gradient,
+  S8 triplet) while the strategy itself is dead there. Structure generalizes; edge does not.
+- **SP6 CONFIRMED + LOCATED:** the kill-regime is Dec2025-Feb2026 MSTR chop (negative
+  GROSS) and all of BTC. A continuity system needs a continuity-rich instrument/period;
+  MSTR-class high-vol equity perps in trending regimes are where the edge lives.
+
+### Session surprises (primary deliverables)
+
+1. **The venue gap REVERSES the assumed direction and is huge.** Same underlying, same
+   window, near-identical trade counts: xyz fills capture dramatically more per trade than
+   OKX (ctrlB @0.0125: +80 vs -9). OPEN QUESTION, not a verdict: the xyz TV backfill's
+   provenance/quality is unverified (feed went live on TV 2026-07-02; history presumably
+   HL-sourced). MUST cross-validate xyz TV bars against Hyperliquid SDK candles before
+   trusting any xyz number. If real, the OKX proxy has been the CONSERVATIVE estimate for
+   the target venue -- basis/wick structure on the thinner oracle-priced book appears to
+   FAVOR stop-entry trend-following. If artifactual (bad backfill, sparse bars synthesized
+   wide), every xyz number dies. This is TVB-6's first job.
+2. **The regime layer is universal damage containment.** In every pairing across four
+   samples, adding M/W/D stand_aside massively improved the result (-73.67 -> -17.23;
+   -90.43 -> -36.71; -40.09 -> -12.61 prefix; -9.06 -> +39.86). Where there is edge it
+   unlocks it; where there is none it caps the bleeding. This -- not return enhancement --
+   is the correct one-line description of what the two-layer does.
+3. **Regime speed is monotone-destructive.** No interior optimum appeared between M/W/D
+   and D/12h/4h; every step faster was worse everywhere tested. (A regime SLOWER than
+   M/W/D was not in the grid -- noted as a gap, not tuned in.)
+
+### Caveats / standing questions
+
+xyz data provenance unverified (surprise 1); slippage realism at size still unmodeled
+(1 tick/fill baked in); short-leg MAE/solvency check still deferred -- NO deployability
+language anywhere above; the W1 top cells (R1E1/ctrlA/R1E3 at +34-40% @0.0125) remain
+single-instrument, single-regime results whose gross edge disappears in the Dec-Feb prefix
+of the very same instrument. The system as characterized is a REGIME-LOCAL edge with a
+universal containment layer, not an all-weather strategy.
