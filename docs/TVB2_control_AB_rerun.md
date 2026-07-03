@@ -899,3 +899,25 @@ this verification; candidates: wick/basis structure on the thinner oracle-priced
 interacting with stop-entry fills, and venue-local liquidity events. Tooling: NEW
 `scripts/tv_bars.mjs` (CDP main-series OHLCV export), NEW `analysis/verify_xyz_backfill.py`
 (+4 tests; suite 13/13).
+
+### Mechanism peek: the venue gap is a knife-edge integral, not different price structure
+
+OKX (tvb4_bars_60m.json) vs xyz (tvb6_tv_xyzMSTR_60m.json) over the 3,074 shared 60m
+bars (Feb 25 -> Jul 3): close-to-close return correlation **0.9923**; cumulative close
+path **-18.00% vs -18.09%** (indistinguishable); basis band 0.985-1.007; bar structure
+nearly identical (mean range 1.081% vs 1.062% -- xyz slightly TIGHTER; wick means within
+1bp). Trigger-relevant divergence: ~4% of bars break the prior high on one venue only
+(122 OKX-only vs 101 xyz-only of ~3,000).
+
+The implication: the ctrlB shared-window gap (-9.05% vs +80.17%, 2,708-2,815 trades)
+requires only ~**0.025% per trade** of edge difference ((1.8017/0.9095)^(1/2708)-1) --
+about one round-trip commission -- and R1E1's gap (+39.88 vs +83.07 over ~920 trades)
+is the same order (~0.03%/trade). Nothing exotic is needed: slightly tighter xyz ranges
+(fewer whipsaw state-stop exits), ~200 divergent trigger events, and marginally
+different fill prints sum to 2-3bp/trade and COMPOUND into a 90pp headline under
+100%-equity sizing. READ IT THIS WAY: high-churn configs sit so close to zero per-trade
+edge that venue microstructure decides their SIGN -- the +80% is not "the edge was
+bigger than we thought," it is "B-class net results are venue-texture noise." The
+structural readings (orderings, containment, regime-speed gradient) replicate across
+venues; per-venue MAGNITUDES at the churn end do not generalize. Both venues do agree
+R1E1 is solidly positive at real fee -- sign robust, magnitude not.
