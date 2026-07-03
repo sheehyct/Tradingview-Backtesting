@@ -1142,3 +1142,38 @@ single-layer characterization; DO NOT KEEP for the two-layer baseline pending a
 v2 reset amendment (proposal: reset on winning same-direction exit OR exec-gate
 FULL OPPOSITE ALIGNMENT -- continuity-native, fires identically in both layers;
 requires user sign-off + fresh pre-registration before any v2 run).
+
+**Underwater caveat (user flag, quantified from the dumps):** every "winning" cell
+spent almost the whole sample below its high-water mark. @0.0125 s1: ctrlB underwater
+204 of 213 days (HWM recrossed 2026-07-01 -- the +8.03% headline IS the final two
+days' MSTR surge); ctrlB+gov 199d; R1E1 149d (Jan-4 -> Jun-2); ctrlA 71d / R1E3 69d
+(the slow cells again have the sane risk shape). Standing reminder: these numbers are
+one instrument, one 7-month path; magnitude AND sign at the churn end are
+regime-local (charter S0/S7.4) -- the underwater profile, not the endpoint return,
+is the honest risk picture.
+
+## TVB-6: governor v2 (alignment reset) -- PRE-REGISTRATION (locked before any v2 run)
+
+**Amendment (user-approved after the v1 interaction finding):** the reset channel
+changes from a TRADE event to a CONTINUITY event. v2 ratchet: after a LOSING exit,
+same-direction re-entry only at a trigger strictly beyond the failed trigger; RESET
+on (a) a winning same-direction exit, or (b) the EXEC gate reaching FULL OPPOSITE
+alignment (ftfc_dn clears the long ratchet, ftfc_up clears the short ratchet) --
+the trade-completion proxy is removed (it was strictly later than (b) and is muted
+by stand_aside). Same-bar ordering: alignment reset evaluates AFTER loss-detection,
+so a stop-out into a full flip clears immediately (the episode ended). Still
+zero-parameter. v1 numbers above remain the committed record.
+
+**Pre-registered predictions:**
+- V1: R1E1+gov-v2 trade cut vs ungoverned R1E1 shrinks to < 15% (episode-scale
+  lockouts vanish; only flicker-churn suppression remains).
+- V2: ctrlB+gov-v2 lands within [v1 - 8pp, v1 + 3pp] at each cost point (alignment
+  fires at-or-before an opposite trade completes, so the single-layer governor gets
+  slightly WEAKER, not stronger).
+- V3: R1E1+gov-v2 within +-8pp of ungoverned R1E1 (+59.96 @0.0125 s1) -- the regime
+  layer already suppresses most of what the ratchet targets. KEEP-RULE (explicit,
+  a-priori): the governor is kept for the two-layer baseline ONLY if governed beats
+  ungoverned R1E1 at BOTH s1 and s10 real fee.
+- V4: R1E3+gov-v2 within +-5pp of ungoverned (+46.21).
+
+Run set: same seven cells; dumps `tvb6_WV_{cfg}gov2_{fee}[_s10].json`.

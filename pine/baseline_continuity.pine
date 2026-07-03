@@ -20,10 +20,12 @@
 // Trigger : Raw prior-bar level break via breakout STOP orders at high + 1 tick /
 //           low - 1 tick (strict break; once-per-bar, no calc_on_every_tick).
 // Stop    : State-stop, CLOSE-based; fills next bar open. No fixed target.
-// Governor: (TVB-6, charter S8) gov_mode 'ratchet' = after a LOSING exit, same-
-//           direction entries re-arm only at a trigger STRICTLY beyond the failed
-//           trade's trigger. Reset: winning same-direction exit OR any completed
-//           opposite-direction trade. Zero tuned parameters. Default off == control.
+// Governor: (TVB-6, charter S8; v2 alignment reset) gov_mode 'ratchet' = after a
+//           LOSING exit, same-direction entries re-arm only at a trigger STRICTLY
+//           beyond the failed trade's trigger. Reset: winning same-direction exit
+//           OR exec-gate FULL OPPOSITE alignment (continuity event; the v1
+//           opposite-trade proxy starved under stand_aside). Zero tuned
+//           parameters. Default off == control.
 // Guard   : Chart TF must be <= AND must TILE every enabled gate TF (both layers):
 //           intraday gate TFs must be integer multiples of the chart TF; D/W/M gate
 //           TFs require the chart TF to divide 1D (Codex TVB-3 finding 1). Misaligned
@@ -207,13 +209,15 @@ if reg_exit and reg_mode != 'off'
         strategy.close('Short', comment = 'regime-exit')
 
 // ------------------------- Re-entry governor (TVB-6, charter S8) -------------------------
-// 'ratchet': after a LOSING exit (net of fees; a scratch counts as losing -- the level
-// did not prove itself), same-direction entries re-arm ONLY at a trigger strictly
-// beyond the failed trade's trigger (long: higher high; short: lower low). Reset:
-// a WINNING same-direction exit, or ANY completed opposite-direction trade (a genuine
-// structure flip stales the old level; prevents the December-high deadlock). The
-// ratcheted level is the TRIGGER (high[1]/low[1] +/- tick at the fill bar), not the
-// fill price, so slippage settings do not change governor semantics.
+// 'ratchet' (v2, alignment reset): after a LOSING exit (net of fees; a scratch counts
+// as losing -- the level did not prove itself), same-direction entries re-arm ONLY at
+// a trigger strictly beyond the failed trade's trigger (long: higher high; short:
+// lower low). Reset: a WINNING same-direction exit, or the EXEC gate reaching FULL
+// OPPOSITE alignment (a continuity event -- v1's completed-opposite-TRADE proxy was
+// MUTED by stand_aside, starving resets for whole regime episodes; datasheet TVB-6
+// governor v1 results). The ratcheted level is the TRIGGER (high[1]/low[1] +/- tick
+// at the fill bar), not the fill price, so slippage settings do not change governor
+// semantics.
 var float ratchet_long      = na
 var float ratchet_short     = na
 var float trig_long_filled  = na
@@ -229,11 +233,16 @@ if short_open and strategy.position_size[1] >= 0
     trig_short_filled := low[1] - syminfo.mintick
 
 if strategy.position_size == 0 and strategy.position_size[1] > 0
-    ratchet_long  := strategy.closedtrades.profit(strategy.closedtrades - 1) > 0 ? na : trig_long_filled
-    ratchet_short := na
+    ratchet_long := strategy.closedtrades.profit(strategy.closedtrades - 1) > 0 ? na : trig_long_filled
 if strategy.position_size == 0 and strategy.position_size[1] < 0
     ratchet_short := strategy.closedtrades.profit(strategy.closedtrades - 1) > 0 ? na : trig_short_filled
-    ratchet_long  := na
+
+// v2 alignment reset -- evaluated AFTER loss-detection so a stop-out into a full
+// structure flip clears immediately (the episode that set the level has ended).
+if ftfc_dn
+    ratchet_long := na
+if ftfc_up
+    ratchet_short := na
 
 gov_long_ok  = gov_mode == 'off' or na(ratchet_long)  or high + syminfo.mintick > ratchet_long
 gov_short_ok = gov_mode == 'off' or na(ratchet_short) or low - syminfo.mintick < ratchet_short
