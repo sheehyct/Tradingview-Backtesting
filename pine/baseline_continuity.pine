@@ -1,47 +1,39 @@
 //@version=6
 // =====================================================================================
-// Baseline Timeframe-Continuity Strategy  [TVB-1]      (canonical source -- TVB-3 rev)
+// TFC Baseline+Regime [TVB-4]                          (canonical source -- TVB-4 rev)
 // -------------------------------------------------------------------------------------
-// Purpose : CONTROL baseline for the timeframe-continuity exploration (charter Section 5).
-//           {2-trigger (raw level break) + TFO FTC-gate + state-stop} -- single layer,
-//           structurally 1x (percent_of_equity 100; no sizing input until the charter 3.3
-//           sizing work starts), fixed a-priori timeframe set. Built to be ablated AGAINST
-//           and broken, not deployed.
-// Gate    : FTFC = chart close vs each ENABLED timeframe's CURRENT period open
-//           (charter Section 3.2; TFO-style close > period-open). Aggregate up/down/grey.
-//           TVB-3 FIX: period opens are reconstructed LOCALLY via
-//           ta.valuewhen(timeframe.change(tf), open, 0) -- NO request.security. The v13
-//           gate used request.security(tf, open, lookahead_off), which returns the PRIOR
-//           period's open on historical bars (verified empirically, TVB-3 P2a: D-only and
-//           60m-only isolations, zero unexplained rows) while returning the developing
-//           period's open on realtime bars -- i.e. STALE and backtest != live. All TVB-1/2
-//           numbers characterize that stale gate. Local reconstruction uses chart data
-//           only: no lookahead question, backtest == live by construction.
-//           Warmup: the gate is na (neutral -> no trades) until the first period boundary
-//           of each enabled TF inside loaded history (worst ~1 month for M); the first
-//           PARTIALLY-loaded period reads its first loaded bar's open.
+// Purpose : CONTROL baseline + optional REGIME LAYER (charter Section 3.3) for the
+//           timeframe-continuity exploration. Defaults = Control B with regime OFF,
+//           i.e. byte-equivalent behavior to the TVB-3 corrected control. The regime
+//           layer is an ABLATION (charter S5), not a tournament entry.
+// Gate    : FTFC = chart close vs each ENABLED timeframe's CURRENT period open,
+//           reconstructed LOCALLY via ta.valuewhen(timeframe.change(tf), open, 0)
+//           (TVB-3 fix; no request.security, backtest == live by construction).
+//           Warmup: a gate TF is neutral (na open -> grey) until its first period
+//           boundary inside loaded history.
+// Regime  : Same FTFC measurement over an HTF set (a-priori M/W/D; charter 3.3).
+//           reg_mode: off = control; stand_aside = entries only when regime is
+//           aligned WITH the trade direction, grey blocks both; size_down = aligned
+//           full size, grey trades BOTH directions at grey_size_pct (fixed a-priori
+//           50%, Carver half-forecast), opposite blocked. Exits are NOT regime-gated
+//           in v1 (reg_exit default false; ablation knob only).
 // Trigger : Raw prior-bar level break via breakout STOP orders at high + 1 tick /
-//           low - 1 tick (strat-methodology: trigger = level + one tick; enforces the
-//           strict H > H[1] break -- a stop AT the level fills on equality, not a 2U).
-//           Once-per-bar placement, NO calc_on_every_tick (charter Section 3.4).
-// Stop    : State-stop, CLOSE-based -> exit when the gate de-aligns (grey/opposite) at
-//           bar close; with process_orders_on_close = false the exit fills at the next
-//           bar's open (charter Section 3.5). No fixed target.
-// Guard   : Chart TF must be <= every ENABLED gate TF (runtime.error otherwise).
-//           >> Chart TF should EQUAL the lowest enabled TF for the intended reading. <<
-// Presets : Control A = M/W/D/60 on a 60m chart ;  Control B = 60/30/15 on a 15m chart.
-//           File defaults below = Control B. Runs set enables/commission explicitly.
-// Fees    : commission_value default 0.1 (%/fill) is the HIP-3 BRIDGE-COMPARISON rate
-//           only. GROUND TRUTH (TVB-2, HL fills classified by the `crossed` flag): the
-//           real xyz taker rate is ~0.0086% modal / 0.0125% notional-weighted ALL-IN,
-//           ~10x below 0.1%. Sweep the commission input per run; NEVER report a
-//           single-fee verdict (%-equity sizing compounds fees: equity x= (1-f)^(2N)).
-// Traps   : slippage = 1 tick per market/stop fill is baked in below (TVB-3 settings
-//           dump). Bar magnifier is OFF unless enabled in properties -- intrabar fill
-//           fidelity check still pending (charter Section 7.2).
+//           low - 1 tick (strict break; once-per-bar, no calc_on_every_tick).
+// Stop    : State-stop, CLOSE-based; fills next bar open. No fixed target.
+// Guard   : Chart TF must be <= AND must TILE every enabled gate TF (both layers):
+//           intraday gate TFs must be integer multiples of the chart TF; D/W/M gate
+//           TFs require the chart TF to divide 1D (Codex TVB-3 finding 1). Misaligned
+//           configs fail LOUDLY.
+// Presets : Control A = M/W/D/60 on 60m ; Control B = 60/30/15 on 15m (file default).
+// Fees    : commission_value default 0.1 (%/fill) is the bridge-comparison rate only.
+//           Real xyz taker ~0.0086% modal / 0.0125% notional-weighted. Sweep per run;
+//           NEVER report a single-fee verdict.
+// Traps   : slippage = 1 tick/fill baked in. Bar magnifier verified immaterial for
+//           this state-stop architecture (TVB-4 preflight 1); keep OFF. Margin 0/0 --
+//           the state-stop must be the ONLY exit (TVB-3 deadlock artifact).
 // =====================================================================================
 
-strategy('Baseline TFC [TVB-1]', overlay = true,
+strategy('TFC Baseline+Regime [TVB-4]', overlay = true,
      default_qty_type   = strategy.percent_of_equity,
      default_qty_value  = 100,
      initial_capital    = 10000,
@@ -51,21 +43,15 @@ strategy('Baseline TFC [TVB-1]', overlay = true,
      commission_type    = strategy.commission.percent,
      commission_value   = 0.1,
      slippage           = 1,
-     margin_long        = 0,     // TVB-3: margin enforcement OFF. At 100%-equity sizing the
-     margin_short       = 0)     // emulator margin-called every short on its first adverse
-                                 // tick, and one margin-call/close race left an orphan
-                                 // residual position that deadlocked the strategy for
-                                 // months (no entries while not flat, no matching close
-                                 // id). Margin realism is not this control's concern at 1x;
-                                 // the state-stop must be the ONLY exit.
+     margin_long        = 0,
+     margin_short       = 0)
 
 // ----------------------------------- Inputs -----------------------------------
 var string g_dir = 'Direction'
 allow_long  = input.bool(true, 'Allow Long',  group = g_dir)
 allow_short = input.bool(true, 'Allow Short', group = g_dir)
 
-var string g_tf = 'Gate Timeframes (FTFC set)  --  enable lowest = chart TF'
-// Defaults below = Control B (60/30/15). For Control A: chart 60m, enable M/W/D/60.
+var string g_tf = 'Execution gate TFs (FTFC set)  --  chart TF = lowest enabled'
 y1  = input.bool(false, '', inline = '1', group = g_tf)
 tf1 = input.timeframe('M',  'TF 1', inline = '1', group = g_tf)
 y2  = input.bool(false, '', inline = '2', group = g_tf)
@@ -83,22 +69,48 @@ var string g_viz = 'Display'
 show_state  = input.bool(true, 'Color bars by gate state', group = g_viz)
 show_levels = input.bool(true, 'Plot FTFC floor/ceiling (period opens)', group = g_viz)
 
-// ------------------- Guard: chart TF <= every ENABLED gate TF -------------------
+// Regime layer (appended AFTER existing inputs so in_0..in_15 keep their ids;
+// strategy properties renumber by +9 -- RE-DERIVE the id map after compiling).
+var string g_reg = 'Regime layer (charter 3.3) -- M/W/D a-priori, do not tune'
+reg_mode = input.string('off', 'Regime mode', options = ['off', 'stand_aside', 'size_down'], group = g_reg)
+rg1  = input.bool(true, '', inline = 'r1', group = g_reg)
+rtf1 = input.timeframe('M', 'Regime TF 1', inline = 'r1', group = g_reg)
+rg2  = input.bool(true, '', inline = 'r2', group = g_reg)
+rtf2 = input.timeframe('W', 'Regime TF 2', inline = 'r2', group = g_reg)
+rg3  = input.bool(true, '', inline = 'r3', group = g_reg)
+rtf3 = input.timeframe('D', 'Regime TF 3', inline = 'r3', group = g_reg)
+grey_size_pct = input.float(50, 'Grey size % (size_down mode; FIXED a-priori)', minval = 0, maxval = 100, group = g_reg)
+reg_exit = input.bool(false, 'Exit on regime-opposite (ablation knob -- keep OFF in v1)', group = g_reg)
+
+// ------------- Guard: chart TF <= AND tiling every ENABLED gate TF -------------
 // Misconfigured runs must fail LOUDLY (runtime error), never read silently wrong.
+// Alignment (Codex TVB-3 finding 1): the local period-open reconstruction is exact
+// only when chart bars tile the gate period. D/W/M periods start on a day boundary
+// (00:00 UTC on these 24/7 perps) -> chart TF must divide 1D; intraday gate TFs must
+// be integer multiples of the chart TF.
 f_guard(simple string tf, simple bool enabled) =>
-    if enabled and timeframe.in_seconds(tf) < timeframe.in_seconds(timeframe.period)
-        runtime.error('Gate TF "' + tf + '" is finer than the chart TF (' + timeframe.period + '). Chart TF must be <= every enabled gate TF.')
+    if enabled
+        cs = timeframe.in_seconds(timeframe.period)
+        gs = timeframe.in_seconds(tf)
+        if gs < cs
+            runtime.error('Gate TF "' + tf + '" is finer than the chart TF (' + timeframe.period + '). Chart TF must be <= every enabled gate TF.')
+        if gs >= 86400
+            if 86400 % cs != 0
+                runtime.error('Chart TF ' + timeframe.period + ' does not divide 1D -- D/W/M period-open reconstruction would be approximate.')
+        else if gs % cs != 0
+            runtime.error('Gate TF "' + tf + '" is not an integer multiple of the chart TF (' + timeframe.period + ') -- reconstruction would be approximate.')
 f_guard(tf1, y1)
 f_guard(tf2, y2)
 f_guard(tf3, y3)
 f_guard(tf4, y4)
 f_guard(tf5, y5)
 f_guard(tf6, y6)
+if reg_mode != 'off'
+    f_guard(rtf1, rg1)
+    f_guard(rtf2, rg2)
+    f_guard(rtf3, rg3)
 
 // ------------- Gate (FTFC): LOCAL period-open reconstruction (TVB-3 fix) -------------
-// The CURRENT period's open = the chart open on the first bar of the period. Chart-local
-// data only -- no request.security, no lookahead question, no backtest/live asymmetry.
-// Same-TF case (tf == chart TF): timeframe.change fires every bar -> current bar's open.
 f_open(simple string tf) =>
     ta.valuewhen(timeframe.change(tf), open, 0)
 
@@ -112,11 +124,13 @@ o6 = f_open(tf6)
 use_arr  = array.from(y1, y2, y3, y4, y5, y6)
 open_arr = array.from(o1, o2, o3, o4, o5, o6)
 
+// Execution-layer aggregation: kept VERBATIM from the TVB-3 control (also computes the
+// plotted floor/ceiling levels) -- regression safety over de-duplication.
 ftfc_up = true
 ftfc_dn = true
 int n_enabled = 0
-float hi_open = na   // highest enabled period-open -> price floor for FTFC up
-float lo_open = na   // lowest  enabled period-open -> price ceiling for FTFC down
+float hi_open = na
+float lo_open = na
 for i = 0 to array.size(use_arr) - 1 by 1
     if array.get(use_arr, i)
         n_enabled += 1
@@ -124,15 +138,50 @@ for i = 0 to array.size(use_arr) - 1 by 1
         hi_open := na(hi_open) ? op : math.max(hi_open, op)
         lo_open := na(lo_open) ? op : math.min(lo_open, op)
         if close > op
-            ftfc_dn := false        // this TF is green -> kills a down-alignment
+            ftfc_dn := false
         else if close < op
-            ftfc_up := false        // this TF is red   -> kills an up-alignment
+            ftfc_up := false
         else
-            ftfc_up := false        // at the open, or op still na (warmup) -> neutral
+            ftfc_up := false
             ftfc_dn := false
 if n_enabled == 0
     ftfc_up := false
     ftfc_dn := false
+
+// ------------------------------- Regime layer (TVB-4) -------------------------------
+// Same measurement, HTF set. Warmup (na opens) reads grey => stand_aside blocks entries
+// until every enabled regime TF has seeded (MSTR floor Feb 25 -> M seeds Mar 1).
+f_agg(u_arr, o_arr) =>
+    up = true
+    dn = true
+    int n = 0
+    for i = 0 to array.size(u_arr) - 1 by 1
+        if array.get(u_arr, i)
+            n += 1
+            op = array.get(o_arr, i)
+            if close > op
+                dn := false
+            else if close < op
+                up := false
+            else
+                up := false
+                dn := false
+    if n == 0
+        up := false
+        dn := false
+    [up, dn]
+
+ro1 = f_open(rtf1)
+ro2 = f_open(rtf2)
+ro3 = f_open(rtf3)
+[reg_up, reg_dn] = f_agg(array.from(rg1, rg2, rg3), array.from(ro1, ro2, ro3))
+reg_grey = not reg_up and not reg_dn
+
+// Permission + size (charter 3.3): aligned regime permits ONLY that direction at full
+// size; grey per mode; opposite regime blocks. reg_mode == 'off' is the pure control.
+long_permit  = reg_mode == 'off' ? true : reg_mode == 'stand_aside' ? reg_up : reg_up or reg_grey
+short_permit = reg_mode == 'off' ? true : reg_mode == 'stand_aside' ? reg_dn : reg_dn or reg_grey
+size_scale   = reg_mode == 'size_down' and reg_grey ? grey_size_pct / 100.0 : 1.0
 
 // ----------------------------------- State-stop exit -----------------------------------
 long_open  = strategy.position_size > 0
@@ -142,19 +191,31 @@ if long_open and not ftfc_up
     strategy.close('Long', comment = 'state-stop')
 if short_open and not ftfc_dn
     strategy.close('Short', comment = 'state-stop')
+if reg_exit and reg_mode != 'off'
+    if long_open and reg_dn
+        strategy.close('Long', comment = 'regime-exit')
+    if short_open and reg_up
+        strategy.close('Short', comment = 'regime-exit')
 
 // ----------------------------------- Trigger + entries -----------------------------------
-// While flat and gate-aligned, arm a breakout stop ONE TICK beyond the just-closed bar's
-// extreme. The broker emulator fills it intrabar the instant price trades through the
-// level (charter 3.4). Re-armed each bar to track the most recent closed bar.
+// Full-size entries use the default percent_of_equity sizing (identical to the control
+// and identical across modes -- the modes differ ONLY in grey handling). Grey size_down
+// entries pass an explicit qty converted at arm-time close (documented approximation,
+// confined to grey entries).
 flat = strategy.position_size == 0
 if flat
-    if allow_long and ftfc_up
-        strategy.entry('Long', strategy.long, stop = high + syminfo.mintick)
+    if allow_long and ftfc_up and long_permit
+        if size_scale == 1.0
+            strategy.entry('Long', strategy.long, stop = high + syminfo.mintick)
+        else
+            strategy.entry('Long', strategy.long, qty = strategy.equity * size_scale / close, stop = high + syminfo.mintick)
     else
         strategy.cancel('Long')
-    if allow_short and ftfc_dn
-        strategy.entry('Short', strategy.short, stop = low - syminfo.mintick)
+    if allow_short and ftfc_dn and short_permit
+        if size_scale == 1.0
+            strategy.entry('Short', strategy.short, stop = low - syminfo.mintick)
+        else
+            strategy.entry('Short', strategy.short, qty = strategy.equity * size_scale / close, stop = low - syminfo.mintick)
     else
         strategy.cancel('Short')
 else
@@ -164,6 +225,8 @@ else
 // ----------------------------------- Visualization (audit aid) -----------------------------------
 state_col = ftfc_up ? color.new(color.green, 55) : ftfc_dn ? color.new(color.red, 55) : color.new(color.gray, 70)
 barcolor(show_state ? state_col : na)
+reg_col = reg_mode == 'off' ? na : reg_up ? color.new(color.green, 92) : reg_dn ? color.new(color.red, 92) : color.new(color.gray, 92)
+bgcolor(reg_col)
 
 plot(show_levels ? hi_open : na, 'FTFC up floor (max open)', color = color.new(color.green, 40), style = plot.style_stepline)
 plot(show_levels ? lo_open : na, 'FTFC dn ceiling (min open)', color = color.new(color.red, 40), style = plot.style_stepline)
