@@ -20,6 +20,10 @@
 // Trigger : Raw prior-bar level break via breakout STOP orders at high + 1 tick /
 //           low - 1 tick (strict break; once-per-bar, no calc_on_every_tick).
 // Stop    : State-stop, CLOSE-based; fills next bar open. No fixed target.
+// Governor: (TVB-6, charter S8) gov_mode 'ratchet' = after a LOSING exit, same-
+//           direction entries re-arm only at a trigger STRICTLY beyond the failed
+//           trade's trigger. Reset: winning same-direction exit OR any completed
+//           opposite-direction trade. Zero tuned parameters. Default off == control.
 // Guard   : Chart TF must be <= AND must TILE every enabled gate TF (both layers):
 //           intraday gate TFs must be integer multiples of the chart TF; D/W/M gate
 //           TFs require the chart TF to divide 1D (Codex TVB-3 finding 1). Misaligned
@@ -81,6 +85,11 @@ rg3  = input.bool(true, '', inline = 'r3', group = g_reg)
 rtf3 = input.timeframe('D', 'Regime TF 3', inline = 'r3', group = g_reg)
 grey_size_pct = input.float(50, 'Grey size % (size_down mode; FIXED a-priori)', minval = 0, maxval = 100, group = g_reg)
 reg_exit = input.bool(false, 'Exit on regime-opposite (ablation knob -- keep OFF in v1)', group = g_reg)
+
+// Re-entry governor (TVB-6) -- appended AFTER regime inputs so in_0..in_24 keep their
+// ids; strategy properties renumber by +1 -- RE-DERIVE the id map after compiling.
+var string g_gov = 'Re-entry governor (TVB-6, charter S8) -- zero-parameter ratchet'
+gov_mode = input.string('off', 'Governor mode', options = ['off', 'ratchet'], group = g_gov)
 
 // ------------- Guard: chart TF <= AND tiling every ENABLED gate TF -------------
 // Misconfigured runs must fail LOUDLY (runtime error), never read silently wrong.
@@ -197,6 +206,38 @@ if reg_exit and reg_mode != 'off'
     if short_open and reg_up
         strategy.close('Short', comment = 'regime-exit')
 
+// ------------------------- Re-entry governor (TVB-6, charter S8) -------------------------
+// 'ratchet': after a LOSING exit (net of fees; a scratch counts as losing -- the level
+// did not prove itself), same-direction entries re-arm ONLY at a trigger strictly
+// beyond the failed trade's trigger (long: higher high; short: lower low). Reset:
+// a WINNING same-direction exit, or ANY completed opposite-direction trade (a genuine
+// structure flip stales the old level; prevents the December-high deadlock). The
+// ratcheted level is the TRIGGER (high[1]/low[1] +/- tick at the fill bar), not the
+// fill price, so slippage settings do not change governor semantics.
+var float ratchet_long      = na
+var float ratchet_short     = na
+var float trig_long_filled  = na
+var float trig_short_filled = na
+
+// Capture the filled trade's trigger on its fill bar. The stop order live during this
+// bar was placed at the prior bar's close at high/low +/- 1 tick of THAT bar, which is
+// high[1]/low[1] +/- 1 tick seen from here. Entries only arm when flat, and the state-
+// stop fills at next-bar open, so open/close transitions never share a bar.
+if long_open and strategy.position_size[1] <= 0
+    trig_long_filled := high[1] + syminfo.mintick
+if short_open and strategy.position_size[1] >= 0
+    trig_short_filled := low[1] - syminfo.mintick
+
+if strategy.position_size == 0 and strategy.position_size[1] > 0
+    ratchet_long  := strategy.closedtrades.profit(strategy.closedtrades - 1) > 0 ? na : trig_long_filled
+    ratchet_short := na
+if strategy.position_size == 0 and strategy.position_size[1] < 0
+    ratchet_short := strategy.closedtrades.profit(strategy.closedtrades - 1) > 0 ? na : trig_short_filled
+    ratchet_long  := na
+
+gov_long_ok  = gov_mode == 'off' or na(ratchet_long)  or high + syminfo.mintick > ratchet_long
+gov_short_ok = gov_mode == 'off' or na(ratchet_short) or low - syminfo.mintick < ratchet_short
+
 // ----------------------------------- Trigger + entries -----------------------------------
 // Full-size entries use the default percent_of_equity sizing (identical to the control
 // and identical across modes -- the modes differ ONLY in grey handling). Grey size_down
@@ -204,14 +245,14 @@ if reg_exit and reg_mode != 'off'
 // confined to grey entries).
 flat = strategy.position_size == 0
 if flat
-    if allow_long and ftfc_up and long_permit
+    if allow_long and ftfc_up and long_permit and gov_long_ok
         if size_scale == 1.0
             strategy.entry('Long', strategy.long, stop = high + syminfo.mintick)
         else
             strategy.entry('Long', strategy.long, qty = strategy.equity * size_scale / close, stop = high + syminfo.mintick)
     else
         strategy.cancel('Long')
-    if allow_short and ftfc_dn and short_permit
+    if allow_short and ftfc_dn and short_permit and gov_short_ok
         if size_scale == 1.0
             strategy.entry('Short', strategy.short, stop = low - syminfo.mintick)
         else

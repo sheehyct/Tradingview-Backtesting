@@ -1059,3 +1059,49 @@ Which ABSOLUTE slippage is realistic per venue remains OPEN (needs live xyz book
 sampling at ~90-contract size; also perp funding). Until then the convention for
 xyz runs: report s1 alongside s10 (s10 = "OKX-equivalent-$" pessimistic floor for
 book-crossing cost); never quote an xyz churn-config number at s1 alone.
+
+## TVB-6: re-entry governor (charter S8) -- design + PRE-REGISTRATION (locked before any governed run)
+
+**DESIGNED WITH USER (2026-07-03; two explicit decisions + one amendment):** the
+governor is a zero-parameter LEVEL RATCHET. After a LOSING exit (net of fees; scratch
+counts as losing), same-direction entries re-arm only at a trigger STRICTLY beyond the
+failed trade's trigger (long: higher; short: lower). RESET: a winning same-direction
+exit OR any completed opposite-direction trade -- the amendment (user-approved) that
+prevents the foreseeable deadlock where a stop-out near the December high (~181) would
+have blocked longs for the entire sample (price never re-exceeded 181; April topped
+~172). The ratcheted level is the TRIGGER, not the fill price, so slippage settings do
+not change governor semantics. Mechanism targeted: within an aligned flicker episode
+(up -> grey -> up), the breakout trigger FALLS with each bar, so the control re-buys
+successively lower highs at full round-trip cost; no opposite trade can complete
+inside such an episode, so the ratchet holds exactly there and releases on genuine
+structure flips. Skill reconciliation: strat-methodology's only re-entry canon (X-1-3
+Rev Strat same-bar reversal) is pattern-world machinery outside this charter's scope;
+the governor is a pre-entry condition and entry timing stays instant-on-break.
+
+Implementation: `pine/baseline_continuity.pine` gov_mode input (off | ratchet),
+DEFAULT off (= regression anchor). Deployed at pineVersion 19.0; id map: gov_mode =
+in_25; strategy properties shift +1 (commission in_33, slippage in_34, margins
+in_35/36, magnifier in_42). REGRESSION: governor-off reproduces the pre-governor
+ctrlB @0.0125 run BYTE-IDENTICALLY (all 4,308 committed closed trades prefix-match
+exactly; trade 4,309 is the previously-open trade closing in the live tail).
+Operational: TV 2026-07 renders a fiber-less DECOY `.monaco-editor.pine-editor-monaco`
+node that broke the MCP's first-match Monaco finder; fixed in jackson
+(`src/core/pine.js`, multi-candidate walk) -- MCP restart picks it up next session;
+this session deployed via a direct-CDP bridge script.
+
+**Pre-registered predictions (before any governed run):**
+- G1: trade count falls in every governed cell; relative cut largest ctrlB > R1E1 > R1E3.
+- G2: @0.0125 s1 net improves for ctrlB (material) and R1E1 (modest).
+- G3: the improvement GROWS at s10 (the governor is a turnover lever; cost-sensitive
+  marginal trades are what it deletes).
+- G4: zero-fee GROSS slightly DECREASES (honest cost -- the blocked re-entry stream is
+  ~zero-to-slightly-positive gross, by the TVB-4/5 suppressed-stream precedent).
+- G5: window split -- the Dec-Feb kill-window improves most; the Feb-Jul trend window
+  is ~flat (pullback-then-higher-high clears the ratchet in trends).
+- G6: R1E3 (low churn) barely moves (<5pp either way) -- the governor should be nearly
+  inert where turnover is already low.
+
+Run set (all @ xyz full window, governed = gov_mode ratchet): ctrlB+gov {s1@0.0125,
+s10@0.0125, s1@0}; R1E1+gov {s1@0.0125, s10@0.0125, s1@0}; R1E3+gov {s1@0.0125}.
+Dumps: `tvb6_WV_{cfg}gov_{fee}[_s10].json`. Keep-rule (charter S5): the governor is
+kept only if it beats the continuity-only baseline at real cost assumptions.
