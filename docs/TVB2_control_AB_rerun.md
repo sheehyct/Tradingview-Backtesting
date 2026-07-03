@@ -1105,3 +1105,40 @@ Run set (all @ xyz full window, governed = gov_mode ratchet): ctrlB+gov {s1@0.01
 s10@0.0125, s1@0}; R1E1+gov {s1@0.0125, s10@0.0125, s1@0}; R1E3+gov {s1@0.0125}.
 Dumps: `tvb6_WV_{cfg}gov_{fee}[_s10].json`. Keep-rule (charter S5): the governor is
 kept only if it beats the continuity-only baseline at real cost assumptions.
+
+### Governor v1 RESULTS (as pre-registered; run 2026-07-03, tails ~22:00-23:00Z)
+
+| cell | ungoverned | governed v1 | trade cut |
+|---|---|---|---|
+| ctrlB @0 s1 | +216.85 (4306) | **+267.03** (4049) | -6% |
+| ctrlB @0.0125 s1 | +8.03 (4309) | **+33.34** (4046, PF 1.057, DD 51.3) | -6% |
+| ctrlB @0.0125 s10 | -37.56 | **-19.47** | -6% |
+| R1E1 @0 s1 | +121.46 (1302) | **+26.52** (488) | **-62%** |
+| R1E1 @0.0125 s1 | +59.96 | **+11.99** (488) | -62% |
+| R1E1 @0.0125 s10 | +34.76 | +5.42 (485) | -63% |
+| R1E3 @0.0125 s1 | +46.21 (408) | +17.47 (210) | -49% |
+
+ctrlB+gov @0.0125 slices: shared Feb25-> +87.31 (ungov +80.17); prefix Dec-Feb
+-28.85 (ungov -40.09) -- improves BOTH windows, kill-window more.
+
+**Scorecard:** G1 REFUTED with mechanism -- the cut ordering INVERTED (ctrlB -6%,
+R1E1 -62%): see the interaction below. G2 half: ctrlB improved materially (+25pp);
+R1E1 collapsed. G3 REFUTED: the improvement SHRINKS as cost rises (+50pp @0, +25pp
+@0.0125 s1, +18pp s10) -- because the ratchet's benefit is GROSS, not cost relief
+(see G4). G4 REFUTED in the informative direction: ctrlB zero-fee gross went UP
++50pp on a 6% trade cut (~10bp/trade of removed damage) -- the lower-high re-buys
+are BAD TRADES gross, not merely fee burners. G5 partially confirmed (both windows
+improve; kill-window more). G6 REFUTED -- same interaction.
+
+**THE FINDING -- reset starvation under stand_aside (design interaction, surfaced
+per charter S0):** the v1 reset channel "completed opposite-direction trade" is
+MUTED by the regime layer: under stand_aside in a regime-up stretch, shorts cannot
+fill, so no opposite trade ever completes and one early failed long ratchets out
+the ENTIRE regime episode (R1E1 1302 -> 488 trades; gross +121 -> +27). The
+single-layer control hid this; the two-layer baseline exposed it. On the
+single-layer control the ratchet is a clean win at every cost level; under the
+two-layer it is mis-designed AS SPECIFIED. v1 verdict per the keep-rule: KEEP for
+single-layer characterization; DO NOT KEEP for the two-layer baseline pending a
+v2 reset amendment (proposal: reset on winning same-direction exit OR exec-gate
+FULL OPPOSITE ALIGNMENT -- continuity-native, fires identically in both layers;
+requires user sign-off + fresh pre-registration before any v2 run).
