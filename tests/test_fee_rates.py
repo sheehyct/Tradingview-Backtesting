@@ -53,6 +53,23 @@ def test_summarize_skips_malformed_and_zero_notional():
     assert skipped and skipped[0]["fills"] == 2
 
 
+def test_summarize_rejects_stringified_crossed():
+    # A stringified "false" is truthy -- bool() coercion would classify a MAKER
+    # fill as taker. The row must be skipped as malformed, never counted.
+    fills = [
+        make_fill("xyz:MSTR", "false", "100", "1", "0.0029"),
+        make_fill("xyz:MSTR", "true", "100", "1", "0.0086"),
+        make_fill("xyz:MSTR", 1, "100", "1", "0.0086"),
+        make_fill("xyz:MSTR", False, "100", "1", "0.0029"),  # real bool still counts
+    ]
+    rows = summarize(fills)
+    counted = [r for r in rows if r["liquidity"] in ("taker", "maker")]
+    skipped = [r for r in rows if r["liquidity"] == "-"]
+    assert sum(r["fills"] for r in counted) == 1
+    assert counted[0]["liquidity"] == "maker"
+    assert skipped and skipped[0]["fills"] == 3
+
+
 def test_output_is_sanitized():
     fills = [make_fill("xyz:MSTR", True, "123.45", "81.5", "0.8653")]
     rows = summarize(fills)

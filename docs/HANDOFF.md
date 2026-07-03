@@ -88,7 +88,8 @@ artifact was discovered and removed; the corrected-gate fee sweep REPLACES all T
 > write a verbatim assessment to docs/reviews/tvb3-codex-audit.md. See
 > docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: REQUESTED
+- Review status: RETURNED 2026-07-03 (via the new Codex /review command reading
+  docs/reviews/REVIEW_REQUEST.md) -- APPROVE-WITH-NITS; synthesis below.
 - Commits to review: `93f16d7..HEAD` on `main` (workspace) + `55e93f1` in
   `tradingview-mcp-jackson` (reader hardening)
 - Scope / what changed: gate staleness empirically confirmed + fixed (ta.valuewhen local
@@ -100,8 +101,25 @@ artifact was discovered and removed; the corrected-gate fee sweep REPLACES all T
   (3) whether margin 0/0 hides anything a 1x cash-margin reality would enforce; (4) the
   corrected-sweep numbers and the B sign-flip reading; (5) the bundled-delta attribution caveat;
   (6) fee_rates_by_dex.py sanitization completeness.
-- Reviewed by: pending
-- Findings: (blank until docs/reviews/tvb3-codex-audit.md exists)
+- Reviewed by: local Codex CLI (docs/reviews/tvb3-codex-audit.md)
+- Findings: 3 LOW -- (1) ta.valuewhen recon is only exact when every enabled gate TF
+  aligns with the chart TF; guard only enforces chart<=gate; (2) margin 0/0 removes any
+  solvency/liquidation constraint a real 1x short book would enforce -- add an MAE/
+  liquidation-distance check before deployability language; (3) fee_rates_by_dex.py
+  coerces `crossed` with bool() -- a stringified "false" would misclassify as taker.
+
+**Critical synthesis (TVB-4, 2026-07-03):** all three findings AGREED on inspection.
+(1) is real and matters for the S5 sweep specifically: for a non-dividing chart TF the
+first chart bar of a new period can OPEN before/after the true boundary, so the
+"period open" silently becomes an approximation -- the alignment guard (every enabled
+gate TF an integer multiple of chart TF; D/W/M require chart TF to divide 1D) must land
+in the Pine BEFORE the timeframe-set sweep runs arbitrary combos (plan-mode item,
+folded into sweep prep). (2) agreed and already on the deferred list as slippage/
+deployability realism -- shorts' MAE vs 1x cash margin gets checked before any
+deployability verdict, not for control characterization. (3) FIXED this session
+(isinstance bool check + malformed-row skip + test). Also validated: the reviewer's
+approval notes match our own P2a/P2b reading (single-TF isolation as ground truth,
+lookahead-free strategy source).
 
 ---
 

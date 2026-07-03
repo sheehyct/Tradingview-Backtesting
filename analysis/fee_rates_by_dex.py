@@ -41,6 +41,15 @@ def to_decimal(value) -> Decimal:
         raise ValueError(f"non-numeric field value: {value!r}") from exc
 
 
+def to_bool(value) -> bool:
+    """`crossed` must be a real JSON boolean. A stringified "false" is truthy, so
+    bool() coercion would silently misclassify a maker fill as taker (Codex TVB-3
+    finding 3) -- reject the row as malformed instead."""
+    if not isinstance(value, bool):
+        raise ValueError(f"non-boolean field value: {value!r}")
+    return value
+
+
 def summarize(fills: list[dict]) -> list[dict]:
     """Aggregate to one row per {dex, crossed}: count + rate stats (percent units).
 
@@ -55,7 +64,7 @@ def summarize(fills: list[dict]) -> list[dict]:
             px = to_decimal(f["px"])
             sz = to_decimal(f["sz"])
             fee = to_decimal(f["fee"])
-            crossed = bool(f["crossed"])
+            crossed = to_bool(f["crossed"])
             coin = str(f["coin"])
         except (KeyError, ValueError):
             skipped += 1

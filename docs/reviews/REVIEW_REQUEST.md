@@ -10,7 +10,7 @@
 
 ## Status
 
-- Status: REQUESTED  <!-- REQUESTED | RETURNED (audit file written) -->
+- Status: RETURNED (2026-07-03, local Codex CLI /review -- APPROVE-WITH-NITS, 3 LOW)  <!-- REQUESTED | RETURNED (audit file written) -->
 - Session under review: TVB-3 -- stale gate confirmed + fixed; corrected
   controls; margin-call artifact killed
 - Requested: 2026-07-02
