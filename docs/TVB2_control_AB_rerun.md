@@ -407,3 +407,51 @@ B = long +15.4% / short -22.8%.
 Caveats on attribution: the old-vs-new deltas bundle {gate fix + tick offsets (expected
 ~epsilon) + margin-enforcement removal + 3-day window extension}; decomposition runs were
 deliberately not spent (the corrected configuration is the go-forward baseline).
+
+---
+
+## TVB-4 (2026-07-03): preflight 1 -- bar-magnifier fidelity check
+
+Setup: the TV slot "TFC Baseline" was found OVERWRITTEN by a 3-line "E2E Test" indicator
+stub (side-effect of the jackson e2e compile tests run during TVB-3 -- the suite writes into
+whatever slot the editor has open; jackson backlog: e2e must create + verify its own slot).
+Restored byte-identical from `pine/baseline_continuity.pine` (slot pineVersion 16 -> 17),
+re-added to the chart => NEW entity `xJzX3B`. Input ids re-derived: map UNCHANGED from TVB-3
+(in_23 commission, in_24 slippage, in_25/26 margins, in_32 magnifier; TF enables in_2..in_13).
+History loaded to the floor before every read (12280 15m bars / 3074 60m bars, first bar
+2026-02-25 10:00Z). Window here ends 2026-07-03 ~11:30Z (~8h later than the TVB-3 sweep).
+Observed: a fresh strategy add computes over full deep history even while the chart series
+holds only ~300 bars -- history was still reloaded to the floor for method consistency.
+
+All runs at fee 0.0125%/fill, slippage 1 tick, margin 0/0, bidirectional, 1x, initial 10k:
+
+| Control | Magnifier | Trades (L/S) | Net % | PF | Win % | MaxDD % | Sharpe |
+|---|---|---|---|---|---|---|---|
+| B (60/30/15, 15m) | OFF | 2811 (1360/1451) | -10.06% | 0.978 | 34.0% | 37.3% | -0.13 |
+| B | ON | 2810 (1360/1450) | -11.13% | 0.975 | 33.8% | 37.8% | -0.14 |
+| A (M/W/D/60, 60m) | OFF | 319 (166/153) | +38.00% | 1.241 | 36.7% | 16.4% | 0.88 |
+| A | ON | 319 (166/153) | +38.00% (bit-identical) | 1.241 | 36.7% | 16.4% | 0.88 |
+
+A's bit-identical ON read was verified against a live recompute path, not a stale report:
+with the magnifier flag ON, nudging commission to 0.02% recomputed to +31.5%, and restoring
+0.0125% returned the EXACT original bits. The magnifier changes zero fills on Control A.
+
+**Reading:**
+1. **No sign flip anywhere; the intrabar-fill approximation (charter trap 7.2) is NOT
+   materially distorting the corrected controls.** B: -1.07pp net / -0.0026 PF / one fewer
+   trade; A: literally zero.
+2. Mechanism: this architecture is nearly path-independent intrabar -- entries are stop
+   orders that fill AT the stop price, the only exit is the close-based state-stop filling
+   at the NEXT bar's open, no intrabar targets/stops, pyramiding 0. The magnifier only bites
+   where a sub-bar gaps THROUGH an armed stop (worse fill) or re-sequences a fill; rare
+   (B's 2810 trades accumulate ~1pp of drag; A's 319 trades hit zero occurrences).
+3. Consequence for the sweep: magnifier can stay OFF (add ~1pp pessimism mentally on
+   15m-class high-churn configs). CARVE-OUT: a future PRICE-stop variant (intrabar stop
+   exits) would be magnifier-SENSITIVE -- re-run this check before trusting any price-stop
+   numbers (charter S8 open question).
+4. Window-tail note: B-OFF reads -10.06% here vs -7.4% in the TVB-3 sweep, from ~8h more
+   tail + 10 more trades alone -- B's knife-edge fee-band sensitivity re-demonstrated by
+   pure window drift. A moved +38.6% -> +38.0% (stable).
+5. Operational: trade/fill timestamps stay bar-granular with the magnifier ON (all 320 A
+   entries stamp on exact hour boundaries), so fill times CANNOT be used to audit whether
+   the magnifier applied -- use the recompute-control method above.
