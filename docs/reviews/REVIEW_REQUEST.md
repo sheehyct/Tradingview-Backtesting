@@ -22,7 +22,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `{pending push -- pinned by the session-end follow-up commit}` |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `43fb973^..9a00d40` (= `1f7815f..9a00d40`; verified: 51 files) |
 | tradingview-mcp-jackson (sibling, LOCAL transport only) | `C:\Strat_Trading_Bot\tradingview-mcp-jackson` | `27757bc` (Monaco finder multi-candidate fix) |
 
 RANGE-PIN RULE (Codex TVB-4 finding 1): git ranges EXCLUDE the left endpoint;

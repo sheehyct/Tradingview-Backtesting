@@ -116,10 +116,11 @@ nothing disputed.
 > docs/reviews/REVIEW_REQUEST.md (the pointer) and docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: `43fb973^..{head}` on `main` (pinned after push; RANGE-PIN RULE:
-  caret keeps the first session commit -- the review-return flip -- in the diff;
-  sanity-check `git diff --name-status`). Sibling repo tradingview-mcp-jackson
-  `27757bc` at `C:\Strat_Trading_Bot\tradingview-mcp-jackson` -- local transport only.
+- Commits to review: `43fb973^..9a00d40` on `main` (= `1f7815f..9a00d40`;
+  sanity-checked: `git diff --name-status` lists all 51 session files). RANGE-PIN
+  RULE applied: the caret keeps `43fb973` (the review-return flip) inside the
+  reviewed diff. Sibling repo tradingview-mcp-jackson `27757bc` at
+  `C:\Strat_Trading_Bot\tradingview-mcp-jackson` -- local transport only.
 - Scope / what changed: xyz backfill verification vs HL venue candles (+evidence);
   venue-gap decomposition (tick-size artifact); xyz adoption + native rows; MAE/
   solvency gate; slippage band; re-entry governor v1->v2 (Pine) + ablations; tv_dump
