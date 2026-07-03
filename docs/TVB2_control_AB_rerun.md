@@ -1007,4 +1007,43 @@ cushion is what makes the claim robust, not the 8.11% sample max); leverage abov
 starts leaning on the sample; perp FUNDING cost/credit on held positions is NOT
 modeled (belongs to the slippage/cost-realism item, still open). This closes the
 solvency precondition; deployability language remains gated on slippage realism at
-size.
+size. All backtest %s in this document are 1x (100%-of-equity notional, no leverage).
+
+### Slippage sensitivity band + tick-size asymmetry (venue-gap decomposition REVISED)
+
+**Tick-size discovery (verified via CDP symbolInfo): xyz MSTRUSDC.P mintick = 0.001;
+OKX MSTRUSDT.P mintick = 0.01.** The standing "slippage = 1 tick/fill" convention
+therefore charged OKX ~10x more modeled slippage per fill than xyz in every TVB-5
+venue comparison. The venue gap was partly a MODELING ARTIFACT, not venue reality.
+
+Band design (declared before running, with predictions SB1-SB4): slippage {1, 10, 25,
+50} ticks at commission 0.0125, all four xyz-native configs, full Dec2->Jul3 window.
+At ~$130 avg price: ~0.08 / 0.8 / 1.9 / 3.8 bp per fill; the 10-tick point equals
+OKX's 1-tick model in absolute $/fill ($0.01) -- the venue-model equalizer. Dumps:
+`tvb6_WV_{cfg}_0125_s{10|25|50}.json`.
+
+| config (trades) | s1 | s10 | s25 | s50 |
+|---|---|---|---|---|
+| ctrlB (4308) | +7.94 | **-37.56** | -74.92 | -94.52 |
+| R1E1 (1302) | +59.96 | +34.76 | **+1.29** | -37.07 |
+| ctrlA (474) | +47.10 | +38.22 | +24.60 | **+4.79** |
+| R1E3 (408) | +46.21 | +38.58 | +26.73 | **+9.19** |
+
+Scorecard: SB1 CONFIRMED (ctrlB deeply negative by 10t). SB2 REFUTED on magnitude --
+R1E1 at 25t is ~breakeven (+1.29), not comfortably positive; 100%-equity compounding
+amplifies the linear per-trade cost (~59pp lost, vs ~39pp from the naive per-trade
+estimate). SB3 CONFIRMED (both 60m cells positive at 50t, thin). R1E3 >= ctrlA at
+every elevated slippage -- fewer trades AND higher PF headroom.
+
+**Venue-gap decomposition (SB4 CONFIRMED ~exactly):** shared-window Feb25->,
+equal-$-slippage comparison: R1E1 xyz@s10 +61.78% vs OKX@s1 +39.88% (raw xyz@s1 was
++83.07) -- equalization closes ~49% of the gap; ctrlB xyz@s10 +25.77% vs OKX -9.05%
+(raw +80.17) -- closes ~61%. REVISED one-line: the TVB-5 venue gap was roughly HALF
+tick-size modeling artifact, HALF real venue texture; the remaining texture gap still
+sign-flips the churn config (knife-edge conclusion unchanged and reinforced -- the
+modeled-cost term alone, at $0.01/fill, moves ctrlB by 90pp).
+
+Which ABSOLUTE slippage is realistic per venue remains OPEN (needs live xyz book
+sampling at ~90-contract size; also perp funding). Until then the convention for
+xyz runs: report s1 alongside s10 (s10 = "OKX-equivalent-$" pessimistic floor for
+book-crossing cost); never quote an xyz churn-config number at s1 alone.
