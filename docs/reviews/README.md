@@ -23,7 +23,7 @@ docs/reviews/tvb{N}-codex-audit.md
    entry (status `REQUESTED`, commit range, focus areas), rewrites
    `REVIEW_REQUEST.md` (the stable current-request pointer external reviewers are
    aimed at), and gate-then-pushes.
-2. A reviewer (local Codex CLI `/review` or cloud) starts at `REVIEW_REQUEST.md`,
+2. A reviewer (local Codex CLI `/session-review` or cloud) starts at `REVIEW_REQUEST.md`,
    reviews the pinned range, and writes `tvb{N}-codex-audit.md` (copy
    `_TEMPLATE.md`).
 3. The next `/session-start` detects the new review, summarizes it, folds

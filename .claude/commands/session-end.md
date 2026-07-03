@@ -87,7 +87,7 @@ If HANDOFF.md exceeds 1500 lines, STOP and ask before archiving to `docs/session
 ### docs/reviews/REVIEW_REQUEST.md
 
 Rewrite it for THIS session's review request. It is the stable entry point external
-reviewers (Codex `/review`, cloud agents) are pointed at -- it always describes the
+reviewers (Codex `/session-review`, cloud agents) are pointed at -- it always describes the
 LATEST request; the permanent per-session record stays in the HANDOFF block above.
 Both are written in this step, from the same fields, so they cannot drift.
 

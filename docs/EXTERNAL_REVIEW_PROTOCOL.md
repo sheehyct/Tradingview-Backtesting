@@ -25,8 +25,11 @@ them the same way.
 
 ## The current-request pointer: `docs/reviews/REVIEW_REQUEST.md`
 
-A stable single file external reviewers are pointed at (e.g. a Codex `/review`
-slash command reads exactly this path). It always describes the LATEST requested
+A stable single file external reviewers are pointed at (e.g. the Codex
+`/session-review` custom prompt -- `~/.codex/prompts/session-review.md` -- reads
+exactly this path; do NOT name the prompt `review.md`, Codex CLI has a NATIVE
+built-in `/review` that shadows same-named custom prompts and only diffs the
+working tree against a base branch). It always describes the LATEST requested
 review: status, session, pinned commit ranges (including sibling-repo commits
 reviewable only via the local transport), scope, focus areas, read-first order,
 and the audit output path.

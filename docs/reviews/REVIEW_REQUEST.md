@@ -1,6 +1,6 @@
 # CURRENT REVIEW REQUEST -- tradingview-backtesting
 
-> Entry point for external reviewers. If you are Codex (`/review`) or any other
+> Entry point for external reviewers. If you are Codex (`/session-review`) or any other
 > external review agent pointed at this repo: this file is your work order. It
 > always describes the LATEST requested session review and is rewritten by
 > `/session-end` each session. The permanent per-session record is the
