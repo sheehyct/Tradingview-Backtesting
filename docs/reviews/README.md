@@ -20,11 +20,15 @@ docs/reviews/tvb{N}-codex-audit.md
 ## Flow
 
 1. `/session-end` records an `### External Review` block in the session's HANDOFF
-   entry (status `REQUESTED`, commit range, focus areas) and gate-then-pushes.
-2. A reviewer (local Codex CLI or cloud) reviews that range and writes
-   `tvb{N}-codex-audit.md` (copy `_TEMPLATE.md`).
-3. The next `/session-start` detects the new review, summarizes it, and folds
-   actionable items into priorities -- writing the critical synthesis into HANDOFF.
+   entry (status `REQUESTED`, commit range, focus areas), rewrites
+   `REVIEW_REQUEST.md` (the stable current-request pointer external reviewers are
+   aimed at), and gate-then-pushes.
+2. A reviewer (local Codex CLI `/review` or cloud) starts at `REVIEW_REQUEST.md`,
+   reviews the pinned range, and writes `tvb{N}-codex-audit.md` (copy
+   `_TEMPLATE.md`).
+3. The next `/session-start` detects the new review, summarizes it, folds
+   actionable items into priorities -- writing the critical synthesis into
+   HANDOFF -- and flips REVIEW_REQUEST.md status to RETURNED.
 
 See `docs/EXTERNAL_REVIEW_PROTOCOL.md` for the full contract. Review files are
 tracked records: never paste a secret/IP/account value -- cite `file:line`.

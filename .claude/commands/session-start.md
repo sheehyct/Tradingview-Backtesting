@@ -22,13 +22,18 @@ Read and summarize key points from:
 Before forming today's priorities, check whether the previous session was reviewed
 (local Codex CLI or cloud):
 
-1. Read the previous session's `### External Review` block in `docs/HANDOFF.md`
-   (its `Review status` + `Commits to review`).
-2. Check `docs/reviews/` for a matching `tvb{prev}-codex-audit.md`.
-3. If a review file exists (status RETURNED): read it CRITICALLY (it may be wrong),
-   summarize its verdict + findings, fold actionable items into TODAY'S PRIORITIES
+1. Read `docs/reviews/REVIEW_REQUEST.md` (the current-request pointer: session,
+   status, commit ranges, audit output path). Cross-check the previous session's
+   `### External Review` block in `docs/HANDOFF.md`; for the CURRENT request the
+   pointer file wins.
+2. Check `docs/reviews/` for the audit file named in REVIEW_REQUEST.md
+   (`tvb{prev}-codex-audit.md`).
+3. If the audit file exists: read it CRITICALLY (it may be wrong), summarize its
+   verdict + findings, fold actionable items into TODAY'S PRIORITIES
    (CRITICAL/HIGH first), and plan to write the critical synthesis into HANDOFF.
-4. If status is REQUESTED but no review file yet: note "External review pending" and
+   Flip status to RETURNED in both REVIEW_REQUEST.md and the HANDOFF block if not
+   already done.
+4. If status is REQUESTED but no audit file yet: note "External review pending" and
    ask whether to (a) wait, (b) proceed, or (c) run Codex CLI on the named range now.
 
 See `docs/EXTERNAL_REVIEW_PROTOCOL.md`.

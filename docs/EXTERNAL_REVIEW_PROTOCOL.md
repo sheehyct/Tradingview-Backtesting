@@ -23,6 +23,22 @@ reference it.
 Either transport writes its findings to the same place; `/session-start` reads
 them the same way.
 
+## The current-request pointer: `docs/reviews/REVIEW_REQUEST.md`
+
+A stable single file external reviewers are pointed at (e.g. a Codex `/review`
+slash command reads exactly this path). It always describes the LATEST requested
+review: status, session, pinned commit ranges (including sibling-repo commits
+reviewable only via the local transport), scope, focus areas, read-first order,
+and the audit output path.
+
+- `/session-end` rewrites it each session (same fields as the HANDOFF block, one
+  writer, so they cannot drift). Concrete shas are pinned right after the push.
+- `/session-start` reads it, and flips its status to RETURNED once the audit
+  file exists.
+- The HANDOFF `### External Review` block remains the permanent per-session
+  record and the adjudication anchor; REVIEW_REQUEST.md is ephemeral and wins
+  only for the CURRENT request.
+
 ## Why pushed + tracked context matters
 
 A cloud reviewer reads the REMOTE, not your local tree. The repo is PUBLIC, so
@@ -33,11 +49,12 @@ before every push to keep "commit the context" from leaking a secret.
 
 > If you are an external review agent pointed at this repository:
 >
-> 1. **Read the governing context first:** `CLAUDE.md` (epistemic stance + backtest
+> 1. **Start at `docs/reviews/REVIEW_REQUEST.md`** -- it names the session, the
+>    pinned commit ranges, the focus areas, and where your audit goes.
+> 2. **Read the governing context:** `CLAUDE.md` (epistemic stance + backtest
 >    traps), `docs/ATLAS_Timeframe_Continuity_Charter.md` (Section 0), and the top
->    `docs/HANDOFF.md` entry for the session under review.
-> 2. **Identify the session + commit range** from that entry's `### External Review`
->    block (`Commits to review:`).
+>    `docs/HANDOFF.md` entry for the session under review (its `### External Review`
+>    block is the permanent record of the same request).
 > 3. **Review that work**, prioritizing: `request.security` lookahead in any Pine
 >    (`lookahead_off`? offset? which fields requested?), model-fidelity honesty
 >    (is the backtest measuring what it claims?), overfitting / sample-vs-structural

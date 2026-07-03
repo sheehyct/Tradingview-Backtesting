@@ -79,6 +79,22 @@ Add a new entry at the TOP:
 
 If HANDOFF.md exceeds 1500 lines, STOP and ask before archiving to `docs/session_archive/`.
 
+### docs/reviews/REVIEW_REQUEST.md
+
+Rewrite it for THIS session's review request. It is the stable entry point external
+reviewers (Codex `/review`, cloud agents) are pointed at -- it always describes the
+LATEST request; the permanent per-session record stays in the HANDOFF block above.
+Both are written in this step, from the same fields, so they cannot drift.
+
+- Status: REQUESTED; session TVB-{N} + title + request date.
+- Audit output path: `docs/reviews/tvb{N}-codex-audit.md`.
+- Commits to review: leave as `{pending push}` here; PIN concrete shas after the
+  commit/push in Step 5. Include sibling-repo commits (with local paths) marked
+  "local transport only".
+- Scope + focus areas: same content as the HANDOFF block.
+- Keep the read-first list and output contract sections (they are boilerplate;
+  update only if the protocol changed).
+
 ## Step 3: Store in OpenMemory
 
 Call `mcp__openmemory__openmemory_store` with a structured summary (session number, date, key
@@ -88,10 +104,12 @@ accomplishments, decisions, blockers).
 
 Confirm the return shows a memory id before continuing.
 
-## Step 4: Prepare commit
+## Step 4: Commit
 
-Show the user a proposed conventional-commit message + `git diff --stat`, and WAIT for
-confirmation before committing. Never commit without confirmation.
+Commit with a conventional-commit message (include the message + `git diff --stat` in the
+Step 6 summary). Commits and pushes are AUTONOMOUS -- no per-commit user confirmation
+(rule retired 2026-07-03; it predated auto mode). The blocking check is the secret-scan
+gate in Step 5, not the user.
 
 ## Step 5: Secret-Scan Gate and Push
 
@@ -104,7 +122,10 @@ end state. After the commit is made, gate then push:
    uv run python scripts/secret_scan.py                        # first push (no origin/main yet) / full audit
    ```
 2. If it exits 0 (clean): `git push origin main` (first push: `git push -u origin main`).
-   Then fill the `Commits to review:` field in the HANDOFF `### External Review` block.
+   Then fill the `Commits to review:` field in the HANDOFF `### External Review` block
+   AND pin the same concrete shas in `docs/reviews/REVIEW_REQUEST.md` (this may need a
+   small follow-up commit; that is expected and fine -- the request file must name real
+   shas so a reviewer can check out the exact range).
 3. If it exits non-zero (CRITICAL/HIGH finding): **DO NOT PUSH.** Remove the secret /
    gitignore the file / add a reviewed entry to `scripts/secret_scan_allowlist.txt`,
    then re-run. Never bypass with `--no-verify`.
@@ -118,7 +139,8 @@ A short ACCOMPLISHED / BLOCKERS / NEXT PRIORITIES / PLAN MODE recommendation blo
 
 ## Rules
 
-- Do NOT commit without user confirmation.
+- Commits/pushes are autonomous (no confirmation needed); the secret-scan gate is the
+  blocker, never bypass it.
 - Do NOT skip quality checks.
 - Do NOT archive HANDOFF.md without confirmation.
 - ALWAYS push after a clean secret-scan gate -- cloud review reads the remote, not your local tree.
