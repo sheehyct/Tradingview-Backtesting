@@ -501,3 +501,77 @@ directional agreement is real, not an artifact.
 4. Method note for future probes: in `reportData().trades`, direction is `e.tp`
    ("le"/"se"); `e.b` is a BAR INDEX (an initial all-long misread came from decoding
    `e.b` as a buy flag -- caught by the impossible zero-shorts-in-a-crash split).
+
+## TVB-4 (2026-07-03): two-layer regime ablation (charter 3.3 + S8 decision)
+
+The regime layer (`pine/baseline_continuity.pine` TVB-4 rev; regression GREEN -- reg_mode
+off reproduces all 2811 reference trades byte-identically) adds an HTF M/W/D FTFC gate over
+the Control-B execution layer (60/30/15, 15m). `reg_mode`: off = control; `stand_aside` =
+enter only when the regime agrees with the trade direction (grey and opposite both block);
+`size_down` = full size when aligned, HALF (fixed a-priori 50%) when grey, opposite blocks.
+No regime exit in v1. Ablation vs the B-alone control (NOT a tournament). Window Feb 25
+10:00Z -> Jul 3 16:15Z (~2.5h more tail than the preflights; B-alone control re-read in this
+same window: @0 +84.7%, @0.0125 -8.60%). Entity re-added post-restart (9lQ6Gn); id map
+unchanged. All runs marginCalls 0, open trades <= 1.
+
+| reg_mode | fee/fill | Trades (L/S) | Net % | PF | MaxDD % | Sharpe | Long % | Short % |
+|---|---|---|---|---|---|---|---|---|
+| off (control) | 0 | 2814 (1361/1453) | +84.70 | 1.139 | 22.3 | 0.83 | +66.35 | +18.35 |
+| off (control) | 0.0125 | 2814 (1361/1453) | **-8.60** | 0.981 | 37.3 | -0.10 | +15.59 | -24.19 |
+| stand_aside | 0 | 922 (488/435) | +76.63 | 1.355 | 11.2 | 1.15 | +48.06 | +28.57 |
+| stand_aside | 0.0086 | 922 (488/435) | +50.72 | 1.242 | 12.9 | 0.89 | +35.15 | +15.57 |
+| stand_aside | 0.0125 | 922 (488/435) | **+40.26** | 1.195 | 14.3 | 0.75 | +29.80 | +10.46 |
+| size_down | 0 | 2390 (1212/1179) | +68.73 | 1.204 | 18.2 | 0.92 | +43.52 | +25.21 |
+| size_down | 0.0125 | 2390 (1212/1179) | **+12.84** | 1.044 | 26.4 | 0.26 | +16.00 | -3.15 |
+
+Kind-window compounding (zero-fee, product(1+pp) over trades ENTERED in-window; split by `e.tp`):
+
+| mode | KIND-UP Apr12-22 | KIND-UP-CORE Apr12-17 | KIND-DOWN Jun16-26 |
+|---|---|---|---|
+| B-alone | +19.5% (L108/S103) | +23.7% (L58/S48) | +15.7% (L95/S125) |
+| stand_aside | +20.4% (L83/S4) | +16.7% (L46/S4) | +13.1% (L0/S104) |
+| size_down | +16.6% (L111/S64) | +16.9% (L58/S31) | +20.1% (L49/S131) |
+
+**Predictions scorecard (pre-registered in the plan; surprises are the deliverable):**
+- **P1 CONFIRMED** -- stand_aside cuts trades 2814 -> 922 (67% fewer; grey + counter-regime
+  suppression). size_down 2814 -> 2390 (blocks opposite, halves grey).
+- **P2 CONFIRMED** -- KIND-UP stand_aside +20.4% >= B-alone +19.5%: it killed 99 of 103
+  counter-trend shorts (-5.1% -> -0.2%), at the cost of 25 longs (+26.0% -> +20.6%).
+- **P3 PARTIAL** -- KIND-DOWN stand_aside +13.1% vs B-alone +15.7% (~2.6pp cost, not
+  "~="): killed all 95 counter-trend longs but also dropped 21 shorts (125 -> 104) to
+  regime timing. Small honest cost, not free.
+- **P4 CONFIRMED (dramatically)** -- THE thesis. At real fee 0.0125 stand_aside is
+  **+40.26% vs the control's -8.60%** -- a ~49pp swing, a sign flip, drawdown more than
+  halved (37.3% -> 14.3%), Sharpe -0.10 -> +0.75. The suppressed trades were
+  disproportionately fee-burners: at ZERO fee stand_aside kept 90% of the P&L (+76.6 vs
+  +84.7) on 33% of the trades; removing their fee drag is what flips the sign.
+- **P5 CONFIRMED + LOCATED** -- transition-lag cost is real. At zero fee stand_aside
+  gives up ~8pp (+76.6 vs +84.7), and it concentrates at trend births: KIND-UP-CORE
+  (the sharpest rally leg) stand_aside +16.7% vs B-alone +23.7% (-7pp) because the slow
+  M/W/D regime had not flipped up yet during the V-bottom -- it blocked the earliest,
+  best longs (46 vs 58). The slow gate pays a documented late-entry tax; at real fees the
+  chop-savings dwarf it, but the tax is visible and structural.
+- **P6 CONFIRMED** -- size_down (+12.84%) lands between control (-8.60%) and stand_aside
+  (+40.26%) at 0.0125. Keeping grey exposure at half-size retains half the fee drag.
+
+**S8 DECISION (data-driven): STAND ASIDE beats SIZE DOWN on grey.** Charter Section 8's
+load-bearing open question is answered by the ablation: at real fees stand_aside dominates
+size_down on every axis (net +40.26 vs +12.84, PF 1.195 vs 1.044, DD 14.3 vs 26.4, Sharpe
+0.75 vs 0.26). This confirms the expectancy argument -- sizing down a fee-negative churn
+stream still loses to skipping it; "stand aside when the playbook stops" beats "trade
+smaller." Recommend stand_aside as the grey rule going forward (Fable to ratify post-reset).
+
+**Surprise flagged:** size_down WINS the KIND-DOWN window (+20.1% vs stand_aside +13.1% and
+B-alone +15.7%) -- the one window where half-size grey exposure paid, because the crash had
+grey stretches where reduced shorts still profited and stand_aside sat out. It does NOT
+survive to the full-fee sample (stand_aside dominates overall), but it says the grey rule is
+regime-dependent: in a sustained one-way move, staying partially in beats standing aside;
+across mixed regimes with real fees, standing aside wins. A vol/trend-conditional grey rule
+is a (parked) charter S6 avenue this surfaces -- do NOT tune it on this sample.
+
+**Caveats (charter S0 -- questions, not verdicts):** single instrument, single window with a
+crash + V-rally inside it; the +40.26% still concentrates long (+29.80 vs short +10.46); the
+regime late-entry tax (P5) will bite harder in a sample with more sharp reversals; slippage
+realism and the OKX->HL venue gap remain unmodeled. stand_aside is a strong ablation result,
+not a deployability verdict. The two-layer earns its place as the go-forward ablation
+baseline for the priority-4 timeframe-set sweep.
