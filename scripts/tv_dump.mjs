@@ -1,8 +1,10 @@
-// TVB-4/5 run-matrix dump: full metrics + trade list for the strategy on the chart.
+// TVB-4/5/6 run-matrix dump: full metrics + trade list for the strategy on the chart.
 // Usage: node scripts/tv_dump.mjs <outfile.json>
-// Writes {net, trades, marginCalls, openTrades, metrics:{all,long,short subset},
-//         list:[{et,dir,pp,pv,q,open}]} -- list entries with open:true are the
+// Writes {net, trades, marginCalls, openTrades, assert, metrics:{all,long,short},
+//         list:[{et,xt,ep,xp,dir,pp,pv,q,ddp,rnp,open}]} -- open:true rows are the
 //         mark-to-market open position rows (excluded from the printed L/S split).
+// TVB-6 fields: xt/xp exit time+price, ep entry price, ddp/rnp = TV's per-trade
+// max drawdown / run-up percent (MAE/MFE inputs for the solvency analysis).
 import { evaluate, disconnect } from 'file:///C:/Strat_Trading_Bot/tradingview-mcp-jackson/src/connection.js';
 
 const outfile = process.argv[2];
@@ -37,8 +39,11 @@ const EXPR = `(function(){
       var list = [];
       for (var j=0;j<tr.length;j++){ var t=tr[j];
         list.push({et: t.e ? t.e.tm : null, xt: t.x ? t.x.tm : null,
+                   ep: t.e ? t.e.p : null, xp: t.x ? t.x.p : null,
                    dir: t.e ? t.e.tp : null, pp: t.tp ? t.tp.p : null,
-                   pv: t.tp ? t.tp.v : null, q: t.q, open: j >= closedN}); }
+                   pv: t.tp ? t.tp.v : null, q: t.q,
+                   ddp: t.dd ? t.dd.p : null, rnp: t.rn ? t.rn.p : null,
+                   open: j >= closedN}); }
       return {net: all.netProfitPercent, trades: all.totalTrades, marginCalls: all.marginCalls,
               openTrades: all.totalOpenTrades, buyHold: perf.buyHoldReturnPercent,
               assert: {listLen: tr.length, closedN: closedN, openN: openN,

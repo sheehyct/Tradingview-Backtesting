@@ -975,3 +975,36 @@ Window slices (window_compound over the new dumps, closed trades entered in-wind
    kill-window loss (-12.61) vs R1E3's gain (+4.63) is the risk-shape difference the
    headline number hides. Same S8/containment caveats as TVB-5; no deployability
    language.
+
+### Short-leg MAE / 1x-cash solvency check (Codex TVB-3 finding 2 -- CLEARED)
+
+Question: TV simulates with margin 0/0 (no margin calls -- the TVB-3 deadlock fix), so
+it rides any adverse excursion; would the short leg have LIQUIDATED on the real venue
+at 1x cash? Model: HL isolated margin, xyz:MSTR maxLev 10 -> maintenance 5%; a short at
+leverage L liquidates at adverse move (1+L)/(L*1.05)-1: **+90.5% at 1x**, +42.9% at 2x,
++27.0% at 3x, +14.3% at 5x. A 1x long cannot liquidate. Method: per-trade MAE vs ENTRY
+price off bar extremes over [et, xt] (verified venue bars; entry-bar extreme may
+precede the intrabar entry -- measured MAE can only OVERSTATE). NEW
+`analysis/trade_mae.py` (+4 tests; suite 17/17); dumps re-captured with
+entry/exit price + TV per-trade drawdown/run-up fields (`ep/xp/ddp/rnp`; tv_dump
+TVB-6 format). Cross-check vs TV's own ddp: median |diff| 0.05-0.08pp.
+
+| config | shorts | median MAE | p99 | worst | 1x/2x/3x/5x breaches | max survivable short lev |
+|---|---|---|---|---|---|---|
+| ctrlB | 2157 | 0.28% | 2.45% | **8.11%** | 0 / 0 / 0 / 0 | 7.40x |
+| R1E1 | 633 | 0.31% | 2.77% | 3.82% | 0 / 0 / 0 / 0 | 11.09x |
+| ctrlA | 233 | 0.58% | 4.49% | 8.00% | 0 / 0 / 0 / 0 | 7.46x |
+| R1E3 | 202 | 0.60% | 4.49% | 8.00% | 0 / 0 / 0 / 0 | 7.46x |
+
+(Long worst MAE 3.7-5.4% across configs -- context only; 1x longs are unliquidatable.)
+
+**Read: at 1x cash the short leg is solvent by an order of magnitude throughout the
+sample -- TV's margin-0/0 simulation is a FAIR model of a 1x cash deployment for this
+strategy class (no margin call would ever have fired).** The state-stop exits fast
+enough that excursions stay single-digit. Honest bounds: worst OBSERVED MAE is not
+worst POSSIBLE (MSTR-class earnings gaps can exceed 8% overnight; the +90.5% 1x
+cushion is what makes the claim robust, not the 8.11% sample max); leverage above ~3x
+starts leaning on the sample; perp FUNDING cost/credit on held positions is NOT
+modeled (belongs to the slippage/cost-realism item, still open). This closes the
+solvency precondition; deployability language remains gated on slippage realism at
+size.
