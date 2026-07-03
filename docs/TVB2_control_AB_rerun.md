@@ -1177,3 +1177,34 @@ zero-parameter. v1 numbers above remain the committed record.
 - V4: R1E3+gov-v2 within +-5pp of ungoverned (+46.21).
 
 Run set: same seven cells; dumps `tvb6_WV_{cfg}gov2_{fee}[_s10].json`.
+
+### Governor v2 RESULTS (deployed pineVersion 20.0; gov-off regression prefix-identical again)
+
+| cell | ungoverned | gov v1 | gov v2 | v2 trade cut |
+|---|---|---|---|---|
+| ctrlB @0 s1 | +216.85 | +267.03 | +256.85 | -2.7% (4191) |
+| ctrlB @0.0125 s1 | +8.03 | +33.34 | +25.17 | -2.7% |
+| ctrlB @0.0125 s10 | -37.56 | -19.47 | -26.49 | -2.7% |
+| R1E1 @0 s1 | +121.46 | +26.52 | **+134.80** (PF 1.511, DD 12.8) | -4.0% (1250) |
+| R1E1 @0.0125 s1 | +59.96 | +11.99 | **+71.80** (PF 1.294, DD 20.9, Sh 0.47) | -4.0% |
+| R1E1 @0.0125 s10 | +34.76 | +5.42 | **+45.71** | -4.0% |
+| R1E3 @0.0125 s1 | +46.21 | +17.47 | +47.05 | -3.7% (393) |
+
+R1E1+gov2 @0.0125 slices: shared Feb25-> +93.28 (ungov +83.07); prefix Dec-Feb
+-11.13 (ungov -12.61). Underwater: 124d longest span (ungov 149d), max depth 20.9%.
+
+**Scorecard:** V1 CONFIRMED (R1E1 cut 4% << 15%; the starvation is gone). V2
+half-confirmed (direction right -- the single-layer governor got WEAKER under the
+earlier-firing alignment reset -- but 2 of 3 points landed just below the predicted
+band). V3 REFUTED UPWARD: R1E1+gov2 beats ungoverned by ~+12pp at s1 AND ~+11pp at
+s10, with better PF/DD/Sharpe and higher zero-fee GROSS (+134.8 vs +121.5) -- the
+governor's benefit on the two-layer is signal-side, not cost relief. V4 CONFIRMED
+(+0.84pp on R1E3 -- inert at low churn, as a zero-parameter filter should be).
+
+**KEEP-RULE MET (pre-registered): the v2 ratchet is KEPT for the two-layer
+baseline.** The TVB-6+ baseline configuration = R1E1 stand_aside + gov_mode ratchet,
+set explicitly per run; input defaults stay off (regression anchor, same reasoning
+as S8). Standing caveats unchanged: one instrument, one 7-month path, magnitudes
+regime-local, underwater profile still 124 days; the v1-vs-v2 pair itself
+demonstrates how sensitive governor-class rules are to layer interactions --
+re-verify on the next instrument/window before treating the lift as structural.
