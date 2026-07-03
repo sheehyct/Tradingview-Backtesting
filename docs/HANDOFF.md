@@ -5,6 +5,106 @@
 
 ---
 
+## Session TVB-3: Stale gate confirmed + fixed; corrected controls; margin artifact killed (COMPLETE)
+
+**Date:** 2026-07-02
+**Status:** COMPLETE -- all 6 amended-order priorities done. The FTFC gate WAS stale (preflight
+N1 confirmed empirically), fixed via local period-open reconstruction; a TV margin-call deadlock
+artifact was discovered and removed; the corrected-gate fee sweep REPLACES all TVB-1/2 numbers.
+
+### What was accomplished
+- **Settings dump (Codex 1 + N3):** full CDP decode of the strategy instance's inputs +
+  properties (metaInfo().inputs id->internalID map). Answers: TVB-2 runs INCLUDED slippage=1
+  tick/fill (in_24); bar magnifier OFF (in_32); sizing structurally 1x. Found the TV slot had
+  drifted to the TVB-1 fee-test variant (v6, no leverage input). Datasheet patched: slippage
+  wording corrected (runs were never slippage-free), checklist fee 0.0864%->0.0125% (Codex 3),
+  superseded items annotated (N4).
+- **P2a -- gate staleness CONFIRMED (N1 right).** Method deviation (justified): single-TF
+  isolation of the strategy's own plotted gate values vs raw period opens, NOT the visual TFO
+  overlay (the TFO indicator is itself lookahead-on). D-only: every bar of day N shows
+  open(N-1); 60m-only: 43/43 non-boundary bars show the prior hour's open; the current open
+  appears only on each period's LAST chart bar (simultaneous-close merge). All TVB-1/2 numbers
+  characterized a "close vs prior-period opens" gate. Also verified: TV's OKX daily bars roll
+  at 00:00 UTC. LESSON: an interim "gate looks current" read from the old 4-TF composite was
+  WRONG (dead-session-polluted data + max/min masking) -- only single-TF isolation is decisive.
+- **P2b -- ONE canonical Pine edit (plan approved):** gate -> `ta.valuewhen(timeframe.change(tf),
+  open, 0)` (chart-local; backtest==live; same-TF = current bar open); trigger tick-offsets
+  (high+mintick / low-mintick, strat-methodology strict-break); chart-TF<=gate-TF guard
+  (runtime.error, verified firing); header fee note fixed (N5). Repo file and slot now
+  byte-identical (Pine v6). Regression: 60m-only probe reads CURRENT 57/57.
+- **DISCOVERY: TV margin-call deadlock.** 100%-equity sizing + default margin 100/100 =>
+  every short margin-calls on its first adverse tick (equity==required at entry); on Apr 2 a
+  margin-call/close race left an orphan +1.112-contract long that no strategy.close(id) could
+  target => the first bridge run silently traded NOTHING for 3 months (order log + orphan
+  arithmetic verified to the cent). FIX: margin_long=0, margin_short=0 (state-stop is the only
+  exit, as designed). NOTE: TVB-1/2 short legs were margin-contaminated too.
+- **Corrected-gate fee sweep (ACTUALS, replacing the geometric model).** Window Feb 25 10:00Z
+  (data floor) -> Jul 3; buyHold -22.5% (the +3 tail days added a +19% rally):
+  - A (M/W/D/60, 60m): 317 trades; 0% +50.0% PF 1.316; 0.0086% +42.0%; 0.0125% +38.6%
+    (PF 1.245, DD 16.4%, Sharpe 0.87); 0.1% -20.4% PF 0.864.
+  - B (60/30/15, 15m): 2801 trades; 0% +86.5% PF 1.143; 0.0086% +15.2%; 0.0125% **-7.4%**;
+    0.1% -99.3%.
+  - A's real-fee band matches the geometric prediction almost exactly; **B's sign FLIPS inside
+    the real-fee band** (PF 0.98-1.03; corrected gate churns ~22% more) -- flagged as the
+    session's surprise. A's edge is long-heavy (long +34.7% / short +3.9% @ 0.0125%).
+  - Old-vs-new deltas bundle {gate fix + tick offsets + margin removal + 3-day window tail};
+    decomposition deliberately not spent.
+- **Jackson reader hardening (Codex 4; separate repo, commit `55e93f1`):** debug_sources
+  propagated through getStrategyResults/getTrades/getEquity public returns; getEquity got the
+  no-strategy debug branch; MAX_TRADES 20->500 cap (default stays 20); fixed three latent
+  "evaluate is not defined" DI bugs in chart core (getVisibleRange/scrollToDate/symbolInfo --
+  scrollToDate bit live this session). 123/123 non-e2e tests pass; 2 pre-existing live-TV
+  compile failures verified identical on the pre-edit tree. Deploys at next MCP restart.
+- **Sanitized fee artifact (Codex 2):** `analysis/fee_rates_by_dex.py` -- counts + RATES by
+  {dex, crossed} from a LOCAL fills export; sanitization contract enforced and unit-tested
+  (no absolute notionals in output). 4 new tests; suite 5/5.
+
+### Context for next session
+- TVB-4 = EXPERIMENTATION PHASE (charter S5) after two cheap preflights: bar-magnifier check
+  (B knife-edge most exposed) and the kind-window bug-test. Then two-layer design (plan mode).
+  See `.session_startup_prompt.md` for the full order + operational notes.
+- Input id map SHIFTED this session when margin args were added (margins now in_25/26; a
+  stale-id write set currency=0 => "Can't parse pine"; fixed by remove+re-add). Re-derive ids
+  after ANY source change -- the rule has now bitten twice.
+- Strategy on chart: `dILiiy` (re-check), OKX:MSTRUSDT.P 15m, Control-B enables, in_23=0.1.
+  User's personal chart was displaced from CBOE:DRAM 1m -- restore or leave per user.
+- TV session-disconnect gotcha: our own kill+relaunch triggers "accessed from another device";
+  while disconnected, layout/tab ops and restudies silently no-op. Click Connect.
+
+### Files created/modified
+- MOD `pine/baseline_continuity.pine` (Pine v6 canonical: gate fix + tick offsets + guard +
+  margin 0/0 + corrected header; byte-identical to slot "TFC Baseline" `USER;e7c8...`).
+- MOD `docs/TVB2_control_AB_rerun.md` (TVB-3 sections: settings dump, P2a proof, P2b +
+  artifacts, corrected-gate sweep + reading).
+- NEW `analysis/fee_rates_by_dex.py`, `tests/test_fee_rates.py`.
+- MOD `.session_startup_prompt.md`, `docs/HANDOFF.md`.
+- SEPARATE repo: `tradingview-mcp-jackson` commit `55e93f1` (reader hardening + DI fixes).
+- Memory: NEW `tvb3-stale-gate-margin-artifacts`; updated `tvb2-fee-resolved-real-taker`,
+  `tvb1-controlB-fee-churn-finding` (supersession notes), MEMORY.md index.
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range below) and
+> write a verbatim assessment to docs/reviews/tvb3-codex-audit.md. See
+> docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: `93f16d7..HEAD` on `main` (workspace) + `55e93f1` in
+  `tradingview-mcp-jackson` (reader hardening)
+- Scope / what changed: gate staleness empirically confirmed + fixed (ta.valuewhen local
+  period-open recon); margin-call deadlock artifact removed (margin 0/0); corrected-gate
+  2x4 fee sweep replaces TVB-1/2 numbers; sanitized fee-rate script; jackson DI/debug fixes.
+- Focus areas (scrutinize these): (1) the P2a staleness proof method (single-TF isolation --
+  is the simultaneous-close merge interpretation right?); (2) ta.valuewhen(timeframe.change)
+  reconstruction edge cases (partial first period, non-aligned chart TFs, warmup-na semantics);
+  (3) whether margin 0/0 hides anything a 1x cash-margin reality would enforce; (4) the
+  corrected-sweep numbers and the B sign-flip reading; (5) the bundled-delta attribution caveat;
+  (6) fee_rates_by_dex.py sanitization completeness.
+- Reviewed by: pending
+- Findings: (blank until docs/reviews/tvb3-codex-audit.md exists)
+
+---
+
 ## Interim 2026-07-01: Fable 5 preflight review (one-off; review only, no session work)
 
 Pre-TVB-3 fresh-eyes review by Fable 5 (TVB-1/2 ran on Opus 4.8 while Fable 5 was offline).
