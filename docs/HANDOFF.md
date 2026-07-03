@@ -5,6 +5,100 @@
 
 ---
 
+## Session TVB-4: Two-layer regime built + ablated; stand_aside flips B positive; review pointer + guide (COMPLETE)
+
+**Date:** 2026-07-03
+**Status:** COMPLETE -- built the two-layer regime architecture (charter 3.3), ran the
+ablation, and answered the charter S8 grey-handling question with data. Dual-model session:
+Fable 5 designed + built + regression-gated; Opus 4.8 ran the matrix + recorded.
+
+### What was accomplished
+- **Review workflow upgrade:** new `docs/reviews/REVIEW_REQUEST.md` -- a stable pointer file
+  external reviewers (Codex `/review`, cloud) are aimed at; `/session-end` rewrites it each
+  session, `/session-start` flips it to RETURNED. Wired through EXTERNAL_REVIEW_PROTOCOL,
+  reviews README, both slash commands. Retired the per-commit-approval rule in session-end
+  (predated auto mode; commits/pushes now autonomous, secret-scan gate is the sole blocker).
+- **TVB-3 Codex review RETURNED (APPROVE-WITH-NITS, 3 LOW), all agreed + triaged:**
+  finding 3 (crossed-flag `bool()` coercion) FIXED -- `to_bool()` validates a real JSON
+  boolean, malformed rows skip, +1 test (6/6 pass). Finding 1 (alignment guard) folded into
+  the TVB-4 Pine. Finding 2 (short-leg MAE/solvency) deferred to the deployability stage.
+- **Preflight 1 -- bar-magnifier fidelity: no material distortion.** B @0.0125 OFF -10.06%
+  vs ON -11.13% (1 fewer trade); A bit-identical (verified via live-recompute control). The
+  state-stop architecture is path-independent intrabar; magnifier stays OFF for the sweep.
+  CARVE-OUT: any future price-stop variant is magnifier-sensitive, re-check then.
+- **Preflight 2 -- kind-window bug-test: PASS.** A-priori windows from a price scan (KIND-UP
+  Apr12-22 +43.8% B&H; KIND-DOWN Jun16-26 -36.5%). Zero-fee in-window compounding is
+  unmissably positive and direction-coherent (A: 0 longs in the crash, 34/35 longs in the
+  rally). Findings: A's down-capture is structurally weak at zero fee (25% vs 69% up); B
+  fights the trend with ~half its trades -- the data-generated motivation for the regime layer.
+- **Two-layer regime Pine (charter 3.3), regression GREEN.** Added an HTF M/W/D FTFC gate
+  over the Control-B execution layer; `reg_mode` = off | stand_aside | size_down (grey at
+  fixed a-priori 50%); no regime exit in v1 (reg_exit knob off). Plus the alignment guard
+  (chart TF must TILE every enabled gate TF -- Codex finding 1; both guard paths verified
+  firing live). Defaults = the TVB-3 control; regression PROVEN twice (pre- and post-restart:
+  all 2811 reference trades byte-identical with reg_mode off).
+- **Two-layer ablation (the headline).** OKX:MSTRUSDT.P, Control-B exec, window Feb25-Jul3:
+  - @0.0125 real fee: control **-8.60%** (PF 0.981, DD 37.3%, Sharpe -0.10) -> stand_aside
+    **+40.26%** (PF 1.195, DD 14.3%, Sharpe 0.75) -> size_down **+12.84%**. A ~49pp swing +
+    sign flip from a regime filter alone.
+  - stand_aside cuts trades 2814 -> 922 (67%) but keeps 90% of zero-fee P&L (+76.6 vs +84.7)
+    -- the suppressed trades were disproportionately fee-burners (P4 confirmed dramatically).
+  - **S8 DECISION (data-driven): stand_aside > size_down** on every axis at real fees.
+    "Stand aside when the playbook stops" beats "trade smaller." Fable to ratify.
+  - Predictions P1/P2/P4/P6 confirmed; P3 partial (small honest cost); P5 confirmed + LOCATED
+    (regime late-entry tax at the V-bottom: core-rally +16.7% vs control +23.7%). SURPRISE:
+    size_down wins the KIND-DOWN window (+20.1%) but loses the full-fee sample -- grey rule is
+    regime-dependent (parked vol-conditional avenue, do not tune).
+- **Manual backtesting guide:** `docs/guides/MANUAL_CONTROL_AB_GUIDE.md` -- step-by-step for
+  the user's own cross-ticker control runs (fee ladder, history loading, sanity gates, refs).
+
+### Context for next session
+- TVB-5 = the priority-4 timeframe-set SWEEP with the two-layer as the ablation baseline.
+  Ratify the stand_aside S8 decision first (Fable judgment); fold in the TVB-4 Codex review.
+- The two-layer Pine is the go-forward baseline. Regime late-entry tax (P5) will bite harder
+  in a sample with more sharp reversals -- the second regime window (regime-flattery guard)
+  matters. Results still concentrate long (+29.80 vs short +10.46 @0.0125).
+- OPERATIONAL: TV restart drops the strategy study (in-memory, not saved to layout) AND a
+  bare relaunch over a running instance does NOT attach the debug port -- must Stop-Process
+  the existing TradingView first, then relaunch with the CDP flag. Re-add the study, re-derive
+  the entity id (changes every add) + id map. Full re-stage flow in `.session_startup_prompt.md`.
+
+### Files created/modified
+- MOD `pine/baseline_continuity.pine` (two-layer regime; Pine v6; slot "TFC Baseline"
+  `USER;e7c8...` byte-identical, pineVersion 18).
+- MOD `analysis/fee_rates_by_dex.py` + `tests/test_fee_rates.py` (crossed-flag fix; 6/6 pass).
+- MOD `docs/TVB2_control_AB_rerun.md` (preflight 1, preflight 2, two-layer ablation sections).
+- NEW `docs/reviews/REVIEW_REQUEST.md` (reviewer pointer); MOD EXTERNAL_REVIEW_PROTOCOL,
+  reviews README, `.claude/commands/session-{start,end}.md`.
+- NEW `docs/guides/MANUAL_CONTROL_AB_GUIDE.md`.
+- NEW `scripts/tv_probe.mjs`, `scripts/tv_dump.mjs`, `analysis/reference/tvb4_*.json`
+  (CDP probe + dump helpers + reference/run dumps).
+- MOD `docs/HANDOFF.md`, `.session_startup_prompt.md`, `docs/reviews/REVIEW_REQUEST.md`.
+- Memory: NEW TVB-4 (OpenMemory + auto-memory); auto-memory `feedback-autonomous-commit-push`.
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range below) and
+> write a verbatim assessment to docs/reviews/tvb4-codex-audit.md. See
+> docs/reviews/REVIEW_REQUEST.md (the pointer) and docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: `58c3ca9..HEAD` on `main` (the two-layer Pine, ablation, docs; the
+  review-workflow + fee-fix commits `5359756`/`9331d89` are pre-58c3ca9 if a wider range helps)
+- Scope / what changed: two-layer regime Pine (M/W/D over Control-B, reg_mode modes,
+  alignment guard); regression-proven; ablation run matrix; datasheet + review-pointer + guide.
+- Focus areas (scrutinize these): (1) the `f_agg`/`long_permit`/`short_permit`/`size_scale`
+  regime logic -- does stand_aside/size_down/off do exactly what's claimed? (2) the
+  size_down `qty = strategy.equity * size_scale / close` arm-time approximation -- is it a
+  fair half-size, any leak? (3) the alignment guard (tiling math for D/W/M vs intraday);
+  (4) the regression-equivalence claim (reg_mode off == control); (5) the ablation reading,
+  especially P4/P5 and whether the S8 stand_aside conclusion is over-claimed on one window;
+  (6) kind-window compounding method (product(1+pp), in-window entry filter).
+- Reviewed by: pending
+- Findings: (blank until docs/reviews/tvb4-codex-audit.md exists)
+
+---
+
 ## Session TVB-3: Stale gate confirmed + fixed; corrected controls; margin artifact killed (COMPLETE)
 
 **Date:** 2026-07-02
