@@ -83,7 +83,7 @@ Fable 5 designed + built + regression-gated; Opus 4.8 ran the matrix + recorded.
 > docs/reviews/REVIEW_REQUEST.md (the pointer) and docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: `58c3ca9..HEAD` on `main` (the two-layer Pine, ablation, docs; the
+- Commits to review: `58c3ca9..bc9941f` on `main` (the two-layer Pine, ablation, docs; the
   review-workflow + fee-fix commits `5359756`/`9331d89` are pre-58c3ca9 if a wider range helps)
 - Scope / what changed: two-layer regime Pine (M/W/D over Control-B, reg_mode modes,
   alignment guard); regression-proven; ablation run matrix; datasheet + review-pointer + guide.

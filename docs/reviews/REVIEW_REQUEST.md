@@ -21,7 +21,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `58c3ca9..{pending session-end push}` |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `58c3ca9..bc9941f` |
 
 Wider context if useful (pre-58c3ca9, same session): `5359756` (review-workflow
 pointer + retire per-commit approval), `9331d89` (TVB-3 review synthesis +
