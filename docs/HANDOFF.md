@@ -82,9 +82,12 @@ Fable 5 designed + built + regression-gated; Opus 4.8 ran the matrix + recorded.
 > write a verbatim assessment to docs/reviews/tvb4-codex-audit.md. See
 > docs/reviews/REVIEW_REQUEST.md (the pointer) and docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: REQUESTED
+- Review status: RETURNED (2026-07-03, local Codex CLI -- APPROVE-WITH-NITS; audit at
+  `docs/reviews/tvb4-codex-audit.md`; critical synthesis in the TVB-5 entry)
 - Commits to review: `58c3ca9..bc9941f` on `main` (the two-layer Pine, ablation, docs; the
   review-workflow + fee-fix commits `5359756`/`9331d89` are pre-58c3ca9 if a wider range helps)
+  -- NOTE (Codex finding 1, MEDIUM): this range EXCLUDES `58c3ca9` itself (the Pine commit);
+  the reviewer compensated by reading the wider session context. Future pins: `58c3ca9^..`.
 - Scope / what changed: two-layer regime Pine (M/W/D over Control-B, reg_mode modes,
   alignment guard); regression-proven; ablation run matrix; datasheet + review-pointer + guide.
 - Focus areas (scrutinize these): (1) the `f_agg`/`long_permit`/`short_permit`/`size_scale`
@@ -94,8 +97,14 @@ Fable 5 designed + built + regression-gated; Opus 4.8 ran the matrix + recorded.
   (4) the regression-equivalence claim (reg_mode off == control); (5) the ablation reading,
   especially P4/P5 and whether the S8 stand_aside conclusion is over-claimed on one window;
   (6) kind-window compounding method (product(1+pp), in-window entry filter).
-- Reviewed by: pending
-- Findings: (blank until docs/reviews/tvb4-codex-audit.md exists)
+- Reviewed by: local Codex CLI (2026-07-03)
+- Findings: APPROVE-WITH-NITS, no Pine logic blocker. 1 MEDIUM: the pinned range
+  `58c3ca9..bc9941f` excludes the Pine commit itself (git left-endpoint exclusion).
+  2 LOW: (a) tv_dump L/S counts include the open trade so the split sums to
+  totalTrades+1 in the datasheet; (b) the real-fee headline rows (+40.26/-8.60/+12.84
+  @0.0125) have no committed reference dumps -- only the zero-fee runs are preserved.
+  Regime logic, off-mode inertness, alignment guard, size_down arm-time sizing all
+  verified clean by the reviewer. Synthesis (agree/dispute/act): TVB-5 entry.
 
 ---
 

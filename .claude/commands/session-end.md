@@ -68,7 +68,12 @@ Add a new entry at the TOP:
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED | RETURNED | ADDRESSED | ACCEPTED | N/A
-- Commits to review: `{base}..{head}` on `main`  (or "local working tree @ {sha}")
+- Commits to review: `{first-session-commit}^..{head}` on `main`  (or "local working
+  tree @ {sha}"). RANGE-PIN RULE (Codex TVB-4 finding 1): git ranges EXCLUDE the left
+  endpoint, so pin `{first}^..{head}` (note the caret) or `{pre-session-sha}..{head}`
+  -- never `{first}..{head}`, which silently drops the first session commit from the
+  reviewed diff. Sanity-check: `git diff --name-status {range}` must list every file
+  the session touched.
 - Scope / what changed: {one or two lines}
 - Focus areas (scrutinize these): {e.g. request.security lookahead, model fidelity, fee/turnover math}
 - Reviewed by: {local Codex CLI | cloud Codex app | Claude Code web | pending}
@@ -89,8 +94,9 @@ Both are written in this step, from the same fields, so they cannot drift.
 - Status: REQUESTED; session TVB-{N} + title + request date.
 - Audit output path: `docs/reviews/tvb{N}-codex-audit.md`.
 - Commits to review: leave as `{pending push}` here; PIN concrete shas after the
-  commit/push in Step 5. Include sibling-repo commits (with local paths) marked
-  "local transport only".
+  commit/push in Step 5, following the RANGE-PIN RULE above (`{first}^..{head}`;
+  verify with `git diff --name-status`). Include sibling-repo commits (with local
+  paths) marked "local transport only".
 - Scope + focus areas: same content as the HANDOFF block.
 - Keep the read-first list and output contract sections (they are boilerplate;
   update only if the protocol changed).

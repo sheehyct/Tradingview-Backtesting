@@ -575,3 +575,72 @@ regime late-entry tax (P5) will bite harder in a sample with more sharp reversal
 realism and the OKX->HL venue gap remain unmodeled. stand_aside is a strong ablation result,
 not a deployability verdict. The two-layer earns its place as the go-forward ablation
 baseline for the priority-4 timeframe-set sweep.
+
+## TVB-5 (2026-07-03): S8 ratification + default-vs-input decision (Fable 5)
+
+**S8 stand_aside RATIFIED** as the grey rule for the two-layer baseline. Independent read
+supports it beyond the fee story:
+
+- **The suppressed stream is zero-expectancy churn GROSS, not sacrificed edge.** Control ->
+  stand_aside at ZERO fee gives up only a 1.8470/1.7663 = +4.6% compounded factor across the
+  ~1,892 suppressed trades, i.e. ~+0.002% per trade gross -- an order of magnitude below the
+  0.025% round-trip commission alone (before slippage). Any positive fee makes that stream
+  strictly negative net; halving it (size_down) halves the bleed, skipping it removes it.
+  P6's in-between landing (+12.84) is that expectancy arithmetic playing out, which is why
+  the S8 conclusion is trusted: the three modes cohere under one mechanism.
+- **Not purely a fee story.** At zero fee stand_aside already dominates risk-adjusted
+  (PF 1.355 vs 1.204/1.139, DD 11.2 vs 18.2/22.3, Sharpe 1.15 vs 0.92/0.83): the
+  regime-aligned subset is higher-quality per trade even gross.
+- **P5 reading RATIFIED as fair and structural.** M/W/D cannot flip inside a V-bottom by
+  construction, so the late-entry tax concentrates at trend births (46 vs 58 core-rally
+  longs, -7pp). Structural property of any slow gate, not sample noise.
+- **Named kill-regime for the S8 rule (hunt it in the second window):** trendy-but-sharply-
+  reversing samples, where the late-entry tax recurs at every flip while the chop savings
+  shrink. Extended CHOP should conversely favor stand_aside (sits flat) over size_down
+  (keeps half-size churn bleed). The TVB-4 window (crash + V-rally = two clean trends) is
+  KIND to a regime gate -- regime flattery applies to the regime layer itself, so the S8
+  decision is provisional on the second-window read.
+- **size_down KIND-DOWN surprise stays PARKED** (vol/trend-conditional grey rule, charter
+  S6 avenue) -- not tuned on this sample.
+
+**DEFAULT-VS-INPUT DECIDED: `reg_mode` stays an INPUT, default `off`.** (a) Defaults ==
+TVB-3 control is the regression anchor (2811-trade byte-identity); flipping the default
+silently breaks every future regression read. (b) The run harness sets in_16 explicitly per
+cell; a code default buys nothing operationally. (c) stand_aside is one-instrument /
+one-window data -- baking it into code before the second regime window runs would fossilize
+a sample-derived choice as if structural. Instead the **TVB-5 two-layer baseline
+configuration is declared as `reg_mode = stand_aside`, explicitly set per run.** Revisit
+the default only if the second window confirms.
+
+Counting note (Codex TVB-4 LOW 2): the L/S splits in the ablation tables above include the
+open trade (e.g. 488+435 = 923 = 922 closed + 1 open); `tv_dump.mjs` is fixed in TVB-5 to
+report closed-basis splits.
+
+### TVB-5 reproducibility re-run (Codex TVB-4 LOW 3): headline rows re-run + committed
+
+Fresh re-stage (TV restart, entity re-added as `bNqlkZ`; id map re-derived, UNCHANGED from
+TVB-4 at pineVersion 18.0). Window Feb 25 10:00Z (floor, 12,306 bars) -> **Jul 3 18:00Z**
+(~1.75h more tail than the TVB-4 reads at 16:15Z -- the deltas below are that tail plus the
+open-trade mark). All runs: marginCalls 0, open trades 1, history verified at floor before
+every read. Dumps committed as `analysis/reference/tvb5_R*.json`; every ablation-table row
+now has a committed artifact (this set, plus TVB-4's zero-fee `tvb4_R1a`/`tvb4_R2a` and
+`tvb4_trades_B_0fee` for the older window end).
+
+| cell | TVB-5 fresh (18:00Z end) | TVB-4 table (16:15Z end) | artifact |
+|---|---|---|---|
+| off @0 | +83.84%, 2815 (1362/1453), PF 1.137, DD 22.3, Sh 0.82 | +84.70%, 2814, PF 1.139, DD 22.3, Sh 0.83 | tvb5_R0a_off_0fee.json |
+| off @0.0125 | **-9.06%**, PF 0.980, DD 37.3, Sh -0.11 | -8.60%, PF 0.981, DD 37.3, Sh -0.10 | tvb5_R0b_off_0125.json |
+| stand_aside @0 | +76.18%, 923 (488/435), PF 1.352, DD 11.2, Sh 1.15 | +76.63%, PF 1.355, DD 11.2, Sh 1.15 | tvb5_R1a_standaside_0fee.json |
+| stand_aside @0.0086 | +50.31%, PF 1.240, DD 12.9, Sh 0.89 | +50.72%, PF 1.242, DD 12.9, Sh 0.89 | tvb5_R1b_standaside_0086.json |
+| stand_aside @0.0125 | **+39.86%**, PF 1.193, DD 14.3, Sh 0.75 | +40.26%, PF 1.195, DD 14.3, Sh 0.75 | tvb5_R1c_standaside_0125.json |
+| size_down @0.0125 | **+12.53%**, 2391 (1212/1179), PF 1.043, DD 26.4, Sh 0.26 | +12.84%, PF 1.044, DD 26.4, Sh 0.26 | tvb5_R2b_sizedown_0125.json |
+
+Every row reproduces within tail drift; MaxDD and Sharpe match exactly on all six cells.
+The sign-flip headline (control negative, stand_aside strongly positive at real fee) and the
+S8 ordering (stand_aside > size_down > off) are CONFIRMED in the fresh window. L/S splits
+above are CLOSED-basis (the fixed `tv_dump.mjs`): stand_aside's 923 closed = TVB-4's 922
+closed + the then-open trade having since closed in the tail; its closed 488/435 equals the
+TVB-4 open-inclusive split, as expected. Trade-list side-note for future probes: the open
+position appears in `reportData().trades` as a pseudo-closed row whose exit is a
+mark-to-market at a WALL-CLOCK ms timestamp (not a bar boundary); closed set = first
+`performance.all.totalTrades` list entries (entry-ordered).

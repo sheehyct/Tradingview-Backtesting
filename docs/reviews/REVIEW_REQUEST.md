@@ -10,7 +10,10 @@
 
 ## Status
 
-- Status: REQUESTED  <!-- REQUESTED | RETURNED (audit file written) -->
+- Status: RETURNED  <!-- REQUESTED | RETURNED (audit file written) -->
+- Returned: 2026-07-03, local Codex CLI, verdict APPROVE-WITH-NITS (1 MEDIUM
+  range-pin, 2 LOW: L/S open-trade count basis, missing real-fee headline dumps).
+  Audit: `docs/reviews/tvb4-codex-audit.md`. Synthesis: TVB-5 HANDOFF entry.
 - Session under review: TVB-4 -- two-layer regime layer built + ablated;
   stand_aside flips Control-B positive at real fees; S8 grey decision
 - Requested: 2026-07-03
