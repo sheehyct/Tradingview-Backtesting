@@ -10,77 +10,81 @@
 
 ## Status
 
-- Status: RETURNED  <!-- REQUESTED | RETURNED (audit file written) -->
-- Returned: 2026-07-03, local Codex CLI, verdict APPROVE-WITH-NITS (1 MEDIUM
-  range-pin, 2 LOW: L/S open-trade count basis, missing real-fee headline dumps).
-  Audit: `docs/reviews/tvb4-codex-audit.md`. Synthesis: TVB-5 HANDOFF entry.
-- Session under review: TVB-4 -- two-layer regime layer built + ablated;
-  stand_aside flips Control-B positive at real fees; S8 grey decision
+- Status: REQUESTED  <!-- REQUESTED | RETURNED (audit file written) -->
+- Session under review: TVB-5 -- S8 ratified; pre-registered 3x3 TF-set sweep
+  across 4 samples (35 runs); regime layer characterized as universal damage
+  containment; xyz-vs-OKX venue gap flagged (unverified)
 - Requested: 2026-07-03
-- Write the audit to: `docs/reviews/tvb4-codex-audit.md` (copy
+- Write the audit to: `docs/reviews/tvb5-codex-audit.md` (copy
   `docs/reviews/_TEMPLATE.md`)
 
 ## Commits to review
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `58c3ca9..bc9941f` |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `{pending push -- pin b99dccb^..HEAD after session-end push}` |
 
-Wider context if useful (pre-58c3ca9, same session): `5359756` (review-workflow
-pointer + retire per-commit approval), `9331d89` (TVB-3 review synthesis +
-crossed-flag fix + manual guide), `31230fb` (artifact preservation).
+RANGE-PIN RULE (Codex TVB-4 finding 1): git ranges EXCLUDE the left endpoint;
+the caret in `b99dccb^..` keeps the first session commit (ratification +
+review fold-in) inside the reviewed diff. Sanity-check with
+`git diff --name-status <range>`.
 
 ## Read first (in this order)
 
 1. `CLAUDE.md` -- epistemic stance + backtest traps (Sections 2, 6).
-2. `docs/ATLAS_Timeframe_Continuity_Charter.md` -- Section 0 + Section 3.3
-   (two-layer) + Section 8 (grey open question) are the load-bearing parts.
-3. `docs/HANDOFF.md` -- the TVB-4 entry at the top (what was done and why).
-4. `docs/TVB2_control_AB_rerun.md` -- the "TVB-4 two-layer regime ablation"
-   section at the very end (the numbers + predictions scorecard).
+2. `docs/ATLAS_Timeframe_Continuity_Charter.md` -- Section 0 + Section 5
+   (exploration protocol) + Section 6 (the "correlated follower" failure mode,
+   observed empirically this session).
+3. `docs/HANDOFF.md` -- the TVB-5 entry at the top (what was done and why).
+4. `docs/TVB2_control_AB_rerun.md` -- the TVB-5 sections at the end:
+   ratification, reproducibility re-run, sweep PRE-REGISTRATION, sweep RESULTS
+   (tables, scorecard, surprises).
 5. `docs/EXTERNAL_REVIEW_PROTOCOL.md` -- the reviewer contract.
 
 ## Scope / what changed
 
-Two-layer regime Pine (charter 3.3): an HTF M/W/D FTFC gate over the Control-B
-execution layer (`pine/baseline_continuity.pine`, TVB-4 rev). `reg_mode` =
-off | stand_aside | size_down (grey at fixed a-priori 50%); no regime exit in v1.
-Plus the alignment guard (chart TF must tile every enabled gate TF -- Codex TVB-3
-finding 1). Regression proven (reg_mode off == the TVB-3 control, all 2811 ref
-trades identical). Ablation run matrix + datasheet section; crossed-flag fix in
-`analysis/fee_rates_by_dex.py`; new `scripts/tv_{probe,dump}.mjs`; manual
-backtesting guide.
+S8 ratification (stand_aside; reg_mode stays input, default off). Codex TVB-4
+fold-in: `scripts/tv_dump.mjs` closed-basis L/S fix; range-pin rule in
+session-end; all six TVB-4 ablation rows re-run + committed (`tvb5_R*.json`).
+Pre-registered 3x3 timeframe-set sweep (regime {M/W/D, W/D/12h, D/12h/4h} x
+exec {60/30/15, 240/60/15, 240/120/60}, all stand_aside) across four samples:
+OKX MSTR Feb-Jul grid; OKX BTC 15m Dec-Jul; OKX BTC 60m 2024-2026; xyz
+MSTRUSDC.P Dec-Jul (venue comparison). NEW `analysis/window_compound.py`
+(+tests): window-sliced product(1+pp) compounding over dump trade lists.
+29 sweep dumps committed under `analysis/reference/tvb5_*`.
 
 ## Focus areas (scrutinize these)
 
-1. The regime logic: `f_agg` and `long_permit`/`short_permit`/`size_scale`
-   (`pine/baseline_continuity.pine`) -- do off/stand_aside/size_down do EXACTLY
-   what the header + datasheet claim (aligned-only permit, grey per mode,
-   opposite blocks)?
-2. The size_down grey sizing: `qty = strategy.equity * size_scale / close` at
-   arm-time -- is it a fair 50%, any look-ahead or equity-timing leak vs the
-   percent_of_equity full-size path?
-3. The alignment guard tiling math (D/W/M require chart TF to divide 1D;
-   intraday gate TFs integer-multiple of chart TF) -- correct and complete?
-4. The regression-equivalence claim (reg_mode off reproduces the control
-   byte-for-byte) -- is the branch truly inert when off?
-5. The ablation READING -- especially P4 (the -8.60% -> +40.26% flip) and the
-   S8 stand_aside-beats-size_down conclusion: is it over-claimed on a single
-   instrument / single window? Is the P5 late-entry-tax characterization fair?
-6. Kind-window compounding method (product(1+pp) over in-window entries, split
-   by `e.tp`) -- valid aggregate under 100%-equity sizing?
+1. `analysis/window_compound.py` method validity: is product(1+pp) over CLOSED
+   trades ENTERED in-window the right aggregate under 100%-equity sizing? Open
+   -trade exclusion, half-open window semantics, ms timestamps.
+2. The tv_dump closed-basis assumption (`scripts/tv_dump.mjs`): is
+   `reportData().trades` guaranteed entry-ordered with open positions at the
+   END, so `first totalTrades entries == closed set`?
+3. The sweep READING (datasheet TVB-5 RESULTS): are "universal damage
+   containment" and "regime speed is monotone-destructive" over-claimed from
+   9 cells x 4 samples? Is the anti-selective fast-regime mechanism read sound?
+4. The venue-gap surprise: is the shared-window xyz-vs-OKX comparison
+   methodologically sound (same fee model, method-matched compounding, trade
+   counts 2708 vs 2815)? Is the unverified-provenance caution adequate, or is
+   any language already over-trusting the xyz backfill?
+5. Pre-registration integrity: the in-flight amendments (SP500USDC.P no-backfill
+   -> BTC fallback per the pre-registered rule; W-venue upgrade to full-window
+   runs + analytical slicing) -- justified deviations or result-driven drift?
+6. The S8 ratification arithmetic (~zero-expectancy suppressed stream:
+   1.8470/1.7663 over ~1,892 trades vs 0.025% round-trip cost).
 
 Standing priorities on ANY TVB review: `request.security` lookahead in Pine
-(note: this strategy uses NO request.security -- local `ta.valuewhen` recon),
-model fidelity (is the backtest measuring what it claims?), overfitting /
-sample-vs-structural reasoning, fee/turnover math.
+(note: this strategy uses NO request.security -- local `ta.valuewhen` recon;
+Pine unchanged this session), model fidelity (is the backtest measuring what it
+claims?), overfitting / sample-vs-structural reasoning, fee/turnover math.
 
 ## Output contract
 
-- Verbatim audit -> `docs/reviews/tvb4-codex-audit.md` (template:
+- Verbatim audit -> `docs/reviews/tvb5-codex-audit.md` (template:
   `docs/reviews/_TEMPLATE.md`, skeptic preamble included).
-- Be concrete; cite `file:line` and Pine docs. Never paste a secret/IP/account
-  value into a review file.
+- Be concrete; cite `file:line` and Pine/TV docs. Never paste a
+  secret/IP/account value into a review file.
 - The critical synthesis (agree/dispute/act) is written by the NEXT session
   into `docs/HANDOFF.md` -- your job is the honest external read, not the
   final word.

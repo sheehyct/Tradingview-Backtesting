@@ -5,6 +5,117 @@
 
 ---
 
+## Session TVB-5: S8 ratified; TF-set sweep across 4 samples; regime layer = containment; venue gap flagged (COMPLETE)
+
+**Date:** 2026-07-03
+**Status:** COMPLETE -- all four startup priorities done: S8 ratified + default-vs-input
+decided; TVB-4 Codex review folded in (all 3 findings actioned); headline rows re-run +
+committed; the pre-registered 3x3 timeframe-set sweep ran across FOUR samples (35 runs,
+all sanity gates green).
+
+### What was accomplished
+- **S8 RATIFIED (Fable judgment, datasheet TVB-5 section):** stand_aside confirmed as the
+  two-layer grey rule. Independent check: the suppressed stream is ~zero-expectancy GROSS
+  (~+0.002%/trade vs 0.025% round-trip cost) -- skipping beats half-sizing mechanically;
+  stand_aside also dominates risk-adjusted at ZERO fee, so it is not purely a fee story.
+  P5 late-entry tax ratified as structural. DECIDED: `reg_mode` stays an INPUT, default
+  `off` (defaults == regression anchor; baking a one-window data decision into code would
+  fossilize it); the TVB-5+ baseline configuration = stand_aside set explicitly per run.
+- **Codex TVB-4 review synthesis (RETURNED, APPROVE-WITH-NITS -- all 3 AGREED + actioned):**
+  (1) MEDIUM range-pin (git left-endpoint exclusion dropped the Pine commit from the
+  pinned range) -- verified correct; session-end command now mandates `{first}^..{head}`
+  + a `git diff --name-status` sanity check. (2) LOW L/S open-trade basis -- verified
+  against the committed dumps; `tv_dump.mjs` now reports CLOSED-basis splits (the open
+  position is a pseudo-closed trade row whose exit is a mark-to-market at a WALL-CLOCK ms
+  timestamp; closed set = first `performance.all.totalTrades` entries). (3) LOW missing
+  real-fee dumps -- all six TVB-4 ablation rows re-run fresh and committed
+  (`tvb5_R*.json`); every row reproduced within tail drift, DD/Sharpe exact. Also
+  committed the tvb3/tvb4 audit files themselves (were untracked -- TVB-4 oversight).
+- **Sweep design (with user, then locked):** 3 regime sets {M/W/D, W/D/12h, D/12h/4h} x
+  3 exec sets {60/30/15@15m, 240/60/15@15m, 240/120/60@60m}, all stand_aside, fees
+  {0, 0.0125}, PRE-REGISTERED in the datasheet (design + SP1-SP6 predictions) before any
+  run. Amendments in-flight (justified, documented): SP500USDC.P has no TV backfill ->
+  W2 fell back to OKX:BTCUSDT.P per the pre-registered rule; xyz MSTRUSDC.P turned out to
+  HAVE backfill to 2025-12-02 -> W-venue upgraded to full runs + analytical
+  window-slicing.
+- **Sweep results (datasheet TVB-5 RESULTS section; the headline findings):**
+  1. **The regime layer is universal damage containment, not return enhancement.** Every
+     pairing in every sample improved: BTC 15m -73.67 -> -17.23; BTC 60m 2.5y -90.43 ->
+     -36.71; xyz prefix -40.09 -> -12.61; OKX MSTR -9.06 -> +39.86 (@0.0125).
+  2. **Regime speed is monotone-destructive** -- M/W/D > W/D/12h > D/12h/4h in every
+     column of every window; the fast regime lands BELOW B-alone even at zero fee
+     (anti-selective; the charter-S6 "correlated follower" failure mode observed
+     empirically). Exec-span widening (240/60/15) is NOT a substitute regime layer.
+  3. **The edge is instrument-specific and regime-local.** BTC: dead everywhere (B-alone
+     -11.8% at ZERO fee over 7 months; ~0% gross over 2.5y at E3). Kill-regime LOCATED on
+     the target instrument itself: xyz MSTR Dec-Feb chop is negative GROSS (-10.7%) while
+     Feb-Jul is +254% gross.
+  4. **S8 robustness:** off -90.43 < size_down -68.10 < stand_aside -36.71 in the 2.5y
+     BTC spot-check -- the TVB-4 ordering generalizes.
+  5. **SURPRISE (biggest open question): the venue gap REVERSES the assumed direction.**
+     Same underlying, shared window, near-identical trade counts: xyz MSTRUSDC.P ctrlB
+     @0.0125 = **+80.17%** vs OKX MSTRUSDT.P **-9.05%** (R1E1: +83.07 vs +39.88). The xyz
+     TV backfill's provenance is UNVERIFIED -- flagged as a question per charter S0.
+     TVB-6 job 1: cross-validate xyz TV bars against HL SDK candles before ANYTHING
+     builds on xyz numbers.
+- **Scorecard:** SP3 (E3 most fee-robust), SP5 (orderings replicate cross-instrument),
+  SP6 (kill-regime exists + located) CONFIRMED; SP1, SP2, SP4 REFUTED with mechanisms
+  (the useful kind -- documented in the datasheet).
+- **New tooling:** `analysis/window_compound.py` (+3 tests; suite 9/9) -- window-sliced
+  product(1+pp) compounding over dump trade lists (validated kind-window method), enabling
+  shared-window venue comparisons without constrained re-runs. `tv_dump.mjs` closed-basis
+  fix verified live (closed L/S sums exactly to totalTrades).
+
+### Context for next session
+- TVB-6 = xyz backfill verification FIRST (see `.session_startup_prompt.md`); everything
+  else (venue adoption decision, MAE/solvency, slippage realism) sequences behind it.
+- NO deployability language is warranted anywhere: the characterized system is a
+  regime-local edge (MSTR-class, trending stretches) + a universal containment layer.
+- OPERATIONAL: TradingView is now a Microsoft Store app -- `tv_launch` auto-detect fails;
+  direct exe launch flow + full re-stage notes in `.session_startup_prompt.md`. Chart
+  left at the control resting state (OKX:MSTRUSDT.P 15m, reg off, fee 0.0125); end-state
+  regression green.
+
+### Files created/modified
+- MOD `docs/TVB2_control_AB_rerun.md` (TVB-5: ratification, repro re-run, sweep
+  pre-registration, sweep results -- the session's core record).
+- NEW `analysis/window_compound.py`, `tests/test_window_compound.py` (9/9 pass).
+- MOD `scripts/tv_dump.mjs` (closed-basis L/S; header). MOD
+  `.claude/commands/session-end.md` (range-pin rule).
+- NEW `analysis/reference/tvb5_R*.json` (6 repro dumps) + `tvb5_{W1,W2,W3,WV}_*.json`
+  (29 sweep dumps). NEW-to-git `docs/reviews/tvb{3,4}-codex-audit.md`.
+- MOD `docs/HANDOFF.md` (TVB-4 review block flipped RETURNED + this entry),
+  `docs/reviews/REVIEW_REQUEST.md`, `.session_startup_prompt.md`.
+- Commits: `b99dccb` (ratification + review fold-in + repro), `124ef0c` (sweep), plus the
+  session-end doc commit.
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range below) and
+> write a verbatim assessment to docs/reviews/tvb5-codex-audit.md. See
+> docs/reviews/REVIEW_REQUEST.md (the pointer) and docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: `b99dccb^..{head}` on `main` -- pinned to concrete shas after push
+  (see REVIEW_REQUEST.md for the final range). RANGE-PIN RULE applied: the caret keeps
+  `b99dccb` (ratification + review fold-in) inside the reviewed diff.
+- Scope / what changed: S8 ratification write-up; Codex TVB-4 fold-in (tv_dump
+  closed-basis fix, range-pin rule, repro dumps); pre-registered 3x3 TF-set sweep across
+  4 samples (35 runs) + results reading; window_compound analysis tool + tests.
+- Focus areas (scrutinize these): (1) `analysis/window_compound.py` method validity --
+  product(1+pp) over closed in-window entries under 100%-equity sizing, open-trade
+  exclusion, half-open window semantics; (2) the tv_dump closed-basis assumption (is the
+  trade list guaranteed entry-ordered with open trades last?); (3) the sweep READING --
+  are "universal containment" and "monotone regime-speed destruction" over-claimed from
+  9 cells x 4 samples? (4) the venue-gap flag -- is the shared-window comparison sound,
+  and is the unverified-provenance caution adequate? (5) pre-registration integrity --
+  were the in-flight amendments (BTC fallback, W-venue upgrade) justified or
+  result-driven? (6) the S8 ratification arithmetic (~zero-expectancy suppressed stream).
+- Reviewed by: pending
+- Findings: (blank until docs/reviews/tvb5-codex-audit.md exists)
+
+---
+
 ## Session TVB-4: Two-layer regime built + ablated; stand_aside flips B positive; review pointer + guide (COMPLETE)
 
 **Date:** 2026-07-03
