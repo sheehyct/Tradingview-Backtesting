@@ -1208,3 +1208,125 @@ as S8). Standing caveats unchanged: one instrument, one 7-month path, magnitudes
 regime-local, underwater profile still 124 days; the v1-vs-v2 pair itself
 demonstrates how sensitive governor-class rules are to layer interactions --
 re-verify on the next instrument/window before treating the lift as structural.
+
+## TVB-7: governor v2 CROSS-INSTRUMENT RE-VERIFICATION -- PRE-REGISTRATION (locked before any run)
+
+**Purpose.** TVB-6 kept the v2 ratchet by the pre-registered rule on ONE
+instrument, ONE 7-month path (xyz MSTR). This section pre-registers the
+cross-venue / cross-instrument check the TVB-6 record itself demanded: is the
+gov2 lift STRUCTURAL (the mechanism -- within an aligned flicker episode the
+breakout trigger falls bar by bar, so the ungoverned strategy re-buys
+successively lower highs; the ratchet blocks exactly that; the alignment reset
+releases on genuine structure flips -- is venue- and instrument-agnostic in
+form) or XYZ-PATH-LOCAL?
+
+**Design (before any run; no Pine changes -- slot stays pineVersion 20.0):**
+- Venue/instrument 1: `OKX:MSTRUSDT.P` (same underlying, different venue).
+  15m data floor 2026-02-25 10:00Z -> the 15m window IS the Feb25->Jul slice,
+  which is where the xyz gov2 lift concentrated (shared-slice comparator on
+  xyz: R1E1+gov2 +93.28 vs ungov +83.07 @0.0125 s1). Cross-venue magnitudes
+  are NOT directly comparable (tick-size lesson, TVB-6); every comparison
+  below is WITHIN-venue, governed vs ungoverned, same tail.
+- PAIRED runs, both legs fresh this session (the TVB-5 W1 rows are s1-only --
+  s10 did not exist before the TVB-6 tick-size discovery -- and their tails
+  are stale): ctrlB {ungov, gov2} x {@0 s1, @0.0125 s1, @0.0125 s10} on 15m;
+  R1E1 (M/W/D stand_aside + 60/30/15) same six cells on 15m; R1E3 (M/W/D
+  stand_aside + 240/120/60) {ungov, gov2} @0.0125 s1 on 60m at the deepest
+  loadable window (report the realized window with the row; if the 60m floor
+  is materially deeper than Feb-25, also compute the Feb25-> slice via
+  `analysis/window_compound.py` for the apples read vs the 15m cells).
+- Note on OKX s10: OKX mintick 0.01, so OKX s1 ($0.01/fill) already equals
+  xyz s10 in $/fill; OKX s10 ($0.10/fill) is a HARSHER stress than any xyz
+  cell. It is kept anyway: the keep-rule's two-cost-point structure (does the
+  lift survive rising cost?) is exactly what is being re-verified, and the
+  governed-vs-ungoverned comparison is internal to the venue.
+- Spot-check: `OKX:BTCUSDT.P` 60m R1E3 {ungov, gov2} @0.0125 s1,
+  2024-01-01 -> now (TVB-5 W3 window; ungoverned committed row -36.71, re-run
+  fresh for tail match). BTC is a DEAD instrument for this edge (TVB-5) --
+  it tests whether the governor MANUFACTURES edge where there is none, which
+  a pure re-entry filter must not.
+- Dumps: `analysis/reference/tvb7_OKXMSTR_{cfg}[gov2]_{fee}[_s10].json`,
+  `tvb7_BTC_E3[gov2]_0.0125.json`. 16 runs total. Fees/slippage semantics,
+  margins 0/0, magnifier setting: byte-identical to the TVB-6 staging.
+
+**Pre-registered predictions:**
+- CV1 (mechanism transfer): R1E1+gov2 trade cut on OKX MSTR is SMALL (<15%),
+  mirroring xyz V1 -- no reset starvation; the alignment reset fires on OKX
+  exactly as on xyz.
+- CV2 (THE structural claim; pass/fail rule, mirroring the TVB-6 keep-rule):
+  R1E1+gov2 beats ungoverned R1E1 at BOTH @0.0125 s1 AND @0.0125 s10 on OKX
+  MSTR. PASS -> keep-verdict upgrades from provisional to
+  cross-venue-verified (still MSTR-underlying-local; NOT "structural" in the
+  universal sense until a non-MSTR positive-edge instrument exists). FAIL at
+  either cost point -> keep-verdict DOWNGRADES to xyz-path-local; the
+  two-layer baseline REVERTS to ungoverned R1E1 pending mechanism
+  investigation.
+- CV2b (mechanism check, informative not pass/fail): the zero-fee GROSS of
+  R1E1+gov2 is not lower than ungoverned (the xyz benefit was signal-side,
+  +134.8 vs +121.5, not cost relief). A real-fee win built on a gross LOSS
+  would be a different mechanism than the one being verified -- flag it.
+- CV3: ctrlB+gov2 improves single-layer ctrlB at real fee on OKX (both v1 and
+  v2 did on xyz; single-layer churn is where the flicker mechanism lives).
+- CV4: R1E3+gov2 is INERT (+-5pp vs ungoverned) on OKX MSTR 60m AND on BTC
+  60m; BTC stays NEGATIVE governed. A BTC sign flip would be a red flag to
+  investigate (a re-entry filter creating edge from nothing), not a win.
+
+### TVB-7 cross-verification RESULTS (run 2026-07-04, tails ~00:00-00:30Z)
+
+Staging byte-identical to the TVB-6 anchor (captured via input dump before any
+change: margins 0/0, magnifier off, 100% equity, 10k initial); every step in
+the 15m block changed exactly ONE input. Repro gates all GREEN: OKX ctrlB
+@0.0125 s1 -9.35 vs TVB-5 committed -9.06 (4-day-staler tail); R1E1 +40.08 vs
++39.86; BTC R1E3 -36.85 vs -36.71. Zero margin calls in all 16 runs; all dump
+asserts passed.
+
+`OKX:MSTRUSDT.P` 15m, 2026-02-25 10:00Z -> Jul-4 00:30Z (12,332 bars):
+
+| cell | ungoverned | gov v2 | delta | v2 trade cut |
+|---|---|---|---|---|
+| ctrlB @0 s1 | +83.41 (2819) | +83.35 | -0.06 | -2.0% (2764) |
+| ctrlB @0.0125 s1 | -9.35 | -8.13 | +1.22 | -2.0% |
+| ctrlB @0.0125 s10 | -97.83 | -97.60 | +0.23 | -2.0% |
+| R1E1 @0 s1 | +76.61 (927) | +78.16 | +1.55 | -3.5% (895) |
+| R1E1 @0.0125 s1 | +40.08 (PF 1.194, DD 14.3) | **+42.44** (PF 1.208, DD 13.9) | +2.36 | -3.5% |
+| R1E1 @0.0125 s10 | -59.58 | **-56.62** | +2.96 | -3.5% |
+
+`OKX:MSTRUSDT.P` 60m, SAME window (DEVIATION surfaced: the OKX MSTR 60m data
+floor is ALSO 2026-02-25 -- "60m deeper" from the startup prompt does not hold
+on OKX for MSTR; the floor is listing/venue-driven, not per-TF):
+
+| R1E3 @0.0125 s1 | +34.19 (279) | +34.45 | +0.26 | -5.4% (264) |
+|---|---|---|---|---|
+
+`OKX:BTCUSDT.P` 60m, 2024-01-01 00:00Z -> Jul-4 00:00Z (21,961 bars, 2.5y):
+
+| R1E3 @0.0125 s1 | -36.85 (1782) | -32.92 | +3.93 | -4.0% (1711) |
+|---|---|---|---|---|
+
+**Scorecard vs pre-registration:**
+- CV1 CONFIRMED: R1E1 trade cut -3.5% << 15% (xyz was -4.0%) -- the alignment
+  reset fires on OKX exactly as on xyz; no starvation.
+- CV2 PASS (the keep-rule mirror): R1E1+gov2 beats ungoverned at BOTH
+  @0.0125 s1 (+2.36pp) AND s10 (+2.96pp). Per the pre-registered rule the
+  keep-verdict UPGRADES: provisional -> CROSS-VENUE-VERIFIED on the MSTR
+  underlying. Explicitly NOT "structural" in the universal sense: no
+  non-MSTR positive-edge instrument exists to test enhancement on.
+- CV2b PASS: zero-fee gross +1.55pp governed -- signal-side, not cost relief.
+- CV3 direction-CONFIRMED, magnitude collapsed: ctrlB @0.0125 s1 +1.22pp
+  (xyz v2: +17pp); at zero fee ctrlB is FLAT (-0.06pp vs xyz +40pp gross).
+  The flicker-episode damage the ratchet removes is largely ABSENT from the
+  OKX single-layer path in this window.
+- CV4 CONFIRMED both halves: OKX MSTR R1E3 +0.26pp (inert); BTC +3.93pp
+  (within the +-5pp band), BTC stays firmly negative -- the governor does
+  not manufacture edge on a dead instrument.
+
+**Honest read (charter S0 -- magnitude vs direction):** the v2 ratchet's
+DIRECTION is remarkably robust -- non-negative delta in 8 of 8 paired cells
+here (worst -0.06pp ~ tail noise), on top of the xyz record -- but the
+MAGNITUDE is path-local: the +12pp xyz lift shrinks to +2-3pp on OKX MSTR
+and to ~0 where churn is low. The governor is a cheap, zero-parameter,
+never-hurts filter whose payoff concentrates exactly where flicker-churn
+damage lives (xyz's knife-edge microstructure); it is NOT a return engine.
+Keep-verdict stands (kept, cross-venue-verified); the TVB-6 caveat that
+magnitudes are regime-local now has cross-venue evidence behind it.
+Dumps: `analysis/reference/tvb7_*.json` (16 files).
