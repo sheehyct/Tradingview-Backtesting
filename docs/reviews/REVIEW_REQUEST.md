@@ -10,95 +10,93 @@
 
 ## Status
 
-- Status: RETURNED  <!-- REQUESTED | RETURNED (audit file written) -->
-- Returned: 2026-07-04 -- APPROVE-WITH-NITS, 3 LOW; all agreed + actioned in
-  TVB-7 (MAE table corrected to committed replay; tick metadata persisted +
-  tvb7_symbolinfo.json; governor profit-boundary ADJUDICATED: profit() is
-  GROSS of commission -- see the TVB-7 synthesis in docs/TVB2_control_AB_rerun.md)
-- Session under review: TVB-6 -- xyz backfill verified vs HL venue candles + adopted
-  as primary; venue gap decomposed (tick-size artifact ~half); MAE/solvency cleared;
-  slippage band; re-entry governor v1->v2 built + KEPT by pre-registered rule
-- Requested: 2026-07-03
-- Write the audit to: `docs/reviews/tvb6-codex-audit.md` (copy
+- Status: REQUESTED  <!-- REQUESTED | RETURNED (audit file written) -->
+- Session under review: TVB-7 -- governor v2 cross-venue verification (keep-verdict
+  upgraded); VBT breadth-port design of record; cost realism (live L2 impact +
+  funding model); Codex TVB-6 fold-in incl. the GROSS-arming adjudication
+- Requested: 2026-07-04
+- Write the audit to: `docs/reviews/tvb7-codex-audit.md` (copy
   `docs/reviews/_TEMPLATE.md`)
 
 ## Commits to review
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `43fb973^..9a00d40` (= `1f7815f..9a00d40`; verified: 51 files) |
-| tradingview-mcp-jackson (sibling, LOCAL transport only) | `C:\Strat_Trading_Bot\tradingview-mcp-jackson` | `27757bc` (Monaco finder multi-candidate fix) |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | {pending push -- pinned by the session-end follow-up commit} |
+
+No sibling-repo changes this session (jackson `27757bc` from TVB-6 remains
+local-transport-only).
 
 RANGE-PIN RULE (Codex TVB-4 finding 1): git ranges EXCLUDE the left endpoint;
-pin `{first}^..{head}` (the caret keeps the first session commit -- the TVB-5
-review-return flip `43fb973` -- inside the reviewed diff). Sanity-check with
-`git diff --name-status <range>`.
+pin `{first}^..{head}` (the caret keeps the first session commit -- the TVB-7
+cross-venue verification `a4e1de8` -- inside the reviewed diff). Sanity-check
+with `git diff --name-status <range>`.
 
 ## Read first (in this order)
 
 1. `CLAUDE.md` -- epistemic stance + backtest traps (Sections 2, 6).
-2. `docs/ATLAS_Timeframe_Continuity_Charter.md` -- Section 0 + Section 5
-   (exploration protocol) + Section 8 (the re-entry governor open question this
-   session answers provisionally).
-3. `docs/HANDOFF.md` -- the TVB-6 entry at the top (what was done and why).
-4. `docs/TVB2_control_AB_rerun.md` -- the six TVB-6 sections at the end: backfill
-   verification, mechanism peek + tick-size decomposition, xyz-native rows,
-   MAE/solvency, slippage band, governor v1/v2 pre-registrations + results.
-5. `docs/EXTERNAL_REVIEW_PROTOCOL.md` -- the reviewer contract.
+2. `docs/ATLAS_Timeframe_Continuity_Charter.md` -- Section 0 + Section 5.
+3. `docs/HANDOFF.md` -- the TVB-7 entry at the top (what was done and why).
+4. `docs/TVB2_control_AB_rerun.md` -- the four TVB-7 sections at the end:
+   cross-venue pre-registration + results, cost realism (L2 + funding), Codex
+   TVB-6 synthesis + gross-arming adjudication; plus the CORRECTED MAE table.
+5. `docs/VBT_BREADTH_PORT_PLAN.md` -- the approved port design (its "calibrated
+   facts" section is spec for the next implementation session).
+6. `docs/EXTERNAL_REVIEW_PROTOCOL.md` -- the reviewer contract.
 
 ## Scope / what changed
 
-xyz TV backfill cross-validated against Hyperliquid venue candles (97-99%
-float-exact OHLCV incl. volume; 7 TIME-PERISHABLE evidence files committed --
-HL serves only ~5000 recent candles/interval, these pulls cannot be re-fetched).
-Venue gap decomposed: OKX mintick 0.01 vs xyz 0.001 made the "1 tick/fill"
-slippage convention charge OKX ~10x more per fill; equal-$ comparison closes
-~half the gap. xyz MSTRUSDC.P adopted as primary MSTR chart (user decision).
-Short-leg MAE/1x-cash solvency cleared (worst short MAE 8.11% vs +90.5% HL liq
-threshold; `analysis/trade_mae.py`). Slippage band {1,10,25,50} ticks. Re-entry
-governor: zero-parameter level ratchet (Pine, gov_mode input default off); v1
-exposed reset starvation under stand_aside (recorded as a finding); v2
-(exec-gate full-opposite-alignment reset) KEPT by the pre-registered keep-rule
-(R1E1+gov2 +71.80/+45.71 vs ungoverned +59.96/+34.76 @0.0125 s1/s10).
-`scripts/tv_dump.mjs` fail-loud assertions + enriched trade rows (et/xt/ep/xp/
-ddp/rnp). NEW `scripts/tv_bars.mjs`, `analysis/verify_xyz_backfill.py`,
-`analysis/trade_mae.py` (+8 tests; suite 17/17).
+Governor v2 cross-instrument re-verification: pre-registered CV1-CV4, then 16
+paired fresh runs (OKX MSTR 15m ctrlB/R1E1 x {0,0.0125} x {s1,s10}; OKX MSTR
+60m R1E3 -- floor also Feb-25; BTC 60m R1E3 2.5y). CV2 keep-rule mirror PASS
+at both cost points; keep-verdict upgraded provisional -> cross-venue-verified
+(MSTR underlying), magnitude path-local. VBT breadth-engine port designed with
+user in plan mode and committed as design of record. Cost realism: NEW
+analysis/l2_book_impact.py (live xyz L2 sampling; ~90-contract per-fill cost
+lands between s25 and s50, weekend-night caveat) and analysis/funding_model.py
+(5,124 hourly events; funding inverts the fee gradient, slow cells pay ~2x
+churn cells). Codex TVB-6 review folded in (3 LOW all actioned): MAE table
+corrected to committed replay; tv_bars.mjs persists tick metadata +
+tvb7_symbolinfo.json; governor profit-boundary ADJUDICATED -- profit() is
+GROSS of commission (evidence tvb7_diag_gov2_*), all governed results stand
+as-deployed, descriptions + port spec corrected.
 
 ## Focus areas (scrutinize these)
 
-1. `analysis/verify_xyz_backfill.py` method: is 97-99% float-exact on the
-   timestamp intersection + 4h closure + internal 15m->60m aggregation
-   SUFFICIENT for "genuine venue data"? Is the pre-May-12 15m residual (native
-   HL 15m capped) honestly bounded? Are the wick-diff residuals (TV more
-   extreme, worst 2.7% one bar) correctly judged immaterial?
-2. The tick-size decomposition: is "xyz 10 ticks == OKX 1 tick in $/fill" a
-   sound equalizer given near-unity price ratio? Is "roughly half artifact,
-   half texture" over-claimed from two configs?
-3. `analysis/trade_mae.py`: MAE vs ENTRY off bar extremes (entry-bar extreme may
-   precede the intrabar entry -- is "conservative" correct in BOTH directions?);
-   HL liquidation model r* = (1+L)/(L*(1+mm)), mm = 1/(2*maxLev); the
-   max-survivable-leverage inverse; the cross-check vs TV's per-trade ddp.
-4. The governor Pine (`pine/baseline_continuity.pine`): trigger capture as
-   high[1]/low[1] +/- tick on the fill bar (is that ALWAYS the live stop's
-   level?); same-bar ordering (loss-detection then alignment reset); does
-   `strategy.closedtrades.profit` include commission (the "scratch = losing"
-   boundary); any repaint/lookahead path introduced.
-5. v1 -> v2 amendment epistemics: mechanism-driven interaction fix (reset
-   starvation under stand_aside) or post-hoc tuning? Was the v2 keep-rule
-   applied exactly as pre-registered (beat ungoverned at BOTH s1 and s10)?
-   Are the v1 results honestly retained?
-6. Byte-identity regression method: is the 4,308-trade prefix match (et/dir/pp)
-   strong evidence the governor-off path is unchanged across pineVersion
-   18 -> 19 -> 20?
+1. **The gross-arming adjudication** (datasheet TVB-7 synthesis; evidence
+   `analysis/reference/tvb7_diag_gov2_{0125,100bp}.json`): is the inference
+   chain decisive? (a) trade sequence fee-independent except through profit();
+   (b) zero-fee vs fee'd governed sequences identical over 4,191 trades;
+   (c) at 1% commission the first 575 trades match exactly, diverging only at
+   the qty=0.001 equity floor. Is the qty-floor explanation of the divergence
+   sound? Any alternative fee-coupled path into the sequence we missed?
+2. **CV pre-registration integrity**: were CV1-CV4 applied exactly as written
+   BEFORE the runs; is the upgrade language ("cross-venue-verified on the MSTR
+   underlying, NOT universal-structural") honestly scoped; are the paired-run
+   tail-matching and one-input-per-step staging sound?
+3. **l2_book_impact.py method**: impact-vs-mid as the honest comparable to the
+   backtest's fill-at-trigger + s-ticks model; the TV-tick mapping given HL
+   5-sig-fig price granularity; is the weekend-night caveat weighted enough,
+   or is the "between s25 and s50" headline over-claimed from 20 snapshots?
+4. **funding_model.py**: the (et, xt] event join; long-pays-positive sign
+   convention; the notional~=equity 1x approximation and product(1+pp-f)
+   compounding; is "funding inverts the fee gradient" supported at these
+   magnitudes?
+5. **The MAE-correction root cause** (pre-final 60m bar export, wick scrub):
+   plausible or overclaimed? The committed replay is canonical either way --
+   is that framed honestly?
+6. **VBT_BREADTH_PORT_PLAN.md calibrated facts**: qty rule, pv formula, fill
+   conventions -- spot-check any against the committed dumps; flag anything
+   that would make the Phase-3 gate unpassable as specified.
 
 Standing priorities on ANY TVB review: `request.security` lookahead in Pine
-(note: still NONE -- local `ta.valuewhen` reconstruction only), model fidelity
-(is the backtest measuring what it claims?), overfitting / sample-vs-structural
-reasoning, fee/turnover math.
+(note: NO Pine changes this session; slot stays pineVersion 20.0), model
+fidelity (is the backtest measuring what it claims?), overfitting /
+sample-vs-structural reasoning, fee/turnover math.
 
 ## Output contract
 
-- Verbatim audit -> `docs/reviews/tvb6-codex-audit.md` (template:
+- Verbatim audit -> `docs/reviews/tvb7-codex-audit.md` (template:
   `docs/reviews/_TEMPLATE.md`, skeptic preamble included).
 - Be concrete; cite `file:line` and Pine/TV docs. Never paste a
   secret/IP/account value into a review file.

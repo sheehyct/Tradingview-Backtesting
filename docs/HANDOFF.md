@@ -5,6 +5,112 @@
 
 ---
 
+## Session TVB-7: governor cross-venue VERIFIED; VBT port plan APPROVED; cost realism closed; Codex fold-in -> gross-arming discovery (COMPLETE)
+
+**Date:** 2026-07-04
+**Status:** COMPLETE -- all three startup priorities done PLUS the Codex TVB-6
+review folded in same-session. Fable 5 session (mechanical re-verification, plan-
+mode design with user, analysis tooling, review adjudication).
+
+### What was accomplished
+1. **Governor v2 cross-instrument re-verification -- KEEP-VERDICT UPGRADED
+   (provisional -> cross-venue-verified on the MSTR underlying).** Pre-registered
+   CV1-CV4 (datasheet) then 16 paired fresh runs: OKX:MSTRUSDT.P 15m ctrlB/R1E1
+   x {0, 0.0125} x {s1, s10}; OKX MSTR 60m R1E3 (floor ALSO Feb-25 -- "60m
+   deeper" refuted for OKX, listing-driven); BTC 60m R1E3 2.5y. CV2 keep-rule
+   mirror PASS: R1E1+gov2 beats ungoverned at BOTH cost points (+42.44 vs +40.08
+   s1; -56.62 vs -59.58 s10), gross higher (+78.16 vs +76.61), cut -3.5% (no
+   starvation, CV1). Direction non-negative 8/8 pairs; MAGNITUDE PATH-LOCAL
+   (+12pp xyz -> +2-3pp OKX; ctrlB gross flat on OKX vs +40pp on xyz). BTC
+   stays negative governed (CV4 -- no manufactured edge). NOT universal-
+   structural (no non-MSTR positive-edge instrument exists). Repro gates green
+   (fresh ungoverned matched TVB-5 rows within tail drift). 16 dumps committed.
+2. **VBT breadth-engine port DESIGNED with user (plan mode) and APPROVED** --
+   `docs/VBT_BREADTH_PORT_PLAN.md` is the design of record. User forks decided:
+   custom bar-loop simulator (not VBT callbacks); hard gate = 4-cell mechanism
+   cover + 4 secondary regression cells; crypto perps first (equities = later
+   phase, seam only). Planning VERIFIED calibrated facts against committed
+   dumps: TV qty rule = floor(equity/(slipped_stop*(1+comm))/step)*step; pv
+   formula (worst err 4.9e-5); gap-through fills at open. Implementation runs
+   in a vectorbt-workspace session; Phase 3 (8 gate cells green) is a hard
+   policy gate before ANY Python number enters the record.
+3. **Cost realism closed (both TVB-6 carries).** (a) Live L2 sampling
+   (`analysis/l2_book_impact.py`, 20 snapshots): at ~90 contracts per-fill cost
+   vs mid = ~20-40 TV-ticks median, p90 ~30-50 -- BETWEEN s25 and s50, not near
+   s10; caveat WEEKEND-NIGHT book (conservative); weekday-RTH re-sample queued.
+   (b) Funding model (`analysis/funding_model.py`, 5,124 hourly events since
+   listing): drag modest at 1x (-2.5 to -4.9pp, no sign flips) but INVERTS the
+   fee gradient -- scales with time-in-market, so slow cells pay ~2x churn
+   cells (R1E3 -4.77 / ctrlA -4.93 vs ctrlB -2.78); linear in leverage. +8
+   tests (suite 25/25); evidence committed (L2 samples time-perishable).
+4. **Codex TVB-6 review RETURNED + folded in (APPROVE-WITH-NITS, 3 LOW, all
+   AGREED + actioned).** (1) 60m MAE rows corrected to committed replay (worst
+   short 8.42%/7.22x, long 5.54%; 15m rows replay exactly; solvency
+   unaffected). (2) tv_bars.mjs now persists tick metadata; equalizer evidence
+   committed (tvb7_symbolinfo.json). (3) **THE DISCOVERY: the governor arming
+   test `strategy.closedtrades.profit() > 0` reads GROSS of commission** --
+   adjudicated without touching the Pine: boundary trades real (137/4,191);
+   zero-fee vs fee'd governed sequences identical over 4,191 trades; at 1%
+   commission the first 575 trades still match exactly, diverging only at the
+   qty=0.001 equity floor (sizing artifact). All governed RESULTS stand (as-
+   deployed behavior; keep-rule applied to what ran); the "net of fees"
+   description corrected in datasheet + VBT plan (which would have failed its
+   own gate); Pine comment fix queued for next deployment; net-arming variant
+   = future pre-registered ablation candidate.
+
+### Context for next session
+- PRIMARY: execute the VBT port Phases 0-3 in a VECTORBT-WORKSPACE session per
+  the approved plan (calibrated facts are spec; governor arms on GROSS).
+- Weekday-RTH L2 re-sample = the operative slippage point estimate.
+- Pine comment correction bundles with the next Pine deployment (+ prefix
+  regression); do not do it standalone.
+- Chart resting state verified after every excursion this session (anchor
+  ~+8.0-8.2%/4,310-4,312, tail drift only). Entity SCn1V9 survived throughout.
+
+### Files created/modified
+- NEW `analysis/l2_book_impact.py`, `analysis/funding_model.py` + 2 test files
+  (suite 25/25); MOD `analysis/fee_rates_by_dex.py` (ruff E731).
+- MOD `scripts/tv_bars.mjs` (persists exchange/minmov/pricescale/mintick).
+- NEW `analysis/reference/`: 16 cross-venue dumps (tvb7_OKXMSTR_*, tvb7_BTC_*),
+  tvb7_l2_xyzMSTR.json, tvb7_funding_xyzMSTR.json, tvb7_symbolinfo.json,
+  tvb7_diag_gov2_{0125,100bp}.json.
+- NEW `docs/VBT_BREADTH_PORT_PLAN.md` (approved design of record, spec corrected).
+- MOD `docs/TVB2_control_AB_rerun.md` (TVB-7 sections: cross-venue pre-reg +
+  results, cost realism, Codex synthesis + adjudication; MAE table corrected).
+- MOD `docs/HANDOFF.md`, `docs/reviews/REVIEW_REQUEST.md` (TVB-6 flip +
+  TVB-7 request), NEW `docs/reviews/tvb6-codex-audit.md` (verbatim, committed).
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb7-codex-audit.md.
+> See docs/reviews/REVIEW_REQUEST.md (the pointer) and docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: {pending push -- pinned after session-end push; RANGE-PIN
+  RULE: `a4e1de8^..{head}`, caret keeps the first session commit in the diff;
+  sanity-check with `git diff --name-status`}
+- Scope / what changed: governor v2 cross-venue verification (16 paired OKX/BTC
+  runs, pre-registered CV1-CV4, keep-verdict upgrade); VBT breadth-port design
+  doc; cost realism (L2 impact sampler + funding model + datasheet section);
+  Codex TVB-6 fold-in (MAE correction, tick-metadata evidence, gross-arming
+  adjudication with diagnostic dumps).
+- Focus areas (scrutinize these): (1) the gross-arming adjudication logic --
+  is the 575-trade identical prefix at 1% fee DECISIVE for gross semantics, and
+  is the qty-floor explanation of the divergence sound (tvb7_diag_gov2_*)?
+  (2) CV pre-registration integrity -- were CV1-CV4 applied as written; is
+  "cross-venue-verified but not universal-structural" honestly scoped?
+  (3) l2_book_impact method -- impact vs mid as the s-band comparable; the
+  TV-tick mapping under HL 5-sig-fig pricing; weekend-regime caveat adequacy;
+  (4) funding_model join semantics (et,xt] and the notional~=equity 1x
+  approximation; (5) the MAE-correction root-cause claim (pre-final bar export)
+  -- plausible or overclaimed? Standing: request.security lookahead (none;
+  no Pine changes this session), model fidelity, fee/turnover math.
+- Reviewed by: pending
+- Findings: (blank until docs/reviews/tvb7-codex-audit.md exists)
+
+---
+
 ## Session TVB-6: xyz backfill VERIFIED + adopted; venue gap decomposed; solvency + slippage gates; governor v1->v2 KEPT (COMPLETE)
 
 **Date:** 2026-07-03

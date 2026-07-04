@@ -108,10 +108,12 @@ def summarize(fills: list[dict]) -> list[dict]:
 
 
 def render(rows: list[dict]) -> str:
+    def fmt(v):
+        return "-" if v is None else f"{v:.4f}"
+
     header = f"{'dex':<12} {'liq':<6} {'fills':>6} {'modal%':>9} {'mean%':>9} {'ntl-wtd%':>9}"
     lines = [header, "-" * len(header)]
     for r in rows:
-        fmt = lambda v: "-" if v is None else f"{v:.4f}"
         lines.append(
             f"{r['dex']:<12} {r['liquidity']:<6} {r['fills']:>6} "
             f"{fmt(r['modal_pct']):>9} {fmt(r['mean_pct']):>9} {fmt(r['notional_wtd_pct']):>9}"
