@@ -87,9 +87,10 @@ mode design with user, analysis tooling, review adjudication).
 > See docs/reviews/REVIEW_REQUEST.md (the pointer) and docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: {pending push -- pinned after session-end push; RANGE-PIN
-  RULE: `a4e1de8^..{head}`, caret keeps the first session commit in the diff;
-  sanity-check with `git diff --name-status`}
+- Commits to review: `a4e1de8^..557e00d` on `main` (= `d9504ba's ancestors
+  back through a4e1de8` plus the session-end commit; 5 commits, sanity-checked:
+  `git diff --name-status` lists all 33 session files). RANGE-PIN RULE applied:
+  the caret keeps `a4e1de8` (cross-venue verification) inside the reviewed diff.
 - Scope / what changed: governor v2 cross-venue verification (16 paired OKX/BTC
   runs, pre-registered CV1-CV4, keep-verdict upgrade); VBT breadth-port design
   doc; cost realism (L2 impact sampler + funding model + datasheet section);

@@ -22,7 +22,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | {pending push -- pinned by the session-end follow-up commit} |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `a4e1de8^..557e00d` (5 commits; verified: 33 files) |
 
 No sibling-repo changes this session (jackson `27757bc` from TVB-6 remains
 local-transport-only).
