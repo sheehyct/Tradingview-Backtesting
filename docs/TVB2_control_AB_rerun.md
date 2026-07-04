@@ -1330,3 +1330,82 @@ damage lives (xyz's knife-edge microstructure); it is NOT a return engine.
 Keep-verdict stands (kept, cross-venue-verified); the TVB-6 caveat that
 magnitudes are regime-local now has cross-venue evidence behind it.
 Dumps: `analysis/reference/tvb7_*.json` (16 files).
+
+## TVB-7: cost realism -- live L2 impact point estimate + perp funding model
+
+Two TVB-6 carries closed (2026-07-04). New tools: `analysis/l2_book_impact.py`
+(+4 tests), `analysis/funding_model.py` (+4 tests); suite 25/25. Evidence
+committed: `analysis/reference/tvb7_l2_xyzMSTR.json` (raw book samples,
+TIME-PERISHABLE), `analysis/reference/tvb7_funding_xyzMSTR.json` (full hourly
+funding history since listing; refreshable).
+
+### Live L2 impact at strategy size (the slippage-band point estimate)
+
+Method: 20 snapshots of the xyz:MSTR L2 book (HL public info API), 15s apart,
+2026-07-04 ~03:5xZ; taker VWAP priced against the visible book per size;
+impact reported vs MID (half-spread + walk = honest per-fill cost comparable
+to the s-band; the 0.0125% taker FEE is separate and remains the commission
+input). Venue tick note: HL prices xyz:MSTR to 5 significant figures ($0.01
+granularity at ~$106) while the TV chart mintick is 0.001 -- impacts are
+mapped to TV-tick equivalents (impact_usd / 0.001) for band comparison.
+
+Mid ~105.9-106.1, spread median 3.77 bps. No side exhausted at any size.
+
+| size | buy med bps (tvt) | buy p90 | sell med bps (tvt) | sell p90 |
+|---|---|---|---|---|
+| 10 | 2.75 (29.1) | 3.24 (34.3) | 1.89 (20.0) | 2.36 (25.0) |
+| 30 | 3.26 (34.5) | 4.44 (47.0) | 1.89 (20.0) | 2.36 (25.0) |
+| 60 | 3.60 (38.2) | 4.59 (48.7) | 1.89 (20.0) | 2.48 (26.3) |
+| **90** | **3.75 (39.8)** | 4.64 (49.1) | **1.89 (20.0)** | 2.90 (30.7) |
+| 150 | 4.43 (46.9) | 5.11 (54.1) | 2.36 (25.0) | 3.29 (34.8) |
+| 300 | 5.49 (58.2) | 6.71 (71.2) | 3.25 (34.4) | 4.23 (44.8) |
+
+**Point estimate: at ~90 contracts (~$9.5k notional ~= the 1x equity), the
+per-fill cost vs mid is ~20-40 TV-tick equivalents median (side-dependent;
+~30 averaged), p90 ~30-50 -- i.e. BETWEEN the s25 and s50 rows of the
+pre-registered band, NOT near s10.** At those cost points the committed
+record reads: R1E1 +1.29% (s25) .. -37.07% (s50); ctrlB -74.92 .. -94.52;
+slow cells at s50: R1E3 +9.19 / ctrlA +4.79. The knife-edge conclusion now
+has a live-book quantification.
+
+Caveats (both directions): (1) sampled on a WEEKEND NIGHT -- one thin
+microstructure regime; weekday-RTH depth is plausibly several times deeper,
+making this a conservative (pessimistic) estimate; re-sample weekday-RTH
+before treating it as operative. (2) The buy/sell asymmetry (~2x) is
+tonight's book (declining tape, thin asks), not structure. (3) Taker-only:
+maker/stop-limit execution avoids the walk entirely at the cost of missed
+fills -- an untested lever, out of scope here. (4) The s-band charges ticks
+at ALL sample prices (60-180): in bps, s25 ~= 2.1 and s50 ~= 4.2 at a $120
+mid-sample price -- consistent with the same s25-s50 placement.
+
+### Perp funding model (the cost leverage does not shrink)
+
+Method: full hourly fundingHistory for xyz:MSTR (5,124 events, Dec-02 16:00Z
+-> Jul-04 03:00Z; median +6.25e-06/hr, mean +7.65e-06/hr, extremes -1.18e-03
+/ +8.75e-04). Per-trade signed rate sum over events in (et, xt]; long pays
+positive rates, short receives; at 1x 100%-equity, notional/equity ~= 1 so
+the rate sum IS the equity fraction; adjusted compounding = product(1+pp-f).
+Approximations documented in the module docstring (entry-marked notional);
+second-order at 1x.
+
+| cell (xyz @0.0125 s1) | recorded | funding-adj | delta | trades w/ events |
+|---|---|---|---|---|
+| ctrlB | +7.89 | +5.10 | -2.78pp | 1969/4308 (46%) |
+| R1E1 | +59.91 | +57.46 | -2.46pp | 577/1302 |
+| R1E1+gov2 | +71.76 | +69.16 | -2.60pp | 560/1250 |
+| R1E3 | +46.22 | +41.45 | -4.77pp | 407/408 (99.8%) |
+| ctrlA | +47.11 | +42.19 | -4.93pp | 473/474 (99.8%) |
+
+(recorded = closed-trade compounded product, window_compound basis, hence the
+small differences vs the TV net% headlines which include the open trade.)
+
+**Findings:** (1) funding drag is real but modest at 1x -- no sign flips;
+(2) **funding INVERTS the fee gradient**: it scales with TIME-IN-MARKET, not
+turnover, so the slow fee-robust cells pay ~2x the churn cells (-4.8/-4.9pp
+vs -2.8pp; virtually every slow-cell trade holds through funding events).
+The two cost levers pull in opposite directions along the turnover axis --
+slowing down buys fee relief but sells funding exposure. Any future
+deployability arithmetic must charge BOTH. (3) Funding scales with notional,
+i.e. linearly with leverage -- at 5x these deltas are ~5x, which would take
+R1E3/ctrlA down ~24pp: leverage remains a capital-efficiency output, not a
+return dial (memory: user leverage philosophy).
