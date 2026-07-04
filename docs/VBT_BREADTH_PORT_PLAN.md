@@ -26,9 +26,11 @@ User-approved forks (AskUserQuestion, this session):
    trades), R1E1@0.0125s1 (regime), R1E1gov2@0.0125s1 (governor), R1E3@0.0125s1
    on 60m (TF-set + chart-TF variation). PLUS 4 secondary regression cells in the
    same parametrized test (same code, ~1s each): ctrlB@0.0125_s10 (slippage inside
-   the qty basis), ctrlBgov2@0 (zero-fee scratch-counts-as-losing), ctrlBgov2@0.0125
-   (governor at scale), ctrlA@0.0125 60m (W/M warmup in the EXEC gate). Governor v1
-   dumps EXCLUDED (pre-v2 script revision).
+   the qty basis), ctrlBgov2@0 (zero-fee governor regression; gross==net there, so
+   it is insensitive to the gross-arming correction above -- the fee'd gov2 cells
+   are the sensitive ones), ctrlBgov2@0.0125 (governor at scale), ctrlA@0.0125 60m
+   (W/M warmup in the EXEC gate). Governor v1 dumps EXCLUDED (pre-v2 script
+   revision).
 3. **Breadth universe: crypto perps first** (OKX REST + Hyperliquid candleSnapshot);
    equities (RTH gaps, session-anchored periods) are a separately-designed later
    phase -- only the seam is built now.
@@ -52,9 +54,13 @@ User-approved forks (AskUserQuestion, this session):
   gate = close strictly >/< ALL enabled period opens (equality or na => neutral;
   na until a TF's first period boundary -- `change[0]=False` is load-bearing);
   exits submitted before entries; one-bar re-arm gap; governor captures the TRIGGER
-  (`high[1]+mintick`) on the fill bar, arms on net<=0 exits, resets on winning
-  same-dir exit OR full-opposite exec alignment (loss-arm BEFORE alignment-reset,
-  same bar); entries armed only when flat, stop lives exactly one bar.
+  (`high[1]+mintick`) on the fill bar, arms on GROSS profit <= 0 exits [CORRECTED
+  2026-07-04: the TVB-7 Codex-review diagnostic proved `strategy.closedtrades.
+  profit()` is GROSS of commission in this TV build -- an earlier draft of this spec
+  said "net", which would have failed the gate cells; see the TVB-7 synthesis in
+  docs/TVB2_control_AB_rerun.md], resets on winning (gross > 0) same-dir exit OR
+  full-opposite exec alignment (loss-arm BEFORE alignment-reset, same bar); entries
+  armed only when flat, stop lives exactly one bar.
 
 ## Where it lives (vectorbt-workspace; mirrors `strat/backtesting/futures/` precedent)
 

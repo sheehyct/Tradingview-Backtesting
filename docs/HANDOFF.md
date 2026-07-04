@@ -115,7 +115,8 @@ nothing disputed.
 > and write a verbatim assessment to docs/reviews/tvb6-codex-audit.md. See
 > docs/reviews/REVIEW_REQUEST.md (the pointer) and docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: REQUESTED
+- Review status: RETURNED (2026-07-04, APPROVE-WITH-NITS, 3 LOW -- synthesis in
+  the TVB-7 sections of docs/TVB2_control_AB_rerun.md and the TVB-7 HANDOFF entry)
 - Commits to review: `43fb973^..9a00d40` on `main` (= `1f7815f..9a00d40`;
   sanity-checked: `git diff --name-status` lists all 51 session files). RANGE-PIN
   RULE applied: the caret keeps `43fb973` (the review-return flip) inside the
@@ -138,8 +139,15 @@ nothing disputed.
   keep-rule applied as pre-registered? (6) byte-identity regressions as evidence
   (prefix match method). Standing: request.security lookahead (still none -- local
   ta.valuewhen only), model fidelity, fee/turnover math.
-- Reviewed by: pending
-- Findings: (blank until docs/reviews/tvb6-codex-audit.md exists)
+- Reviewed by: Codex CLI (docs/reviews/tvb6-codex-audit.md)
+- Findings: 3 LOW, all AGREED + actioned in TVB-7: (1) 60m MAE table understated
+  the committed replay (8.42%/7.22x, long 5.54%) -- corrected; (2) tick metadata
+  not committed -- tv_bars.mjs now persists it + tvb7_symbolinfo.json committed;
+  (3) governor profit-boundary diagnostic requested -- adjudicated WITHOUT a Pine
+  change: strategy.closedtrades.profit() is GROSS of commission in this TV build
+  (575-trade identical prefix at 1% fee is impossible under net-arming), so the
+  "net of fees" mechanism description was wrong while every governed RESULT
+  (as-deployed behavior) stands; VBT port spec corrected accordingly.
 
 ---
 

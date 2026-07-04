@@ -1,0 +1,7 @@
+{
+  "purpose": "Codex TVB-6 finding 2: committed tick-size evidence for the xyz-vs-OKX slippage equalizer (xyz s10 == OKX s1 in $/fill). Captured live via CDP symbolInfo(), 2026-07-04 (TVB-7). tv_bars.mjs now persists these fields in every bar export.",
+  "symbols": [
+    {"name": "MSTRUSDC.P", "full_name": "HIP3XYZ:MSTRUSDC.P", "pro_name": "HIP3XYZ:MSTRUSDC.P", "exchange": "Trade[XYZ] HIP-3 Hyperliquid", "type": "swap", "minmov": 1, "pricescale": 1000, "mintick": 0.001, "currency": "USDC"},
+    {"name": "MSTRUSDT.P", "full_name": "OKX:MSTRUSDT.P", "pro_name": "OKX:MSTRUSDT.P", "exchange": "OKX", "type": "swap", "minmov": 1, "pricescale": 100, "mintick": 0.01, "currency": "USDT"}
+  ]
+}

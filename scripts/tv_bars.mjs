@@ -23,9 +23,15 @@ const EXPR = `(function(){
     }
     var si = null;
     try { si = ms.symbolInfo(); } catch(e){}
+    // Tick metadata persisted per Codex TVB-6 finding 2: the xyz-vs-OKX slippage
+    // equalizer (s10 == s1 in $/fill) depends on minmov/pricescale being on record.
     return {
       symbol: si ? (si.full_name || si.name) : null,
       pro_symbol: si ? si.pro_name : null,
+      exchange: si ? si.exchange : null,
+      minmov: si ? si.minmov : null,
+      pricescale: si ? si.pricescale : null,
+      mintick: si && si.minmov && si.pricescale ? si.minmov / si.pricescale : null,
       interval: ms.interval ? ms.interval() : null,
       count: rows.length,
       bars: rows

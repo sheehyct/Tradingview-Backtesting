@@ -991,19 +991,29 @@ TVB-6 format). Cross-check vs TV's own ddp: median |diff| 0.05-0.08pp.
 
 | config | shorts | median MAE | p99 | worst | 1x/2x/3x/5x breaches | max survivable short lev |
 |---|---|---|---|---|---|---|
-| ctrlB | 2157 | 0.28% | 2.45% | **8.11%** | 0 / 0 / 0 / 0 | 7.40x |
+| ctrlB | 2157 | 0.28% | 2.45% | 8.11% | 0 / 0 / 0 / 0 | 7.40x |
 | R1E1 | 633 | 0.31% | 2.77% | 3.82% | 0 / 0 / 0 / 0 | 11.09x |
-| ctrlA | 233 | 0.58% | 4.49% | 8.00% | 0 / 0 / 0 / 0 | 7.46x |
-| R1E3 | 202 | 0.60% | 4.49% | 8.00% | 0 / 0 / 0 / 0 | 7.46x |
+| ctrlA | 233 | 0.71% | 5.48% | **8.42%** | 0 / 0 / 0 / 0 | 7.22x |
+| R1E3 | 202 | 0.71% | 5.48% | **8.42%** | 0 / 0 / 0 / 0 | 7.22x |
 
-(Long worst MAE 3.7-5.4% across configs -- context only; 1x longs are unliquidatable.)
+(Long worst MAE 3.7-5.5% across configs -- context only; 1x longs are unliquidatable.)
+
+> CORRECTED per Codex TVB-6 finding 1 (2026-07-04, TVB-7): the 60m rows as first
+> recorded (median 0.58/0.60, p99 4.49, worst 8.00%, 7.46x) understated the
+> committed-file replay (worst 8.42%, 7.22x; long worst 5.54%). Trade counts were
+> identical, only wick-sensitive quantiles shifted -- most plausibly the TVB-6
+> analysis ran against a pre-final 60m bar export whose wick extremes differed
+> slightly from the committed `tvb6_tv_xyzMSTR_60m.json` (the TVB-6 record itself
+> documents wick-level snapshot scrub). The deterministic replay over committed
+> files (`uv run python analysis/trade_mae.py`) is the canonical record; the 15m
+> rows reproduced exactly as first recorded.
 
 **Read: at 1x cash the short leg is solvent by an order of magnitude throughout the
 sample -- TV's margin-0/0 simulation is a FAIR model of a 1x cash deployment for this
 strategy class (no margin call would ever have fired).** The state-stop exits fast
 enough that excursions stay single-digit. Honest bounds: worst OBSERVED MAE is not
 worst POSSIBLE (MSTR-class earnings gaps can exceed 8% overnight; the +90.5% 1x
-cushion is what makes the claim robust, not the 8.11% sample max); leverage above ~3x
+cushion is what makes the claim robust, not the 8.42% sample max); leverage above ~3x
 starts leaning on the sample; perp FUNDING cost/credit on held positions is NOT
 modeled (belongs to the slippage/cost-realism item, still open). This closes the
 solvency precondition; deployability language remains gated on slippage realism at
@@ -1011,7 +1021,7 @@ size. All backtest %s in this document are 1x (100%-of-equity notional, no lever
 
 Leverage-clearance corollary (isolated margin): the backtest describes reality only
 while the liquidation threshold clears every intra-trade MAE. Sample clearance:
-~7.4x short / ~9.8x long (worst observed MAE 8.11% / 5.43%). ABOVE clearance,
+~7.2x short / ~9.7x long (worst observed MAE 8.42% / 5.54%, 60m cells). ABOVE clearance,
 liquidation acts as an intrabar hard stop the (close-based, state-stop) backtest
 never modeled -- the measured strategy no longer exists at that leverage; e.g. at a
 venue-max 20x (mm 2.5%, liq ~ +/-2.5%) the p99 MAE band (2.4-4.5%) implies routine
@@ -1064,8 +1074,11 @@ book-crossing cost); never quote an xyz churn-config number at s1 alone.
 
 **DESIGNED WITH USER (2026-07-03; two explicit decisions + one amendment):** the
 governor is a zero-parameter LEVEL RATCHET. After a LOSING exit (net of fees; scratch
-counts as losing), same-direction entries re-arm only at a trigger STRICTLY beyond the
-failed trade's trigger (long: higher; short: lower). RESET: a winning same-direction
+counts as losing) [CORRECTION, TVB-7: the deployed test `strategy.closedtrades.profit()
+> 0` reads GROSS of commission in this TV build -- adjudicated empirically, see the
+TVB-7 Codex synthesis section; all governed results in this document measure the
+as-deployed GROSS-arming behavior], same-direction entries re-arm only at a trigger
+STRICTLY beyond the failed trade's trigger (long: higher; short: lower). RESET: a winning same-direction
 exit OR any completed opposite-direction trade -- the amendment (user-approved) that
 prevents the foreseeable deadlock where a stop-out near the December high (~181) would
 have blocked longs for the entire sample (price never re-exceeded 181; April topped
@@ -1409,3 +1422,58 @@ deployability arithmetic must charge BOTH. (3) Funding scales with notional,
 i.e. linearly with leverage -- at 5x these deltas are ~5x, which would take
 R1E3/ctrlA down ~24pp: leverage remains a capital-efficiency output, not a
 return dial (memory: user leverage philosophy).
+
+## TVB-7: Codex TVB-6 review synthesis (RETURNED, APPROVE-WITH-NITS, 3 LOW)
+
+Audit: `docs/reviews/tvb6-codex-audit.md` (2026-07-04). All three findings
+AGREED and actioned same-session. The audit's passed-checks independently
+corroborate the load-bearing TVB-6 claims (backfill replay matched every
+table; keep-rule applied exactly as pre-registered; no request.security /
+lookahead path; v1->v2 judged mechanism-driven, not post-hoc).
+
+**Finding 1 (LOW, MAE table) -- AGREED, verified, corrected.** The committed-
+file replay gives worst 60m short MAE 8.42% / clearance 7.22x (long 5.54%),
+not the recorded 8.00%/7.46x; sample-worst prose said 8.11% (the 15m-only
+number). Table + prose corrected above (correction note inline). Root cause
+(most plausible): the TVB-6 60m MAE ran against a pre-final 60m bar export;
+MAE reads wick extremes, exactly where TVB-6 documented snapshot scrub; trade
+counts matched, only wick-sensitive quantiles shifted. The 15m rows replay
+exactly. Solvency conclusion unaffected (8.42% vs +90.5% 1x threshold; zero
+breaches at 5x).
+
+**Finding 2 (LOW, tick metadata) -- AGREED, actioned.** `scripts/tv_bars.mjs`
+now persists exchange/minmov/pricescale/mintick in every bar export, and the
+equalizer's inputs are committed as `analysis/reference/tvb7_symbolinfo.json`
+(live CDP capture: xyz MSTRUSDC.P minmov 1 / pricescale 1000 / mintick 0.001;
+OKX MSTRUSDT.P minmov 1 / pricescale 100 / mintick 0.01).
+
+**Finding 3 (LOW, governor profit boundary) -- AGREED, and the diagnostic
+OVERTURNED the documented semantics.** The reviewer asked whether
+`strategy.closedtrades.profit()` is net of commission (the Pine comment and
+this document said "net of fees"). Adjudication, no Pine change required:
+1. Boundary population is REAL: 137/4,191 ctrlBgov2 trades (28/1,250 R1E1gov2,
+   19/895 OKX R1E1gov2) have gross > 0 >= net -- the question binds in-sample.
+2. The trade SEQUENCE is fee-independent except through the profit() test
+   (levels/gates are price-based; percent-of-equity fees scale qty only;
+   margins 0/0). Committed ctrlBgov2_0 vs ctrlBgov2_0125: et/dir sequences
+   IDENTICAL over all 4,191 closed trades.
+3. Live stress (chart inputs only, restored after; evidence
+   `analysis/reference/tvb7_diag_gov2_{0125,100bp}.json`): at commission 1%
+   per fill virtually every trade is a net loser, so NET semantics would arm
+   the ratchet on essentially every exit and reshape the sequence from the
+   start. Observed: the first 575 trades are IDENTICAL to the 0.0125% run;
+   divergence at index 575 coincides exactly with qty flooring to the 0.001
+   step (equity death skipping sub-minimum orders; q column flickers 0.001)
+   -- a sizing artifact, not an arming artifact.
+**VERDICT: profit() is GROSS of commission in this TV build.** Consequences:
+(a) every committed governed result (v1, v2, keep-rule, TVB-7 cross-venue
+verification) measured the as-deployed GROSS-arming governor -- the numbers
+and the keep-verdict stand unchanged; (b) the mechanism description was wrong
+-- fee-eaten mild winners (the boundary population) do NOT arm the ratchet as
+deployed; a gross-scratch still does; (c) the Pine comment (lines ~212-219)
+is corrected at the next Pine-touching deployment (comment-only edit; queued
+to avoid disturbing the pineVersion-20 byte-identity anchor for a LOW);
+(d) `docs/VBT_BREADTH_PORT_PLAN.md` spec corrected: the port must arm on
+GROSS profit <= 0 or its own gate cells would fail; (e) a net-arming variant
+(profit - closedtrades.commission) is now a well-posed FUTURE ablation
+candidate, pre-registration required (charter S5), not assumed better.

@@ -10,7 +10,11 @@
 
 ## Status
 
-- Status: REQUESTED  <!-- REQUESTED | RETURNED (audit file written) -->
+- Status: RETURNED  <!-- REQUESTED | RETURNED (audit file written) -->
+- Returned: 2026-07-04 -- APPROVE-WITH-NITS, 3 LOW; all agreed + actioned in
+  TVB-7 (MAE table corrected to committed replay; tick metadata persisted +
+  tvb7_symbolinfo.json; governor profit-boundary ADJUDICATED: profit() is
+  GROSS of commission -- see the TVB-7 synthesis in docs/TVB2_control_AB_rerun.md)
 - Session under review: TVB-6 -- xyz backfill verified vs HL venue candles + adopted
   as primary; venue gap decomposed (tick-size artifact ~half); MAE/solvency cleared;
   slippage band; re-entry governor v1->v2 built + KEPT by pre-registered rule
