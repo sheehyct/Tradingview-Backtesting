@@ -69,6 +69,17 @@ temporary/
 *.tmp
 
 # ============================================
+# VECTORBT PRO -- proprietary, NEVER COMMIT (remote is PUBLIC; the install
+# guide mirrors paywalled vectorbt.pro documentation => DMCA exposure).
+# The package lives only in the untracked .venv (ad-hoc `uv pip install`,
+# deliberately NOT in pyproject/uv.lock so public clones still sync/test).
+# ============================================
+vectorbt_pro_install.md
+vectorbt*pro*.md
+vbt_pro_docs/
+*.whl
+
+# ============================================
 # INTENTIONALLY TRACKED (note vs vbt-workspace)
 # ============================================
 # .mcp.json is TRACKED here on purpose: the tradingview + openmemory blocks
