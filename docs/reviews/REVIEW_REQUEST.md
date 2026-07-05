@@ -10,7 +10,11 @@
 
 ## Status
 
-- Status: REQUESTED  <!-- REQUESTED | RETURNED (audit file written) -->
+- Status: RETURNED  <!-- REQUESTED | RETURNED (audit file written) -->
+- Returned: 2026-07-04 -- APPROVE-WITH-NITS, 1 LOW (stale net-PnL governor
+  sentence at `docs/VBT_BREADTH_PORT_PLAN.md:20`); verbatim audit at
+  `docs/reviews/tvb7-codex-audit.md`; critical synthesis lands in
+  `docs/HANDOFF.md` during TVB-8.
 - Session under review: TVB-7 -- governor v2 cross-venue verification (keep-verdict
   upgraded); VBT breadth-port design of record; cost realism (live L2 impact +
   funding model); Codex TVB-6 fold-in incl. the GROSS-arming adjudication

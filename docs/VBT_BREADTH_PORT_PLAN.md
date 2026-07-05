@@ -4,6 +4,23 @@
 > a vectorbt-workspace session; this document is the design of record on the TVB
 > side. Companion evidence: the calibrated facts below were verified against the
 > committed `analysis/reference/tvb6_*` artifacts during planning.
+>
+> **AMENDMENT (TVB-8, 2026-07-05, user decision):** VectorBT Pro is now installed
+> in THIS workspace (ad-hoc venv install, deliberately kept out of git -- the
+> remote is PUBLIC). The port implementation therefore runs HERE in
+> `tradingview-backtesting`, NOT in a vectorbt-workspace session; the two
+> workspaces stay separate. Concretely: module home `strat/backtesting/tfc/`
+> becomes `tfc/` at this repo root; scripts go to `scripts/`; tests to
+> `tests/` (existing pytest wiring). The `tests/fixtures/tfc_reference/`
+> COPY+MANIFEST step is DROPPED -- the gate reads the already-committed
+> `analysis/reference/` dumps and `tvb6_tv_xyzMSTR_*` bar files directly
+> (provenance is already in-repo). Governing rules = this repo's CLAUDE.md;
+> skill obligations unchanged (`backtesting-validation` + `strat-methodology`
+> before the continuity-port code; VBT 5-step workflow at the optional VBT
+> touchpoint). `vectorbtpro` stays an OPTIONAL import: the core simulator is
+> pure NumPy under plain pytest; VBT enters only at the Phase-5 tearsheet wrap
+> behind `pytest.importorskip`. Everything else -- Phase 0-3 sequencing, the
+> Phase-3 gate policy, all calibrated facts -- is unchanged.
 
 ## Context
 
@@ -17,7 +34,8 @@ number enters the record.
 
 User-approved forks (AskUserQuestion, this session):
 1. **Engine shape: custom bar-loop simulator** (not VBT-native callbacks). The
-   governor reads net closed-trade PnL (simulation feedback), entries are one-bar
+   governor reads closed-trade PnL -- GROSS of commission, per the TVB-7
+   adjudication; simulation feedback either way -- entries are one-bar
    resting stops armed only when flat, sizing is 100%-equity compounding -- and
    trade-for-trade equivalence leaves no room for VBT's own fill conventions. VBT
    Pro enters only at the breadth layer (optional `Portfolio.from_orders` wrap for

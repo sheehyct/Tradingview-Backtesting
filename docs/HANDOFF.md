@@ -86,7 +86,9 @@ mode design with user, analysis tooling, review adjudication).
 > below) and write a verbatim assessment to docs/reviews/tvb7-codex-audit.md.
 > See docs/reviews/REVIEW_REQUEST.md (the pointer) and docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: REQUESTED
+- Review status: RETURNED (2026-07-04, Codex CLI) -- APPROVE-WITH-NITS; verbatim
+  audit in `docs/reviews/tvb7-codex-audit.md`; critical synthesis to be written
+  by TVB-8.
 - Commits to review: `a4e1de8^..557e00d` on `main` (= `d9504ba's ancestors
   back through a4e1de8` plus the session-end commit; 5 commits, sanity-checked:
   `git diff --name-status` lists all 33 session files). RANGE-PIN RULE applied:
@@ -107,8 +109,15 @@ mode design with user, analysis tooling, review adjudication).
   approximation; (5) the MAE-correction root-cause claim (pre-final bar export)
   -- plausible or overclaimed? Standing: request.security lookahead (none;
   no Pine changes this session), model fidelity, fee/turnover math.
-- Reviewed by: pending
-- Findings: (blank until docs/reviews/tvb7-codex-audit.md exists)
+- Reviewed by: Codex CLI, 2026-07-04
+- Findings: 1 LOW -- stale "governor reads net closed-trade PnL" sentence at
+  `docs/VBT_BREADTH_PORT_PLAN.md:20` conflicts with the corrected GROSS-arming
+  calibrated-facts block in the same file (fix before the port starts). Second
+  actionable = a reminder, not a new finding: keep the queued Pine comment
+  correction (`pine/baseline_continuity.pine:212`) attached to the next
+  Pine-touching deployment. All focus-area checks PASSED (gross-arming
+  adjudication chain, CV pre-registration, L2 method, funding model, MAE
+  framing, VBT calibrated facts) with reviewer recomputation matching ours.
 
 ---
 
