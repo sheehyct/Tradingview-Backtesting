@@ -6,7 +6,8 @@ readme = "README.md"
 requires-python = ">=3.12,<3.14"
 dependencies = [
     "pandas>=2.1.0",
-    "numpy>=1.26.0",
+    # <2.5 cap: numba-based local tooling requires numpy <=2.4 at import time
+    "numpy>=1.26.0,<2.5",
     "scipy>=1.16.0",
     "matplotlib>=3.10.0",
     "plotly>=6.0.0",
