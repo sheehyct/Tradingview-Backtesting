@@ -1917,3 +1917,60 @@ vol x sqrt(holding time)); NOT tuned on the sample.
   class" hypothesis; adopting that mapping requires fresh samples --
   choosing per-instrument gate speed by THIS sample's performance would be
   tuning (charter S5/S7).
+
+## TVB-9: HTF-index RESULTS (run 2026-07-07, same day, after the pre-reg commit)
+
+108 runs (`scripts/tfc_htf_sweep.py`, artifact `tvb9_htf_results.json`; 9
+native 1d pulls committed). Resampled-1D vs native-1d crosscheck: exact on
+interior days for 6/9 symbols; MU 194/199, AMD 205/208, CRCL 202/203 (the
+handful = thin zero-trade placeholder days; both series used as-is). All
+@0.0125 s1, matched windows unless noted; 60m ctrlA repeated for reference:
+
+| symbol | 60m ctrlA | MWD_on240 | MWD_onD | native1d MWD_onD |
+|---|---|---|---|---|
+| MSTR | +45.90 | +81.91 (95) | +2.85 (32) | same window |
+| XYZ100 | -4.48 | -5.36 (101) | -7.11 (32) | -11.53 (43, since Oct-13) |
+| SP500 | -4.95 | +3.63 (54) | -4.18 (20) | same window |
+| BTC | +3.55 | +29.51 (88) | +10.32 (32) | +73.72 (360, 5.9y) |
+| MU | +15.16 | +126.43 (98) | +69.81 (37) | same window |
+| AMD | +31.58 | +33.05 (106) | -3.75 (35) | -3.68 (35) |
+| NVDA | +0.54 | -23.67 (105) | -26.14 (34) | -28.62 (41) |
+| TSLA | -9.17 | -31.45 (99) | -28.65 (30) | -32.50 (35) |
+| CRCL | -3.05 | -10.72 (98) | -46.44 (33) | -46.44 (33) |
+
+**Scorecard vs H1-H5:**
+- H1 CONFIRMED (mechanical): median |pp| at D runs 0.61% (SP500) to 4.80%
+  (CRCL) -- 20-160x the ~3bp fee floor. Fee domination is GONE at the
+  daily horizon; trade counts 20-37 as declared (mechanics, not rankings).
+- **H2 REFUTED -- the finding of the exploration:** removing fee
+  domination does NOT rescue the indices. XYZ100 gets WORSE as the horizon
+  stretches (-4.5 -> -5.4 -> -7.1/-11.5) with gross NEGATIVE at D (fees
+  now immaterial); SP500 stays noise-around-zero (+3.6 / -4.2 on a
+  110-day, 20-trade window). **The <40%-vol dead zone is
+  SIGNAL-structural, not resolution-structural** -- low-vol instruments
+  lack harvestable directional persistence at ANY tested horizon, not just
+  per-trade magnitude at 60m. The hypothesis was well-posed; the answer is
+  no, and the map is sharper for it.
+- H3 CONFIRMED (dig-2 cross-check): MU MWD_onD +69.8 / MWD_on240 +126.4 --
+  daily and 240m bars cannot see the intraday short whipsaw that killed
+  its 60m churn cell. The dig-2 mechanism survives an out-of-cell test.
+- H4 REFINED: BTC native-1d 5.9y = +73.7% (PF 1.181, win 34%) -- NOT flat,
+  but lumpy trend harvest, exactly the regime-local pattern: by year
+  +54.3 log-pp (2020 Q4 trend), -19.5 (2021), +6.9, +28.5 (2023), +11.9,
+  -36.8 (2025 chop), +9.8; longs +103.6 log-pp vs SHORTS -48.4. ~10%/yr
+  vs +750% b&h with multi-year bleed stretches -- no manufactured edge;
+  the 60m dead-control read stands.
+- H5 respected: no verdicts; no TV drift band exists at these TFs.
+
+**Cross-cutting (map detail, one sample):**
+- MWD_on240 >= MWD_onD nearly everywhere in the ~7-month windows: the
+  close-based state-stop's give-back scales with bar size (charter S3.5
+  tradeoff made visible), and M/W/D seeding eats January of a 210-bar
+  daily window.
+- SHORT-SIDE WEAKNESS is now a repeated observation (MU 60m shorts -71
+  log-pp; BTC daily shorts -48; CRCL daily -46 overall in a down-drift).
+  A long-only ablation is the best-motivated pre-registered candidate on
+  the board.
+- MSTR MWD_on240 +81.9 vs 60m ctrlA +45.9 and MWD_onD +2.9: resolution
+  spread is enormous and regime-local. Do NOT promote 240 as "better"
+  (overfit guard above; one sample).
