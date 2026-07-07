@@ -11,19 +11,23 @@
 ## Status
 
 - Status: REQUESTED  <!-- REQUESTED | RETURNED (audit file written) -->
-- Session under review: TVB-8 -- VBT breadth port Phases 0-4; the Phase-3
-  trade-for-trade equivalence gate GREEN on all 8 cells; pp cost-basis
-  correction; Q_FLOOR_EPS adjudication; VBT Pro in-workspace install (DMCA
-  gitignore guard); Codex TVB-7 fold-in
+- Session under review: TVB-9 -- Phase 5 complete: venue-bar drift pilot
+  (band -0.5..-1.3pp); user-approved pre-registration + 144-run breadth
+  sweep (regime map); CRCL-governor + MU-short-whipsaw digs; pre-registered
+  HTF-index cells (108 runs; H2 refuted -- dead zone is SIGNAL-structural);
+  leverage-extreme overlay ($500 account, MAE-clearance)
 - Requested: 2026-07-07
-- Write the audit to: `docs/reviews/tvb8-codex-audit.md` (copy
+- Write the audit to: `docs/reviews/tvb9-codex-audit.md` (copy
   `docs/reviews/_TEMPLATE.md`)
+- NOTE: the TVB-8 request (range `b4bab2c^..db203aa`) was never returned;
+  its record lives in the TVB-8 HANDOFF block. Reviewing it alongside this
+  range is welcome but not required.
 
 ## Commits to review
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `b4bab2c^..db203aa` (9 commits; verified: 25 files) |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | {pending push} |
 
 No sibling-repo changes this session.
 
@@ -35,70 +39,71 @@ reviewed diff). Sanity-check with `git diff --name-status <range>`.
 
 1. `CLAUDE.md` -- epistemic stance + backtest traps (Sections 2, 6).
 2. `docs/ATLAS_Timeframe_Continuity_Charter.md` -- Section 0 + Section 5.
-3. `docs/HANDOFF.md` -- the TVB-8 entry at the top (what was done and why).
-4. `docs/VBT_BREADTH_PORT_PLAN.md` -- the design of record, including the
-   TVB-8 venue amendment and the corrected calibrated facts (pp formula).
-5. `docs/TVB2_control_AB_rerun.md` -- the TVB-8 section at the end (gate
-   record, pp correction, epsilon-floor adjudication, Phase-4 verification).
-6. `pine/baseline_continuity.pine` -- the ported source (pineVersion 20,
-   UNCHANGED this session; the simulator claims exact semantic equivalence).
-7. `docs/EXTERNAL_REVIEW_PROTOCOL.md` -- the reviewer contract.
+3. `docs/HANDOFF.md` -- the TVB-9 entry at the top (what was done and why).
+4. `docs/TVB2_control_AB_rerun.md` -- the six TVB-9 sections at the end
+   (pilot, pre-registration, breadth results, digs, HTF pre-reg + results,
+   leverage overlay). These are the record under review.
+5. `docs/VBT_BREADTH_PORT_PLAN.md` -- the design of record (Phases 0-5 now
+   complete).
+6. `docs/EXTERNAL_REVIEW_PROTOCOL.md` -- the reviewer contract.
 
 ## Scope / what changed
 
-The TFC baseline was ported to a Python bar-loop simulator in this repo
-(`tfc/` package; user decision moved the port here from vectorbt-workspace,
-with VectorBT Pro installed in the untracked venv and ALL VBT Pro material
-hard-gitignored -- the remote is PUBLIC). Phase 0 calibrated fill/qty/pnl
-conventions dump-driven (zero fill-convention violations on ~20,300 trades;
-pp discovered to be COST-BASIS return, not equity return). Phases 2-3 built
-the simulator (integer tick-space trigger arithmetic) and the equivalence
-comparator; THE GATE IS GREEN: all 8 reference cells reproduce trade-for-trade
-(20,429 closed trades, et/xt/dir exact, fills 2.8e-14, both open-position
-boundaries). One adjudication: Q_FLOOR_EPS=1e-5 for a single knife-edge qty
-floor (scan shows no other trade within 2e-5 of a boundary). Phase 4:
-UTC resampler (verified against TV's own 60m/1D files) + HL/OKX providers
-(live HL fetch reproduces committed candles exactly on overlap; network tests
-opt-in). Codex TVB-7 review folded in (1 LOW actioned). Suite 25 -> 72 tests.
+Phase 5 of the VBT breadth port executed end-to-end, all runs pre-registered
+or explicitly diagnostic: (a) `analysis/tfc_hl_pilot.py` -- MSTR on TV bars
+vs HL bars, identical window/config; drift band -0.5..-1.3pp, trade identity
+>= 99.2%; binding rule |net| < 1.5pp (gov 2.5pp) = sign-indeterminate.
+(b) user-approved pre-registration (universe, cells incl. the E3only
+containment control, per-symbol mintick/qty_step conventions, expectations
+1-9) committed BEFORE `scripts/tfc_breadth_sweep.py` ran 144 cells over 9
+symbols on committed HL 1h pulls. (c) trade-list digs: CRCL governor delta
+attribution; MU short-whipsaw mechanism (+ long-only/short-only diagnostic).
+(d) pre-registered HTF cells (`scripts/tfc_htf_sweep.py`, MWD_on240/MWD_onD,
+matched + native-1d windows): H2 refuted. (e) `analysis/tfc_leverage_overlay.py`:
+survival-max isolated leverage by MAE-clearance + $500 account paths.
+NO Pine changes (pineVersion 20 anchor untouched); NO simulator changes
+(equivalence gate 8/8 green throughout; overlay post-processes trade lists).
 
 ## Focus areas (scrutinize these)
 
-1. **Does the equivalence comparator PROVE trade-for-trade equivalence?**
-   (`tfc/equivalence.py`) The prefix rule (xt <= last bar), the tolerances
-   (ep/xp 1e-9, q step/2, pv 1e-4, pp 2e-8), and the open-position boundary
-   check -- is there an escape hatch where a systematically wrong simulator
-   could still pass? Is comparing sim full-precision pv against SERIALIZED
-   dump pv at 1e-4 too loose to catch a fee-formula error?
-2. **Q_FLOOR_EPS=1e-5** (`tfc/simulator.py`): adjudicated float artifact or
-   tuned parameter in disguise? The knife-zone scan (exactly one trade within
-   2e-5 of an integer boundary across ~20,300) is the justification -- is the
-   scan itself sound (it used sim-chained equity)?
-3. **pp cost-basis correction** (`scripts/tfc_qty_calibration.py`, plan +
-   datasheet): is pv/(q*ep*(1+comm)) proven by the zero-fee control, and is
-   the window_compound.py "~5bp approximation, window comparisons unaffected"
-   scoping honest?
-4. **Simulator Pine-order fidelity** vs `pine/baseline_continuity.pine`:
-   Phase A/B ordering, exits-before-entries, governor capture -> GROSS
-   loss-arm -> alignment reset on the same bar, flat-only arming, one-bar stop
-   life, gap-through fill at open with qty basis at the slipped stop,
-   integer tick-space trigger arithmetic. Any semantic divergence the 8 cells
-   would NOT catch?
-5. **Providers** (`tfc/providers.py`): HL floor_hit semantics (listing vs cap
-   indistinguishable), OKX UTC+8 intraday-only guard, and whether a 2-day
-   overlap slice is enough for the "live HL fetch exact" claim.
-6. **Resampler** (`tfc/resample.py`): period-start stamping; is "both
-   mismatches are the live last bar at capture time" verified or asserted?
+1. **Drift-band inference** (`analysis/tfc_hl_pilot.py`, datasheet pilot
+   section): 12 cells sharing ~99% of trades are ONE sample, not twelve --
+   is the +/-1.5pp (gov 2.5pp) sign-indeterminate rule honest, too tight,
+   or too loose? Is anchoring the HL source to the committed TVB-6 pull
+   (instead of a fresh fetch) sound?
+2. **Pre-registration integrity** (datasheet pre-reg + results sections):
+   any cell, symbol, or interpretation that exceeded the declared
+   expectations? Is the containment test (R1E3 vs E3only) fair, and are
+   the flagged surprises (BTC ctrlA +3.55, TSLA E3only +9.4) handled
+   without promotion?
+3. **HTF sweep correctness** (`scripts/tfc_htf_sweep.py`, `tfc/resample.py`
+   reuse): 240m/1D resampling from 1h (period-start stamping, partial
+   first/last days), the native-1d crosscheck (5 mismatched days on MU --
+   placeholder explanation asserted, not proven), same-TF D leg semantics
+   on a D chart, and whether "SIGNAL-structural" is over-claimed from
+   20-37-trade windows.
+4. **Leverage overlay math** (`analysis/tfc_leverage_overlay.py`):
+   x_liq = 1/L - mm with mm = 1/(2*maxLeverage) -- is that the right HL
+   isolated-margin model? MAE window includes the FULL entry bar
+   (conservatism direction?); equity compounding as (1 + L*pp) (fees scale
+   with notional -- correct?); min-notional death; sample-Kelly grid. Are
+   the in-sample caveats sufficient given the "survival" framing?
+5. **Short-side weakness claim**: three observations (MU 60m, BTC daily,
+   CRCL daily) across overlapping windows and correlated instruments -- is
+   "3x repeated" a fair characterization or double-counting one regime?
+6. **Evidence hygiene**: ~7MB of raw HL pulls committed to a PUBLIC repo --
+   any licensing/ToS concern with redistributing venue candle data?
 
 Standing priorities on ANY TVB review: `request.security` lookahead in Pine
-(note: NO Pine changes this session; slot stays pineVersion 20.0), model
+(N/A this session -- no Pine changes; slot stays pineVersion 20.0), model
 fidelity (is the backtest measuring what it claims?), overfitting /
-sample-vs-structural reasoning (the TVB-9 breadth pass is pre-registered,
-regime-mapping only, no verdicts off young listings -- user directive),
+sample-vs-structural reasoning (the overfit guards in the HTF and leverage
+sections; no keep/kill verdicts off young listings -- user directive),
 fee/turnover math.
 
 ## Output contract
 
-- Verbatim audit -> `docs/reviews/tvb8-codex-audit.md` (template:
+- Verbatim audit -> `docs/reviews/tvb9-codex-audit.md` (template:
   `docs/reviews/_TEMPLATE.md`, skeptic preamble included).
 - Be concrete; cite `file:line` and Pine/TV docs. Never paste a
   secret/IP/account value into a review file.

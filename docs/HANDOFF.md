@@ -5,6 +5,133 @@
 
 ---
 
+## Session TVB-9: Phase 5 complete -- drift pilot, breadth regime map, digs, HTF cells, leverage overlay (COMPLETE)
+
+**Date:** 2026-07-07
+**Status:** COMPLETE -- the entire Phase-5 arc plus three user-directed
+extensions ran in one session, every run pre-registered or diagnostic,
+everything pushed. Fable 5 session (the startup prompt expected Opus 4.8;
+flagged and proceeded).
+
+### What was accomplished
+1. **Phase 5a -- venue-bar drift pilot** (`analysis/tfc_hl_pilot.py`,
+   artifact `tvb9_hl_pilot_MSTR.json`): same simulator/configs/window on TV
+   chart bars vs HL venue candles (committed TVB-6 1h pull = the HL source;
+   a fresh fetch floors at Dec-10, so the committed evidence is
+   irreproducible -- verified live, 0 mismatches on 4,922 interior overlap
+   bars). **Drift band: -0.5..-1.3pp of net, trade identity >= 99.2%**;
+   mechanism = a handful of substituted trades at zero-volume-placeholder
+   boundaries (HL emits flat v=0 candles, TV omits them). BINDING reading
+   rule: |net| < 1.5pp (gov 2.5pp) is sign-indeterminate at bar-source
+   resolution. Gate anchors re-asserted before any pilot read.
+2. **Breadth pre-registration APPROVED by user** (4 decision points, all as
+   recommended) and committed BEFORE runs: universe {MSTR anchor, XYZ100,
+   SP500 null, BTC dead control + a-priori adds MU/AMD/NVDA/TSLA/CRCL;
+   DRAM skipped}, cells {ctrlA, E3only (approved add -- makes containment
+   falsifiable), R1E3, R1E3gov2} x {0, 0.0125} x {s1, s10}; mintick = TV
+   symbolInfo via CDP (primary), qty_step = 10^-szDecimals (HL meta); raw
+   candles committed (~7MB, sliding-cap rationale); expectations 1-9 first.
+3. **Phase 5b -- runner + 144-run sweep executed**
+   (`scripts/tfc_breadth_sweep.py`, `scripts/tvb9_symbolinfo.mjs`, artifacts
+   `tvb9_breadth_results.json` + 9 committed 1h pulls + `tvb9_symbolinfo.json`).
+   MSTR anchor inside the drift band (runner verified). **Regime map:** edge
+   at real fees only in high-vol trend regimes (MSTR +45.9 ctrlA, AMD +31.6);
+   <40% realized vol = dead zone (SP500/XYZ100 gross ~0); containment
+   CONFIRMED 6/6 where E3only negative AND costs upside 3/3 where positive
+   (insurance, not alpha); CRCL gov2 +11.75pp = the only non-inert governor
+   delta. Surprises flagged: BTC ctrlA +3.55 (small positive, bear window);
+   TSLA E3only +9.4 lone inversion; XYZ100 "between BTC and MSTR" prior
+   REFUTED on ordering (mechanism intact).
+4. **Mechanism digs** (diagnostics, recorded in the datasheet): CRCL
+   governor delta = 17 blocked re-entry losers (-12.4 log-pp, 29% win)
+   spread EVENLY across months (continuous whipsaw, vs xyz's episodes);
+   MU-vs-AMD E3only divergence = SHORT-side asymmetry (MU shorts -71.2
+   log-pp vs longs -9.0; long-only +1.3 vs short-only -49.3; AMD positive
+   both sides) + burst concentration (MU top-10 HOURS = 49% of +260% b&h).
+5. **HTF-index exploration (user hypothesis), pre-registered H1-H5 then
+   108 runs** (`scripts/tfc_htf_sweep.py`, `tvb9_htf_results.json` + 9
+   committed native-1d pulls): M/W/D as the entry/exit layer on 240m/1D
+   charts. H1 confirmed (median |pp| 20-160x the fee floor at D); **H2
+   REFUTED -- the dead zone is SIGNAL-structural, not resolution-structural**
+   (XYZ100 worsens as horizon stretches, gross negative at D with fees
+   immaterial; SP500 stays noise). H3 confirmed (MU MWD_onD +69.8 -- daily
+   bars cannot see the intraday short whipsaw). H4 refined: BTC native-1d
+   5.9y +73.7% = lumpy regime harvest (2025 -36.8 log-pp; shorts -48.4 vs
+   longs +103.6). SHORT-SIDE WEAKNESS now observed 3x -> long-only ablation
+   = best-motivated future pre-registered candidate. State-stop give-back
+   scales with bar size (charter S3.5 tradeoff made visible).
+6. **Leverage-extreme overlay + $500 account** (user request;
+   `analysis/tfc_leverage_overlay.py`, `tvb9_leverage_overlay.json`):
+   MAE-clearance vs HL isolated liquidation (x_liq = 1/L - mm, live maxLev
+   per symbol), post-processing on trade lists -- gated simulator untouched.
+   Findings: survival-edge L destroys wealth even without liquidation (vol
+   drag; MSTR ctrlA $729@1x vs $535@8.4x); **sample-Kelly ~ HALF of L_surv**
+   on real-edge cells (MSTR ~4.4, AMD ~5-5.8), ZERO elsewhere; $500 at venue
+   max dies fast (SP500@50x = $25k notional, liquidated at trade ~26-33;
+   30/36 cells -> $0); L_surv anti-correlates with vol (max safe leverage is
+   highest where nothing is worth levering). All in-sample by construction;
+   funding (linear in L) un-modeled and flagged.
+7. TVB-8 external review: still REQUESTED, no audit returned; proceeded per
+   user decision (fold in whenever it lands).
+
+### Context for next session
+- PRIMARY: fold in returned Codex audits (tvb9 AND the still-pending tvb8),
+  then draft the LONG-ONLY ablation pre-registration WITH the user.
+- TV Desktop left RUNNING (CDP 9222), chart at resting state
+  HIP3XYZ:MSTRUSDC.P 15m; no Pine/slot changes this session.
+- Sweep runners are idempotent: they read the committed tvb9 bar pulls
+  (irreproducible -- cap slides daily); fresh symbols need fetch + commit.
+- The gate stayed 8/8 green through everything; suite 70 passed + 2 skipped.
+
+### Files created/modified
+- NEW `analysis/tfc_hl_pilot.py`, `analysis/tfc_leverage_overlay.py`,
+  `scripts/tfc_breadth_sweep.py`, `scripts/tfc_htf_sweep.py`,
+  `scripts/tvb9_symbolinfo.mjs`.
+- NEW evidence (all committed): `analysis/reference/tvb9_hl_pilot_MSTR.json`,
+  `tvb9_symbolinfo.json`, `tvb9_breadth_results.json`, `tvb9_htf_results.json`,
+  `tvb9_leverage_overlay.json`, 9x `tvb9_hl_{slug}_1h.json`,
+  9x `tvb9_hl_{slug}_1d.json`.
+- MOD `docs/TVB2_control_AB_rerun.md` (six TVB-9 sections: pilot,
+  pre-registration, breadth results, digs, HTF pre-reg+results, leverage
+  overlay), `docs/HANDOFF.md`, `.session_startup_prompt.md`,
+  `docs/reviews/REVIEW_REQUEST.md`.
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb9-codex-audit.md.
+> See docs/reviews/REVIEW_REQUEST.md (the pointer) and docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: {pending push -- pinned after session-end push}
+  RANGE-PIN RULE (Codex TVB-4 finding 1): git ranges EXCLUDE the left
+  endpoint; pin `{first}^..{head}` (the caret keeps the first session commit
+  inside the reviewed diff). Sanity-check with `git diff --name-status`.
+- Scope / what changed: Phase 5 complete -- venue-bar drift pilot;
+  user-approved breadth pre-registration + 144-run sweep (regime map);
+  CRCL-governor and MU-short-whipsaw digs; pre-registered HTF-index cells
+  (108 runs, H2 refuted); leverage-extreme overlay ($500 account,
+  MAE-clearance). NO Pine changes; NO simulator changes (gate 8/8
+  throughout).
+- Focus areas (scrutinize these): (1) drift-band logic -- is the
+  sign-indeterminate rule (1.5/2.5pp) justified by the pilot's 12
+  correlated cells, and is using the committed TVB-6 HL pull as the HL
+  source sound? (2) pre-registration integrity -- were any cells/symbols
+  added or interpreted beyond the declared expectations; is the E3only
+  containment test fair? (3) HTF sweep -- resample correctness at 240m/1D
+  (period-start stamping, partial first day), native-1d crosscheck
+  handling (5 mismatched days on MU), and the H2-refuted inference;
+  (4) leverage overlay math -- x_liq = 1/L - mm with mm = 1/(2*maxLev),
+  MAE window (full entry bar conservatism), L*pp compounding approximation,
+  min-notional death rule; (5) short-side weakness claim -- 3 observations,
+  is the pattern real or window-driven? Standing: request.security lookahead
+  (N/A -- no Pine), model fidelity, fee/turnover math, sample-vs-structural
+  reasoning (the overfit guards in the HTF and leverage sections).
+- Reviewed by: pending
+- Findings: (blank until docs/reviews/tvb9-codex-audit.md exists)
+
+---
+
 ## Session TVB-8: VBT breadth port Phases 0-4 -- THE EQUIVALENCE GATE IS GREEN (COMPLETE)
 
 **Date:** 2026-07-06/07
