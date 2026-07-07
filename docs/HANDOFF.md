@@ -103,10 +103,11 @@ flagged and proceeded).
 > See docs/reviews/REVIEW_REQUEST.md (the pointer) and docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: {pending push -- pinned after session-end push}
-  RANGE-PIN RULE (Codex TVB-4 finding 1): git ranges EXCLUDE the left
-  endpoint; pin `{first}^..{head}` (the caret keeps the first session commit
-  inside the reviewed diff). Sanity-check with `git diff --name-status`.
+- Commits to review: `f192a14^..4bcb33f` on `main` (8 commits: pilot,
+  pre-registration, sweep + evidence, interpretation, digs + HTF pre-reg,
+  HTF sweep + evidence, leverage overlay, session-end; sanity-checked:
+  `git diff --name-status` lists all 32 session files). RANGE-PIN RULE
+  applied: the caret keeps `f192a14` (the pilot) inside the reviewed diff.
 - Scope / what changed: Phase 5 complete -- venue-bar drift pilot;
   user-approved breadth pre-registration + 144-run sweep (regime map);
   CRCL-governor and MU-short-whipsaw digs; pre-registered HTF-index cells
