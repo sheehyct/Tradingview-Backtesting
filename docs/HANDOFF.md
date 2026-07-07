@@ -122,11 +122,14 @@ flagged and proceeded).
 > See docs/reviews/REVIEW_REQUEST.md (the pointer) and docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: `f192a14^..4bcb33f` on `main` (8 commits: pilot,
+- Commits to review: `f192a14^..b614a56` on `main` (10 commits: pilot,
   pre-registration, sweep + evidence, interpretation, digs + HTF pre-reg,
-  HTF sweep + evidence, leverage overlay, session-end; sanity-checked:
-  `git diff --name-status` lists all 32 session files). RANGE-PIN RULE
+  HTF sweep + evidence, leverage overlay, session-end, range pin, and the
+  post-session-end TFC Companion indicator addendum). RANGE-PIN RULE
   applied: the caret keeps `f192a14` (the pilot) inside the reviewed diff.
+  Companion-specific focus: does the indicator's position-state machine
+  (`pine/tfc_companion.pine` Phase A/B) faithfully replicate the strategy's
+  fill/exit/governor semantics, and is the no-equity-model claim sound?
 - Scope / what changed: Phase 5 complete -- venue-bar drift pilot;
   user-approved breadth pre-registration + 144-run sweep (regime map);
   CRCL-governor and MU-short-whipsaw digs; pre-registered HTF-index cells
