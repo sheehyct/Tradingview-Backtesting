@@ -92,6 +92,24 @@ flagged and proceeded).
    NOTE: TV had been relaunched by the user WITHOUT CDP (chart NYMEX:MCL1!
    5m, their manual layout) -- kill-first relaunch flow used; their chart
    symbol/layout untouched; TV left RUNNING with CDP.
+   **v2 (same session, user-approved): logic-TF decoupling.** New 'Strategy
+   TF' input (default 60): decisions (gate read at [1]-committed values,
+   state-stop, arming, governor) commit only at Strategy-TF boundaries;
+   fills checked on every chart bar (earlier visibility, identical state --
+   a logic high is the max of its chart highs; intra-logic-bar gaps fill AT
+   the stop per the Strategy Tester's bar model). With chart TF == Strategy
+   TF, v2 reduces exactly to the v1 per-bar machine (Phase-B-at-[1] ==
+   v1's close-committed Phase B). The state machine is now fully
+   non-repainting (no close flicker); a separate PROVISIONAL
+   'gate-against-position' alert covers the live warning. request.security
+   deliberately still absent: user asked whether live use permits it --
+   adjudicated NO (lookahead_off is stale on historical bars = the TVB-3
+   bug, and the path-dependent machine needs correct history for a correct
+   current state; the lookahead_on-for-open idiom violates the workspace
+   bright line). Guard now: chart tiles Strategy TF; Strategy TF tiles
+   every gate TF (chart-tiles-gate transitive). Compiled CLEAN, saved over
+   the same verified "TFC Companion [TVB-9]" slot; user's HOOD chart
+   untouched.
 
 ### Context for next session
 - PRIMARY: fold in returned Codex audits (tvb9 AND the still-pending tvb8),
