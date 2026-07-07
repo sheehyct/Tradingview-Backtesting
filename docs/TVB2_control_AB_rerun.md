@@ -1837,3 +1837,83 @@ window is young.
   tick-convention costs are nearly free on high-priced symbols, so s10
   rows UNDERSTATE realistic impact there (recorded per run; TVB-6
   equalizer lesson stands).
+
+## TVB-9: mechanism digs (same day, diagnostics on the sweep runs)
+
+### Dig 1 -- CRCL governor delta (+11.75pp) attribution
+
+Trade-list diff, R1E3 vs R1E3gov2 @0.0125 s1 (in-memory re-sim on the
+committed bars): the delta is fully explained by **17 ungoverned-only trades
+summing -12.4 log-pp (29% winners)** swapped for 6 governed-only trades at
+-1.5 -- net swap +10.9 log-pp; the 347 matched trades contribute 0.00.
+Distribution: the blocked losers are spread EVENLY across all six months
+(3-4/month) -- unlike xyz-MSTR's discrete flicker EPISODES, CRCL's ratchet
+value is a steady diet of same-direction re-entry whipsaw; worst blocked
+trades are single-HOUR -3.9%..-5.4% losers (98%-vol instrument: one hour of
+re-entry costs what a week costs elsewhere). Mechanism matches TVB-6/7
+(ratchet payoff concentrates where flicker-churn damage lives), now in a
+continuous rather than episodic form.
+
+### Dig 2 -- MU vs AMD E3only divergence (-55.2 vs +72.9)
+
+The "trend smoothness" phrasing above is REFINED by the dig: the
+discriminator is **short-side asymmetry**, not generic choppiness.
+
+- MU E3only long/short split: longs -9.0 log-pp (517 tr) vs **shorts -71.2
+  log-pp (467 tr, 32% win)** -- the fast gate kept flipping short into a
+  +260% uptrend's violent pullbacks. AMD: longs +44.8, shorts +10.0 (both
+  sides positive; its pullbacks were orderly enough for shorts to scratch).
+- Confirmation ablation (diagnostic, NOT a record cell): MU E3only
+  long-only +1.30% vs short-only -49.33%; AMD +57.72% / +19.72%.
+- Generic smoothness stats do NOT discriminate (hourly sign-persistence
+  48.0% vs 47.9%); the tails do (p99 hourly |ret| 3.52% vs 2.91%) and so
+  does burst concentration (MU: top-10 HOURS = 49% of the entire +260%
+  b&h -- breakout entries chase bursts late, so even MU long-only barely
+  scratches while AMD long-only makes +57.7).
+- Monthly structure: June was a shared damage month (MU -57 log-pp, AMD
+  -33); MU's bleed outside June is short-driven.
+- Corollary: the regime layer's MU rescue (E3only -55.2 -> R1E3 +5.4) is
+  largely SHORT-BLOCKING in an uptrend -- containment localized to a
+  mechanism, not diffuse. A long-only ablation is a well-posed FUTURE
+  pre-registered candidate (do not promote off this diagnostic).
+
+## TVB-9: HTF-index pre-registration (user hypothesis, declared BEFORE runs)
+
+**Hypothesis (user, 2026-07-07):** the indices' dead zone is a per-trade
+magnitude problem, not a signal problem -- at 60m resolution a 17-22%-vol
+instrument cannot generate moves that clear the ~2.5bp fee floor. Stretch
+the holding horizon: let the REGIME set (M/W/D) become the entry/exit layer
+on higher-TF charts. Structural, a-priori (fee clearance scales with
+vol x sqrt(holding time)); NOT tuned on the sample.
+
+- **Cells (declared now):** `MWD_on240` (chart 240m, exec M/W/D, reg off)
+  and `MWD_onD` (chart 1D, exec M/W/D, reg off; same-TF D leg = close vs
+  same-bar open) x fees {0, 0.0125%} x slip {1, 10} symbol ticks. All 9
+  symbols (indices are the TARGET; high-vol names are controls).
+- **Windows:** primary = matched (committed tvb9 1h pulls resampled via
+  tfc.resample to 240m/1D -- same windows as the 60m sweep); secondary =
+  native HL 1d candles since listing (fetched + committed; XYZ100 268d,
+  BTC ~5.9y), cross-checked against the resampled bars on complete-day
+  overlap before use.
+- **Expectations:**
+  - H1 (mechanical): per-trade |pp| on D-chart cells is many multiples of
+    the fee floor even on indices; trade counts SMALL (est. 15-50 matched
+    window) -- interpret gross-vs-fee mechanics and PF direction, never
+    rankings.
+  - H2 (the test): index nets IMPROVE vs their 60m ctrlA rows once fees
+    stop dominating. XYZ100 more likely to turn positive (22% vol, +15%
+    b&h) than SP500 (17% vol -- if SP500 gross is ~0 at D too, the dead
+    zone is VOL-structural, not resolution-structural: that would be the
+    cleanest possible map refinement either way).
+  - H3 (dig-2 cross-check): MU `MWD_onD` should be solidly POSITIVE -- its
+    60m damage was intraday short whipsaw, which daily bars cannot see. A
+    negative MU at D would refute the dig-2 mechanism.
+  - H4: BTC native-1d (~5.9y) = the LONG dead-control: expect ~flat/
+    negative net overall; regime-local positives are map detail, not edge.
+  - H5: no TV-bar drift band exists at 240/D (no reference cells) -- treat
+    all new-cell numbers as venue-bar-native; NO keep/kill verdicts (same
+    directive as the breadth pass).
+- **Overfit guard:** whatever comes out GENERATES the "gate speed ~ vol
+  class" hypothesis; adopting that mapping requires fresh samples --
+  choosing per-instrument gate speed by THIS sample's performance would be
+  tuning (charter S5/S7).
