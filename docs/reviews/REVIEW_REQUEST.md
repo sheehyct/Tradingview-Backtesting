@@ -27,7 +27,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `f192a14^..b614a56` (10 commits; incl. the post-session-end TFC Companion indicator addendum, `pine/tfc_companion.pine`) |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `f192a14^..5edd5b6` (12 commits; incl. the post-session-end TFC Companion indicator, `pine/tfc_companion.pine`, and its v2 logic-TF-decoupled rewrite) |
 
 No sibling-repo changes this session.
 
