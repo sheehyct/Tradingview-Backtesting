@@ -1477,3 +1477,88 @@ to avoid disturbing the pineVersion-20 byte-identity anchor for a LOW);
 GROSS profit <= 0 or its own gate cells would fail; (e) a net-arming variant
 (profit - closedtrades.commission) is now a well-posed FUTURE ablation
 candidate, pre-registration required (charter S5), not assumed better.
+
+---
+
+## TVB-8 (2026-07-07): Python breadth engine Phases 0-3 -- THE EQUIVALENCE GATE IS GREEN
+
+**Venue amendment (user decision, 2026-07-05):** VectorBT Pro v2026.6.27 was
+installed in THIS workspace (untracked .venv; install guide gitignored --
+public remote, DMCA) and the port now lives here: `tfc/` package,
+`scripts/tfc_qty_calibration.py`, `scripts/tfc_gate_report.py`,
+`tests/test_tfc_*`. The gate reads the committed `analysis/reference/` dumps
+directly (the cross-repo fixture-copy step died with the venue change).
+
+### Phase 0 -- dump-driven calibration (no simulator involved)
+
+Re-derived per closed trade across all 8 cells: trigger from the fill bar's
+predecessor, qty rule, expected fills, pv/pp reconstruction, equity chained on
+serialized pv. Result: **fill conventions reproduce EXACTLY on all ~20,300
+closed trades** -- intrabar stop fill at stop +/- slip, gap-through at open +/-
+slip (1,266/4,308 ctrlB entries = 29%, a load-bearing path, not an edge case),
+exits at next open adverse; zero ep/xp violations at 1e-9. Qty rule exact
+except 2-3 one-step floor-boundary cases per ctrlB-family cell (plan risk 1
+predicted 1-3 under serialized-pv chaining). pv within the documented 1e-4.
+
+**CALIBRATED-FACT CORRECTION (pp semantics).** Dump `pp` is the return on
+entry COST BASIS including the entry commission:
+
+    pp = pv / (q * ep * (1 + comm_rate))     reproduces all 8 cells to <= 8.3e-9
+
+NOT `pv / equity_before_entry` (~1.4e-4 error) as the port plan recorded. The
+two are indistinguishable at 100%-of-equity sizing EXCEPT on gap-through
+fills, where the fill price differs from the slipped-stop qty basis; the
+zero-fee cell isolates the commission term (its residual is formula-invariant
+at 7.1e-9). Corollary: `product(1+pp)` window compounding
+(`analysis/window_compound.py`, used for TVB-5/6 window slices) is an
+approximation that drifts ~5bp over 4,308 trades against true equity
+(10788.80 vs 10794.37 final) -- immaterial for every window COMPARISON in the
+record (differences were tens of points), but equity evolution must chain pv,
+and the simulator does.
+
+### Phases 2-3 -- simulator + gate
+
+`tfc/simulator.py` ports the Pine bar loop exactly (Phase A fills at open:
+pending exit, then the one-bar breakout stop; Phase B script logic at close in
+Pine order: state-stop -> governor capture -> GROSS loss-arm -> alignment
+reset -> flat-only arming). All trigger/stop arithmetic runs in integer TICK
+space -- float `high + mintick` can exceed the true sum and silently miss
+fills TV takes; gate comparisons stay raw-float like the Pine (no epsilon
+exists there).
+
+**GATE RESULT (first green): 8/8 cells PASS trade-for-trade.**
+
+| cell             | prefix trades | ep/xp err | pv err  | pp err  | boundary |
+|------------------|--------------:|-----------|---------|---------|----------|
+| ctrlB_0125_s1    | 4,308         | 2.8e-14   | 4.9e-05 | 3.4e-09 | flat     |
+| R1E1_0125_s1     | 1,302         | 2.8e-14   | 2.5e-05 | 3.4e-09 | flat     |
+| R1E1gov2_0125_s1 | 1,249         | 2.8e-14   | 3.2e-05 | 3.4e-09 | flat     |
+| R1E3_0125_s1     | 408           | 2.8e-14   | 6.9e-05 | 3.2e-09 | open pos MATCHES |
+| ctrlB_0125_s10   | 4,308         | 2.8e-14   | 2.9e-05 | 4.8e-09 | flat     |
+| ctrlBgov2_0      | 4,190         | 2.8e-14   | 6.0e-05 | 5.0e-09 | flat     |
+| ctrlBgov2_0125   | 4,190         | 2.8e-14   | 3.2e-05 | 3.4e-09 | flat     |
+| ctrlA_0125_s1    | 474           | 2.8e-14   | 6.2e-05 | 3.2e-09 | open pos MATCHES |
+
+et/xt/dir exact on every row; ctrlB headline net matches the dump to 1.3e-8;
+tail-drift rows beyond the committed bars (0-1 per dump) excluded by the
+prefix rule with the open-position boundary checked. Total runtime ~0.4s for
+all 8 cells (the Strategy Tester took minutes per cell).
+
+**One adjudication (plan risk 1, resolved by its own pre-registered
+fallback):** ctrlB_0125_s10 trade 686 lands 6.4e-6 BELOW an integer qty
+boundary on the full-precision chain while TV floored it up (TV's internal
+double path holds ~1e-6 USD more equity at that point). A scan of all ~20,300
+reference trades finds NO OTHER trade within 2e-5 of a boundary, so
+`Q_FLOOR_EPS = 1e-5` resolves this trade and provably cannot false-flip any
+other reference trade. This is the documented epsilon-floor fallback, not a
+tuned parameter.
+
+### What this authorizes, and what it does not
+
+Per the plan POLICY, Python breadth numbers are now authorized BEHIND
+`tests/test_tfc_equivalence_gate.py` (any simulator change must keep 8/8
+green). NOT yet built: Phase 4 (data providers + UTC resampler + cache;
+HL/OKX live fetch) and Phase 5 (breadth runner + sweep CLI; optional VBT
+`from_orders` wrap behind the 5-step MCP workflow). The venue-bar caveat
+stands: breadth runs on provider bars are NOT the TV chart -- the xyz pilot
+(plan Phase 5) is the sanity anchor before any cross-symbol claim.
