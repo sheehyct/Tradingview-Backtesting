@@ -1744,3 +1744,96 @@ Commodities excluded (directive scope: equity perps).
    surprise.
 9. Drift-band rule (pilot, binding): |net| < 1.5pp (gov cells 2.5pp) is
    sign-indeterminate at bar-source resolution -- flag, do not interpret.
+
+## TVB-9: breadth sweep RESULTS (run 2026-07-07) -- the regime ROUGH MAP
+
+144 runs executed exactly as pre-registered (no cell added, none dropped, no
+symbol skipped -- all 9 passed the mintick grid check). Evidence:
+`analysis/reference/tvb9_breadth_results.json` + 9 committed raw HL 1h pulls
++ `tvb9_symbolinfo.json`. All numbers below @0.0125%/fill s1 unless stated;
+windows are floor-bound ~Dec-10 -> Jul-7 except MU (Dec-19), CRCL (Dec-15),
+SP500 (Mar-18). REMINDER (binding): regime map, NOT verdicts; every listed
+window is young.
+
+| symbol (b&h%, vol%) | ctrlA | E3only | R1E3 | R1E3gov2 |
+|---|---|---|---|---|
+| MSTR (-45.6, 82) | +45.90 (478) | +65.68 (1097) | +45.61 (411) | +43.93 (396) |
+| XYZ100 (+15.3, 22) | -4.48 (438) | -7.18 (1094) | -2.03 (385) | -3.67 (373) |
+| SP500 (+12.5, 17) | -4.95 (256) | -19.45 (599) | -4.26 (222) | -3.60 (213) |
+| BTC (-30.6, 46) | +3.55 (451) | -38.46 (1198) | -3.16 (400) | -4.14 (385) |
+| MU (+259.8, 89) | +15.16 (486) | -55.17 (984) | +5.43 (415) | +3.60 (404) |
+| AMD (+149.2, 64) | +31.58 (453) | +72.94 (1061) | +30.06 (385) | +35.28 (371) |
+| NVDA (+6.5, 39) | +0.54 (456) | -33.47 (1127) | +2.08 (391) | +1.44 (376) |
+| TSLA (-6.9, 43) | -9.17 (393) | +9.41 (1103) | -8.81 (347) | -8.22 (335) |
+| CRCL (-11.9, 98) | -3.05 (437) | -9.64 (1026) | +2.24 (364) | +13.99 (353) |
+
+### Scorecard vs the pre-registered expectations
+
+1. MSTR anchor: PASS -- ctrlA +45.90 / R1E3 +45.61 / gov2 +43.93 vs pilot
+   ~+46.6 / ~+45.7 / ~+44, all inside the drift band. Runner verified.
+2. BTC dead: MOSTLY CONFIRMED -- every E3-family cell negative, gov2
+   manufactures nothing. FLAG: ctrlA +3.55 (PF 1.029) is a small positive
+   outside the drift band in a -30.6% b&h window; slow-gate shorts caught
+   the bear leg. Small, one window, young read -- noted, not promoted.
+3. XYZ100 "between BTC and MSTR": REFUTED at real fee -- XYZ100 sits BELOW
+   BTC ctrlA (-4.48 vs +3.55); all cells small negatives. Mechanism reads
+   clean though: 22% realized vol (index diversification) cannot supply
+   per-trade magnitude that clears fees; zero-fee rows are positive
+   (+6.6/+22.0/+7.9). The prior's ORDERING was wrong, its mechanism wasn't.
+4. SP500 low-vol null: CONFIRMED exactly -- gross ~0 (zero-fee +1.3),
+   fee-dominated to -4.95/-19.45. The edge fails where it should fail. This
+   is the strongest map anchor: 17% vol = dead zone.
+5. Semis spread: CONFIRMED, with THE SURPRISE OF THE SWEEP -- AMD E3only
+   +72.94 NET (PF 1.148 over 1,061 trades) vs MU E3only -55.17, both
+   monster-trend windows (b&h +149% vs +260%). Trend alone does NOT rescue
+   the churn cell; MU's trend is evidently gappier/choppier at 60m (89% vol,
+   win 35.1% vs AMD 38.4%). Trend SMOOTHNESS, not trend size, is what the
+   fast gate monetizes. MU's slow gate stays positive (+15.16) -- turnover
+   remains the lever (TVB-1 finding, 9th symbol).
+6. TSLA chop fee-bleed: CONFIRMED for ctrlA/R1E3 (-9.2/-8.8). FLAG: E3only
+   +9.41 positive while every M/W/D-containing set bleeds -- the fast layer
+   caught intra-week swings the higher-TF gates filtered out. Lone
+   inversion of the containment cost pattern; one window; noted.
+7. CRCL "MSTR-like but weaker": PARTIAL -- R1E3 +2.24 (weak positive, near
+   band) but ctrlA -3.05. FLAG (governor): gov2 +13.99 vs R1E3 +2.24 =
+   +11.75pp, the ONLY non-inert gov2 delta in the sweep, on the
+   highest-vol symbol (98%). Consistent with TVB-7: ratchet payoff
+   concentrates exactly where flicker-churn damage lives. First
+   independent-symbol corroboration of the mechanism; still not a verdict.
+8. Containment: CONFIRMED 6/6 applicable -- everywhere E3only is negative,
+   R1E3 improves it (BTC -38.5 -> -3.2, MU -55.2 -> +5.4, NVDA -33.5 ->
+   +2.1, XYZ100 -7.2 -> -2.0, SP500 -19.5 -> -4.3, CRCL -9.6 -> +2.2). The
+   cost side is equally visible: where E3only is positive the regime layer
+   gives up upside (MSTR 65.7 -> 45.6, AMD 72.9 -> 30.1, TSLA +9.4 ->
+   -8.8, a sign flip). Containment cuts BOTH tails; it is insurance, not
+   alpha -- now shown on 9 symbols, extending TVB-5.
+9. Drift-band rows (sign-indeterminate, not interpreted): NVDA ctrlA
+   (+0.54) and gov2 (+1.44); NVDA R1E3 (+2.08) and CRCL R1E3 (+2.24) sit
+   just outside the 1.5pp band -- treated as weak-positive at best.
+
+### The rough map (the deliverable)
+
+- **The edge at real fees lives only in high-vol, smooth-trend regimes**
+  (MSTR 82% vol, AMD 64%): the MSTR-class finding generalizes to exactly
+  one of five new equity perps. It is regime-local, as the charter premise
+  says -- there is no best combination, and this map is the point.
+- **Below ~40% realized vol the system is structurally dead** (SP500 17%,
+  XYZ100 22%: gross edge ~0 before fees). Mid-vol (NVDA 39, TSLA 43, BTC
+  46) is the knife-edge band: signs scatter within a few pp of zero.
+- **High vol is necessary, not sufficient**: MU (89% vol, +260% b&h)
+  kills the churn cell anyway. CRCL (98% vol) only responds through the
+  governor. Vol buys per-trade magnitude; only trend smoothness converts
+  it in fast cells.
+- **The regime layer is universal damage containment** (6/6), and its
+  premium is real upside (3/3 positive-E3only symbols degraded). Use when
+  the priority is survival across unknown regimes, not when a smooth trend
+  is already established.
+- **Where this could be used, if anywhere** (map, not verdict): slow-gate
+  (ctrlA/R1E3-class) configurations on high-vol trending single names --
+  the HIP-3 screener-attach picture (one layer live, regime-locality
+  accepted) matches this map. Everything else on the board says stand
+  aside.
+- Slippage note: slip_bp spans 0.001bp (SP500) to 0.117bp (CRCL) at s1 --
+  tick-convention costs are nearly free on high-priced symbols, so s10
+  rows UNDERSTATE realistic impact there (recorded per run; TVB-6
+  equalizer lesson stands).
