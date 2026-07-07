@@ -1974,3 +1974,65 @@ handful = thin zero-trade placeholder days; both series used as-is). All
 - MSTR MWD_on240 +81.9 vs 60m ctrlA +45.9 and MWD_onD +2.9: resolution
   spread is enormous and regime-local. Do NOT promote 240 as "better"
   (overfit guard above; one sample).
+
+## TVB-9: leverage-extreme overlay -- survival-max L and the $500 account
+
+User request (2026-07-07): find the leverage where the position barely
+survives the sample, and run a $500 small account through the recorded 60m
+cells. Method + approximations: `analysis/tfc_leverage_overlay.py`
+(MAE-clearance vs HL isolated liquidation, x_liq(L) = 1/L - mm, mm =
+1/(2*maxLev) live per symbol; overlay on trade lists -- the gated simulator
+is untouched). Artifact: `tvb9_leverage_overlay.json`. All @0.0125 s1.
+EVERYTHING here is IN-SAMPLE BY CONSTRUCTION (sample-worst MAE is the worst
+SEEN, not the worst possible): characterization, not sizing advice.
+Funding is ignored and scales LINEARLY with L (TVB-7: MSTR slow cells
+~-5pp/sample at 1x -> ~-22pp at 4.4x): deployability math must charge it.
+
+$500 account, 100%-of-equity isolated margin per trade, compounding L*pp,
+liquidation = account death:
+
+| symbol/cell | L_surv | Kelly* | @1x | @5x | @edge (~L_surv) | @venue max |
+|---|---|---|---|---|---|---|
+| MSTR ctrlA | 8.4 | 4.2 | 729 | 1,175 | 535 | LIQ (10x, tr#413) |
+| MSTR R1E3 | 8.4 | 4.4 | 728 | 1,236 | 627 | LIQ (10x) |
+| MSTR E3only | 8.1 | 2.9 | 828 | 805 | 99 | LIQ (10x) |
+| AMD E3only | 7.9 | 5.2 | 865 | 2,374 | 1,630 | LIQ (10x, tr#708) |
+| AMD R1E3gov2 | 8.7 | 5.8 | 676 | 1,256 | 1,015 | LIQ (10x) |
+| MU ctrlA | 7.3 | 1.9 | 576 | 368 | 142 | LIQ (10x, tr#77) |
+| CRCL R1E3gov2 | 5.1 | 1.4 | 570 | 206 | 206 | LIQ (10x) |
+| NVDA R1E3 | 21.4 | 2.0 | 510 | 483 | 68 | 68 (20x, no liq) |
+| TSLA R1E3 | 13.7 | 0.1 | 456 | 254 | 20 | LIQ (20x, tr#51) |
+| BTC R1E3 | 24.1 | 0.1 | 484 | 325 | 0.41 | LIQ (40x, tr#32) |
+| XYZ100 R1E3 | 34.4 | 0.1 | 490 | 427 | 27 | 27 (30x, no liq) |
+| SP500 R1E3 | 49.2 | 0.1 | 479 | 397 | 14 | LIQ (50x, tr#28) |
+
+(Full 36-row grid in the artifact; Kelly* = argmax sample log-growth on a
+0.1 grid, floor 0.1 = "no leverage justified".)
+
+**Readings:**
+1. **The survival edge is a wealth destroyer even when you survive.** In
+   nearly every cell, final equity at ~L_surv is far BELOW 1x -- MSTR ctrlA:
+   $729 at 1x, $1,175 at 5x, $535 at 8.4x, all with zero liquidations.
+   Volatility drag: (1+L*pp) compounding punishes variance quadratically
+   while return scales linearly. Surviving is not compounding.
+2. **Sample-growth-optimal leverage sits at roughly HALF the survival
+   max** on the cells with real edge (MSTR ~4.2-4.4 vs 8.4; AMD ~5-5.8 vs
+   8-8.7) and at ZERO on everything else. The user's operating belief --
+   leverage is a capital-efficiency output, not a return dial -- is what
+   the geometry actually shows.
+3. **The $500-at-venue-max scenario dies fast everywhere it has edge to
+   express**: SP500 at 50x ($25k notional) liquidates at trade ~26-33 --
+   roughly two weeks in; MSTR/AMD at 10x eventually liquidate hundreds of
+   trades in (one sample-worst bar is all it takes). 30/36 cells end at
+   $0 at venue max.
+4. **Max safe leverage is highest exactly where there is nothing worth
+   levering**: L_surv anti-correlates with vol (SP500 49x, XYZ100 34x,
+   BTC 24x vs MSTR 8.4x, CRCL 5.1x). The venue's leverage menu is an
+   inverse map of opportunity, not an invitation.
+5. Governor at leverage: on CRCL the ratchet DOUBLES usable leverage
+   utility (Kelly 1.4 vs 0.7; @5x $206 vs $110) by deleting the whipsaw
+   losers that dominate drag -- consistent with dig 1.
+6. Small-account note: the $10 HL min-notional floor turns steady bleed
+   into hard death on negative-edge cells (equity grinds below tradeable
+   size); qty-step granularity (~0.6% worst on XYZ100 at $500) and
+   funding are the un-modeled terms most material at this account size.

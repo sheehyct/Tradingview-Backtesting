@@ -1,0 +1,1829 @@
+{
+ "purpose": "TVB-9 leverage-extreme overlay (survival-max L + $500 account)",
+ "method": "MAE-clearance vs HL isolated liq (x_liq = 1/L - mm); see module docstring",
+ "generated_at": "2026-07-07T02:53:49+00:00",
+ "fee_rate": 0.000125,
+ "start_cash": 500.0,
+ "rows": [
+  {
+   "symbol": "xyz:MSTR",
+   "cell": "ctrlA",
+   "venue_max_leverage": 10,
+   "mm_pct": 5.0,
+   "trades": 478,
+   "worst_mae_pct": 6.87,
+   "worst_mae_dir": "se",
+   "worst_mae_date": "2026-06-12",
+   "worst_mae_by_dir_pct": {
+    "le": 4.82,
+    "se": 6.87
+   },
+   "survival_max_L": 8.43,
+   "sample_kelly_L": 4.2,
+   "account_500": {
+    "1x": {
+     "final": 729.43,
+     "dead": null,
+     "maxdd_pct": 19.1
+    },
+    "2x": {
+     "final": 955.47,
+     "dead": null,
+     "maxdd_pct": 35.3
+    },
+    "3x": {
+     "final": 1129.43,
+     "dead": null,
+     "maxdd_pct": 48.7
+    },
+    "5x": {
+     "final": 1174.5,
+     "dead": null,
+     "maxdd_pct": 68.8
+    },
+    "8.3x": {
+     "final": 534.85,
+     "dead": null,
+     "maxdd_pct": 87.6
+    },
+    "10x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 413,
+     "maxdd_pct": 100.0
+    }
+   }
+  },
+  {
+   "symbol": "xyz:MSTR",
+   "cell": "E3only",
+   "venue_max_leverage": 10,
+   "mm_pct": 5.0,
+   "trades": 1097,
+   "worst_mae_pct": 7.35,
+   "worst_mae_dir": "se",
+   "worst_mae_date": "2026-07-01",
+   "worst_mae_by_dir_pct": {
+    "le": 4.4,
+    "se": 7.35
+   },
+   "survival_max_L": 8.1,
+   "sample_kelly_L": 2.9000000000000004,
+   "account_500": {
+    "1x": {
+     "final": 828.37,
+     "dead": null,
+     "maxdd_pct": 31.7
+    },
+    "2x": {
+     "final": 1110.15,
+     "dead": null,
+     "maxdd_pct": 54.3
+    },
+    "3x": {
+     "final": 1214.19,
+     "dead": null,
+     "maxdd_pct": 70.2
+    },
+    "5x": {
+     "final": 805.26,
+     "dead": null,
+     "maxdd_pct": 88.2
+    },
+    "8x": {
+     "final": 98.82,
+     "dead": null,
+     "maxdd_pct": 97.5
+    },
+    "10x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 424,
+     "maxdd_pct": 100.0
+    }
+   }
+  },
+  {
+   "symbol": "xyz:MSTR",
+   "cell": "R1E3",
+   "venue_max_leverage": 10,
+   "mm_pct": 5.0,
+   "trades": 411,
+   "worst_mae_pct": 6.87,
+   "worst_mae_dir": "se",
+   "worst_mae_date": "2026-06-12",
+   "worst_mae_by_dir_pct": {
+    "le": 4.82,
+    "se": 6.87
+   },
+   "survival_max_L": 8.43,
+   "sample_kelly_L": 4.3999999999999995,
+   "account_500": {
+    "1x": {
+     "final": 728.01,
+     "dead": null,
+     "maxdd_pct": 19.4
+    },
+    "2x": {
+     "final": 957.84,
+     "dead": null,
+     "maxdd_pct": 35.7
+    },
+    "3x": {
+     "final": 1144.12,
+     "dead": null,
+     "maxdd_pct": 49.1
+    },
+    "5x": {
+     "final": 1235.53,
+     "dead": null,
+     "maxdd_pct": 69.1
+    },
+    "8.3x": {
+     "final": 626.68,
+     "dead": null,
+     "maxdd_pct": 88.3
+    },
+    "10x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 355,
+     "maxdd_pct": 100.0
+    }
+   }
+  },
+  {
+   "symbol": "xyz:MSTR",
+   "cell": "R1E3gov2",
+   "venue_max_leverage": 10,
+   "mm_pct": 5.0,
+   "trades": 396,
+   "worst_mae_pct": 6.87,
+   "worst_mae_dir": "se",
+   "worst_mae_date": "2026-06-12",
+   "worst_mae_by_dir_pct": {
+    "le": 4.82,
+    "se": 6.87
+   },
+   "survival_max_L": 8.43,
+   "sample_kelly_L": 4.3999999999999995,
+   "account_500": {
+    "1x": {
+     "final": 719.61,
+     "dead": null,
+     "maxdd_pct": 17.7
+    },
+    "2x": {
+     "final": 938.25,
+     "dead": null,
+     "maxdd_pct": 32.8
+    },
+    "3x": {
+     "final": 1113.33,
+     "dead": null,
+     "maxdd_pct": 45.7
+    },
+    "5x": {
+     "final": 1194.86,
+     "dead": null,
+     "maxdd_pct": 65.6
+    },
+    "8.3x": {
+     "final": 611.59,
+     "dead": null,
+     "maxdd_pct": 87.3
+    },
+    "10x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 344,
+     "maxdd_pct": 100.0
+    }
+   }
+  },
+  {
+   "symbol": "xyz:XYZ100",
+   "cell": "ctrlA",
+   "venue_max_leverage": 30,
+   "mm_pct": 1.667,
+   "trades": 438,
+   "worst_mae_pct": 3.81,
+   "worst_mae_dir": "se",
+   "worst_mae_date": "2026-03-23",
+   "worst_mae_by_dir_pct": {
+    "le": 1.24,
+    "se": 3.81
+   },
+   "survival_max_L": 18.28,
+   "sample_kelly_L": 0.1,
+   "account_500": {
+    "1x": {
+     "final": 477.6,
+     "dead": null,
+     "maxdd_pct": 9.6
+    },
+    "2x": {
+     "final": 453.15,
+     "dead": null,
+     "maxdd_pct": 18.5
+    },
+    "3x": {
+     "final": 427.09,
+     "dead": null,
+     "maxdd_pct": 26.7
+    },
+    "5x": {
+     "final": 371.89,
+     "dead": null,
+     "maxdd_pct": 41.0
+    },
+    "10x": {
+     "final": 234.51,
+     "dead": null,
+     "maxdd_pct": 67.1
+    },
+    "18.1x": {
+     "final": 78.03,
+     "dead": null,
+     "maxdd_pct": 89.5
+    },
+    "30x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 181,
+     "maxdd_pct": 100.0
+    }
+   }
+  },
+  {
+   "symbol": "xyz:XYZ100",
+   "cell": "E3only",
+   "venue_max_leverage": 30,
+   "mm_pct": 1.667,
+   "trades": 1094,
+   "worst_mae_pct": 1.83,
+   "worst_mae_dir": "se",
+   "worst_mae_date": "2026-06-11",
+   "worst_mae_by_dir_pct": {
+    "le": 1.28,
+    "se": 1.83
+   },
+   "survival_max_L": 28.59,
+   "sample_kelly_L": 0.1,
+   "account_500": {
+    "1x": {
+     "final": 464.12,
+     "dead": null,
+     "maxdd_pct": 12.4
+    },
+    "2x": {
+     "final": 425.87,
+     "dead": null,
+     "maxdd_pct": 23.8
+    },
+    "3x": {
+     "final": 386.32,
+     "dead": null,
+     "maxdd_pct": 34.2
+    },
+    "5x": {
+     "final": 307.3,
+     "dead": null,
+     "maxdd_pct": 52.0
+    },
+    "10x": {
+     "final": 142.85,
+     "dead": null,
+     "maxdd_pct": 80.7
+    },
+    "28.3x": {
+     "final": 0.88,
+     "dead": null,
+     "maxdd_pct": 99.9
+    },
+    "30x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 965,
+     "maxdd_pct": 100.0
+    }
+   }
+  },
+  {
+   "symbol": "xyz:XYZ100",
+   "cell": "R1E3",
+   "venue_max_leverage": 30,
+   "mm_pct": 1.667,
+   "trades": 385,
+   "worst_mae_pct": 1.24,
+   "worst_mae_dir": "le",
+   "worst_mae_date": "2026-04-12",
+   "worst_mae_by_dir_pct": {
+    "le": 1.24,
+    "se": 1.16
+   },
+   "survival_max_L": 34.4,
+   "sample_kelly_L": 0.1,
+   "account_500": {
+    "1x": {
+     "final": 489.86,
+     "dead": null,
+     "maxdd_pct": 6.7
+    },
+    "2x": {
+     "final": 477.21,
+     "dead": null,
+     "maxdd_pct": 13.0
+    },
+    "3x": {
+     "final": 462.3,
+     "dead": null,
+     "maxdd_pct": 19.1
+    },
+    "5x": {
+     "final": 426.78,
+     "dead": null,
+     "maxdd_pct": 30.2
+    },
+    "10x": {
+     "final": 318.25,
+     "dead": null,
+     "maxdd_pct": 52.8
+    },
+    "30x": {
+     "final": 27.49,
+     "dead": null,
+     "maxdd_pct": 95.7
+    }
+   }
+  },
+  {
+   "symbol": "xyz:XYZ100",
+   "cell": "R1E3gov2",
+   "venue_max_leverage": 30,
+   "mm_pct": 1.667,
+   "trades": 373,
+   "worst_mae_pct": 1.24,
+   "worst_mae_dir": "le",
+   "worst_mae_date": "2026-04-12",
+   "worst_mae_by_dir_pct": {
+    "le": 1.24,
+    "se": 1.16
+   },
+   "survival_max_L": 34.4,
+   "sample_kelly_L": 0.1,
+   "account_500": {
+    "1x": {
+     "final": 481.65,
+     "dead": null,
+     "maxdd_pct": 7.5
+    },
+    "2x": {
+     "final": 461.37,
+     "dead": null,
+     "maxdd_pct": 14.6
+    },
+    "3x": {
+     "final": 439.48,
+     "dead": null,
+     "maxdd_pct": 21.2
+    },
+    "5x": {
+     "final": 392.28,
+     "dead": null,
+     "maxdd_pct": 33.3
+    },
+    "10x": {
+     "final": 268.98,
+     "dead": null,
+     "maxdd_pct": 56.8
+    },
+    "30x": {
+     "final": 16.61,
+     "dead": null,
+     "maxdd_pct": 97.2
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SP500",
+   "cell": "ctrlA",
+   "venue_max_leverage": 50,
+   "mm_pct": 1.0,
+   "trades": 256,
+   "worst_mae_pct": 1.03,
+   "worst_mae_dir": "le",
+   "worst_mae_date": "2026-04-12",
+   "worst_mae_by_dir_pct": {
+    "le": 1.03,
+    "se": 0.58
+   },
+   "survival_max_L": 49.21,
+   "sample_kelly_L": 0.1,
+   "account_500": {
+    "1x": {
+     "final": 475.25,
+     "dead": null,
+     "maxdd_pct": 4.9
+    },
+    "2x": {
+     "final": 450.99,
+     "dead": null,
+     "maxdd_pct": 9.8
+    },
+    "3x": {
+     "final": 427.26,
+     "dead": null,
+     "maxdd_pct": 14.5
+    },
+    "5x": {
+     "final": 381.66,
+     "dead": null,
+     "maxdd_pct": 23.7
+    },
+    "10x": {
+     "final": 280.05,
+     "dead": null,
+     "maxdd_pct": 44.0
+    },
+    "48.7x": {
+     "final": 7.2,
+     "dead": null,
+     "maxdd_pct": 98.6
+    },
+    "50x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 33,
+     "maxdd_pct": 100.0
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SP500",
+   "cell": "E3only",
+   "venue_max_leverage": 50,
+   "mm_pct": 1.0,
+   "trades": 599,
+   "worst_mae_pct": 1.47,
+   "worst_mae_dir": "se",
+   "worst_mae_date": "2026-06-11",
+   "worst_mae_by_dir_pct": {
+    "le": 1.19,
+    "se": 1.47
+   },
+   "survival_max_L": 40.46,
+   "sample_kelly_L": 0.1,
+   "account_500": {
+    "1x": {
+     "final": 402.73,
+     "dead": null,
+     "maxdd_pct": 20.3
+    },
+    "2x": {
+     "final": 323.34,
+     "dead": null,
+     "maxdd_pct": 36.7
+    },
+    "3x": {
+     "final": 258.76,
+     "dead": null,
+     "maxdd_pct": 49.8
+    },
+    "5x": {
+     "final": 164.15,
+     "dead": null,
+     "maxdd_pct": 68.8
+    },
+    "10x": {
+     "final": 49.77,
+     "dead": null,
+     "maxdd_pct": 91.0
+    },
+    "40.1x": {
+     "final": 0.22,
+     "dead": "below $10 min notional",
+     "at_trade": 458
+    },
+    "50x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 26,
+     "maxdd_pct": 100.0
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SP500",
+   "cell": "R1E3",
+   "venue_max_leverage": 50,
+   "mm_pct": 1.0,
+   "trades": 222,
+   "worst_mae_pct": 1.03,
+   "worst_mae_dir": "le",
+   "worst_mae_date": "2026-04-12",
+   "worst_mae_by_dir_pct": {
+    "le": 1.03,
+    "se": 0.51
+   },
+   "survival_max_L": 49.21,
+   "sample_kelly_L": 0.1,
+   "account_500": {
+    "1x": {
+     "final": 478.67,
+     "dead": null,
+     "maxdd_pct": 4.7
+    },
+    "2x": {
+     "final": 457.62,
+     "dead": null,
+     "maxdd_pct": 9.3
+    },
+    "3x": {
+     "final": 436.89,
+     "dead": null,
+     "maxdd_pct": 13.7
+    },
+    "5x": {
+     "final": 396.61,
+     "dead": null,
+     "maxdd_pct": 22.1
+    },
+    "10x": {
+     "final": 304.38,
+     "dead": null,
+     "maxdd_pct": 40.6
+    },
+    "48.7x": {
+     "final": 14.3,
+     "dead": null,
+     "maxdd_pct": 97.1
+    },
+    "50x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 28,
+     "maxdd_pct": 100.0
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SP500",
+   "cell": "R1E3gov2",
+   "venue_max_leverage": 50,
+   "mm_pct": 1.0,
+   "trades": 213,
+   "worst_mae_pct": 1.03,
+   "worst_mae_dir": "le",
+   "worst_mae_date": "2026-04-12",
+   "worst_mae_by_dir_pct": {
+    "le": 1.03,
+    "se": 0.51
+   },
+   "survival_max_L": 49.21,
+   "sample_kelly_L": 0.1,
+   "account_500": {
+    "1x": {
+     "final": 481.99,
+     "dead": null,
+     "maxdd_pct": 4.0
+    },
+    "2x": {
+     "final": 463.99,
+     "dead": null,
+     "maxdd_pct": 8.0
+    },
+    "3x": {
+     "final": 446.06,
+     "dead": null,
+     "maxdd_pct": 11.9
+    },
+    "5x": {
+     "final": 410.59,
+     "dead": null,
+     "maxdd_pct": 19.3
+    },
+    "10x": {
+     "final": 326.31,
+     "dead": null,
+     "maxdd_pct": 36.3
+    },
+    "48.7x": {
+     "final": 20.28,
+     "dead": null,
+     "maxdd_pct": 95.9
+    },
+    "50x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 26,
+     "maxdd_pct": 100.0
+    }
+   }
+  },
+  {
+   "symbol": "BTC",
+   "cell": "ctrlA",
+   "venue_max_leverage": 40,
+   "mm_pct": 1.25,
+   "trades": 451,
+   "worst_mae_pct": 3.08,
+   "worst_mae_dir": "se",
+   "worst_mae_date": "2026-02-07",
+   "worst_mae_by_dir_pct": {
+    "le": 2.52,
+    "se": 3.08
+   },
+   "survival_max_L": 23.1,
+   "sample_kelly_L": 1.6,
+   "account_500": {
+    "1x": {
+     "final": 517.74,
+     "dead": null,
+     "maxdd_pct": 8.5
+    },
+    "2x": {
+     "final": 519.85,
+     "dead": null,
+     "maxdd_pct": 17.6
+    },
+    "3x": {
+     "final": 506.57,
+     "dead": null,
+     "maxdd_pct": 27.7
+    },
+    "5x": {
+     "final": 440.91,
+     "dead": null,
+     "maxdd_pct": 48.3
+    },
+    "10x": {
+     "final": 191.93,
+     "dead": null,
+     "maxdd_pct": 84.9
+    },
+    "22.9x": {
+     "final": 0.98,
+     "dead": null,
+     "maxdd_pct": 100.0
+    },
+    "40x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 37,
+     "maxdd_pct": 100.0
+    }
+   }
+  },
+  {
+   "symbol": "BTC",
+   "cell": "E3only",
+   "venue_max_leverage": 40,
+   "mm_pct": 1.25,
+   "trades": 1198,
+   "worst_mae_pct": 2.9,
+   "worst_mae_dir": "se",
+   "worst_mae_date": "2026-03-02",
+   "worst_mae_by_dir_pct": {
+    "le": 2.32,
+    "se": 2.9
+   },
+   "survival_max_L": 24.12,
+   "sample_kelly_L": 0.1,
+   "account_500": {
+    "1x": {
+     "final": 307.67,
+     "dead": null,
+     "maxdd_pct": 42.8
+    },
+    "2x": {
+     "final": 178.53,
+     "dead": null,
+     "maxdd_pct": 69.0
+    },
+    "3x": {
+     "final": 97.82,
+     "dead": null,
+     "maxdd_pct": 84.1
+    },
+    "5x": {
+     "final": 24.84,
+     "dead": null,
+     "maxdd_pct": 96.4
+    },
+    "10x": {
+     "final": 0.99,
+     "dead": "below $10 min notional",
+     "at_trade": 1018
+    },
+    "23.9x": {
+     "final": 0.34,
+     "dead": "below $10 min notional",
+     "at_trade": 392
+    },
+    "40x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 29,
+     "maxdd_pct": 100.0
+    }
+   }
+  },
+  {
+   "symbol": "BTC",
+   "cell": "R1E3",
+   "venue_max_leverage": 40,
+   "mm_pct": 1.25,
+   "trades": 400,
+   "worst_mae_pct": 2.9,
+   "worst_mae_dir": "se",
+   "worst_mae_date": "2026-03-02",
+   "worst_mae_by_dir_pct": {
+    "le": 2.52,
+    "se": 2.9
+   },
+   "survival_max_L": 24.12,
+   "sample_kelly_L": 0.1,
+   "account_500": {
+    "1x": {
+     "final": 484.2,
+     "dead": null,
+     "maxdd_pct": 17.0
+    },
+    "2x": {
+     "final": 456.1,
+     "dead": null,
+     "maxdd_pct": 32.4
+    },
+    "3x": {
+     "final": 418.19,
+     "dead": null,
+     "maxdd_pct": 45.9
+    },
+    "5x": {
+     "final": 324.98,
+     "dead": null,
+     "maxdd_pct": 67.2
+    },
+    "10x": {
+     "final": 111.34,
+     "dead": null,
+     "maxdd_pct": 93.0
+    },
+    "23.9x": {
+     "final": 0.41,
+     "dead": "below $10 min notional",
+     "at_trade": 381
+    },
+    "40x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 32,
+     "maxdd_pct": 100.0
+    }
+   }
+  },
+  {
+   "symbol": "BTC",
+   "cell": "R1E3gov2",
+   "venue_max_leverage": 40,
+   "mm_pct": 1.25,
+   "trades": 385,
+   "worst_mae_pct": 2.9,
+   "worst_mae_dir": "se",
+   "worst_mae_date": "2026-03-02",
+   "worst_mae_by_dir_pct": {
+    "le": 2.52,
+    "se": 2.9
+   },
+   "survival_max_L": 24.12,
+   "sample_kelly_L": 0.1,
+   "account_500": {
+    "1x": {
+     "final": 479.3,
+     "dead": null,
+     "maxdd_pct": 17.9
+    },
+    "2x": {
+     "final": 447.7,
+     "dead": null,
+     "maxdd_pct": 33.7
+    },
+    "3x": {
+     "final": 407.69,
+     "dead": null,
+     "maxdd_pct": 47.3
+    },
+    "5x": {
+     "final": 313.85,
+     "dead": null,
+     "maxdd_pct": 68.4
+    },
+    "10x": {
+     "final": 107.25,
+     "dead": null,
+     "maxdd_pct": 93.3
+    },
+    "23.9x": {
+     "final": 0.28,
+     "dead": "below $10 min notional",
+     "at_trade": 370
+    },
+    "40x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 31,
+     "maxdd_pct": 100.0
+    }
+   }
+  },
+  {
+   "symbol": "xyz:MU",
+   "cell": "ctrlA",
+   "venue_max_leverage": 10,
+   "mm_pct": 5.0,
+   "trades": 486,
+   "worst_mae_pct": 8.69,
+   "worst_mae_dir": "le",
+   "worst_mae_date": "2026-06-25",
+   "worst_mae_by_dir_pct": {
+    "le": 8.69,
+    "se": 5.2
+   },
+   "survival_max_L": 7.3,
+   "sample_kelly_L": 1.9000000000000001,
+   "account_500": {
+    "1x": {
+     "final": 575.58,
+     "dead": null,
+     "maxdd_pct": 28.4
+    },
+    "2x": {
+     "final": 597.82,
+     "dead": null,
+     "maxdd_pct": 49.8
+    },
+    "3x": {
+     "final": 561.9,
+     "dead": null,
+     "maxdd_pct": 65.7
+    },
+    "5x": {
+     "final": 368.49,
+     "dead": null,
+     "maxdd_pct": 85.2
+    },
+    "7.2x": {
+     "final": 142.3,
+     "dead": null,
+     "maxdd_pct": 95.1
+    },
+    "10x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 77,
+     "maxdd_pct": 100.0
+    }
+   }
+  },
+  {
+   "symbol": "xyz:MU",
+   "cell": "E3only",
+   "venue_max_leverage": 10,
+   "mm_pct": 5.0,
+   "trades": 984,
+   "worst_mae_pct": 8.69,
+   "worst_mae_dir": "le",
+   "worst_mae_date": "2026-06-25",
+   "worst_mae_by_dir_pct": {
+    "le": 8.69,
+    "se": 6.17
+   },
+   "survival_max_L": 7.3,
+   "sample_kelly_L": 0.1,
+   "account_500": {
+    "1x": {
+     "final": 224.12,
+     "dead": null,
+     "maxdd_pct": 58.1
+    },
+    "2x": {
+     "final": 83.62,
+     "dead": null,
+     "maxdd_pct": 84.3
+    },
+    "3x": {
+     "final": 26.06,
+     "dead": null,
+     "maxdd_pct": 95.3
+    },
+    "5x": {
+     "final": 1.95,
+     "dead": "below $10 min notional",
+     "at_trade": 963
+    },
+    "7.2x": {
+     "final": 1.29,
+     "dead": "below $10 min notional",
+     "at_trade": 846
+    },
+    "10x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 179,
+     "maxdd_pct": 100.0
+    }
+   }
+  },
+  {
+   "symbol": "xyz:MU",
+   "cell": "R1E3",
+   "venue_max_leverage": 10,
+   "mm_pct": 5.0,
+   "trades": 415,
+   "worst_mae_pct": 8.69,
+   "worst_mae_dir": "le",
+   "worst_mae_date": "2026-06-25",
+   "worst_mae_by_dir_pct": {
+    "le": 8.69,
+    "se": 5.2
+   },
+   "survival_max_L": 7.3,
+   "sample_kelly_L": 1.0,
+   "account_500": {
+    "1x": {
+     "final": 527.12,
+     "dead": null,
+     "maxdd_pct": 30.4
+    },
+    "2x": {
+     "final": 504.39,
+     "dead": null,
+     "maxdd_pct": 52.6
+    },
+    "3x": {
+     "final": 439.18,
+     "dead": null,
+     "maxdd_pct": 68.4
+    },
+    "5x": {
+     "final": 250.84,
+     "dead": null,
+     "maxdd_pct": 87.1
+    },
+    "7.2x": {
+     "final": 84.78,
+     "dead": null,
+     "maxdd_pct": 96.2
+    },
+    "10x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 65,
+     "maxdd_pct": 100.0
+    }
+   }
+  },
+  {
+   "symbol": "xyz:MU",
+   "cell": "R1E3gov2",
+   "venue_max_leverage": 10,
+   "mm_pct": 5.0,
+   "trades": 404,
+   "worst_mae_pct": 8.69,
+   "worst_mae_dir": "le",
+   "worst_mae_date": "2026-06-25",
+   "worst_mae_by_dir_pct": {
+    "le": 8.69,
+    "se": 5.2
+   },
+   "survival_max_L": 7.3,
+   "sample_kelly_L": 0.9,
+   "account_500": {
+    "1x": {
+     "final": 517.99,
+     "dead": null,
+     "maxdd_pct": 32.1
+    },
+    "2x": {
+     "final": 488.19,
+     "dead": null,
+     "maxdd_pct": 54.8
+    },
+    "3x": {
+     "final": 419.68,
+     "dead": null,
+     "maxdd_pct": 70.5
+    },
+    "5x": {
+     "final": 235.36,
+     "dead": null,
+     "maxdd_pct": 88.4
+    },
+    "7.2x": {
+     "final": 78.89,
+     "dead": null,
+     "maxdd_pct": 96.4
+    },
+    "10x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 64,
+     "maxdd_pct": 100.0
+    }
+   }
+  },
+  {
+   "symbol": "xyz:AMD",
+   "cell": "ctrlA",
+   "venue_max_leverage": 10,
+   "mm_pct": 5.0,
+   "trades": 453,
+   "worst_mae_pct": 6.55,
+   "worst_mae_dir": "le",
+   "worst_mae_date": "2026-06-25",
+   "worst_mae_by_dir_pct": {
+    "le": 6.55,
+    "se": 3.64
+   },
+   "survival_max_L": 8.65,
+   "sample_kelly_L": 4.7,
+   "account_500": {
+    "1x": {
+     "final": 657.91,
+     "dead": null,
+     "maxdd_pct": 26.5
+    },
+    "2x": {
+     "final": 807.68,
+     "dead": null,
+     "maxdd_pct": 46.5
+    },
+    "3x": {
+     "final": 928.09,
+     "dead": null,
+     "maxdd_pct": 61.5
+    },
+    "5x": {
+     "final": 1013.31,
+     "dead": null,
+     "maxdd_pct": 80.8
+    },
+    "8.6x": {
+     "final": 632.99,
+     "dead": null,
+     "maxdd_pct": 95.4
+    },
+    "10x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 433,
+     "maxdd_pct": 100.0
+    }
+   }
+  },
+  {
+   "symbol": "xyz:AMD",
+   "cell": "E3only",
+   "venue_max_leverage": 10,
+   "mm_pct": 5.0,
+   "trades": 1061,
+   "worst_mae_pct": 7.65,
+   "worst_mae_dir": "se",
+   "worst_mae_date": "2026-05-05",
+   "worst_mae_by_dir_pct": {
+    "le": 6.55,
+    "se": 7.65
+   },
+   "survival_max_L": 7.91,
+   "sample_kelly_L": 5.2,
+   "account_500": {
+    "1x": {
+     "final": 864.75,
+     "dead": null,
+     "maxdd_pct": 32.6
+    },
+    "2x": {
+     "final": 1324.6,
+     "dead": null,
+     "maxdd_pct": 55.5
+    },
+    "3x": {
+     "final": 1803.91,
+     "dead": null,
+     "maxdd_pct": 71.2
+    },
+    "5x": {
+     "final": 2374.14,
+     "dead": null,
+     "maxdd_pct": 88.8
+    },
+    "7.8x": {
+     "final": 1629.97,
+     "dead": null,
+     "maxdd_pct": 97.6
+    },
+    "10x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 708,
+     "maxdd_pct": 100.0
+    }
+   }
+  },
+  {
+   "symbol": "xyz:AMD",
+   "cell": "R1E3",
+   "venue_max_leverage": 10,
+   "mm_pct": 5.0,
+   "trades": 385,
+   "worst_mae_pct": 6.55,
+   "worst_mae_dir": "le",
+   "worst_mae_date": "2026-06-25",
+   "worst_mae_by_dir_pct": {
+    "le": 6.55,
+    "se": 3.64
+   },
+   "survival_max_L": 8.65,
+   "sample_kelly_L": 5.0,
+   "account_500": {
+    "1x": {
+     "final": 650.28,
+     "dead": null,
+     "maxdd_pct": 26.3
+    },
+    "2x": {
+     "final": 794.9,
+     "dead": null,
+     "maxdd_pct": 46.3
+    },
+    "3x": {
+     "final": 915.75,
+     "dead": null,
+     "maxdd_pct": 61.3
+    },
+    "5x": {
+     "final": 1024.06,
+     "dead": null,
+     "maxdd_pct": 80.6
+    },
+    "8.6x": {
+     "final": 706.47,
+     "dead": null,
+     "maxdd_pct": 95.3
+    },
+    "10x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 372,
+     "maxdd_pct": 100.0
+    }
+   }
+  },
+  {
+   "symbol": "xyz:AMD",
+   "cell": "R1E3gov2",
+   "venue_max_leverage": 10,
+   "mm_pct": 5.0,
+   "trades": 371,
+   "worst_mae_pct": 6.55,
+   "worst_mae_dir": "le",
+   "worst_mae_date": "2026-06-25",
+   "worst_mae_by_dir_pct": {
+    "le": 6.55,
+    "se": 3.64
+   },
+   "survival_max_L": 8.65,
+   "sample_kelly_L": 5.8,
+   "account_500": {
+    "1x": {
+     "final": 676.39,
+     "dead": null,
+     "maxdd_pct": 24.2
+    },
+    "2x": {
+     "final": 860.66,
+     "dead": null,
+     "maxdd_pct": 43.2
+    },
+    "3x": {
+     "final": 1032.84,
+     "dead": null,
+     "maxdd_pct": 57.8
+    },
+    "5x": {
+     "final": 1256.03,
+     "dead": null,
+     "maxdd_pct": 77.6
+    },
+    "8.6x": {
+     "final": 1015.28,
+     "dead": null,
+     "maxdd_pct": 93.9
+    },
+    "10x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 359,
+     "maxdd_pct": 100.0
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NVDA",
+   "cell": "ctrlA",
+   "venue_max_leverage": 20,
+   "mm_pct": 2.5,
+   "trades": 456,
+   "worst_mae_pct": 2.32,
+   "worst_mae_dir": "se",
+   "worst_mae_date": "2026-03-03",
+   "worst_mae_by_dir_pct": {
+    "le": 2.18,
+    "se": 2.32
+   },
+   "survival_max_L": 20.76,
+   "sample_kelly_L": 0.8,
+   "account_500": {
+    "1x": {
+     "final": 502.71,
+     "dead": null,
+     "maxdd_pct": 12.7
+    },
+    "2x": {
+     "final": 497.17,
+     "dead": null,
+     "maxdd_pct": 23.9
+    },
+    "3x": {
+     "final": 483.84,
+     "dead": null,
+     "maxdd_pct": 33.9
+    },
+    "5x": {
+     "final": 437.36,
+     "dead": null,
+     "maxdd_pct": 50.7
+    },
+    "10x": {
+     "final": 262.35,
+     "dead": null,
+     "maxdd_pct": 78.3
+    },
+    "20x": {
+     "final": 33.69,
+     "dead": null,
+     "maxdd_pct": 97.0
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NVDA",
+   "cell": "E3only",
+   "venue_max_leverage": 20,
+   "mm_pct": 2.5,
+   "trades": 1127,
+   "worst_mae_pct": 4.07,
+   "worst_mae_dir": "se",
+   "worst_mae_date": "2026-02-25",
+   "worst_mae_by_dir_pct": {
+    "le": 3.9,
+    "se": 4.07
+   },
+   "survival_max_L": 15.22,
+   "sample_kelly_L": 0.1,
+   "account_500": {
+    "1x": {
+     "final": 332.66,
+     "dead": null,
+     "maxdd_pct": 36.9
+    },
+    "2x": {
+     "final": 213.79,
+     "dead": null,
+     "maxdd_pct": 61.5
+    },
+    "3x": {
+     "final": 132.78,
+     "dead": null,
+     "maxdd_pct": 77.3
+    },
+    "5x": {
+     "final": 46.3,
+     "dead": null,
+     "maxdd_pct": 92.8
+    },
+    "10x": {
+     "final": 1.86,
+     "dead": null,
+     "maxdd_pct": 99.8
+    },
+    "15.1x": {
+     "final": 0.51,
+     "dead": "below $10 min notional",
+     "at_trade": 915
+    },
+    "20x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 406,
+     "maxdd_pct": 100.0
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NVDA",
+   "cell": "R1E3",
+   "venue_max_leverage": 20,
+   "mm_pct": 2.5,
+   "trades": 391,
+   "worst_mae_pct": 2.18,
+   "worst_mae_dir": "le",
+   "worst_mae_date": "2026-05-18",
+   "worst_mae_by_dir_pct": {
+    "le": 2.18,
+    "se": 1.74
+   },
+   "survival_max_L": 21.35,
+   "sample_kelly_L": 2.0,
+   "account_500": {
+    "1x": {
+     "final": 510.41,
+     "dead": null,
+     "maxdd_pct": 10.9
+    },
+    "2x": {
+     "final": 513.69,
+     "dead": null,
+     "maxdd_pct": 20.7
+    },
+    "3x": {
+     "final": 509.88,
+     "dead": null,
+     "maxdd_pct": 29.6
+    },
+    "5x": {
+     "final": 482.57,
+     "dead": null,
+     "maxdd_pct": 44.8
+    },
+    "10x": {
+     "final": 336.79,
+     "dead": null,
+     "maxdd_pct": 70.9
+    },
+    "20x": {
+     "final": 67.9,
+     "dead": null,
+     "maxdd_pct": 93.1
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NVDA",
+   "cell": "R1E3gov2",
+   "venue_max_leverage": 20,
+   "mm_pct": 2.5,
+   "trades": 376,
+   "worst_mae_pct": 2.18,
+   "worst_mae_dir": "le",
+   "worst_mae_date": "2026-05-18",
+   "worst_mae_by_dir_pct": {
+    "le": 2.18,
+    "se": 1.74
+   },
+   "survival_max_L": 21.35,
+   "sample_kelly_L": 1.5000000000000002,
+   "account_500": {
+    "1x": {
+     "final": 507.22,
+     "dead": null,
+     "maxdd_pct": 10.4
+    },
+    "2x": {
+     "final": 507.49,
+     "dead": null,
+     "maxdd_pct": 19.9
+    },
+    "3x": {
+     "final": 500.99,
+     "dead": null,
+     "maxdd_pct": 28.5
+    },
+    "5x": {
+     "final": 469.63,
+     "dead": null,
+     "maxdd_pct": 43.4
+    },
+    "10x": {
+     "final": 322.43,
+     "dead": null,
+     "maxdd_pct": 69.4
+    },
+    "20x": {
+     "final": 65.11,
+     "dead": null,
+     "maxdd_pct": 92.4
+    }
+   }
+  },
+  {
+   "symbol": "xyz:TSLA",
+   "cell": "ctrlA",
+   "venue_max_leverage": 20,
+   "mm_pct": 2.5,
+   "trades": 393,
+   "worst_mae_pct": 4.78,
+   "worst_mae_dir": "le",
+   "worst_mae_date": "2026-07-02",
+   "worst_mae_by_dir_pct": {
+    "le": 4.78,
+    "se": 4.02
+   },
+   "survival_max_L": 13.74,
+   "sample_kelly_L": 0.1,
+   "account_500": {
+    "1x": {
+     "final": 454.17,
+     "dead": null,
+     "maxdd_pct": 11.6
+    },
+    "2x": {
+     "final": 403.11,
+     "dead": null,
+     "maxdd_pct": 22.4
+    },
+    "3x": {
+     "final": 349.61,
+     "dead": null,
+     "maxdd_pct": 33.8
+    },
+    "5x": {
+     "final": 245.19,
+     "dead": null,
+     "maxdd_pct": 55.2
+    },
+    "10x": {
+     "final": 66.0,
+     "dead": null,
+     "maxdd_pct": 88.9
+    },
+    "13.6x": {
+     "final": 16.84,
+     "dead": null,
+     "maxdd_pct": 97.3
+    },
+    "20x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 59,
+     "maxdd_pct": 100.0
+    }
+   }
+  },
+  {
+   "symbol": "xyz:TSLA",
+   "cell": "E3only",
+   "venue_max_leverage": 20,
+   "mm_pct": 2.5,
+   "trades": 1103,
+   "worst_mae_pct": 4.81,
+   "worst_mae_dir": "se",
+   "worst_mae_date": "2026-04-22",
+   "worst_mae_by_dir_pct": {
+    "le": 4.78,
+    "se": 4.81
+   },
+   "survival_max_L": 13.68,
+   "sample_kelly_L": 2.1,
+   "account_500": {
+    "1x": {
+     "final": 547.05,
+     "dead": null,
+     "maxdd_pct": 22.8
+    },
+    "2x": {
+     "final": 566.4,
+     "dead": null,
+     "maxdd_pct": 41.7
+    },
+    "3x": {
+     "final": 555.26,
+     "dead": null,
+     "maxdd_pct": 56.9
+    },
+    "5x": {
+     "final": 453.49,
+     "dead": null,
+     "maxdd_pct": 78.0
+    },
+    "10x": {
+     "final": 104.22,
+     "dead": null,
+     "maxdd_pct": 97.4
+    },
+    "13.5x": {
+     "final": 15.32,
+     "dead": null,
+     "maxdd_pct": 99.7
+    },
+    "20x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 253,
+     "maxdd_pct": 100.0
+    }
+   }
+  },
+  {
+   "symbol": "xyz:TSLA",
+   "cell": "R1E3",
+   "venue_max_leverage": 20,
+   "mm_pct": 2.5,
+   "trades": 347,
+   "worst_mae_pct": 4.78,
+   "worst_mae_dir": "le",
+   "worst_mae_date": "2026-07-02",
+   "worst_mae_by_dir_pct": {
+    "le": 4.78,
+    "se": 4.02
+   },
+   "survival_max_L": 13.74,
+   "sample_kelly_L": 0.1,
+   "account_500": {
+    "1x": {
+     "final": 455.95,
+     "dead": null,
+     "maxdd_pct": 11.3
+    },
+    "2x": {
+     "final": 406.96,
+     "dead": null,
+     "maxdd_pct": 22.0
+    },
+    "3x": {
+     "final": 355.51,
+     "dead": null,
+     "maxdd_pct": 33.1
+    },
+    "5x": {
+     "final": 254.24,
+     "dead": null,
+     "maxdd_pct": 54.0
+    },
+    "10x": {
+     "final": 73.98,
+     "dead": null,
+     "maxdd_pct": 87.8
+    },
+    "13.6x": {
+     "final": 20.49,
+     "dead": null,
+     "maxdd_pct": 96.9
+    },
+    "20x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 51,
+     "maxdd_pct": 100.0
+    }
+   }
+  },
+  {
+   "symbol": "xyz:TSLA",
+   "cell": "R1E3gov2",
+   "venue_max_leverage": 20,
+   "mm_pct": 2.5,
+   "trades": 335,
+   "worst_mae_pct": 4.78,
+   "worst_mae_dir": "le",
+   "worst_mae_date": "2026-07-02",
+   "worst_mae_by_dir_pct": {
+    "le": 4.78,
+    "se": 4.02
+   },
+   "survival_max_L": 13.74,
+   "sample_kelly_L": 0.1,
+   "account_500": {
+    "1x": {
+     "final": 458.91,
+     "dead": null,
+     "maxdd_pct": 10.0
+    },
+    "2x": {
+     "final": 412.44,
+     "dead": null,
+     "maxdd_pct": 20.4
+    },
+    "3x": {
+     "final": 362.96,
+     "dead": null,
+     "maxdd_pct": 31.2
+    },
+    "5x": {
+     "final": 263.78,
+     "dead": null,
+     "maxdd_pct": 51.7
+    },
+    "10x": {
+     "final": 80.52,
+     "dead": null,
+     "maxdd_pct": 86.5
+    },
+    "13.6x": {
+     "final": 23.24,
+     "dead": null,
+     "maxdd_pct": 96.3
+    },
+    "20x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 47,
+     "maxdd_pct": 100.0
+    }
+   }
+  },
+  {
+   "symbol": "xyz:CRCL",
+   "cell": "ctrlA",
+   "venue_max_leverage": 10,
+   "mm_pct": 5.0,
+   "trades": 437,
+   "worst_mae_pct": 14.82,
+   "worst_mae_dir": "se",
+   "worst_mae_date": "2026-03-02",
+   "worst_mae_by_dir_pct": {
+    "le": 9.16,
+    "se": 14.82
+   },
+   "survival_max_L": 5.05,
+   "sample_kelly_L": 0.30000000000000004,
+   "account_500": {
+    "1x": {
+     "final": 484.8,
+     "dead": null,
+     "maxdd_pct": 37.2
+    },
+    "2x": {
+     "final": 401.68,
+     "dead": null,
+     "maxdd_pct": 63.1
+    },
+    "3x": {
+     "final": 282.86,
+     "dead": null,
+     "maxdd_pct": 79.7
+    },
+    "5x": {
+     "final": 76.18,
+     "dead": null,
+     "maxdd_pct": 95.5
+    },
+    "10x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 127,
+     "maxdd_pct": 100.0
+    }
+   }
+  },
+  {
+   "symbol": "xyz:CRCL",
+   "cell": "E3only",
+   "venue_max_leverage": 10,
+   "mm_pct": 5.0,
+   "trades": 1026,
+   "worst_mae_pct": 15.44,
+   "worst_mae_dir": "se",
+   "worst_mae_date": "2026-03-02",
+   "worst_mae_by_dir_pct": {
+    "le": 9.16,
+    "se": 15.44
+   },
+   "survival_max_L": 4.89,
+   "sample_kelly_L": 0.2,
+   "account_500": {
+    "1x": {
+     "final": 451.75,
+     "dead": null,
+     "maxdd_pct": 49.0
+    },
+    "2x": {
+     "final": 303.7,
+     "dead": null,
+     "maxdd_pct": 75.6
+    },
+    "3x": {
+     "final": 151.83,
+     "dead": null,
+     "maxdd_pct": 89.1
+    },
+    "4.8x": {
+     "final": 18.52,
+     "dead": null,
+     "maxdd_pct": 98.3
+    },
+    "5x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 346,
+     "maxdd_pct": 100.0
+    },
+    "10x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 109,
+     "maxdd_pct": 100.0
+    }
+   }
+  },
+  {
+   "symbol": "xyz:CRCL",
+   "cell": "R1E3",
+   "venue_max_leverage": 10,
+   "mm_pct": 5.0,
+   "trades": 364,
+   "worst_mae_pct": 14.82,
+   "worst_mae_dir": "se",
+   "worst_mae_date": "2026-03-02",
+   "worst_mae_by_dir_pct": {
+    "le": 9.16,
+    "se": 14.82
+   },
+   "survival_max_L": 5.05,
+   "sample_kelly_L": 0.7000000000000001,
+   "account_500": {
+    "1x": {
+     "final": 511.23,
+     "dead": null,
+     "maxdd_pct": 32.6
+    },
+    "2x": {
+     "final": 451.54,
+     "dead": null,
+     "maxdd_pct": 57.3
+    },
+    "3x": {
+     "final": 342.45,
+     "dead": null,
+     "maxdd_pct": 74.5
+    },
+    "5x": {
+     "final": 110.13,
+     "dead": null,
+     "maxdd_pct": 93.5
+    },
+    "10x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 109,
+     "maxdd_pct": 100.0
+    }
+   }
+  },
+  {
+   "symbol": "xyz:CRCL",
+   "cell": "R1E3gov2",
+   "venue_max_leverage": 10,
+   "mm_pct": 5.0,
+   "trades": 353,
+   "worst_mae_pct": 14.82,
+   "worst_mae_dir": "se",
+   "worst_mae_date": "2026-03-02",
+   "worst_mae_by_dir_pct": {
+    "le": 9.16,
+    "se": 14.82
+   },
+   "survival_max_L": 5.05,
+   "sample_kelly_L": 1.4000000000000001,
+   "account_500": {
+    "1x": {
+     "final": 569.98,
+     "dead": null,
+     "maxdd_pct": 26.3
+    },
+    "2x": {
+     "final": 565.5,
+     "dead": null,
+     "maxdd_pct": 48.6
+    },
+    "3x": {
+     "final": 485.73,
+     "dead": null,
+     "maxdd_pct": 66.0
+    },
+    "5x": {
+     "final": 206.13,
+     "dead": null,
+     "maxdd_pct": 89.9
+    },
+    "10x": {
+     "final": 0.0,
+     "dead": "LIQUIDATED",
+     "at_trade": 107,
+     "maxdd_pct": 100.0
+    }
+   }
+  }
+ ]
+}
