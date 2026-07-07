@@ -1,0 +1,96 @@
+{
+ "purpose": "TVB-9 breadth pre-registration: per-symbol TV tick metadata (PRIMARY mintick source, approved 2026-07-07). Captured live via CDP symbolInfo().",
+ "captured_at": "2026-07-07T02:18:33.089Z",
+ "symbols": [
+  {
+   "coin": "xyz:MSTR",
+   "tv_symbol": "HIP3XYZ:MSTRUSDC.P",
+   "exchange": "Trade[XYZ] HIP-3 Hyperliquid",
+   "type": "swap",
+   "currency": "USDC",
+   "minmov": 1,
+   "pricescale": 1000,
+   "mintick": 0.001
+  },
+  {
+   "coin": "xyz:XYZ100",
+   "tv_symbol": "HIP3XYZ:XYZ100USDC.P",
+   "exchange": "Trade[XYZ] HIP-3 Hyperliquid",
+   "type": "swap",
+   "currency": "USDC",
+   "minmov": 1,
+   "pricescale": 100,
+   "mintick": 0.01
+  },
+  {
+   "coin": "xyz:SP500",
+   "tv_symbol": "HIP3XYZ:SP500USDC.P",
+   "exchange": "Trade[XYZ] HIP-3 Hyperliquid",
+   "type": "swap",
+   "currency": "USDC",
+   "minmov": 1,
+   "pricescale": 1000,
+   "mintick": 0.001
+  },
+  {
+   "coin": "BTC",
+   "tv_symbol": "HYPERLIQUID:BTCUSDC.P",
+   "exchange": "Hyperliquid",
+   "type": "swap",
+   "currency": "USDC",
+   "minmov": 1,
+   "pricescale": 10,
+   "mintick": 0.1
+  },
+  {
+   "coin": "xyz:MU",
+   "tv_symbol": "HIP3XYZ:MUUSDC.P",
+   "exchange": "Trade[XYZ] HIP-3 Hyperliquid",
+   "type": "swap",
+   "currency": "USDC",
+   "minmov": 1,
+   "pricescale": 1000,
+   "mintick": 0.001
+  },
+  {
+   "coin": "xyz:AMD",
+   "tv_symbol": "HIP3XYZ:AMDUSDC.P",
+   "exchange": "Trade[XYZ] HIP-3 Hyperliquid",
+   "type": "swap",
+   "currency": "USDC",
+   "minmov": 1,
+   "pricescale": 1000,
+   "mintick": 0.001
+  },
+  {
+   "coin": "xyz:NVDA",
+   "tv_symbol": "HIP3XYZ:NVDAUSDC.P",
+   "exchange": "Trade[XYZ] HIP-3 Hyperliquid",
+   "type": "swap",
+   "currency": "USDC",
+   "minmov": 1,
+   "pricescale": 1000,
+   "mintick": 0.001
+  },
+  {
+   "coin": "xyz:TSLA",
+   "tv_symbol": "HIP3XYZ:TSLAUSDC.P",
+   "exchange": "Trade[XYZ] HIP-3 Hyperliquid",
+   "type": "swap",
+   "currency": "USDC",
+   "minmov": 1,
+   "pricescale": 1000,
+   "mintick": 0.001
+  },
+  {
+   "coin": "xyz:CRCL",
+   "tv_symbol": "HIP3XYZ:CRCLUSDC.P",
+   "exchange": "Trade[XYZ] HIP-3 Hyperliquid",
+   "type": "swap",
+   "currency": "USDC",
+   "minmov": 1,
+   "pricescale": 1000,
+   "mintick": 0.001
+  }
+ ]
+}
