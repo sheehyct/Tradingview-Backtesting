@@ -36,6 +36,9 @@ default-groups = ["dev"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+    "network: requires live venue APIs (opt in with TFC_NETWORK=1)",
+]
 
 [tool.ruff]
 line-length = 100

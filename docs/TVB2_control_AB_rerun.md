@@ -1557,8 +1557,23 @@ tuned parameter.
 
 Per the plan POLICY, Python breadth numbers are now authorized BEHIND
 `tests/test_tfc_equivalence_gate.py` (any simulator change must keep 8/8
-green). NOT yet built: Phase 4 (data providers + UTC resampler + cache;
-HL/OKX live fetch) and Phase 5 (breadth runner + sweep CLI; optional VBT
+green).
+
+**Phase 4 (same session): resampler + providers VERIFIED.**
+`tfc/resample.py` (UTC roll, bars timestamped at period start exactly as TV
+stamps the partial listing day): 15m->60m reproduces TV's own 60m file
+5,102/5,103 rows exact OHLCV and 15m->1D 213/214 -- BOTH mismatches are the
+live last bar at capture time (pull-moment skew), not aggregation error.
+`tfc/providers.py` (HL candleSnapshot; OKX history-candles paginated,
+INTRADAY-ONLY guard because OKX HTF candles anchor UTC+8; meta records
+requested-vs-served windows so the HL ~5000-candle floor cannot masquerade as
+history): live HL fetch reproduces the committed tvb6 HL candles EXACTLY on
+their overlap; live OKX pagination sane (tests network-marked, opt-in
+TFC_NETWORK=1; default suite stays offline-deterministic).
+
+NOT yet built: Phase 5 (breadth runner + sweep CLI; optional VBT
 `from_orders` wrap behind the 5-step MCP workflow). The venue-bar caveat
 stands: breadth runs on provider bars are NOT the TV chart -- the xyz pilot
-(plan Phase 5) is the sanity anchor before any cross-symbol claim.
+(plan Phase 5) is the sanity anchor before any cross-symbol claim, and the
+breadth universe/window design is a decide-WITH-user step (a-priori sets,
+charter S5/S8), not an implementation detail.
