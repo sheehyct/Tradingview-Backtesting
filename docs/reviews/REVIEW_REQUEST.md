@@ -23,7 +23,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | {pending push -- pinned by the session-end follow-up commit} |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `b4bab2c^..db203aa` (9 commits; verified: 25 files) |
 
 No sibling-repo changes this session.
 

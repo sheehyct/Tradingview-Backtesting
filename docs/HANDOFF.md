@@ -109,7 +109,11 @@ Opus 4.8 takes over from TVB-9.
 > See docs/reviews/REVIEW_REQUEST.md (the pointer) and docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: {pending push -- pinned after session-end push}
+- Commits to review: `b4bab2c^..db203aa` on `main` (9 commits: TVB-7 fold-in +
+  gitignore guard + numpy cap + port Phases 0-1, 2-3, 4a, 4b + datasheet +
+  session-end; sanity-checked: `git diff --name-status` lists all 25 session
+  files). RANGE-PIN RULE applied: the caret keeps `b4bab2c` (the fold-in)
+  inside the reviewed diff.
 - Scope / what changed: VBT breadth port Phases 0-4 (tfc/ package, calibration,
   simulator, equivalence gate, resampler, providers); gate GREEN 8/8; pp
   cost-basis correction; Q_FLOOR_EPS adjudication; VBT Pro in-workspace install
