@@ -1671,3 +1671,76 @@ trade identity >= 99.2%.** Reading rules for the breadth pass:
    in thin stretches, TV omits them. Young listings will have MORE of
    these, so expect the early-window trade shift mechanism to be the
    dominant drift mode there.
+
+## TVB-9: breadth pre-registration (APPROVED by user 2026-07-07, BEFORE any run)
+
+**Deliverable (binding user directive):** a ROUGH MAP of what regime this
+system could be used in, if at all. NO keep/kill verdicts off young listings.
+Interpret per regime; expect a spread; flag surprises. All four decision
+points below were put to the user and approved as recommended.
+
+### Universe (a-priori: liquidity + listing depth; NEVER by backtest)
+
+Discovered from the live HL xyz-dex metaAndAssetCtxs (94 active listings) +
+per-symbol 1d listing-depth probes, all recorded 2026-07-07:
+
+| symbol | role / regime family | listed | effective 1h window |
+|---|---|---|---|
+| xyz:MSTR | anchor, crypto-adjacent (pilot-calibrated) | 2025-12-02 | ~Dec-10 floor |
+| xyz:XYZ100 | crypto index | 2025-10-13 | ~Dec-10 floor |
+| xyz:SP500 | equity index = LOW-VOL NULL | 2026-03-18 | Mar-18 (M seeds Apr-1, ~3mo) |
+| BTC (main dex) | dead control (TVB-5/7 record) | 2020-08-19 | ~Dec-10 floor |
+| xyz:MU | memory-cycle semi (top-4 liquidity) | 2025-12-19 | Dec-19 |
+| xyz:AMD | large-cap semi | 2025-12-04 | ~Dec-10 floor |
+| xyz:NVDA | mega-cap semi | 2025-11-12 | ~Dec-10 floor |
+| xyz:TSLA | mega-cap high-vol | 2025-11-13 | ~Dec-10 floor |
+| xyz:CRCL | crypto-adjacent equity (MSTR family) | 2025-12-15 | Dec-15 |
+
+DRAM SKIPPED (directive; listed 2026-05-04). SPCX/SMSN/SKHX/EWY excluded:
+<5 months listed (DRAM-class); SKHX/SMSN add a KRX-underlying oracle wrinkle.
+Commodities excluded (directive scope: equity perps).
+
+### Cells / costs / conventions
+
+- Configs: ctrlA (M/W/D/60), **E3only (240/120/60, reg off -- APPROVED add:
+  makes the containment expectation falsifiable, TVB-5 precedent)**, R1E3
+  (240/120/60 + M/W/D stand_aside), R1E3+gov2. Fees {0, 0.0125%/fill} x slip
+  {1, 10} per-symbol ticks = 16 runs/symbol, 144 total.
+- Bars: 60m from HL 1h candles, FRESH fetch via tfc.providers; floor_hit +
+  served-vs-requested window in every artifact; raw candles COMMITTED
+  (APPROVED, ~7MB: the sliding 5,000-candle cap makes pulls irreproducible
+  -- the TVB-6 lesson that enabled the pilot).
+- Mintick per symbol: TV symbolInfo() via CDP = PRIMARY (matches the
+  calibrated TV-convention simulator; APPROVED), cross-checked against the
+  observed HL price grid; disagreement -> flag, do not run that symbol until
+  adjudicated. Rationale: HL's 5-significant-digit price rule can make the
+  effective venue tick 100x the szDecimals-derived tick on high-priced
+  symbols (XYZ100 ~29,550).
+- Every artifact records slip_bp (slip as bp of median price): tick-based
+  slippage distorts cross-symbol cost comparisons (TVB-6 equalizer lesson).
+- Metrics from trades/equity directly (net%, trades, PF, win%, closed-chain
+  maxDD, open_at_end) + window buy&hold and realized vol as regime
+  descriptors.
+
+### Pre-registered expectations (written BEFORE runs)
+
+1. MSTR anchor: pilot numbers ARE the expectation (ctrlA ~+46.6 @0.0125 s1,
+   R1E3 ~+45.7, gov2 ~+44); deviation beyond the drift band flags a RUNNER
+   BUG, not a finding.
+2. BTC: dead everywhere -- negative at 0.0125 in all cells; gov2 must NOT
+   manufacture a sign flip (CV4 precedent).
+3. XYZ100: between BTC and MSTR; sign at 0.0125 genuinely uncertain -- that
+   IS the map, not a failure.
+4. SP500: the low-vol null -- the edge SHOULD fail (few/weak triggers,
+   fee-dominated); flat-to-negative at 0.0125; short-window caveat (Apr-1
+   regime seed) on every row.
+5. Semis (MU/AMD/NVDA): expect a SPREAD keyed to whether the window caught
+   the memory-cycle trend; sign-vs-trend-character correlation is the
+   deliverable.
+6. TSLA: chop-family prior -- fee-bleed unless the window trended.
+7. CRCL: directionally MSTR-like but weaker.
+8. Containment: R1E3 >= E3only at 0.0125 wherever E3only is negative; a
+   symbol where the regime layer WORSENS a negative E3only is a flagged
+   surprise.
+9. Drift-band rule (pilot, binding): |net| < 1.5pp (gov cells 2.5pp) is
+   sign-indeterminate at bar-source resolution -- flag, do not interpret.
