@@ -58,7 +58,14 @@ User-approved forks (AskUserQuestion, this session):
 - Bar files: `tvb6_tv_xyzMSTR_{15m,60m,1D}.json`, `bars=[[epochSec,o,h,l,c,v],...]`,
   epochSec = bar OPEN, UTC; 1D anchors 00:00 UTC. 15m: 19,778 bars to Jul-3 19:45Z.
 - Dump trade rows `{et,xt,ep,xp,dir,pp,pv,q,ddp,rnp,open}`: et/xt = FILL-bar open
-  times (ms). `pp = pv / equity_before_entry`.
+  times (ms). `pp = pv / (q * ep * (1 + comm_rate))` -- return on entry COST
+  BASIS including the entry commission, NOT return on equity [CORRECTED
+  2026-07-07 (TVB-8): the Phase-0 calibration proved the cost-basis formula to
+  <= 8.3e-9 across all 8 cells while equity-chained pp erred ~1.4e-4; the two
+  are indistinguishable at 100%-equity sizing EXCEPT on gap-through fills,
+  where fill price != qty basis. Consequence: product(1+pp) window compounding
+  (analysis/window_compound.py) is an approximation drifting ~5bp over 4,308
+  trades -- fine for window comparisons, but equity evolution must chain pv].
 - PnL: `pv = q*sign*(xp-ep) - comm_rate*q*(ep+xp)`; commission on each fill's
   notional at the SLIPPED price (worst reconstruction error 4.9e-5 from dumps).
 - **Qty convention (calibrated): `q = floor(equity / (basis*(1+comm_rate)) / step)*step`,
