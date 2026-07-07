@@ -73,6 +73,25 @@ flagged and proceeded).
    funding (linear in L) un-modeled and flagged.
 7. TVB-8 external review: still REQUESTED, no audit returned; proceeded per
    user decision (fold in whenever it lands).
+8. **ADDENDUM (post-session-end, user request): TFC Companion indicator**
+   (`pine/tfc_companion.pine`, Pine v6 `indicator()`): manual-trading port
+   of the baseline -- verbatim gate/guard/regime code, plus a position-state
+   machine replicating the strategy's fills/exits/governor with NO equity
+   model (valid because the trade sequence is fee-independent and the
+   governor arms on gross, TVB-7). Shows armed trigger, sim entry/exit
+   markers, ratchet levels, per-TF status table; alertcondition()s (entry
+   fills "Once Per Bar", close decisions "Once Per Bar Close"). Defaults =
+   R1E3 two-layer (user choice). strat-methodology skill invoked; TVB-1
+   close-vs-period-open reconciliation governs. Compiled CLEAN via MCP in a
+   NEW editor slot (slot verified blank before injection -- TVB-1 lesson;
+   the pv20 baseline strategy slot untouched; saved in TV as "TFC Companion
+   [TVB-9]"). Known port deltas vs the strategy, both deliberate: ratchet
+   captured from the armed stop_price (identical value, simpler plumbing);
+   fills use float high+mintick exactly like the Pine strategy (the Python
+   tick-space lesson does not apply -- this mirrors Pine, not the dumps).
+   NOTE: TV had been relaunched by the user WITHOUT CDP (chart NYMEX:MCL1!
+   5m, their manual layout) -- kill-first relaunch flow used; their chart
+   symbol/layout untouched; TV left RUNNING with CDP.
 
 ### Context for next session
 - PRIMARY: fold in returned Codex audits (tvb9 AND the still-pending tvb8),
