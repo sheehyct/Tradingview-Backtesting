@@ -189,8 +189,8 @@ def save_bars(bars: Bars, meta: dict, path: str | Path) -> None:
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     rows = [
-        [int(t), o, h, l, c, v]
-        for t, o, h, l, c, v in zip(
+        [int(t), op, hi, lo, cl, vol]
+        for t, op, hi, lo, cl, vol in zip(
             bars.ts, bars.open, bars.high, bars.low, bars.close, bars.volume
         )
     ]

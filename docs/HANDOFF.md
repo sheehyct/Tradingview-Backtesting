@@ -5,6 +5,132 @@
 
 ---
 
+## Session TVB-8: VBT breadth port Phases 0-4 -- THE EQUIVALENCE GATE IS GREEN (COMPLETE)
+
+**Date:** 2026-07-06/07
+**Status:** COMPLETE -- the port plan's Phases 0-4 built, verified, and pushed in
+one session; the Phase-3 trade-for-trade gate is GREEN on all 8 cells. Last
+Fable 5 session (judgment-heavy Pine-semantics port front-loaded per plan);
+Opus 4.8 takes over from TVB-9.
+
+### What was accomplished
+1. **Codex TVB-7 review folded in** (session start, 2026-07-05): the 1 LOW
+   verified real and fixed (`VBT_BREADTH_PORT_PLAN.md:20` net->GROSS wording);
+   verbatim audit committed; statuses flipped. All reviewer recomputations had
+   matched our record; nothing disputed. (This entry IS the critical synthesis:
+   AGREE on the LOW -- the fix mattered because the plan is implementation-
+   facing spec; the queued Pine comment correction stays attached to the next
+   Pine-touching deployment.)
+2. **VectorBT Pro v2026.6.27 installed IN THIS WORKSPACE** (user decision;
+   workspaces stay separate). Kept OUT of git entirely: install guide
+   (`vectorbt_pro_install.md`) gitignored -- remote is PUBLIC (verified via gh),
+   DMCA exposure; package in .venv only, NOT pyproject/uv.lock (public clones
+   still sync/test). numpy capped <2.5 + relock (numba import ceiling; `uv run`
+   resyncs lock pins every invocation). Port plan AMENDED: implementation runs
+   HERE; module home `tfc/`; fixture-copy step dropped (gate reads committed
+   `analysis/reference/` directly).
+3. **Codex-skill cross-workspace confusion DIAGNOSED + fix prompt delivered**
+   (user ran it): single global `~/.codex/skills/session-review/SKILL.md`
+   hardcodes this repo's absolute REVIEW_REQUEST path while vectorbt-workspace
+   uses a different contract (HANDOFF block + EQUITY-<N>_review.md, no
+   REVIEW_REQUEST.md) -> invoked there, it reviews the wrong repo. Prescribed
+   fix: workspace-RESOLVING skill (git rev-parse from cwd; REVIEW_REQUEST.md
+   else HANDOFF block; STOP if neither), delete the stale deprecated
+   `~/.codex/prompts/session-review.md`.
+4. **Phase 0-1 (calibration + periods).** Dump-driven calibration GREEN on all
+   8 cells: fill conventions EXACT on ~20,300 closed trades (intrabar stop
+   fill, gap-through at open -- 29% of 15m entries, exits next-open, adverse
+   slip both sides); qty rule exact minus 2-3 floor-boundary cases (plan risk 1
+   predicted 1-3). **CALIBRATED-FACT CORRECTION: dump `pp` =
+   pv/(q*ep*(1+comm)) -- return on entry COST BASIS incl. entry commission
+   (<= 8.3e-9 on all cells), NOT return on equity (~1.4e-4 err)** --
+   indistinguishable at 100% sizing except on gap-through fills; zero-fee cell
+   isolates the commission term. Corollary recorded: `window_compound.py`
+   product(1+pp) is a ~5bp/4,308-trade approximation (fine for the recorded
+   window COMPARISONS; equity must chain pv). `tfc/periods.py` pins the
+   valuewhen seed semantics by test (M Jan-1, W Monday Dec-8, D Dec-3;
+   change[0]=False). PREFIX RULE established: gov2 dumps carry live tail-drift
+   trades past the committed bar files (contiguous, asserted).
+5. **Phase 2-3 (simulator + THE GATE).** `tfc/simulator.py` = two-phase bar
+   loop in Pine execution order; all trigger/stop arithmetic in INTEGER TICK
+   SPACE (float high+mintick can exceed the true sum and miss fills TV takes).
+   **GATE GREEN, first run for 7/8 cells: all 8 reference cells PASS
+   trade-for-trade -- 20,429 closed trades, et/xt/dir exact, fills 2.8e-14,
+   pv at serialization floor, pp <= 5e-9, both open-position boundaries match;
+   ctrlB headline net to 1.3e-8; ~0.4s total.** One adjudication (plan risk
+   1's own fallback): ctrlB_0125_s10 trade 686 sits 6.4e-6 below an integer
+   qty boundary (TV's internal float path holds ~1e-6 USD more equity); a full
+   scan shows NO other trade within 2e-5 of a boundary across ~20,300, so
+   Q_FLOOR_EPS=1e-5 resolves it and provably cannot false-flip anything else.
+   Micro-behavior tests pin re-arm gap, gap-through basis, one-bar stop life,
+   equality-grey, governor block/win/reset. POLICY now enforced by
+   `tests/test_tfc_equivalence_gate.py`.
+6. **Phase 4 (resampler + providers, live-verified).** `tfc/resample.py`:
+   15m->60m reproduces TV's own 60m file 5,102/5,103 exact OHLCV, 15m->1D
+   213/214 -- both mismatches are the live LAST bar at capture time (pull
+   skew), not aggregation error; period-start stamping matches TV (partial
+   listing day stamps 00:00). `tfc/providers.py`: HL candleSnapshot + OKX
+   history-candles (paginated, INTRADAY-ONLY guard -- OKX HTF anchors UTC+8;
+   meta records served-vs-requested + floor_hit). LIVE: HL fetch reproduces
+   the committed tvb6 HL candles EXACTLY on overlap; OKX pagination sane.
+   Network tests opt-in via TFC_NETWORK=1; suite 70 passed + 2 skipped.
+7. **Breadth universe scoped with user (directives binding for TVB-9):**
+   probe: XYZ100 since 2025-10-13, SP500 since 2026-03-18, DRAM since
+   2026-05-04 (1h capped ~5,000; 15m ~52d). User: NO keep/kill verdicts off
+   young listings -- regime-mapping only; DRAM SKIPPED (too thin); widening to
+   other a-priori xyz equity perps welcome if runway allows.
+
+### Context for next session
+- PRIMARY: Phase 5 -- MSTR-on-HL-bars pilot FIRST (venue-bar drift calibration),
+  then pre-register (user approves) and run the regime-mapping breadth pass.
+  See .session_startup_prompt.md for the full directive block.
+- The gate is the contract: any simulator change must keep 8/8 green.
+- `uv sync` strips vectorbtpro; reinstall via the gitignored guide (cached).
+- No TV/chart work happened this session; resting state untouched from TVB-7.
+
+### Files created/modified
+- NEW `tfc/` package: `__init__.py`, `config.py` (f_guard port), `periods.py`,
+  `tv_reference.py` (loaders + 8-cell registry), `simulator.py`,
+  `equivalence.py`, `resample.py`, `providers.py`.
+- NEW `scripts/tfc_qty_calibration.py`, `scripts/tfc_gate_report.py`.
+- NEW tests: `test_tfc_periods.py`, `test_tfc_reference.py`,
+  `test_tfc_simulator.py`, `test_tfc_equivalence_gate.py`,
+  `test_tfc_resample.py`, `test_tfc_providers.py` (suite 25 -> 72).
+- MOD `docs/VBT_BREADTH_PORT_PLAN.md` (venue amendment; gross-arming LOW fix;
+  pp calibrated-fact correction), `docs/TVB2_control_AB_rerun.md` (TVB-8
+  section), `.gitignore` (VBT Pro DMCA guard), `pyproject.toml` (numpy <2.5,
+  network marker), `uv.lock`, `docs/HANDOFF.md`, `docs/reviews/REVIEW_REQUEST.md`,
+  NEW `docs/reviews/tvb7-codex-audit.md` (verbatim, committed).
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb8-codex-audit.md.
+> See docs/reviews/REVIEW_REQUEST.md (the pointer) and docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: {pending push -- pinned after session-end push}
+- Scope / what changed: VBT breadth port Phases 0-4 (tfc/ package, calibration,
+  simulator, equivalence gate, resampler, providers); gate GREEN 8/8; pp
+  cost-basis correction; Q_FLOOR_EPS adjudication; VBT Pro in-workspace install
+  with DMCA gitignore guard; Codex TVB-7 fold-in.
+- Focus areas (scrutinize these): (1) does the equivalence comparator PROVE
+  trade-for-trade equivalence, or do the tolerances/prefix rule leave an escape
+  hatch for systematic bias? (2) is Q_FLOOR_EPS=1e-5 an adjudicated float
+  artifact or a tuned parameter in disguise (knife-zone scan logic)? (3) the pp
+  cost-basis correction inference (zero-fee control) + the window_compound
+  approximation scoping; (4) simulator Pine-order fidelity vs
+  pine/baseline_continuity.pine (loss-arm before alignment reset; flat-only
+  arming; one-bar stop life; tick-space arithmetic); (5) providers: HL
+  floor_hit semantics, OKX UTC+8 guard, the 2-day overlap cross-check breadth;
+  (6) resampler last-bar mismatch explanation. Standing: request.security
+  lookahead (NO Pine changes this session), model fidelity, fee/turnover math,
+  sample-vs-structural reasoning (breadth pre-registration plan).
+- Reviewed by: pending
+- Findings: (blank until docs/reviews/tvb8-codex-audit.md exists)
+
+---
+
 ## Session TVB-7: governor cross-venue VERIFIED; VBT port plan APPROVED; cost realism closed; Codex fold-in -> gross-arming discovery (COMPLETE)
 
 **Date:** 2026-07-04
