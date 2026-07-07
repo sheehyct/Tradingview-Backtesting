@@ -1577,3 +1577,97 @@ stands: breadth runs on provider bars are NOT the TV chart -- the xyz pilot
 (plan Phase 5) is the sanity anchor before any cross-symbol claim, and the
 breadth universe/window design is a decide-WITH-user step (a-priori sets,
 charter S5/S8), not an implementation detail.
+
+---
+
+## TVB-9 (2026-07-07): Phase 5a -- venue-bar drift pilot (xyz MSTR: TV chart bars vs HL venue candles)
+
+Purpose (TVB-9 directive): calibrate the venue-bar drift band BEFORE any
+new-symbol HL-bar number is read, so a surprising breadth number decomposes
+into bar-source effect vs symbol effect. Instrument:
+`analysis/tfc_hl_pilot.py`; artifact:
+`analysis/reference/tvb9_hl_pilot_MSTR.json`.
+
+### Method
+
+- Same simulator, same configs, same time window, two bar sources:
+  TV chart bars (`tvb6_tv_xyzMSTR_60m.json`, the gate substrate) vs HL venue
+  candles (`tvb6_hl_xyzMSTR_1h.json`, raw candleSnapshot). The COMMITTED
+  TVB-6 HL pull is the HL source because HL's ~5,000-candle cap slides
+  daily: the 2026-07-03 capture reaches back to 2025-12-07 while a fresh
+  fetch today floors at 2025-12-10 (confirmed live: floor_hit=true). The
+  committed evidence is now irreproducible -- committing it in TVB-6 bought
+  the window.
+- Common window 2025-12-07T09:00Z -> 2026-07-03T18:00Z (TV 4,988 bars, HL
+  5,002), shared live-at-capture final bar (19:00Z) dropped. Identical
+  windows mean identical M/W/D period-open seeds inside each pair; trimmed
+  TV numbers therefore intentionally differ from the full-window gate
+  record. Gate anchor re-asserted before any pilot read: ctrlA_0125_s1 and
+  R1E3_0125_s1 PASS on the full window.
+- Live-fetch cross-check via `tfc.providers.fetch_hl` (the breadth-pass
+  instrument, end to end): 4,922 interior overlap bars, 0 mismatched.
+- Cells = the a-priori breadth grid, fixed from the record: {ctrlA M/W/D/60;
+  R1E3 240/120/60 + M/W/D stand_aside; R1E3+gov2} x fees {0, 0.0125%/fill}
+  x slip {1, 10} ticks; mintick 0.001 (committed tvb7_symbolinfo.json).
+
+### Bar agreement (context for the economics)
+
+4,860/4,988 shared bars exact OHLCV (97.43%) -- same band TVB-6 measured.
+All 14 HL-only bars are zero-volume flat placeholders (o=h=l=c, v=0) that TV
+omits, every one in the thin Dec-7..Jan-25 early-listing stretch; TV-only
+bars: 0. Worst close diff 0.50% sits on the FIRST day of the window (Dec-7
+14:00Z, thin listing; TVB-6 residual family).
+
+### Results (paired runs, identical window)
+
+| cell | fee | slip | TV net% (tr) | HL net% (tr) | drift pp |
+|---|---|---|---|---|---|
+| ctrlA | 0 | 1 | +65.62 (474) | +65.04 (474) | -0.58 |
+| ctrlA | 0 | 10 | +55.62 (474) | +55.08 (474) | -0.55 |
+| ctrlA | 0.0125 | 1 | +47.12 (474) | +46.61 (474) | -0.51 |
+| ctrlA | 0.0125 | 10 | +38.24 (474) | +37.76 (474) | -0.49 |
+| R1E3 | 0 | 1 | +61.92 (408) | +61.35 (408) | -0.57 |
+| R1E3 | 0 | 10 | +53.47 (408) | +52.93 (408) | -0.54 |
+| R1E3 | 0.0125 | 1 | +46.23 (408) | +45.72 (408) | -0.51 |
+| R1E3 | 0.0125 | 10 | +38.60 (408) | +38.11 (408) | -0.49 |
+| R1E3gov2 | 0 | 1 | +60.18 (392) | +58.89 (393) | -1.28 |
+| R1E3gov2 | 0 | 10 | +52.15 (392) | +50.91 (393) | -1.24 |
+| R1E3gov2 | 0.0125 | 1 | +45.23 (392) | +44.03 (393) | -1.20 |
+| R1E3gov2 | 0.0125 | 10 | +37.95 (392) | +36.79 (393) | -1.16 |
+
+### Mechanism (per-trade decomposition, R1E3 @0.0125 s1 representative)
+
+- Trade sequences are NEAR-IDENTICAL across sources: 472/474 (ctrlA),
+  406/408 (R1E3), 390/392-393 (gov2) trades match on entry time, exit time,
+  AND direction. Max fill diff on matched trades: 190 ticks entry / 97
+  ticks exit ($0.19/$0.10 on a ~$300 instrument), concentrated in the 2.6%
+  non-exact bars.
+- Only 10/406 matched trades differ in cost-basis return (|d_pp| > 1e-6) at
+  all -- and their SUM favors HL (+0.51 log-pp). The negative net drift is
+  driven by the 4 SUBSTITUTED trades: the Jan-1 entry shifts one bar
+  (09:00 TV vs 10:00 HL -- the 08:00Z zero-volume HL placeholder sits right
+  at that boundary) and HL picks up an extra Feb-1 loser (-1.06%).
+- gov2 drift is ~2.3x the non-gov cells with one EXTRA trade on HL bars:
+  the ratchet's path dependence amplifies a single divergent episode --
+  consistent with TVB-7's "governor magnitude is path-local".
+
+### The drift band (the deliverable)
+
+**Venue-bar drift on this ~7-month MSTR window: -0.5 to -1.3pp of net
+(~1-2% relative), from a handful of divergent bars, not a diffuse repricing;
+trade identity >= 99.2%.** Reading rules for the breadth pass:
+
+1. Treat HL-vs-TV-bar differences within ~+/-1.5pp per comparable window as
+   venue-bar noise (gov cells: ~+/-2.5pp). Do NOT interpret sub-band
+   differences on new symbols.
+2. The uniform negative sign here is ONE sample of twelve highly-correlated
+   cells (same trades) -- it is a band, not evidence of a systematic HL
+   penalty.
+3. Consequence for new symbols: a breadth cell whose |net| is inside the
+   band is SIGN-INDETERMINATE at bar-source resolution. On MSTR every pilot
+   cell clears the band by >25x; young thin listings may not -- flag those
+   rows instead of reading them.
+4. Placeholder asymmetry is structural: HL emits zero-volume flat candles
+   in thin stretches, TV omits them. Young listings will have MORE of
+   these, so expect the early-window trade shift mechanism to be the
+   dominant drift mode there.

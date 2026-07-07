@@ -1,0 +1,427 @@
+{
+ "purpose": "TVB-9 Phase 5a venue-bar drift pilot (TV chart bars vs HL venue candles)",
+ "generated_at": "2026-07-07T02:00:48+00:00",
+ "sources": {
+  "tv": "tvb6_tv_xyzMSTR_60m.json",
+  "hl": "tvb6_hl_xyzMSTR_1h.json",
+  "mintick": 0.001,
+  "coin": "xyz:MSTR"
+ },
+ "window": {
+  "start": "2025-12-07T09:00:00Z",
+  "end": "2026-07-03T18:00:00Z"
+ },
+ "gate_anchor": {
+  "ctrlA_0125_s1": true,
+  "R1E3_0125_s1": true
+ },
+ "bar_agreement": {
+  "common": 4988,
+  "exact_ohlcv": 4860,
+  "exact_pct": 97.43,
+  "worst_close_diff_ticks": 880.0,
+  "tv_only_bars": 0,
+  "hl_only_bars": 14
+ },
+ "live_crosscheck": {
+  "meta": {
+   "source": "hyperliquid_candleSnapshot",
+   "fetched_at": "2026-07-07T02:00:48+00:00",
+   "requested_start_ms": 1765098000000,
+   "requested_end_ms": 1783389647220,
+   "served_start_ms": 1765386000000,
+   "served_end_ms": 1783389600000,
+   "served_count": 5002,
+   "floor_hit": true
+  },
+  "overlap_bars": 4922,
+  "mismatched_bars": 0,
+  "mismatched_ts": []
+ },
+ "runs": [
+  {
+   "cell": "ctrlA",
+   "fee_rate": 0.0,
+   "slip_ticks": 1,
+   "tv": {
+    "net_pct": 65.6212,
+    "trades": 474,
+    "pf": 1.2991,
+    "win_pct": 38.82,
+    "maxdd_closed_pct": 17.89,
+    "open_at_end": true
+   },
+   "hl": {
+    "net_pct": 65.0419,
+    "trades": 474,
+    "pf": 1.297,
+    "win_pct": 38.82,
+    "maxdd_closed_pct": 17.68,
+    "open_at_end": true
+   },
+   "delta_net_pp": -0.5793,
+   "delta_trades": 0,
+   "alignment": {
+    "matched_et": 472,
+    "same_et_xt_dir": 472,
+    "tv_only_trades": 2,
+    "hl_only_trades": 2,
+    "max_ep_diff_ticks": 190.0,
+    "max_xp_diff_ticks": 97.0,
+    "first_divergence": "2026-01-01T09:00:00Z"
+   }
+  },
+  {
+   "cell": "ctrlA",
+   "fee_rate": 0.0,
+   "slip_ticks": 10,
+   "tv": {
+    "net_pct": 55.624,
+    "trades": 474,
+    "pf": 1.2565,
+    "win_pct": 37.55,
+    "maxdd_closed_pct": 18.7,
+    "open_at_end": true
+   },
+   "hl": {
+    "net_pct": 55.0779,
+    "trades": 474,
+    "pf": 1.2545,
+    "win_pct": 37.55,
+    "maxdd_closed_pct": 18.49,
+    "open_at_end": true
+   },
+   "delta_net_pp": -0.5461,
+   "delta_trades": 0,
+   "alignment": {
+    "matched_et": 472,
+    "same_et_xt_dir": 472,
+    "tv_only_trades": 2,
+    "hl_only_trades": 2,
+    "max_ep_diff_ticks": 190.0,
+    "max_xp_diff_ticks": 97.0,
+    "first_divergence": "2026-01-01T09:00:00Z"
+   }
+  },
+  {
+   "cell": "ctrlA",
+   "fee_rate": 0.000125,
+   "slip_ticks": 1,
+   "tv": {
+    "net_pct": 47.1224,
+    "trades": 474,
+    "pf": 1.2203,
+    "win_pct": 36.71,
+    "maxdd_closed_pct": 19.33,
+    "open_at_end": true
+   },
+   "hl": {
+    "net_pct": 46.6075,
+    "trades": 474,
+    "pf": 1.2183,
+    "win_pct": 36.71,
+    "maxdd_closed_pct": 19.13,
+    "open_at_end": true
+   },
+   "delta_net_pp": -0.5149,
+   "delta_trades": 0,
+   "alignment": {
+    "matched_et": 472,
+    "same_et_xt_dir": 472,
+    "tv_only_trades": 2,
+    "hl_only_trades": 2,
+    "max_ep_diff_ticks": 190.0,
+    "max_xp_diff_ticks": 97.0,
+    "first_divergence": "2026-01-01T09:00:00Z"
+   }
+  },
+  {
+   "cell": "ctrlA",
+   "fee_rate": 0.000125,
+   "slip_ticks": 10,
+   "tv": {
+    "net_pct": 38.2409,
+    "trades": 474,
+    "pf": 1.1808,
+    "win_pct": 36.08,
+    "maxdd_closed_pct": 20.13,
+    "open_at_end": true
+   },
+   "hl": {
+    "net_pct": 37.7555,
+    "trades": 474,
+    "pf": 1.1788,
+    "win_pct": 36.08,
+    "maxdd_closed_pct": 19.93,
+    "open_at_end": true
+   },
+   "delta_net_pp": -0.4854,
+   "delta_trades": 0,
+   "alignment": {
+    "matched_et": 472,
+    "same_et_xt_dir": 472,
+    "tv_only_trades": 2,
+    "hl_only_trades": 2,
+    "max_ep_diff_ticks": 190.0,
+    "max_xp_diff_ticks": 97.0,
+    "first_divergence": "2026-01-01T09:00:00Z"
+   }
+  },
+  {
+   "cell": "R1E3",
+   "fee_rate": 0.0,
+   "slip_ticks": 1,
+   "tv": {
+    "net_pct": 61.9179,
+    "trades": 408,
+    "pf": 1.3166,
+    "win_pct": 38.97,
+    "maxdd_closed_pct": 18.36,
+    "open_at_end": true
+   },
+   "hl": {
+    "net_pct": 61.3516,
+    "trades": 408,
+    "pf": 1.3142,
+    "win_pct": 38.97,
+    "maxdd_closed_pct": 18.15,
+    "open_at_end": true
+   },
+   "delta_net_pp": -0.5663,
+   "delta_trades": 0,
+   "alignment": {
+    "matched_et": 406,
+    "same_et_xt_dir": 406,
+    "tv_only_trades": 2,
+    "hl_only_trades": 2,
+    "max_ep_diff_ticks": 190.0,
+    "max_xp_diff_ticks": 97.0,
+    "first_divergence": "2026-01-01T09:00:00Z"
+   }
+  },
+  {
+   "cell": "R1E3",
+   "fee_rate": 0.0,
+   "slip_ticks": 10,
+   "tv": {
+    "net_pct": 53.4684,
+    "trades": 408,
+    "pf": 1.2755,
+    "win_pct": 37.75,
+    "maxdd_closed_pct": 19.06,
+    "open_at_end": true
+   },
+   "hl": {
+    "net_pct": 52.9298,
+    "trades": 408,
+    "pf": 1.2732,
+    "win_pct": 37.75,
+    "maxdd_closed_pct": 18.85,
+    "open_at_end": true
+   },
+   "delta_net_pp": -0.5386,
+   "delta_trades": 0,
+   "alignment": {
+    "matched_et": 406,
+    "same_et_xt_dir": 406,
+    "tv_only_trades": 2,
+    "hl_only_trades": 2,
+    "max_ep_diff_ticks": 190.0,
+    "max_xp_diff_ticks": 97.0,
+    "first_divergence": "2026-01-01T09:00:00Z"
+   }
+  },
+  {
+   "cell": "R1E3",
+   "fee_rate": 0.000125,
+   "slip_ticks": 1,
+   "tv": {
+    "net_pct": 46.2271,
+    "trades": 408,
+    "pf": 1.2404,
+    "win_pct": 37.25,
+    "maxdd_closed_pct": 19.61,
+    "open_at_end": true
+   },
+   "hl": {
+    "net_pct": 45.7153,
+    "trades": 408,
+    "pf": 1.2382,
+    "win_pct": 37.25,
+    "maxdd_closed_pct": 19.41,
+    "open_at_end": true
+   },
+   "delta_net_pp": -0.5118,
+   "delta_trades": 0,
+   "alignment": {
+    "matched_et": 406,
+    "same_et_xt_dir": 406,
+    "tv_only_trades": 2,
+    "hl_only_trades": 2,
+    "max_ep_diff_ticks": 190.0,
+    "max_xp_diff_ticks": 97.0,
+    "first_divergence": "2026-01-01T09:00:00Z"
+   }
+  },
+  {
+   "cell": "R1E3",
+   "fee_rate": 0.000125,
+   "slip_ticks": 10,
+   "tv": {
+    "net_pct": 38.5954,
+    "trades": 408,
+    "pf": 1.2022,
+    "win_pct": 36.52,
+    "maxdd_closed_pct": 20.3,
+    "open_at_end": true
+   },
+   "hl": {
+    "net_pct": 38.1086,
+    "trades": 408,
+    "pf": 1.2,
+    "win_pct": 36.52,
+    "maxdd_closed_pct": 20.1,
+    "open_at_end": true
+   },
+   "delta_net_pp": -0.4868,
+   "delta_trades": 0,
+   "alignment": {
+    "matched_et": 406,
+    "same_et_xt_dir": 406,
+    "tv_only_trades": 2,
+    "hl_only_trades": 2,
+    "max_ep_diff_ticks": 190.0,
+    "max_xp_diff_ticks": 97.0,
+    "first_divergence": "2026-01-01T09:00:00Z"
+   }
+  },
+  {
+   "cell": "R1E3gov2",
+   "fee_rate": 0.0,
+   "slip_ticks": 1,
+   "tv": {
+    "net_pct": 60.1751,
+    "trades": 392,
+    "pf": 1.3232,
+    "win_pct": 38.52,
+    "maxdd_closed_pct": 16.64,
+    "open_at_end": true
+   },
+   "hl": {
+    "net_pct": 58.8932,
+    "trades": 393,
+    "pf": 1.3166,
+    "win_pct": 38.42,
+    "maxdd_closed_pct": 16.43,
+    "open_at_end": true
+   },
+   "delta_net_pp": -1.2819,
+   "delta_trades": 1,
+   "alignment": {
+    "matched_et": 390,
+    "same_et_xt_dir": 390,
+    "tv_only_trades": 2,
+    "hl_only_trades": 3,
+    "max_ep_diff_ticks": 190.0,
+    "max_xp_diff_ticks": 97.0,
+    "first_divergence": "2026-01-01T09:00:00Z"
+   }
+  },
+  {
+   "cell": "R1E3gov2",
+   "fee_rate": 0.0,
+   "slip_ticks": 10,
+   "tv": {
+    "net_pct": 52.1458,
+    "trades": 392,
+    "pf": 1.2818,
+    "win_pct": 37.24,
+    "maxdd_closed_pct": 17.32,
+    "open_at_end": true
+   },
+   "hl": {
+    "net_pct": 50.9075,
+    "trades": 393,
+    "pf": 1.2754,
+    "win_pct": 37.15,
+    "maxdd_closed_pct": 17.11,
+    "open_at_end": true
+   },
+   "delta_net_pp": -1.2383,
+   "delta_trades": 1,
+   "alignment": {
+    "matched_et": 390,
+    "same_et_xt_dir": 390,
+    "tv_only_trades": 2,
+    "hl_only_trades": 3,
+    "max_ep_diff_ticks": 190.0,
+    "max_xp_diff_ticks": 97.0,
+    "first_divergence": "2026-01-01T09:00:00Z"
+   }
+  },
+  {
+   "cell": "R1E3gov2",
+   "fee_rate": 0.000125,
+   "slip_ticks": 1,
+   "tv": {
+    "net_pct": 45.2327,
+    "trades": 392,
+    "pf": 1.2464,
+    "win_pct": 36.73,
+    "maxdd_closed_pct": 17.86,
+    "open_at_end": true
+   },
+   "hl": {
+    "net_pct": 44.0337,
+    "trades": 393,
+    "pf": 1.2401,
+    "win_pct": 36.64,
+    "maxdd_closed_pct": 17.66,
+    "open_at_end": true
+   },
+   "delta_net_pp": -1.199,
+   "delta_trades": 1,
+   "alignment": {
+    "matched_et": 390,
+    "same_et_xt_dir": 390,
+    "tv_only_trades": 2,
+    "hl_only_trades": 3,
+    "max_ep_diff_ticks": 190.0,
+    "max_xp_diff_ticks": 97.0,
+    "first_divergence": "2026-01-01T09:00:00Z"
+   }
+  },
+  {
+   "cell": "R1E3gov2",
+   "fee_rate": 0.000125,
+   "slip_ticks": 10,
+   "tv": {
+    "net_pct": 37.9514,
+    "trades": 392,
+    "pf": 1.2079,
+    "win_pct": 35.97,
+    "maxdd_closed_pct": 18.53,
+    "open_at_end": true
+   },
+   "hl": {
+    "net_pct": 36.7942,
+    "trades": 393,
+    "pf": 1.2018,
+    "win_pct": 35.88,
+    "maxdd_closed_pct": 18.33,
+    "open_at_end": true
+   },
+   "delta_net_pp": -1.1572,
+   "delta_trades": 1,
+   "alignment": {
+    "matched_et": 390,
+    "same_et_xt_dir": 390,
+    "tv_only_trades": 2,
+    "hl_only_trades": 3,
+    "max_ep_diff_ticks": 190.0,
+    "max_xp_diff_ticks": 97.0,
+    "first_divergence": "2026-01-01T09:00:00Z"
+   }
+  }
+ ]
+}
