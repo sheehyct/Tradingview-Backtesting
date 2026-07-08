@@ -2306,3 +2306,23 @@ window end (MU ctrlA flip closed +136.7 vs mtm +176.8; BTC ctrlA flip
   does exit symmetry interact with bar-size give-back?);
   (c) entry-on-flip-event arming (still out of scope, untouched).
 - CLUSDC.P confirmation deferred per DP4 (own mini pre-reg when taken).
+
+### Companion v3 deployed (same day -- user standing rule: sync indicators on finish)
+
+`pine/tfc_companion.pine` v3 adds the `exit_mode` input (state default |
+flip) mirroring TFCConfig.exit_mode, mode-switched marker colors
+(flip = aqua/purple entries, yellow exit cross) and a table-position
+input, so TWO instances run side-by-side on one chart for live
+observation of the regime-shape mechanism (user request: watch whether
+state actually wins chop in person, or whether another flip-line-like
+artifact drives it). Deployed via MCP as NEW TV script **"TFC Companion
+[TVB-10]"** (compile clean, 0 errors); both TVB-9 v2 library copies left
+untouched (existing chart instances + alerts keep v2 semantics until the
+user switches; recreate alerts on the v3 instances). HOUSEKEEPING FLAG:
+the TV library has a script NAMED "Price Level Alerts (Interval Bands)"
+whose SOURCE is companion v2 (title "TFC Companion [TVB-9]", v7.0) --
+a pre-existing overwrite from the TVB-9 addendum flow; the original
+Price Level Alerts source appears lost (user to adjudicate; not touched
+this session). pv20 strategy anchor untouched (slot never opened); the
+user's personal chart layout (NASDAQ:HOOD 5m at launch) untouched; TV
+left RUNNING with CDP 9222.
