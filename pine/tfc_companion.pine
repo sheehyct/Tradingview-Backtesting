@@ -1,105 +1,145 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © sheehyct
+
 //@version=6
 // =====================================================================================
-// TFC Companion [TVB-10]                   v3 -- exit_mode (state | flip) ablation watch
+// TFC Companion [TVB-10]                    v4 -- signal UX + exit-mode ablation watch
+// -------------------------------------------------------------------------------------
+// QUICK START (if you did not build this) ---------------------------------------------
+//   1) Chart TF must evenly tile the Strategy TF (default 60m -> chart on 5/15/30/60
+//      all work; 45m does not). A wrong combination throws a loud error ON PURPOSE --
+//      fix the chart TF, not the script.
+//   2) Bar tint = EXECUTION gate: green = every enabled exec TF is UP vs its current
+//      period open (close basis), red = all DOWN, grey = mixed/flat/warmup.
+//      Background tint = REGIME layer (default M/W/D), same coloring.
+//   3) Signal boxes:
+//        BUY STOP / SELL STOP = a breakout ENTRY stop just armed for this Strategy-TF
+//                           bar (a pending order above/below price -- NOT a stop-loss)
+//                           (dots + price tag mark the level -- this is the resting
+//                           order you would place to mirror the strategy).
+//        LONG / SHORT     = that stop filled; simulated position is now open.
+//        EXIT L / EXIT S  = the exit condition was met at a Strategy-TF close; the
+//                           strategy exits at the next Strategy-TF open (where the
+//                           box sits). WHICH condition depends on Exit mode (item 4).
+//   4) Exit mode (TVB-10 ablation): 'state' (default) exits on the FIRST Strategy-TF
+//      close where the exec gate is no longer fully aligned with the position.
+//      'flip' exits ONLY when the gate reaches full OPPOSITE alignment -- it holds
+//      through grey, at TFO-flip cadence. To watch both live, add this indicator
+//      TWICE: leave one on state, set the other to flip, then give the flip
+//      instance different box colors (Colors group) and another Table position so
+//      the overlays stay readable. Backtest read (TVB-10): flip rides bursts,
+//      state harvests swings; neither is universally better -- that question is
+//      exactly what the side-by-side watch is for.
+//   5) Alerts: for the quietest, highest-conviction feed create ONLY
+//      "A+ long armed" and "A+ short armed" (trigger: Once Per Bar). They fire when
+//      a stop arms WHILE the regime layer is also fully aligned -- regime layer and
+//      strategy layer agreeing is the top of this system's confidence ladder.
+//      Every other alert below is optional granularity. Alert names are shared
+//      between instances -- include the mode (state/flip) in the alert NAME you
+//      type when creating it.
+//   6) Nothing decision-level repaints: the machine samples committed bars at
+//      Strategy-TF closes. Live bar/background tint flickers by design (close basis,
+//      reversible tick to tick) -- the state machine itself does not.
 // -------------------------------------------------------------------------------------
 // Purpose : MANUAL-TRADING companion to pine/baseline_continuity.pine (pv20 anchor).
 //           Shows, live on any chart, exactly what the backtested strategy sees and
 //           does: the FTFC exec gate, the regime permits, the armed one-bar breakout
 //           trigger, simulated fills/exits, and the governor ratchet levels.
-//           NO new detection logic -- the gate/trigger/stop/governor semantics are
-//           copied from the deployed strategy (TVB-1 charter reconciliation: FTFC =
-//           close vs each enabled TF's CURRENT period open).
-// v2      : the strategy logic runs at its OWN timeframe (the 'Strategy TF' input,
-//           default 60 = the R1E3 chart TF) while the chart can be any FINER tiling
-//           TF (e.g. 5m). Decisions (gate read, state-stop, arming, governor) commit
-//           only at Strategy-TF closes, sampled from committed chart bars -- the
-//           state machine NEVER repaints or flickers. Fills are checked on every
-//           chart bar, so entries appear the moment price trades through the stop
-//           (earlier visibility, identical state: a logic bar's high is the max of
-//           its chart bars' highs). With chart TF == Strategy TF this is state-
-//           identical to v1. NO request.security anywhere: with lookahead_off the
-//           HTF value is stale on historical bars (the TVB-3 bug) and the machine's
-//           CURRENT state depends on the whole history -- local reconstruction keeps
-//           backtest == live by construction.
+//           NO new detection logic -- gate/trigger/stop/governor semantics are copied
+//           from the deployed strategy (TVB-1 charter reconciliation: FTFC = close vs
+//           each enabled TF's CURRENT period open).
+// v4      : exit_mode input (TVB-10 pre-registered ablation; = TFCConfig.exit_mode
+//           in the Python engine). 'state' is behavior-identical to v3; 'flip'
+//           changes ONLY the Phase-B exit test and the provisional warning. Exit
+//           boxes and alerts are shared by both modes (mode-agnostic wording); the
+//           status table names the active mode.
+// v3      : UX release. State machine byte-identical to v2 except two PURE additions:
+//           (a) exit-direction capture feeding the EXIT L / EXIT S boxes and split
+//           exit alerts; (b) A+ tagging of setups armed under full regime alignment
+//           (committed, [1]-sampled -- feeds the A+ alerts and the table grade row).
+//           Adds: six signal boxes, tooltips on every input, color + table
+//           customization, A+ confluence alerts, FTFC level lines OFF by default.
+// v2      : strategy logic runs at its OWN timeframe ('Strategy TF', default 60 =
+//           the R1E3 chart TF) while the chart can be any FINER tiling TF. Decisions
+//           (gate read, state-stop, arming, governor) commit only at Strategy-TF
+//           closes, sampled from committed chart bars. Fills are checked on every
+//           chart bar. NO request.security anywhere: with lookahead_off the HTF
+//           value is stale on historical bars (the TVB-3 bug) -- local
+//           reconstruction keeps backtest == live by construction.
 // Fills   : mirror the strategy's bar model (dump-verified in the tfc/ Python port):
 //           exits fill at the logic bar's open; the breakout stop fills at the stop,
-//           or at the logic OPEN when the logic bar opens through. An intra-logic-bar
-//           gap between chart bars still fills AT the stop -- that is what the
-//           Strategy Tester assumes on the logic bar; fidelity is to the backtest.
-// Fidelity: the trade SEQUENCE is fee-independent and the governor arms on GROSS
-//           profit (TVB-7), so no equity model is needed. slip_ticks (default 1)
-//           mirrors the deployed staging only to preserve governor win/loss
-//           semantics on scratch trades.
-// Alerts  : alertcondition() only (charter S4). Entry fills + exit fills + armed:
-//           create with "Once Per Bar" (they are committed, not provisional). The
-//           'gate against position' warning is PROVISIONAL until the Strategy-TF
-//           close: create with "Once Per Bar Close".
-// Warmup  : a gate TF is neutral (grey) until its first period boundary inside
-//           loaded history; the first (possibly partial) logic bar matches TV's own
-//           partial-period aggregation.
-// v3      : exit_mode input mirrors the TVB-10 pre-registered ablation
-//           (TFCConfig.exit_mode in the Python engine): 'state' (default,
-//           v2-identical) exits when the exec gate loses FULL alignment at the
-//           Strategy-TF close; 'flip' exits ONLY on full OPPOSITE alignment and
-//           holds through grey. Intended use: TWO instances of this indicator on
-//           one chart (one per mode) for live side-by-side observation of the
-//           regime-shape mechanism (TVB-10 finding: flip rides bursts, state
-//           harvests swings). A 'flip' instance auto-switches marker colors
-//           (aqua/purple entries, yellow exit cross) and should be given a
-//           different Table position. Alert names are shared between instances
-//           (Pine constants) -- include the mode in the alert NAME when creating.
-// Defaults: R1E3 two-layer (Strategy TF 60; exec 240/120/60 + regime M/W/D
-//           stand_aside), governor OFF. The guard fails LOUDLY on misalignment:
-//           chart TF must tile the Strategy TF; the Strategy TF must tile every
-//           enabled gate TF.
+//           or at the logic OPEN when the logic bar opens through.
+// Fidelity: the trade SEQUENCE is fee-independent EXCEPT via the governor, which
+//           classifies win/loss GROSS here (TVB-7) vs net-of-fees in the strategy.
+//           With gov ON + real commission, near-scratch trades can classify
+//           differently and diverge the ratchet state. slip_ticks (default 1)
+//           mirrors deployed slippage so scratch exits book as losses in both.
+// Alerts  : alertcondition() only (charter S4). Fill / exit / armed alerts: create
+//           with "Once Per Bar" (committed events, never repaint). 'Exit condition
+//           live': create with "Once Per Bar Close" (provisional until the
+//           Strategy-TF close).
 // =====================================================================================
 
 indicator('TFC Companion [TVB-10]', overlay = true)
 
 // ----------------------------------- Inputs -----------------------------------
 var string g_dir = 'Direction'
-allow_long  = input.bool(true, 'Allow Long',  group = g_dir)
-allow_short = input.bool(true, 'Allow Short', group = g_dir)
+allow_long  = input.bool(true, 'Allow Long',  group = g_dir, tooltip = 'Master switch for long setups. Off = the machine never arms buy stops; shorts are unaffected. Use to mirror a one-sided run of the strategy or to mute the side you will not take.')
+allow_short = input.bool(true, 'Allow Short', group = g_dir, tooltip = 'Master switch for short setups. Off = the machine never arms sell stops; longs are unaffected.')
 
 var string g_exit = 'Exit rule (TVB-10 ablation -- run two instances to compare live)'
-exit_mode = input.string('state', 'Exit mode', options = ['state', 'flip'], group = g_exit, tooltip = 'state: exit when the exec gate loses full alignment at the Strategy-TF close (baseline). flip: exit only on full OPPOSITE alignment; holds through grey (TFO-like cadence).')
+exit_mode = input.string('state', 'Exit mode', options = ['state', 'flip'], group = g_exit, tooltip = 'How the simulated position exits. state (default, the deployed baseline): exit at the first Strategy-TF close where the exec gate is no longer FULLY aligned with the position -- grey is enough to exit; this harvests trends in slices and churns hardest in long clean regimes. flip: exit ONLY when the exec gate reaches full OPPOSITE alignment -- the position holds through grey and exits at TFO-flip cadence; this rides regimes whole but gives back more inside them and holds with NO stop while grey (deeper adverse excursions -- the TVB-10 backtest measured median MAE 7-8x larger on slow gates). Neither mode is universally better: in the TVB-10 sweep flip dominated burst trends (MU) and state dominated swingy trends (MSTR) -- symbol by symbol, by regime shape. To compare live, run TWO instances of this indicator (one per mode) and give the flip instance different box colors and Table position. Entries, the regime layer, the governor and the A+ grade are identical in both modes.')
 
 var string g_tf = 'Strategy TF + execution gate TFs (FTFC set)'
-logic_tf = input.timeframe('60', 'Strategy TF (decisions commit at this TF)', group = g_tf)
+logic_tf = input.timeframe('60', 'Strategy TF (decisions commit at this TF)', group = g_tf, tooltip = 'The clock the strategy thinks on. Gate reads, exits, governor updates and stop arming all commit at THIS timeframe closes, exactly like the backtest -- the chart TF only changes how early you SEE fills, never the decisions. The chart TF must be equal to or finer than this and tile it evenly (5/15/30/60 tile 60m; 45m does not -- misalignment errors out loudly). Default 60 = the deployed R1E3 configuration. Changing this changes the SYSTEM being mirrored, not just the display: keep it matched to whichever backtest config you run.')
 y1  = input.bool(true,  '', inline = '1', group = g_tf)
-tf1 = input.timeframe('240', 'TF 1', inline = '1', group = g_tf)
+tf1 = input.timeframe('240', 'TF 1', inline = '1', group = g_tf, tooltip = 'Execution-gate timeframe. The gate is FULL timeframe continuity: chart close vs the CURRENT period open of EVERY enabled TF in this group, unanimous. All up = green (longs can arm), all down = red (shorts can arm), anything mixed/flat/warmup = grey (nothing arms; what happens to OPEN positions in grey depends on Exit mode). Each enabled TF must be >= the Strategy TF and an even multiple of it. Tested presets -- R1E3 (default): 240/120/60 with Strategy TF 60; Control A: M/W/D/60 on 60m; Control B: 60/30/15 on 15m. More or higher TFs = stricter gate = fewer, longer-held trades; fewer or lower TFs = more signals and more chop. NOTE (TVB-10): the exit-mode contrast is largest on SLOW sets like M/W/D/60 (flip cadence ~15x lower than state) and small on fast sets like 240/120/60 (~1.4x) -- the set speed sets the flip cadence. Anything outside the tested presets is unvalidated -- treat results as exploratory.')
 y2  = input.bool(true,  '', inline = '2', group = g_tf)
-tf2 = input.timeframe('120', 'TF 2', inline = '2', group = g_tf)
+tf2 = input.timeframe('120', 'TF 2', inline = '2', group = g_tf, tooltip = 'Second execution-gate TF. See TF 1 tooltip for how the gate works and which TF sets were actually backtested.')
 y3  = input.bool(true,  '', inline = '3', group = g_tf)
-tf3 = input.timeframe('60', 'TF 3', inline = '3', group = g_tf)
+tf3 = input.timeframe('60', 'TF 3', inline = '3', group = g_tf, tooltip = 'Third execution-gate TF. Note the default set includes the Strategy TF itself (60): the trading timeframe own bias counts toward continuity. See TF 1 tooltip.')
 y4  = input.bool(false, '', inline = '4', group = g_tf)
-tf4 = input.timeframe('M',  'TF 4', inline = '4', group = g_tf)
+tf4 = input.timeframe('M',  'TF 4', inline = '4', group = g_tf, tooltip = 'Optional extra gate TF (off by default -- M/W/D belong to the REGIME layer in the deployed config; enabling them here instead reproduces Control A). See TF 1 tooltip.')
 y5  = input.bool(false, '', inline = '5', group = g_tf)
-tf5 = input.timeframe('W',  'TF 5', inline = '5', group = g_tf)
+tf5 = input.timeframe('W',  'TF 5', inline = '5', group = g_tf, tooltip = 'Optional extra gate TF. See TF 1 tooltip.')
 y6  = input.bool(false, '', inline = '6', group = g_tf)
-tf6 = input.timeframe('D',  'TF 6', inline = '6', group = g_tf)
+tf6 = input.timeframe('D',  'TF 6', inline = '6', group = g_tf, tooltip = 'Optional extra gate TF. See TF 1 tooltip.')
 
 var string g_reg = 'Regime layer (charter 3.3) -- M/W/D a-priori, do not tune'
-reg_mode = input.string('stand_aside', 'Regime mode', options = ['off', 'stand_aside', 'size_down'], group = g_reg)
+reg_mode = input.string('stand_aside', 'Regime mode', options = ['off', 'stand_aside', 'size_down'], group = g_reg, tooltip = 'Higher-timeframe permission layer sitting ON TOP of the exec gate. off = exec gate only (the raw control). stand_aside = a setup arms ONLY when every enabled regime TF aligns WITH the trade direction; grey (mixed/flat) blocks both sides -- this is the deployed R1E3 default and the strictest filter. size_down = the strategy trades grey periods at reduced size; an indicator cannot display sizing, so size_down here simply permits both directions during grey (signals match the strategy, position size does not exist). Exits are never regime-gated in any mode or Exit mode. The regime state also defines the A+ alert grade regardless of mode.')
 rg1  = input.bool(true, '', inline = 'r1', group = g_reg)
-rtf1 = input.timeframe('M', 'Regime TF 1', inline = 'r1', group = g_reg)
+rtf1 = input.timeframe('M', 'Regime TF 1', inline = 'r1', group = g_reg, tooltip = 'Regime timeframe. M/W/D were fixed A-PRIORI in the charter -- deliberately never tuned, so the filter cannot be overfit to the backtest window. Change them only if you accept you are leaving the validated configuration. Warmup note: a regime TF reads grey until its first period boundary loads in chart history (a monthly TF on short history can block stand_aside entries for the first partial month).')
 rg2  = input.bool(true, '', inline = 'r2', group = g_reg)
-rtf2 = input.timeframe('W', 'Regime TF 2', inline = 'r2', group = g_reg)
+rtf2 = input.timeframe('W', 'Regime TF 2', inline = 'r2', group = g_reg, tooltip = 'Regime timeframe. See Regime TF 1 tooltip.')
 rg3  = input.bool(true, '', inline = 'r3', group = g_reg)
-rtf3 = input.timeframe('D', 'Regime TF 3', inline = 'r3', group = g_reg)
+rtf3 = input.timeframe('D', 'Regime TF 3', inline = 'r3', group = g_reg, tooltip = 'Regime timeframe. See Regime TF 1 tooltip.')
 
 var string g_gov = 'Re-entry governor (TVB-6, charter S8) -- zero-parameter ratchet'
-gov_mode   = input.string('off', 'Governor mode', options = ['off', 'ratchet'], group = g_gov)
-slip_ticks = input.int(1, 'Slippage ticks (governor gross fidelity only)', minval = 0, group = g_gov)
+gov_mode   = input.string('off', 'Governor mode', options = ['off', 'ratchet'], group = g_gov, tooltip = 'Re-entry throttle after a losing trade. ratchet = after a loss, same-direction entries re-arm ONLY at a trigger STRICTLY beyond the failed trade trigger (longs need a higher high than the failed level, shorts a lower low) -- one level, one chance, until price proves a new extreme. Resets on a winning same-direction exit or when the exec gate reaches FULL OPPOSITE alignment (the episode that set the level has ended). Zero tuned parameters. When to try it: instruments that repeatedly fake the same breakout level and chop you on re-entries. Default off = the pure control. Caveats: this display classifies win/loss GROSS of fees; the live strategy uses net-of-fees, so with real commission a tiny gross winner can be a net loser and the ratchet states can diverge on near-scratch trades. Under Exit mode = flip the governor is structurally inert (the reset event IS the exit event -- TVB-10 verified).')
+slip_ticks = input.int(1, 'Slippage ticks (governor gross fidelity only)', minval = 0, group = g_gov, tooltip = 'Slippage in ticks applied to simulated fill prices, mirroring the strategy slippage=1 property. Its only behavioral role is governor win/loss classification: with slippage on, a scratch exit (out exactly at the trigger) books as a small gross loss and correctly ratchets, matching the strategy. Keep equal to the strategy slippage setting. 0 = fills shown exactly at trigger / open, and scratches count as wins -- only use 0 if the strategy also runs 0.')
 
 var string g_viz = 'Display'
-show_state   = input.bool(true, 'Color bars by gate state (live, chart-close basis)', group = g_viz)
-show_levels  = input.bool(true, 'Plot FTFC floor/ceiling (period opens)', group = g_viz)
-show_trigger = input.bool(true, 'Plot armed trigger level', group = g_viz)
-show_marks   = input.bool(true, 'Plot simulated entry/exit markers', group = g_viz)
-show_ratchet = input.bool(true, 'Plot governor ratchet levels', group = g_viz)
-show_table   = input.bool(true, 'Show status table', group = g_viz)
-table_pos    = input.string('top_right', 'Table position (set differently per instance)', options = ['top_right', 'middle_right', 'bottom_right', 'top_left', 'middle_left', 'bottom_left'], group = g_viz)
+show_boxes   = input.bool(true,  'Signal boxes (entries / exits / armed stops)', group = g_viz, tooltip = 'The six signal boxes. BUY STOP / SELL STOP = a breakout ENTRY order armed for the current Strategy-TF bar -- a pending stop order resting above (long) or below (short) the market, NOT a stop-loss. If price never reaches it within that Strategy-TF bar it expires and nothing fills, so a BUY STOP with no LONG after it means the setup armed but never triggered. LONG / SHORT = that stop filled. EXIT L / EXIT S = the exit filled at the Strategy-TF open after the active Exit mode condition was met at a close (in this system that exit IS the stop -- there is no separate stop-loss; in flip mode there is NO exit at all while the gate is merely grey). Box text is a plain const string -- edit the plotshape lines at the bottom of the script if you want different wording.')
+show_state   = input.bool(true,  'Color bars by gate state (live, close basis)', group = g_viz, tooltip = 'Tints every bar by the LIVE exec-gate state: green all-up, red all-down, grey mixed. This is close-basis and reversible tick to tick on the developing bar by design -- decisions only commit at Strategy-TF closes. TIP: when running two instances (state + flip), leave this ON in only ONE of them -- the gate is identical, so both would paint the same tint twice.')
+show_reg_bg  = input.bool(true,  'Regime background tint', group = g_viz, tooltip = 'Faint background tint for the regime layer (green aligned up, red aligned down, grey mixed). Off = regime state still visible in the table. Same two-instance tip as bar coloring: keep it on in one instance only.')
+show_levels  = input.bool(false, 'FTFC floor/ceiling lines (period opens)', group = g_viz, tooltip = 'Steplines at the highest (green) and lowest (red) enabled exec-period opens: close above the green line = full alignment up, below the red = full alignment down. Informative but busy -- OFF by default; the bar tint carries the same state. Turn on when you want the exact flip prices on screen. Lines vanish while any enabled TF is still in warmup.')
+show_trigger = input.bool(true,  'Armed trigger dots + live price tag', group = g_viz, tooltip = 'Orange dots at the working breakout-stop level while one is armed, plus a live price tag at the right edge. This is the resting order you would place to mirror the strategy. The dots exist only while a stop is armed (max one Strategy-TF bar), so they stay quiet.')
+show_entryln = input.bool(false, 'Entry fill line while in position', group = g_viz, tooltip = 'Thin line at the simulated entry fill price while the position is open. Off by default for a clean chart; the entry price also lives in the table.')
+show_ratchet = input.bool(false, 'Governor ratchet levels', group = g_viz, tooltip = 'Lines at the active governor ratchet levels (the failed triggers that same-direction re-entries must strictly exceed). Only meaningful with Governor mode = ratchet; off by default.')
+
+var string g_tbl = 'Status table'
+show_table = input.bool(true, 'Show status table', group = g_tbl, tooltip = 'Per-TF gate states, exec + regime summary, simulated position, working stop, setup grade and ratchet levels -- the whole machine state at a glance. Row 1 names the active Exit mode so two instances are always tellable apart.')
+tbl_pos_s  = input.string('Top Right', 'Position', options = ['Top Left', 'Top Center', 'Top Right', 'Middle Left', 'Middle Right', 'Bottom Left', 'Bottom Center', 'Bottom Right'], group = g_tbl, tooltip = 'Where the table sits. Bottom Left pairs well with mobile. Give each of two instances a different corner.')
+tbl_size_s = input.string('Small', 'Text size', options = ['Tiny', 'Small', 'Normal'], group = g_tbl, tooltip = 'Table text size. Tiny helps on phone screens.')
+
+var string g_col = 'Colors'
+col_up    = input.color(color.green,  'Gate up',   inline = 'c1', group = g_col, tooltip = 'Bar/background/level colors for aligned-up, aligned-down and grey states.')
+col_dn    = input.color(color.red,    'down',      inline = 'c1', group = g_col)
+col_gy    = input.color(color.gray,   'grey',      inline = 'c1', group = g_col)
+col_long  = input.color(color.green,  'LONG box',  inline = 'c2', group = g_col, tooltip = 'Colors for the entry, exit and armed-stop signal boxes. Two-instance tip: on the flip instance switch these (e.g. LONG aqua, SHORT purple, EXIT yellow) so the two overlays never blur together.')
+col_short = input.color(color.red,    'SHORT box', inline = 'c2', group = g_col)
+col_exit  = input.color(color.gray,   'EXIT box',  inline = 'c3', group = g_col)
+col_stop  = input.color(color.orange, 'STOP box',  inline = 'c3', group = g_col)
 
 // ------------- Guard: chart tiles Strategy TF; Strategy TF tiles every gate TF -------------
 // Same day-boundary tiling logic as the strategy's f_guard; misconfigured charts fail
@@ -201,9 +241,9 @@ short_permit = reg_mode == 'off' ? true : reg_mode == 'stand_aside' ? reg_dn : r
 // the machine runs, in strategy order:
 //   Phase B for the JUST-COMPLETED logic bar (decided at its close, sampled from the
 //   previous chart bar's committed values -- [1] -- so nothing here ever repaints):
-//     1) state-stop decision  2) governor alignment reset  3) arm the one-logic-bar
-//     breakout stop (flat only, long priority; trigger = completed logic high/low
-//     +/- tick).
+//     1) exit decision (per Exit mode)  2) governor alignment reset  3) arm the
+//     one-logic-bar breakout stop (flat only, long priority; trigger = completed
+//     logic high/low +/- tick).
 //   Phase A at the new logic bar's open: a pending exit fills at THIS chart bar's
 //   open (win clears the ratchet, loss/scratch ratchets at the failed TRIGGER --
 //   arming and exit are mutually exclusive at one boundary, so stop_price still
@@ -222,11 +262,16 @@ var float ratchet_long  = na
 var float ratchet_short = na
 var float l_high        = na     // developing logic bar extremes
 var float l_low         = na
+var bool  armed_aplus   = false  // v3: current/last setup armed under FULL regime alignment (committed)
+var bool  pos_aplus     = false  // v3: open position's grade at entry (table display only)
 
-bool fill_long  = false
-bool fill_short = false
-bool exit_fill  = false
-bool just_armed = false
+bool fill_long       = false
+bool fill_short      = false
+bool exit_fill       = false
+bool exit_long_fill  = false     // v3: exit split by closed-position direction
+bool exit_short_fill = false
+bool just_armed      = false
+float exit_px        = na        // v3: exit fill price this bar (feeds alert placeholder)
 
 if new_logic
     // completed logic bar N (running vars still hold period-N values)
@@ -237,9 +282,12 @@ if new_logic
     dn_c = ftfc_dn[1]
     lp_c = long_permit[1]
     sp_c = short_permit[1]
+    ru_c = reg_up[1]             // v3: committed regime state for A+ grading
+    rd_c = reg_dn[1]
     // ---- Phase B for logic bar N (pre-fill state) ----
-    // exit_mode 'state': first loss of full alignment. 'flip' (TVB-10): only
-    // full OPPOSITE alignment; holds through grey. Mirrors tfc/simulator.py.
+    // v4 exit test. 'state': first loss of full alignment (grey exits). 'flip'
+    // (TVB-10): only full OPPOSITE alignment exits; holds through grey. Mirrors
+    // tfc/simulator.py exactly.
     if exit_mode == 'flip'
         if pos > 0 and dn_c
             pending_exit := true
@@ -255,6 +303,7 @@ if new_logic
     if up_c
         ratchet_short := na
     armed := 0  // the one-logic-bar stop expires unfilled
+    armed_aplus := false
     gov = gov_mode == 'ratchet'
     gl_ok = not gov or na(ratchet_long)  or lb_high + syminfo.mintick > ratchet_long
     gs_ok = not gov or na(ratchet_short) or lb_low - syminfo.mintick < ratchet_short
@@ -263,20 +312,26 @@ if new_logic
             armed := 1
             stop_price := lb_high + syminfo.mintick
             just_armed := true
+            armed_aplus := ru_c
         else if allow_short and dn_c and sp_c and gs_ok
             armed := -1
             stop_price := lb_low - syminfo.mintick
             just_armed := true
+            armed_aplus := rd_c
     // ---- Phase A: pending exit fills at the new logic bar's open (= this open) ----
     if pending_exit and pos != 0
         xp = pos > 0 ? open - slip : open + slip
         gross_win = pos > 0 ? xp > ep : xp < ep
         if pos > 0
             ratchet_long := gross_win ? na : stop_price
+            exit_long_fill := true
         else
             ratchet_short := gross_win ? na : stop_price
+            exit_short_fill := true
+        exit_px := xp
         exit_fill := true
         pos := 0
+        pos_aplus := false
         pending_exit := false
     // reset running extremes for the new logic bar
     l_high := high
@@ -298,6 +353,7 @@ if armed > 0 and pos == 0
         fill_long := true
     if fill_long
         pos := 1
+        pos_aplus := armed_aplus
         armed := 0
 else if armed < 0 and pos == 0
     if new_logic and open < stop_price
@@ -308,76 +364,127 @@ else if armed < 0 and pos == 0
         fill_short := true
     if fill_short
         pos := -1
+        pos_aplus := armed_aplus
         armed := 0
 
-// live (provisional) warning: the EXIT CONDITION for the current mode is true on
-// this chart bar; commits only at the Strategy-TF close
+// live (provisional) warning: the ACTIVE exit condition is true on this chart bar;
+// commits only at the Strategy-TF close
 gate_against_pos = exit_mode == 'flip' ? (pos > 0 and ftfc_dn) or (pos < 0 and ftfc_up) : (pos > 0 and not ftfc_up) or (pos < 0 and not ftfc_dn)
 
 // ----------------------------------- Visualization -----------------------------------
-state_col = ftfc_up ? color.new(color.green, 55) : ftfc_dn ? color.new(color.red, 55) : color.new(color.gray, 70)
+state_col = ftfc_up ? color.new(col_up, 55) : ftfc_dn ? color.new(col_dn, 55) : color.new(col_gy, 70)
 barcolor(show_state ? state_col : na)
-reg_col = reg_mode == 'off' ? na : reg_up ? color.new(color.green, 92) : reg_dn ? color.new(color.red, 92) : color.new(color.gray, 92)
-bgcolor(reg_col)
+reg_col = reg_mode == 'off' ? na : reg_up ? color.new(col_up, 92) : reg_dn ? color.new(col_dn, 92) : color.new(col_gy, 92)
+bgcolor(show_reg_bg ? reg_col : na)
 
-plot(show_levels ? hi_open : na, 'FTFC up floor (max open)',   color = color.new(color.green, 40), style = plot.style_stepline)
-plot(show_levels ? lo_open : na, 'FTFC dn ceiling (min open)', color = color.new(color.red, 40),   style = plot.style_stepline)
+// Level plots keep their SERIES alive even when hidden (color na) so the data window
+// and the {{plot("...")}} alert placeholders below always resolve.
+plot(hi_open, 'FTFC up floor (max open)',   color = show_levels ? color.new(col_up, 40) : na, style = plot.style_stepline)
+plot(lo_open, 'FTFC dn ceiling (min open)', color = show_levels ? color.new(col_dn, 40) : na, style = plot.style_stepline)
 
-plot(show_trigger and armed != 0 ? stop_price : na, 'Armed trigger (this logic bar)', color = color.new(color.orange, 0), style = plot.style_circles, linewidth = 2)
-plot(show_trigger and pos != 0 ? ep : na, 'Entry fill', color = color.new(color.blue, 30), style = plot.style_linebr)
+plot(armed != 0 ? stop_price : na, 'Armed trigger', color = show_trigger ? color.new(col_stop, 0) : color.new(col_stop, 100), style = plot.style_circles, linewidth = 2)
+plot(pos != 0 ? ep : na,           'Entry fill',    color = show_entryln ? color.new(color.blue, 30) : color.new(color.blue, 100), style = plot.style_linebr)
+plot(exit_px,                      'Exit fill',     color = color.new(col_gy, 100), style = plot.style_circles)  // invisible; feeds the exit-alert price placeholder
 
-// flip-mode instances auto-switch marker colors so two overlaid instances stay readable
-col_long  = exit_mode == 'flip' ? color.new(color.aqua, 0)   : color.new(color.green, 0)
-col_short = exit_mode == 'flip' ? color.new(color.purple, 0) : color.new(color.red, 0)
-col_exit  = exit_mode == 'flip' ? color.new(color.yellow, 0) : color.new(color.gray, 0)
-plotshape(show_marks and fill_long,  'Sim long entry',  shape.triangleup,   location.belowbar, col_long,  size = size.small)
-plotshape(show_marks and fill_short, 'Sim short entry', shape.triangledown, location.abovebar, col_short, size = size.small)
-plotshape(show_marks and exit_fill,  'Sim exit (fill @ logic open)', shape.xcross, location.abovebar, col_exit, size = size.tiny)
+// v3 signal boxes -- text is const by Pine's rules; edit the strings here if you
+// prefer different wording (e.g. 'EXIT LONG' instead of 'EXIT L').
+plotshape(show_boxes and fill_long,       'LONG box',   style = shape.labelup,   location = location.belowbar, color = col_long,  text = 'LONG',   textcolor = color.white, size = size.tiny)
+plotshape(show_boxes and fill_short,      'SHORT box',  style = shape.labeldown, location = location.abovebar, color = col_short, text = 'SHORT',  textcolor = color.white, size = size.tiny)
+plotshape(show_boxes and exit_long_fill,  'EXIT L box', style = shape.labeldown, location = location.abovebar, color = col_exit,  text = 'EXIT L', textcolor = color.white, size = size.tiny)
+plotshape(show_boxes and exit_short_fill, 'EXIT S box', style = shape.labelup,   location = location.belowbar, color = col_exit,  text = 'EXIT S', textcolor = color.white, size = size.tiny)
+plotshape(show_boxes and just_armed and armed > 0, 'BUY STOP box',  style = shape.labeldown, location = location.abovebar, color = col_stop, text = 'BUY\nSTOP',  textcolor = color.white, size = size.tiny)
+plotshape(show_boxes and just_armed and armed < 0, 'SELL STOP box', style = shape.labelup,   location = location.belowbar, color = col_stop, text = 'SELL\nSTOP', textcolor = color.white, size = size.tiny)
 
 plot(show_ratchet and gov_mode == 'ratchet' ? ratchet_long : na,  'Governor ratchet (long)',  color = color.new(color.teal, 20),   style = plot.style_linebr)
 plot(show_ratchet and gov_mode == 'ratchet' ? ratchet_short : na, 'Governor ratchet (short)', color = color.new(color.maroon, 20), style = plot.style_linebr)
 
+// Live price tag at the working stop (recycled label; hidden when nothing is armed)
+var label arm_lbl = label.new(na, na, '', style = label.style_label_left, size = size.small, color = color.new(color.black, 100), textcolor = color.new(color.white, 100))
+if show_trigger and armed != 0
+    label.set_xy(arm_lbl, bar_index + 1, stop_price)
+    label.set_text(arm_lbl, (armed > 0 ? 'buy stop ' : 'sell stop ') + str.tostring(stop_price, format.mintick))
+    label.set_color(arm_lbl, color.new(col_stop, 15))
+    label.set_textcolor(arm_lbl, color.white)
+else
+    label.set_text(arm_lbl, '')
+    label.set_color(arm_lbl, color.new(col_stop, 100))
+    label.set_textcolor(arm_lbl, color.new(color.white, 100))
+
 // ----------------------------------- Status table -----------------------------------
+f_tbl_pos(simple string p) =>
+    switch p
+        'Top Left'      => position.top_left
+        'Top Center'    => position.top_center
+        'Top Right'     => position.top_right
+        'Middle Left'   => position.middle_left
+        'Middle Right'  => position.middle_right
+        'Bottom Left'   => position.bottom_left
+        'Bottom Center' => position.bottom_center
+        => position.bottom_right
+
+f_tbl_size(simple string s) =>
+    switch s
+        'Tiny'   => size.tiny
+        'Normal' => size.normal
+        => size.small
+
+tbl_txt = f_tbl_size(tbl_size_s)
+
 f_tf_state(simple bool en, float op) =>
     not en ? '--' : na(op) ? 'warmup' : close > op ? 'UP' : close < op ? 'DOWN' : 'flat'
 
-f_tpos(simple string s) =>
-    s == 'top_right' ? position.top_right : s == 'middle_right' ? position.middle_right : s == 'bottom_right' ? position.bottom_right : s == 'top_left' ? position.top_left : s == 'middle_left' ? position.middle_left : position.bottom_left
-
-var table t = table.new(f_tpos(table_pos), 2, 13, bgcolor = color.new(color.black, 20), border_width = 1, border_color = color.new(color.gray, 60))
+var table t = table.new(f_tbl_pos(tbl_pos_s), 2, 14, bgcolor = color.new(color.black, 20), border_width = 1, border_color = color.new(color.gray, 60))
 f_cell(int r, string k, string v, color c) =>
-    table.cell(t, 0, r, k, text_color = color.white, text_size = size.small, text_halign = text.align_left)
-    table.cell(t, 1, r, v, text_color = c, text_size = size.small)
+    table.cell(t, 0, r, k, text_color = color.white, text_size = tbl_txt, text_halign = text.align_left)
+    table.cell(t, 1, r, v, text_color = c, text_size = tbl_txt)
 
 if show_table and barstate.islast
-    exec_txt = ftfc_up ? 'ALIGNED UP' : ftfc_dn ? 'ALIGNED DOWN' : 'GREY'
-    exec_c   = ftfc_up ? color.lime : ftfc_dn ? color.red : color.gray
-    reg_txt  = reg_mode == 'off' ? 'off' : reg_up ? 'UP' : reg_dn ? 'DOWN' : 'GREY'
-    reg_c    = reg_mode == 'off' ? color.gray : reg_up ? color.lime : reg_dn ? color.red : color.gray
-    pos_txt  = pos > 0 ? 'LONG @ ' + str.tostring(ep, format.mintick) : pos < 0 ? 'SHORT @ ' + str.tostring(ep, format.mintick) : 'FLAT'
-    pos_txt := pos != 0 and gate_against_pos ? pos_txt + ' (gate against, prov.)' : pos_txt
-    pos_c    = pos > 0 ? color.lime : pos < 0 ? color.red : color.silver
-    arm_txt  = armed > 0 ? 'LONG stop ' + str.tostring(stop_price, format.mintick) : armed < 0 ? 'SHORT stop ' + str.tostring(stop_price, format.mintick) : '--'
-    f_cell(0, 'TFC Companion v3', exit_mode + ' exit / close-basis', exit_mode == 'flip' ? color.aqua : color.silver)
-    f_cell(1, 'Strategy TF', logic_tf, color.orange)
-    f_cell(2, 'TF1 ' + tf1, f_tf_state(y1, o1), color.white)
-    f_cell(3, 'TF2 ' + tf2, f_tf_state(y2, o2), color.white)
-    f_cell(4, 'TF3 ' + tf3, f_tf_state(y3, o3), color.white)
-    f_cell(5, 'TF4 ' + tf4, f_tf_state(y4, o4), color.white)
-    f_cell(6, 'TF5 ' + tf5, f_tf_state(y5, o5), color.white)
-    f_cell(7, 'TF6 ' + tf6, f_tf_state(y6, o6), color.white)
-    f_cell(8, 'EXEC gate (live)', exec_txt, exec_c)
-    f_cell(9, 'Regime (' + reg_mode + ')', reg_txt, reg_c)
+    exec_txt  = ftfc_up ? 'ALIGNED UP' : ftfc_dn ? 'ALIGNED DOWN' : 'GREY'
+    exec_c    = ftfc_up ? color.lime : ftfc_dn ? color.red : color.gray
+    reg_txt   = reg_mode == 'off' ? 'off' : reg_up ? 'UP' : reg_dn ? 'DOWN' : 'GREY'
+    reg_c     = reg_mode == 'off' ? color.gray : reg_up ? color.lime : reg_dn ? color.red : color.gray
+    pos_txt   = pos > 0 ? 'LONG @ ' + str.tostring(ep, format.mintick) : pos < 0 ? 'SHORT @ ' + str.tostring(ep, format.mintick) : 'FLAT'
+    pos_txt  := pos != 0 and gate_against_pos ? pos_txt + ' (exit cond., prov.)' : pos_txt
+    pos_c     = pos > 0 ? color.lime : pos < 0 ? color.red : color.silver
+    arm_txt   = armed > 0 ? 'buy stop ' + str.tostring(stop_price, format.mintick) : armed < 0 ? 'sell stop ' + str.tostring(stop_price, format.mintick) : '--'
+    grade_txt = armed != 0 ? (armed_aplus ? 'A+ (regime aligned)' : 'standard') : pos != 0 ? (pos_aplus ? 'A+ (at entry)' : 'standard') : '--'
+    grade_c   = (armed != 0 and armed_aplus) or (pos != 0 and pos_aplus) ? color.lime : color.silver
+    f_cell(0,  'TFC Companion v4', exit_mode + ' exit / close-basis', exit_mode == 'flip' ? color.aqua : color.silver)
+    f_cell(1,  'Strategy TF', logic_tf, color.orange)
+    f_cell(2,  'TF1 ' + tf1, f_tf_state(y1, o1), color.white)
+    f_cell(3,  'TF2 ' + tf2, f_tf_state(y2, o2), color.white)
+    f_cell(4,  'TF3 ' + tf3, f_tf_state(y3, o3), color.white)
+    f_cell(5,  'TF4 ' + tf4, f_tf_state(y4, o4), color.white)
+    f_cell(6,  'TF5 ' + tf5, f_tf_state(y5, o5), color.white)
+    f_cell(7,  'TF6 ' + tf6, f_tf_state(y6, o6), color.white)
+    f_cell(8,  'EXEC gate (live)', exec_txt, exec_c)
+    f_cell(9,  'Regime (' + reg_mode + ')', reg_txt, reg_c)
     f_cell(10, 'Position', pos_txt, pos_c)
-    f_cell(11, 'Working stop', arm_txt, color.orange)
-    f_cell(12, 'Ratchet L/S', (na(ratchet_long) ? '--' : str.tostring(ratchet_long, format.mintick)) + ' / ' + (na(ratchet_short) ? '--' : str.tostring(ratchet_short, format.mintick)), color.teal)
+    f_cell(11, 'Armed entry stop', arm_txt, color.orange)
+    f_cell(12, 'Setup grade', grade_txt, grade_c)
+    f_cell(13, 'Ratchet L/S', (na(ratchet_long) ? '--' : str.tostring(ratchet_long, format.mintick)) + ' / ' + (na(ratchet_short) ? '--' : str.tostring(ratchet_short, format.mintick)), color.teal)
 
 // ----------------------------------- Alerts -----------------------------------
+// RECOMMENDED QUIET SETUP: create only the two A+ armed alerts (Once Per Bar).
+// A+ = the breakout stop armed while the regime layer was ALSO fully aligned at the
+// committed Strategy-TF close -- exec layer and regime layer agreeing is this
+// system's top confidence grade. If you prefer to hear only about actual entries,
+// create the two A+ fill alerts instead. Note: A+ uses the regime MEASUREMENT, so
+// it works even with Regime mode = off (but not if all regime TFs are unchecked).
+// TWO-INSTANCE NOTE: alert names below are shared by both instances (Pine consts);
+// when creating an alert, type the mode (state/flip) into the alert NAME field.
+//
 // Committed events -- create with "Once Per Bar" (they fire the moment they happen
 // and never repaint):
-alertcondition(fill_long,  'TFC long entry fill',  'TFC Companion: LONG entry filled (strategy enters here)')
-alertcondition(fill_short, 'TFC short entry fill', 'TFC Companion: SHORT entry filled (strategy enters here)')
-alertcondition(exit_fill,  'TFC exit fill',        'TFC Companion: exit condition met at the Strategy-TF close -- strategy exited at this open')
-alertcondition(just_armed, 'TFC trigger armed',    'TFC Companion: breakout stop armed for this Strategy-TF bar')
+alertcondition(just_armed and armed > 0 and armed_aplus, 'A+ long armed',  'TFC A+ {{ticker}} {{interval}}: exec + regime aligned UP -- buy stop armed at {{plot("Armed trigger")}} for this Strategy-TF bar')
+alertcondition(just_armed and armed < 0 and armed_aplus, 'A+ short armed', 'TFC A+ {{ticker}} {{interval}}: exec + regime aligned DOWN -- sell stop armed at {{plot("Armed trigger")}} for this Strategy-TF bar')
+alertcondition(fill_long and armed_aplus,  'A+ long entry fill',  'TFC A+ {{ticker}} {{interval}}: LONG filled at ~{{plot("Entry fill")}} with regime aligned')
+alertcondition(fill_short and armed_aplus, 'A+ short entry fill', 'TFC A+ {{ticker}} {{interval}}: SHORT filled at ~{{plot("Entry fill")}} with regime aligned')
+alertcondition(just_armed and armed > 0, 'Buy stop armed (any grade)',  'TFC {{ticker}} {{interval}}: buy stop armed at {{plot("Armed trigger")}} for this Strategy-TF bar')
+alertcondition(just_armed and armed < 0, 'Sell stop armed (any grade)', 'TFC {{ticker}} {{interval}}: sell stop armed at {{plot("Armed trigger")}} for this Strategy-TF bar')
+alertcondition(fill_long,       'Long entry fill (any grade)',  'TFC {{ticker}} {{interval}}: LONG filled at ~{{plot("Entry fill")}}')
+alertcondition(fill_short,      'Short entry fill (any grade)', 'TFC {{ticker}} {{interval}}: SHORT filled at ~{{plot("Entry fill")}}')
+alertcondition(exit_long_fill,  'Exit long',  'TFC {{ticker}} {{interval}}: EXIT LONG at ~{{plot("Exit fill")}} -- exit condition met at the prior Strategy-TF close')
+alertcondition(exit_short_fill, 'Exit short', 'TFC {{ticker}} {{interval}}: EXIT SHORT at ~{{plot("Exit fill")}} -- exit condition met at the prior Strategy-TF close')
 // Provisional (commits only at the Strategy-TF close) -- create with "Once Per Bar Close":
-alertcondition(gate_against_pos, 'TFC exit condition live (provisional)', 'TFC Companion: the active exit condition is currently true -- exit fires if it holds to the Strategy-TF close')
+alertcondition(gate_against_pos, 'Exit condition live (provisional)', 'TFC {{ticker}} {{interval}}: the active exit condition is currently true -- exit fires if it holds to the Strategy-TF close')

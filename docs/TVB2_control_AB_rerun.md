@@ -2326,3 +2326,14 @@ Price Level Alerts source appears lost (user to adjudicate; not touched
 this session). pv20 strategy anchor untouched (slot never opened); the
 user's personal chart layout (NASDAQ:HOOD 5m at launch) untouched; TV
 left RUNNING with CDP 9222.
+
+**v4 (same day, superseding v3 in the same TV script):** the user's
+Claude-Desktop UX rework of the companion (quick-start header, tooltips
+on every input, six signal boxes, color/table customization, A+
+regime-confluence grading + alert set) merged with the exit_mode toggle;
+deployed in place to "TFC Companion [TVB-10]" (script version 2.0,
+compile clean, 0 errors). STANDING STYLE RULE (user directive): all
+future indicator scripts follow this UX style; `pine/tfc_companion.pine`
+v4 is the template. Exit boxes/alerts are mode-agnostic in wording; the
+status table row 0 names the active mode; two-instance guidance lives in
+the quick-start (mode colors set per instance via the Colors inputs).
