@@ -84,6 +84,7 @@ def simulate(bars: Bars, cfg: TFCConfig) -> SimResult:
     trig_long_filled: int | None = None
     trig_short_filled: int | None = None
     gov = cfg.gov_mode == "ratchet"
+    flip_exit = cfg.exit_mode == "flip"
     closed: list[dict] = []
 
     for i in range(len(bars)):
@@ -143,11 +144,19 @@ def simulate(bars: Bars, cfg: TFCConfig) -> SimResult:
         armed = 0  # the stop lives exactly one bar
 
         # ---------------- Phase B: script logic at close[i] (Pine order) ----------------
-        # 1) state-stop exits (fill next bar open)
-        if pos > 0 and not up[i]:
-            pending_exit = True
-        if pos < 0 and not dn[i]:
-            pending_exit = True
+        # 1) exits (fill next bar open). exit_mode='state': first loss of full
+        #    alignment. exit_mode='flip' (TVB-10 ablation): only full OPPOSITE
+        #    alignment exits; positions hold through grey.
+        if flip_exit:
+            if pos > 0 and dn[i]:
+                pending_exit = True
+            if pos < 0 and up[i]:
+                pending_exit = True
+        else:
+            if pos > 0 and not up[i]:
+                pending_exit = True
+            if pos < 0 and not dn[i]:
+                pending_exit = True
 
         # 2) governor bookkeeping (runs regardless of gov_mode, as in the Pine;
         #    gov_mode only gates the entry check)

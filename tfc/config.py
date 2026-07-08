@@ -26,6 +26,7 @@ class TFCConfig:
     reg_mode: str = "off"  # 'off' | 'stand_aside'
     reg_tfs: tuple[str, ...] = ("M", "W", "D")
     gov_mode: str = "off"  # 'off' | 'ratchet'
+    exit_mode: str = "state"  # 'state' (first loss of alignment) | 'flip' (opposite alignment)
     comm_rate: float = 0.0  # fraction of fill notional (0.000125 = 0.0125%)
     slip_ticks: int = 1
     mintick: float = 0.001  # xyz MSTRUSDC.P; OKX MSTR is 0.01
@@ -43,6 +44,8 @@ class TFCConfig:
             )
         if self.gov_mode not in ("off", "ratchet"):
             raise GuardError(f"unknown gov_mode '{self.gov_mode}'")
+        if self.exit_mode not in ("state", "flip"):
+            raise GuardError(f"unknown exit_mode '{self.exit_mode}'")
         if self.reg_exit:
             raise GuardError("reg_exit=true is not ported (default-off ablation knob)")
         if not self.exec_tfs:

@@ -2196,3 +2196,113 @@ gets a matching exit_mode input in the SAME Pine deployment bundle as
 the queued governor-comment fix (+ prefix regression against the
 pineVersion 20 anchor) -- standing rule: the companion is updated
 whenever finished strategy logic changes (it caught this finding).
+
+## TVB-10: exit-symmetry RESULTS (run 2026-07-08, same day, after the pre-reg + amendment commits)
+
+Implementation: `TFCConfig.exit_mode` ('state' default | 'flip',
+guard-validated) + a two-branch exit in `tfc/simulator.py` Phase B.
+Equivalence gate 8/8 GREEN before and after (70 passed, 2 skipped).
+Runner `scripts/tfc_exit_sweep.py` (committed pulls only, offline
+conventions from the TVB-9 artifact), 288 rows ->
+`analysis/reference/tvb10_exit_results.json`. REGRESSION: all 144 state
+rows reproduce the committed TVB-9 rows exactly. C2 (amended form):
+0 violations across all flip rows.
+
+### Headline: exit symmetry is a REGIME-SHAPE BET, not a churn fix
+
+The flip-stop converts the system from a slice-harvester into a
+regime-rider. Which one wins is regime-shape-local -- a SECOND
+regime-locality axis alongside the TF set:
+
+- Burst/monotone trend: flip DOMINATES. MU ctrlA @0.0125 s1:
+  state +15.16% (486 tr) vs flip +136.74% (19 tr; mtm +176.8);
+  gross (0-fee) +30.0 vs +137.9 -- the state-stop was slicing away the
+  burst tail (coherent with TVB-9 H3/burst-concentration). BTC ctrlA:
+  +3.55 -> +25.99. SP500 ctrlA: -4.95 -> +13.68 (8 trades -- flagged,
+  small-N, short window; NOT a dead-zone rescue claim).
+- Swingy/mean-reverting trend: state DOMINATES, even gross. MSTR ctrlA:
+  state +45.90 (478) vs flip -22.08 (33); AT ZERO FEE +64.4 vs -21.4 --
+  the state-stop's intra-regime exits dodge REAL damage on this path
+  shape; its churn is not pure waste. AMD ctrlA: +31.6 -> -6.9;
+  NVDA ctrlA: +0.5 -> -23.7; TSLA ctrlA: -9.2 -> -33.8.
+- Continuous-whipsaw family: flip is much worse (CRCL E3only
+  -9.64 -> -42.18; R1E3 +2.24 -> -12.93) -- holding through grey is
+  exactly wrong where grey is the dominant state.
+
+### Scorecard vs the pre-registered expectations
+
+1. Cadence collapse: REFUTED AS STATED (median ratio 0.72; only 25% of
+   cells <= 0.40 vs the >= 80% floor). REFINED, and this is the
+   mechanism finding: flip cadence ~ frequency of full-OPPOSITE
+   alignment of the gate SET. ctrlA (M/W/D/60, slow): median ratio
+   0.068 (~15:1 collapse -- the CL manual observation's geometry,
+   which used an M/W/D/4H/60 display set, REPRODUCES). E3-class
+   (240/120/60, fast): 0.67-0.80 -- a fast set's opposite-alignment is
+   itself near flicker-cadence, so exit symmetry alone barely slows it.
+   The 58:1 CL gap = exit asymmetry x set speed, jointly.
+2. Edge cells at real fees: REFUTED as stated (flip won 1 of the 4
+   named cells: AMD R1E3 +35.8 vs +30.1; MSTR ctrlA/R1E3 and AMD
+   E3only went to state).
+3. Zero-fee gross (declared question): ANSWERED -- state wins gross on
+   swingy paths (MSTR ctrlA +64.4 vs -21.4), flip wins gross on
+   burst/drift paths (MU, BTC, SP500). Slicing dodges damage on one
+   path shape and amputates the tail on the other.
+4. Dead zone: XYZ100 negative in every flip cell -- CONFIRMED dead
+   (signal-structural claim stands). SP500 fast cells stay negative;
+   the ctrlA flip +13.7 on n=8 is flagged per pre-reg, uninterpretable.
+5. MAE inflation: CONFIRMED where it matters -- MEDIAN MAE 7-8x on slow
+   gates (MSTR ctrlA 0.51% -> 3.70%; MU 0.53% -> 4.44%); worst-MAE/
+   L_surv: MU ctrlA 8.69% -> 13.67%, L_surv 7.30 -> 5.36 (the flip
+   edge pays in held excursion). Caveat: L_surv is trade-set-dependent
+   (AMD E3only worst-MAE IMPROVED 7.65 -> 6.55 because the state arm's
+   worst trade does not exist in the flip set). All in-sample.
+6. C1 governor inertness: CONFIRMED operatively -- CRCL's +11.75pp
+   state-arm delta collapses to -0.70pp under flip. Residual worst
+   |delta| 2.88pp (AMD, 0 fee): the ratchet survives briefly when the
+   exit-fill bar's close is not opposite-aligned; small at real fees.
+7. Chop: directionally as expected (fast-set flip still churns and
+   mostly worsens chop-family symbols; CRCL worst). Counter-example
+   flagged: TSLA E3only improves under flip (+9.41 -> +23.39).
+8. MU short side: CONFIRMED + sign resolved. E3only short-only:
+   state -49.33 vs flip -60.37 (flip makes shorts WORSE -- held
+   drawdown dominates saved churn). Long-only helps under BOTH modes
+   (E3only +1.30 state / +14.03 flip; ctrlA flip long-only +224.6 on
+   n=10, question-cell read only). The long-only ablation motivation is
+   now EXIT-MODE-ROBUST.
+
+### Diagnostic D1 (flip-line clustering) -- WEAK, symbol-local
+
+`analysis/flipline_distance.py` ->
+`analysis/reference/tvb10_flipline_distance.json`. Losers median-closer
+to the nearest active M/W/D open in 22/36 cells -- a weak majority that
+CLUSTERS BY SYMBOL (MSTR/MU/TSLA/CRCL/SP500 for; BTC/NVDA/AMD against;
+XYZ100 flat) with small effect sizes (typically < 20bp separation
+against 20-130bp medians). Cells are not independent within a symbol.
+Verdict: NOT the clean structural signature that would justify a
+dead-band parameter -- the dead-band candidate stays PARKED (charter S6
+bar unmet). One nan-handling bug (entries before the first M/W/D
+boundary in ungated cells) was found and fixed before reading results.
+
+### Accounting note (DP3)
+
+mtm_net_pct tracked closed-only net within ~1pp on most cells; largest
+divergence exactly where expected -- long-held flip positions open at
+window end (MU ctrlA flip closed +136.7 vs mtm +176.8; BTC ctrlA flip
++26.0 vs +33.5). Both recorded per row in the artifact.
+
+### What this does and does not authorize
+
+- NO keep/kill, NO default change, NO promotion: ctrlA flip cells are
+  n=8-42 (single-regime harvests on young listings), everything is
+  in-sample, and the state-vs-flip sign flips across symbols BY DESIGN
+  of the regime-shape mechanism. The spread is the finding.
+- The user's manual-trading intuition ("trade the TFO flips") is
+  validated AT ITS OWN GEOMETRY (slow set, burst/trend regime -- the CL
+  June window) and refuted as a universal replacement (swing/whipsaw
+  regimes punish holding through grey).
+- Follow-up candidates now ON the board, in motivation order:
+  (a) long-only ablation (STRENGTHENED: helps under both exit modes);
+  (b) HTF flip cells (DP1 follow-up: MWD_on240/onD x exit_mode -- how
+  does exit symmetry interact with bar-size give-back?);
+  (c) entry-on-flip-event arming (still out of scope, untouched).
+- CLUSDC.P confirmation deferred per DP4 (own mini pre-reg when taken).

@@ -1,0 +1,374 @@
+{
+ "purpose": "TVB-10 D1 flip-line clustering diagnostic (pre-registered)",
+ "prereg": "docs/TVB2_control_AB_rerun.md: TVB-10 Diagnostic D1",
+ "operative_point": {
+  "fee_rate": 0.000125,
+  "slip_ticks": 1,
+  "exit_mode": "state"
+ },
+ "generated_at": "2026-07-08T13:03:04+00:00",
+ "hits": 22,
+ "cells": 36,
+ "detail": [
+  {
+   "symbol": "xyz:MSTR",
+   "cell": "ctrlA",
+   "trades": 478,
+   "winners": 175,
+   "losers": 303,
+   "winner_median_bp": 101.5,
+   "loser_median_bp": 85.2,
+   "losers_closer": true
+  },
+  {
+   "symbol": "xyz:MSTR",
+   "cell": "E3only",
+   "trades": 1097,
+   "winners": 393,
+   "losers": 703,
+   "winner_median_bp": 78.9,
+   "loser_median_bp": 75.2,
+   "losers_closer": true
+  },
+  {
+   "symbol": "xyz:MSTR",
+   "cell": "R1E3",
+   "trades": 411,
+   "winners": 153,
+   "losers": 258,
+   "winner_median_bp": 104.3,
+   "loser_median_bp": 87.7,
+   "losers_closer": true
+  },
+  {
+   "symbol": "xyz:MSTR",
+   "cell": "R1E3gov2",
+   "trades": 396,
+   "winners": 145,
+   "losers": 251,
+   "winner_median_bp": 105.6,
+   "loser_median_bp": 86.9,
+   "losers_closer": true
+  },
+  {
+   "symbol": "xyz:XYZ100",
+   "cell": "ctrlA",
+   "trades": 438,
+   "winners": 171,
+   "losers": 267,
+   "winner_median_bp": 26.9,
+   "loser_median_bp": 28.1,
+   "losers_closer": false
+  },
+  {
+   "symbol": "xyz:XYZ100",
+   "cell": "E3only",
+   "trades": 1094,
+   "winners": 389,
+   "losers": 703,
+   "winner_median_bp": 21.4,
+   "loser_median_bp": 21.4,
+   "losers_closer": false
+  },
+  {
+   "symbol": "xyz:XYZ100",
+   "cell": "R1E3",
+   "trades": 385,
+   "winners": 145,
+   "losers": 240,
+   "winner_median_bp": 27.8,
+   "loser_median_bp": 27.6,
+   "losers_closer": true
+  },
+  {
+   "symbol": "xyz:XYZ100",
+   "cell": "R1E3gov2",
+   "trades": 373,
+   "winners": 140,
+   "losers": 233,
+   "winner_median_bp": 29.1,
+   "loser_median_bp": 28.3,
+   "losers_closer": true
+  },
+  {
+   "symbol": "xyz:SP500",
+   "cell": "ctrlA",
+   "trades": 256,
+   "winners": 94,
+   "losers": 162,
+   "winner_median_bp": 19.4,
+   "loser_median_bp": 22.0,
+   "losers_closer": false
+  },
+  {
+   "symbol": "xyz:SP500",
+   "cell": "E3only",
+   "trades": 599,
+   "winners": 200,
+   "losers": 397,
+   "winner_median_bp": 19.0,
+   "loser_median_bp": 16.3,
+   "losers_closer": true
+  },
+  {
+   "symbol": "xyz:SP500",
+   "cell": "R1E3",
+   "trades": 222,
+   "winners": 79,
+   "losers": 143,
+   "winner_median_bp": 25.0,
+   "loser_median_bp": 23.5,
+   "losers_closer": true
+  },
+  {
+   "symbol": "xyz:SP500",
+   "cell": "R1E3gov2",
+   "trades": 213,
+   "winners": 78,
+   "losers": 135,
+   "winner_median_bp": 25.3,
+   "loser_median_bp": 23.2,
+   "losers_closer": true
+  },
+  {
+   "symbol": "BTC",
+   "cell": "ctrlA",
+   "trades": 451,
+   "winners": 167,
+   "losers": 284,
+   "winner_median_bp": 56.0,
+   "loser_median_bp": 66.0,
+   "losers_closer": false
+  },
+  {
+   "symbol": "BTC",
+   "cell": "E3only",
+   "trades": 1198,
+   "winners": 390,
+   "losers": 807,
+   "winner_median_bp": 46.0,
+   "loser_median_bp": 50.9,
+   "losers_closer": false
+  },
+  {
+   "symbol": "BTC",
+   "cell": "R1E3",
+   "trades": 400,
+   "winners": 147,
+   "losers": 253,
+   "winner_median_bp": 58.4,
+   "loser_median_bp": 65.5,
+   "losers_closer": false
+  },
+  {
+   "symbol": "BTC",
+   "cell": "R1E3gov2",
+   "trades": 385,
+   "winners": 140,
+   "losers": 245,
+   "winner_median_bp": 63.4,
+   "loser_median_bp": 66.3,
+   "losers_closer": false
+  },
+  {
+   "symbol": "xyz:MU",
+   "cell": "ctrlA",
+   "trades": 486,
+   "winners": 194,
+   "losers": 292,
+   "winner_median_bp": 125.8,
+   "loser_median_bp": 106.1,
+   "losers_closer": true
+  },
+  {
+   "symbol": "xyz:MU",
+   "cell": "E3only",
+   "trades": 984,
+   "winners": 344,
+   "losers": 639,
+   "winner_median_bp": 90.8,
+   "loser_median_bp": 88.3,
+   "losers_closer": true
+  },
+  {
+   "symbol": "xyz:MU",
+   "cell": "R1E3",
+   "trades": 415,
+   "winners": 165,
+   "losers": 250,
+   "winner_median_bp": 123.1,
+   "loser_median_bp": 110.5,
+   "losers_closer": true
+  },
+  {
+   "symbol": "xyz:MU",
+   "cell": "R1E3gov2",
+   "trades": 404,
+   "winners": 160,
+   "losers": 244,
+   "winner_median_bp": 136.6,
+   "loser_median_bp": 110.5,
+   "losers_closer": true
+  },
+  {
+   "symbol": "xyz:AMD",
+   "cell": "ctrlA",
+   "trades": 453,
+   "winners": 166,
+   "losers": 287,
+   "winner_median_bp": 71.8,
+   "loser_median_bp": 70.8,
+   "losers_closer": true
+  },
+  {
+   "symbol": "xyz:AMD",
+   "cell": "E3only",
+   "trades": 1061,
+   "winners": 406,
+   "losers": 654,
+   "winner_median_bp": 55.1,
+   "loser_median_bp": 59.1,
+   "losers_closer": false
+  },
+  {
+   "symbol": "xyz:AMD",
+   "cell": "R1E3",
+   "trades": 385,
+   "winners": 144,
+   "losers": 241,
+   "winner_median_bp": 72.6,
+   "loser_median_bp": 84.6,
+   "losers_closer": false
+  },
+  {
+   "symbol": "xyz:AMD",
+   "cell": "R1E3gov2",
+   "trades": 371,
+   "winners": 141,
+   "losers": 230,
+   "winner_median_bp": 72.6,
+   "loser_median_bp": 87.4,
+   "losers_closer": false
+  },
+  {
+   "symbol": "xyz:NVDA",
+   "cell": "ctrlA",
+   "trades": 456,
+   "winners": 152,
+   "losers": 304,
+   "winner_median_bp": 32.1,
+   "loser_median_bp": 48.4,
+   "losers_closer": false
+  },
+  {
+   "symbol": "xyz:NVDA",
+   "cell": "E3only",
+   "trades": 1127,
+   "winners": 379,
+   "losers": 747,
+   "winner_median_bp": 31.4,
+   "loser_median_bp": 35.5,
+   "losers_closer": false
+  },
+  {
+   "symbol": "xyz:NVDA",
+   "cell": "R1E3",
+   "trades": 391,
+   "winners": 138,
+   "losers": 253,
+   "winner_median_bp": 33.8,
+   "loser_median_bp": 44.6,
+   "losers_closer": false
+  },
+  {
+   "symbol": "xyz:NVDA",
+   "cell": "R1E3gov2",
+   "trades": 376,
+   "winners": 131,
+   "losers": 245,
+   "winner_median_bp": 36.7,
+   "loser_median_bp": 46.1,
+   "losers_closer": false
+  },
+  {
+   "symbol": "xyz:TSLA",
+   "cell": "ctrlA",
+   "trades": 393,
+   "winners": 143,
+   "losers": 250,
+   "winner_median_bp": 47.9,
+   "loser_median_bp": 40.8,
+   "losers_closer": true
+  },
+  {
+   "symbol": "xyz:TSLA",
+   "cell": "E3only",
+   "trades": 1103,
+   "winners": 399,
+   "losers": 703,
+   "winner_median_bp": 37.9,
+   "loser_median_bp": 31.5,
+   "losers_closer": true
+  },
+  {
+   "symbol": "xyz:TSLA",
+   "cell": "R1E3",
+   "trades": 347,
+   "winners": 128,
+   "losers": 219,
+   "winner_median_bp": 48.6,
+   "loser_median_bp": 44.3,
+   "losers_closer": true
+  },
+  {
+   "symbol": "xyz:TSLA",
+   "cell": "R1E3gov2",
+   "trades": 335,
+   "winners": 125,
+   "losers": 210,
+   "winner_median_bp": 48.9,
+   "loser_median_bp": 44.8,
+   "losers_closer": true
+  },
+  {
+   "symbol": "xyz:CRCL",
+   "cell": "ctrlA",
+   "trades": 437,
+   "winners": 156,
+   "losers": 281,
+   "winner_median_bp": 107.1,
+   "loser_median_bp": 101.9,
+   "losers_closer": true
+  },
+  {
+   "symbol": "xyz:CRCL",
+   "cell": "E3only",
+   "trades": 1026,
+   "winners": 382,
+   "losers": 642,
+   "winner_median_bp": 76.6,
+   "loser_median_bp": 71.4,
+   "losers_closer": true
+  },
+  {
+   "symbol": "xyz:CRCL",
+   "cell": "R1E3",
+   "trades": 364,
+   "winners": 129,
+   "losers": 235,
+   "winner_median_bp": 110.3,
+   "loser_median_bp": 108.4,
+   "losers_closer": true
+  },
+  {
+   "symbol": "xyz:CRCL",
+   "cell": "R1E3gov2",
+   "trades": 353,
+   "winners": 125,
+   "losers": 228,
+   "winner_median_bp": 112.9,
+   "loser_median_bp": 112.3,
+   "losers_closer": true
+  }
+ ]
+}
