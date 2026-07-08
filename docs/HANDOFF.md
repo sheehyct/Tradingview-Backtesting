@@ -5,6 +5,114 @@
 
 ---
 
+## Session TVB-10: Exit-symmetry ablation + companion v3-v4.1 + entry-arming fork found live (COMPLETE)
+
+**Date:** 2026-07-08
+**Status:** COMPLETE -- pre-registered exit-mode sweep run and recorded;
+companion upgraded three times; session ends with a USER LIVE FINDING that
+sets TVB-11's agenda (entry-arming fork). Fable 5 session, ended at ~4%
+weekly budget.
+
+### What was accomplished
+1. **Motivating observation (user, 16 CL screenshots)**: Jun-11 -> Jul-6 was
+   ONE FTFC-Down regime on the TFO indicator but the strategy logic produced
+   58 short entries (zero longs); April chop = 8 entries vs 4 FTFC flips,
+   clustered at the monthly open ("flip line").
+2. **TVB-10 exit-symmetry pre-registration** (drafted, amended, APPROVED;
+   datasheet): `TFCConfig.exit_mode` state|flip -- state-stop exits on FIRST
+   loss of full alignment, flip-stop only on full OPPOSITE alignment. 60m
+   grid only; gov cells kept; dual closed+MTM accounting; CLUSDC.P deferred.
+   Check C2 was mis-derived in the draft (entry-subset invariant) and
+   amended PRE-RUN to the one-per-regime invariant, with the error recorded
+   honestly (flip exits fill at the open AFTER the first opposite-aligned
+   close, so flip entries LAG the state arm's).
+3. **288-run sweep executed** (`scripts/tfc_exit_sweep.py`, artifact
+   `tvb10_exit_results.json`; committed pulls only; state arm reproduced
+   TVB-9 EXACTLY; C1/C2 clean). Headline: **exit symmetry is a regime-shape
+   bet, not a churn fix.** Flip rides bursts (MU ctrlA +15.2 -> +136.7 at
+   0.0125/s1, n=19; BTC +3.6 -> +26); state harvests swings (MSTR ctrlA
+   +45.9 vs flip -22.1 -- even at ZERO fee +64.4 vs -21.4: state's churn
+   dodges real damage); whipsaw punishes flip (CRCL E3only -9.6 -> -42.2).
+   Cadence collapse is GATE-SET-SPEED-dependent: ctrlA flip/state ratio
+   median 0.068 (~15:1, matches the CL observation); E3 ~0.7. Governor is
+   structurally INERT under flip (ratchet resets on its own exit event;
+   CRCL +11.75pp -> -0.70pp). MU shorts WORSE under flip (-49.3 -> -60.4
+   E3only short-only) -> long-only motivation now EXIT-MODE-ROBUST. Median
+   MAE inflates 7-8x under flip on slow gates (MU L_surv 7.3 -> 5.4). NO
+   promotion (flip cells n=8-42, in-sample, young listings).
+4. **Diagnostic D1** (`analysis/flipline_distance.py`, artifact
+   `tvb10_flipline_distance.json`): flip-line clustering of losers WEAK
+   (22/36 cells, symbol-local, <20bp effects) -> dead-band candidate PARKED.
+5. **Companion v3 -> v4 -> v4.1** (`pine/tfc_companion.pine`, deployed to TV
+   script "TFC Companion [TVB-10]"): v3 = exit_mode toggle for the user's
+   two-instance state-vs-flip live watch; v4 = user's Claude-Desktop UX
+   rework merged (quick-start header, tooltips on every input, signal
+   boxes, A+ grading, color/table customization) -- now the STANDING STYLE
+   for all Pine scripts (memory: feedback-pine-script-ux-style); v4.1 =
+   mobile table compaction (disabled TFs dropped, per-section toggles,
+   ratchet row auto-hides). STRATEGY slot untouched (pv20 anchor intact).
+   Standing rule adopted: companion syncs with every strategy-logic change.
+6. **END-OF-SESSION USER FINDING (sets TVB-11)**: tracked a would-be bad
+   losing position on EWY with the latest logic + a full day of watching:
+   the strategy still churns far more than the original TFO indicator. The
+   user's CL reference was 1M/1W/1D/4H/1H stacked, NO regime layer,
+   entering the INSTANT of alignment (intrabar) -- our engine arms only at
+   strategy-TF CLOSE. This contradicts the original indicator AND the
+   charter's own 2U-timing doctrine. Decomposition: exit mode (tested,
+   TVB-10), entry arming close-vs-intrabar (UNTESTED -- promoted from the
+   parked net-arming carry to next pre-reg), stack depth/composition
+   (UNSWEPT -- 5-TF no-regime mirror cell belongs in the same pre-reg).
+   Fidelity warning for the ablation: the gate is a reversible threshold;
+   intrabar arming cannot be simulated faithfully from 1h bars alone
+   (needs committed LTF pulls or explicit best/worst-case bracketing).
+
+### Context for next session
+- `.session_startup_prompt.md` carries the full TVB-11 plan (entry-arming +
+  stack-depth pre-reg is priority after review fold-in).
+- Housekeeping for user: TV library script "Price Level Alerts (Interval
+  Bands)" contains companion v2 source (pre-existing; original likely lost).
+- Codex reviews tvb8 AND tvb9 still unreturned; tvb10 now also REQUESTED.
+
+### Files created/modified
+- `tfc/config.py` (exit_mode field + guard), `tfc/simulator.py` (Phase-B
+  exit branch; equivalence gate stayed 8/8, state arm == TVB-9)
+- `scripts/tfc_exit_sweep.py` (NEW), `analysis/flipline_distance.py` (NEW)
+- `analysis/reference/tvb10_exit_results.json`,
+  `analysis/reference/tvb10_flipline_distance.json` (NEW artifacts)
+- `pine/tfc_companion.pine` (v2 -> v4.1)
+- `docs/TVB2_control_AB_rerun.md` (TVB-10 pre-reg, C2 amendment, results,
+  companion deployment records)
+- `.session_startup_prompt.md`, `docs/HANDOFF.md`,
+  `docs/reviews/REVIEW_REQUEST.md` (session end)
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb10-codex-audit.md.
+> See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: `af27900^..76673e3` on `main`, PLUS the session-end
+  docs commit(s) after 76673e3 (pinned concretely in
+  docs/reviews/REVIEW_REQUEST.md after push). RANGE-PIN RULE (Codex TVB-4
+  finding 1): git ranges EXCLUDE the left endpoint, so pin `{first}^..{head}`
+  (note the caret). Sanity-check: `git diff --name-status <range>` must list
+  every file the session touched.
+- Scope / what changed: exit_mode (state|flip) added to config+simulator;
+  288-run pre-registered exit-symmetry sweep + D1 flip-line diagnostic;
+  companion indicator v3-v4.1 (Pine, INDICATOR slot only -- strategy slot
+  pv20 untouched).
+- Focus areas (scrutinize these): exit_mode branch correctness + exit-fill
+  lag; the PRE-RUN C2 amendment (honest? is the one-per-regime invariant
+  right?); regime-shape interpretation vs promotion on n=8-42 cells; D1
+  nan-filtering and within-cell comparison validity; companion v4.1 gate
+  parity with the simulator (no request.security claim, [1]-committed
+  reads, alertcondition const strings); mtm_net_pct open-trade marking.
+- Reviewed by: pending
+- Findings: (blank until docs/reviews/tvb10-codex-audit.md exists)
+
+---
+
 ## Session TVB-9: Phase 5 complete -- drift pilot, breadth regime map, digs, HTF cells, leverage overlay (COMPLETE)
 
 **Date:** 2026-07-07
