@@ -1,6 +1,6 @@
 //@version=6
 // =====================================================================================
-// TFC Companion [TVB-9]                    v2 -- logic-TF-decoupled indicator port
+// TFC Companion [TVB-10]                   v3 -- exit_mode (state | flip) ablation watch
 // -------------------------------------------------------------------------------------
 // Purpose : MANUAL-TRADING companion to pine/baseline_continuity.pine (pv20 anchor).
 //           Shows, live on any chart, exactly what the backtested strategy sees and
@@ -37,18 +37,32 @@
 // Warmup  : a gate TF is neutral (grey) until its first period boundary inside
 //           loaded history; the first (possibly partial) logic bar matches TV's own
 //           partial-period aggregation.
+// v3      : exit_mode input mirrors the TVB-10 pre-registered ablation
+//           (TFCConfig.exit_mode in the Python engine): 'state' (default,
+//           v2-identical) exits when the exec gate loses FULL alignment at the
+//           Strategy-TF close; 'flip' exits ONLY on full OPPOSITE alignment and
+//           holds through grey. Intended use: TWO instances of this indicator on
+//           one chart (one per mode) for live side-by-side observation of the
+//           regime-shape mechanism (TVB-10 finding: flip rides bursts, state
+//           harvests swings). A 'flip' instance auto-switches marker colors
+//           (aqua/purple entries, yellow exit cross) and should be given a
+//           different Table position. Alert names are shared between instances
+//           (Pine constants) -- include the mode in the alert NAME when creating.
 // Defaults: R1E3 two-layer (Strategy TF 60; exec 240/120/60 + regime M/W/D
 //           stand_aside), governor OFF. The guard fails LOUDLY on misalignment:
 //           chart TF must tile the Strategy TF; the Strategy TF must tile every
 //           enabled gate TF.
 // =====================================================================================
 
-indicator('TFC Companion [TVB-9]', overlay = true)
+indicator('TFC Companion [TVB-10]', overlay = true)
 
 // ----------------------------------- Inputs -----------------------------------
 var string g_dir = 'Direction'
 allow_long  = input.bool(true, 'Allow Long',  group = g_dir)
 allow_short = input.bool(true, 'Allow Short', group = g_dir)
+
+var string g_exit = 'Exit rule (TVB-10 ablation -- run two instances to compare live)'
+exit_mode = input.string('state', 'Exit mode', options = ['state', 'flip'], group = g_exit, tooltip = 'state: exit when the exec gate loses full alignment at the Strategy-TF close (baseline). flip: exit only on full OPPOSITE alignment; holds through grey (TFO-like cadence).')
 
 var string g_tf = 'Strategy TF + execution gate TFs (FTFC set)'
 logic_tf = input.timeframe('60', 'Strategy TF (decisions commit at this TF)', group = g_tf)
@@ -85,6 +99,7 @@ show_trigger = input.bool(true, 'Plot armed trigger level', group = g_viz)
 show_marks   = input.bool(true, 'Plot simulated entry/exit markers', group = g_viz)
 show_ratchet = input.bool(true, 'Plot governor ratchet levels', group = g_viz)
 show_table   = input.bool(true, 'Show status table', group = g_viz)
+table_pos    = input.string('top_right', 'Table position (set differently per instance)', options = ['top_right', 'middle_right', 'bottom_right', 'top_left', 'middle_left', 'bottom_left'], group = g_viz)
 
 // ------------- Guard: chart tiles Strategy TF; Strategy TF tiles every gate TF -------------
 // Same day-boundary tiling logic as the strategy's f_guard; misconfigured charts fail
@@ -223,10 +238,18 @@ if new_logic
     lp_c = long_permit[1]
     sp_c = short_permit[1]
     // ---- Phase B for logic bar N (pre-fill state) ----
-    if pos > 0 and not up_c
-        pending_exit := true
-    if pos < 0 and not dn_c
-        pending_exit := true
+    // exit_mode 'state': first loss of full alignment. 'flip' (TVB-10): only
+    // full OPPOSITE alignment; holds through grey. Mirrors tfc/simulator.py.
+    if exit_mode == 'flip'
+        if pos > 0 and dn_c
+            pending_exit := true
+        if pos < 0 and up_c
+            pending_exit := true
+    else
+        if pos > 0 and not up_c
+            pending_exit := true
+        if pos < 0 and not dn_c
+            pending_exit := true
     if dn_c
         ratchet_long := na
     if up_c
@@ -287,9 +310,9 @@ else if armed < 0 and pos == 0
         pos := -1
         armed := 0
 
-// live (provisional) warning: gate currently against the open position; commits
-// only at the Strategy-TF close
-gate_against_pos = (pos > 0 and not ftfc_up) or (pos < 0 and not ftfc_dn)
+// live (provisional) warning: the EXIT CONDITION for the current mode is true on
+// this chart bar; commits only at the Strategy-TF close
+gate_against_pos = exit_mode == 'flip' ? (pos > 0 and ftfc_dn) or (pos < 0 and ftfc_up) : (pos > 0 and not ftfc_up) or (pos < 0 and not ftfc_dn)
 
 // ----------------------------------- Visualization -----------------------------------
 state_col = ftfc_up ? color.new(color.green, 55) : ftfc_dn ? color.new(color.red, 55) : color.new(color.gray, 70)
@@ -303,9 +326,13 @@ plot(show_levels ? lo_open : na, 'FTFC dn ceiling (min open)', color = color.new
 plot(show_trigger and armed != 0 ? stop_price : na, 'Armed trigger (this logic bar)', color = color.new(color.orange, 0), style = plot.style_circles, linewidth = 2)
 plot(show_trigger and pos != 0 ? ep : na, 'Entry fill', color = color.new(color.blue, 30), style = plot.style_linebr)
 
-plotshape(show_marks and fill_long,  'Sim long entry',  shape.triangleup,   location.belowbar, color.new(color.green, 0), size = size.small)
-plotshape(show_marks and fill_short, 'Sim short entry', shape.triangledown, location.abovebar, color.new(color.red, 0),   size = size.small)
-plotshape(show_marks and exit_fill,  'Sim exit (state-stop fill @ logic open)', shape.xcross, location.abovebar, color.new(color.gray, 0), size = size.tiny)
+// flip-mode instances auto-switch marker colors so two overlaid instances stay readable
+col_long  = exit_mode == 'flip' ? color.new(color.aqua, 0)   : color.new(color.green, 0)
+col_short = exit_mode == 'flip' ? color.new(color.purple, 0) : color.new(color.red, 0)
+col_exit  = exit_mode == 'flip' ? color.new(color.yellow, 0) : color.new(color.gray, 0)
+plotshape(show_marks and fill_long,  'Sim long entry',  shape.triangleup,   location.belowbar, col_long,  size = size.small)
+plotshape(show_marks and fill_short, 'Sim short entry', shape.triangledown, location.abovebar, col_short, size = size.small)
+plotshape(show_marks and exit_fill,  'Sim exit (fill @ logic open)', shape.xcross, location.abovebar, col_exit, size = size.tiny)
 
 plot(show_ratchet and gov_mode == 'ratchet' ? ratchet_long : na,  'Governor ratchet (long)',  color = color.new(color.teal, 20),   style = plot.style_linebr)
 plot(show_ratchet and gov_mode == 'ratchet' ? ratchet_short : na, 'Governor ratchet (short)', color = color.new(color.maroon, 20), style = plot.style_linebr)
@@ -314,7 +341,10 @@ plot(show_ratchet and gov_mode == 'ratchet' ? ratchet_short : na, 'Governor ratc
 f_tf_state(simple bool en, float op) =>
     not en ? '--' : na(op) ? 'warmup' : close > op ? 'UP' : close < op ? 'DOWN' : 'flat'
 
-var table t = table.new(position.top_right, 2, 13, bgcolor = color.new(color.black, 20), border_width = 1, border_color = color.new(color.gray, 60))
+f_tpos(simple string s) =>
+    s == 'top_right' ? position.top_right : s == 'middle_right' ? position.middle_right : s == 'bottom_right' ? position.bottom_right : s == 'top_left' ? position.top_left : s == 'middle_left' ? position.middle_left : position.bottom_left
+
+var table t = table.new(f_tpos(table_pos), 2, 13, bgcolor = color.new(color.black, 20), border_width = 1, border_color = color.new(color.gray, 60))
 f_cell(int r, string k, string v, color c) =>
     table.cell(t, 0, r, k, text_color = color.white, text_size = size.small, text_halign = text.align_left)
     table.cell(t, 1, r, v, text_color = c, text_size = size.small)
@@ -328,7 +358,7 @@ if show_table and barstate.islast
     pos_txt := pos != 0 and gate_against_pos ? pos_txt + ' (gate against, prov.)' : pos_txt
     pos_c    = pos > 0 ? color.lime : pos < 0 ? color.red : color.silver
     arm_txt  = armed > 0 ? 'LONG stop ' + str.tostring(stop_price, format.mintick) : armed < 0 ? 'SHORT stop ' + str.tostring(stop_price, format.mintick) : '--'
-    f_cell(0, 'TFC Companion v2', 'close-basis', color.silver)
+    f_cell(0, 'TFC Companion v3', exit_mode + ' exit / close-basis', exit_mode == 'flip' ? color.aqua : color.silver)
     f_cell(1, 'Strategy TF', logic_tf, color.orange)
     f_cell(2, 'TF1 ' + tf1, f_tf_state(y1, o1), color.white)
     f_cell(3, 'TF2 ' + tf2, f_tf_state(y2, o2), color.white)
@@ -347,7 +377,7 @@ if show_table and barstate.islast
 // and never repaint):
 alertcondition(fill_long,  'TFC long entry fill',  'TFC Companion: LONG entry filled (strategy enters here)')
 alertcondition(fill_short, 'TFC short entry fill', 'TFC Companion: SHORT entry filled (strategy enters here)')
-alertcondition(exit_fill,  'TFC state-stop exit',  'TFC Companion: gate lost at Strategy-TF close -- strategy exited at this open')
+alertcondition(exit_fill,  'TFC exit fill',        'TFC Companion: exit condition met at the Strategy-TF close -- strategy exited at this open')
 alertcondition(just_armed, 'TFC trigger armed',    'TFC Companion: breakout stop armed for this Strategy-TF bar')
 // Provisional (commits only at the Strategy-TF close) -- create with "Once Per Bar Close":
-alertcondition(gate_against_pos, 'TFC gate against position (provisional)', 'TFC Companion: exec gate currently against the open position -- exit fires if this holds to the Strategy-TF close')
+alertcondition(gate_against_pos, 'TFC exit condition live (provisional)', 'TFC Companion: the active exit condition is currently true -- exit fires if it holds to the Strategy-TF close')
