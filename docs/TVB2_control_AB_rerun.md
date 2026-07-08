@@ -2037,7 +2037,13 @@ liquidation = account death:
    size); qty-step granularity (~0.6% worst on XYZ100 at $500) and
    funding are the un-modeled terms most material at this account size.
 
-## TVB-10: exit-symmetry ablation -- PRE-REGISTRATION (DRAFT -- decide-with-user; NO runs until approved)
+## TVB-10: exit-symmetry ablation -- PRE-REGISTRATION (APPROVED by user 2026-07-08, BEFORE any run)
+
+> Decision points resolved 2026-07-08, all as recommended: approved as
+> drafted; DP1 = 60m grid only (HTF flip cells = follow-up pre-reg);
+> DP2 = gov cells kept (C1 check); DP3 = dual closed-only + MTM binding;
+> DP4 = CLUSDC.P after the main arm (own mini pre-reg; June regime stays
+> inside the sliding cap for months); DP5 = bp-of-entry-price within-cell.
 
 **Motivating observation (user, manual watch, 2026-07-08).** The TFC Companion
 indicator (TVB-9 addendum) run live on CL futures (1h chart) against the
