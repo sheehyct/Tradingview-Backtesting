@@ -92,9 +92,8 @@ weekly budget.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: `af27900^..76673e3` on `main`, PLUS the session-end
-  docs commit(s) after 76673e3 (pinned concretely in
-  docs/reviews/REVIEW_REQUEST.md after push). RANGE-PIN RULE (Codex TVB-4
+- Commits to review: `af27900^..258dfb3` on `main` (9 commits, incl. the
+  session-end docs commit 258dfb3). RANGE-PIN RULE (Codex TVB-4
   finding 1): git ranges EXCLUDE the left endpoint, so pin `{first}^..{head}`
   (note the caret). Sanity-check: `git diff --name-status <range>` must list
   every file the session touched.
