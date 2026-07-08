@@ -2036,3 +2036,149 @@ liquidation = account death:
    into hard death on negative-edge cells (equity grinds below tradeable
    size); qty-step granularity (~0.6% worst on XYZ100 at $500) and
    funding are the un-modeled terms most material at this account size.
+
+## TVB-10: exit-symmetry ablation -- PRE-REGISTRATION (DRAFT -- decide-with-user; NO runs until approved)
+
+**Motivating observation (user, manual watch, 2026-07-08).** The TFC Companion
+indicator (TVB-9 addendum) run live on CL futures (1h chart) against the
+original TFO continuity indicator (M/W/D/4H/60 set) exposed a cadence
+inversion the backtests quantified but never surfaced as a design property:
+
+- Jun-11 FTFC Down -> Jul-7 FTFC Up was ONE continuity state (~26 days).
+  The strategy state machine produced 58 short entries in that span
+  (zero longs), i.e. one TFO decision resliced into 58 round trips, each
+  paying costs for zero marginal directional information. 4 long entries
+  appeared within ~a day of the Jul-7 up-flip.
+- In chop (mid-April), the ratio compresses: ~8 entries vs 4 FTFC flip
+  labels (~2:1), and the churn CLUSTERS at the monthly open -- the flip
+  line, where the M flag = sign(close - monthly open) carries near-zero
+  evidence and flickers on every cross (strat-methodology 4.1/4.2: bias
+  is fully reversible, negate-of-continuity = recross of the open; 4.5
+  coupling: at new period opens several TF flags flip as a block).
+- Even in the chop cluster, price eventually escapes the flip line and the
+  final (escape) entry recovered the prior whipsaw entries -- bounded,
+  positive-skew failure mode. The state-stop's failure mode is the
+  opposite: its churn SCALES with trend duration -- worst exactly in the
+  strategy's target regime.
+
+**Mechanism (from the code, not conjecture).** Entries arm only on FULL
+exec alignment + trigger break (flip-cadence events), but the state-stop
+exits on the FIRST close that loses full alignment
+(tfc/simulator.py:147-150, `not up[i]` / `not dn[i]` -- flicker-cadence),
+and every exit re-arms the entry. Entry/exit sensitivity is asymmetric by
+construction; the TFO's implicit trade model (exit on full OPPOSITE
+alignment) is symmetric. Every churn finding on record (TVB-1 turnover
+lever, TVB-4 67% fee-burners + P5 late-entry tax, TVB-6 governor deltas,
+TVB-9 MU short whipsaw) is downstream of this one asymmetry.
+
+### The single variable
+
+New `exit_mode` on TFCConfig, guard-validated:
+
+- `state` (default -- byte-preserves current behavior; equivalence gate
+  8/8 must stay green): exit when the exec gate loses full alignment
+  (current `not up[i]` / `not dn[i]`).
+- `flip`: exit ONLY on full OPPOSITE exec alignment (`dn[i]` while long,
+  `up[i]` while short). Positions hold through grey. NOTHING else changes:
+  same entries (trigger + full alignment + regime permit), same one-bar
+  armed stop, same next-open exit fill, same regime layer semantics
+  (entry-permit only -- exits consult the exec gate alone, both modes).
+
+Derivable consequences, pre-registered as CHECKS (violation = bug hunt
+before interpretation):
+
+- C1 governor inertness: under `flip`, the ratchet resets on the same
+  alignment event that triggers the exit (simulator.py:162-165), so
+  gov2 deltas should be ~0 everywhere (CRCL's +11.75pp should vanish).
+- C2 entry-subset invariant: gov-off `flip` entry times should coincide
+  with the FIRST state-stop entry of each alignment episode (differences
+  only via equity-path/qty effects).
+
+### Cells / method
+
+- Universe + bars: the 9 TVB-9 symbols on the SAME committed 1h pulls
+  (idempotent by design; no fresh fetches). Windows identical to TVB-9.
+- Configs: ctrlA, E3only, R1E3, R1E3gov2 (gov kept as the C1 check) x
+  fees {0, 0.0125%} x slip {1, 10} ticks x exit_mode {state, flip}.
+  Runner deterministic on committed pulls -> re-run BOTH arms into one
+  self-contained artifact (the state rows must reproduce the committed
+  TVB-9 rows byte-identically -- a free regression check). 288 rows
+  total, new script scripts/tfc_exit_sweep.py, artifact
+  tvb10_exit_results.json.
+- Accounting (binding, both arms): report closed-only net (existing
+  convention, comparable to TVB-9 tables) AND mark-to-market net at the
+  window end (open trade marked at last close, exit-side commission+slip
+  applied). Flip-stop holds far longer; end-of-window opens are material
+  and closed-only alone would flatter whichever arm happens to be flat.
+- Drift-band rule carries over: |net| < 1.5pp (gov cells 2.5pp) at
+  bar-source resolution is sign-indeterminate; also applies to ARM
+  DIFFERENCES.
+- Leverage overlay re-run (post-processing, simulator untouched) on the
+  flip arm's edge cells for the MAE/L_surv comparison (expectation 5).
+
+### Diagnostic D1 (zero-cost, on EXISTING TVB-9 trade lists, pre-registered)
+
+Flip-line clustering test: for every state-stop entry in
+tvb9_breadth_results.json, distance = |entry price - nearest ACTIVE
+{M,W,D} period open| in bp of entry price. Compare winner vs loser
+populations WITHIN each cell (absolute distances are confounded: an
+M/W/D-gated system naturally enters near young opens -- coupling).
+Prediction: loser entries sit closer to the nearest active HTF open than
+winners (median bp distance smaller) in the majority of cells with
+>= 30 trades. This tests the flip-line mechanism independently of the
+exit-rule ablation and feeds the (out-of-scope) dead-band candidate.
+
+### Pre-registered expectations (written BEFORE runs)
+
+1. Cadence collapse: `flip` trade count <= 40% of `state` in >= 80% of
+   cells; largest cuts on trend symbols (CL manual analog: 58 -> ~1-5
+   per continuity regime).
+2. Edge cells at real fees: on MSTR (ctrlA/R1E3) and AMD (E3only/R1E3)
+   @0.0125 s1, `flip` net >= `state` net (fee count collapses + the
+   right tail is reassembled instead of sliced).
+3. Zero-fee gross: genuinely uncertain, NO prediction -- state slices
+   dodge counter-rallies, flip holds through them. If `flip` gross wins
+   at 0 fee on trend cells, the state-stop damages even before costs
+   (a stronger claim than the churn story requires; flag it).
+4. Dead zone stays dead: SP500/XYZ100 flat-to-negative under `flip`
+   (TVB-9 H2: signal-structural). A dead-zone rescue = flagged surprise
+   forcing mechanism revision.
+5. MAE inflation (direction certain, magnitude = the finding): per-trade
+   MAE shifts right on ~all cells; L_surv and sample-Kelly DROP on the
+   edge cells in the overlay re-run. Any leverage framing must carry this.
+6. Governor: C1 above (deltas ~0 under `flip`).
+7. Chop windows: `flip` still whipsaws at flip cadence near period opens
+   (bounded, escape-trade recovery per the CL observation); per-window
+   sign of the state-vs-flip difference in chop-dominated samples
+   (SP500, XYZ100, TSLA) recorded, not predicted.
+8. MU short side: short-only stays negative under BOTH modes (burst
+   counter-rallies are the damage); the SIGN of the change from `flip`
+   is uncertain (fewer round trips vs deeper held drawdowns) -- recorded
+   as a question cell feeding the still-queued long-only ablation.
+
+### Decision points (decide-with-user BEFORE approval)
+
+- DP1 scope: 60m grid only as above (RECOMMENDED) vs also adding HTF
+  cells (MWD_on240 / MWD_onD flip variants, +~72 rows) now. HTF can be
+  a follow-up once the 60m mechanism read is in hand.
+- DP2 gov cells: keep under `flip` as the C1 inertness check
+  (RECOMMENDED, cheap) vs drop.
+- DP3 accounting: dual closed-only + MTM reporting (RECOMMENDED, binding
+  as written) vs closed-only.
+- DP4 CLUSDC.P: out-of-family confirmation on venue bars requires a fresh
+  fetch + commit (HL cap slides daily). RECOMMENDED: after the main arm,
+  as confirmation, not as part of this pre-registration.
+- DP5 D1 normalization: bp-of-entry-price, winners-vs-losers within cell
+  (RECOMMENDED as specified) vs ATR-normalized variant.
+
+### Out of scope (deliberately -- one variable at a time)
+
+Entry-on-flip-event-only arming; dead-band/hysteresis epsilon at HTF
+opens (waits on D1); long-only ablation (queued from TVB-9, orthogonal
+axis). Timeframe sets remain a-priori and untouched (charter S5/S7).
+
+**If `flip` is kept after results + external review:** the TFC Companion
+gets a matching exit_mode input in the SAME Pine deployment bundle as
+the queued governor-comment fix (+ prefix regression against the
+pineVersion 20 anchor) -- standing rule: the companion is updated
+whenever finished strategy logic changes (it caught this finding).
