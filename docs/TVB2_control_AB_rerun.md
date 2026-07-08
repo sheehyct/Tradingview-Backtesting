@@ -2096,9 +2096,17 @@ before interpretation):
 - C1 governor inertness: under `flip`, the ratchet resets on the same
   alignment event that triggers the exit (simulator.py:162-165), so
   gov2 deltas should be ~0 everywhere (CRCL's +11.75pp should vanish).
-- C2 entry-subset invariant: gov-off `flip` entry times should coincide
-  with the FIRST state-stop entry of each alignment episode (differences
-  only via equity-path/qty effects).
+- C2 one-per-regime invariant (AMENDED pre-run 2026-07-08, before any
+  execution -- the draft's "entry-subset" form was derived wrongly: the
+  flip arm exits at the open AFTER the first opposite-aligned close, so
+  its entry into each new regime LAGS the state arm's first entry by
+  >= 1 logic bar, and entry times need not coincide): under `flip`,
+  between any two consecutive SAME-direction entries there must exist at
+  least one full-OPPOSITE-alignment close (the only exit path); at most
+  one open position per direction-regime. Checked in-process by the
+  runner against the recomputed gate series. The entry LAG at regime
+  transitions is a real cost of `flip` (late entry) and is part of what
+  expectation 2 nets against the churn savings.
 
 ### Cells / method
 
