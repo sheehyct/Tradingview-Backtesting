@@ -53,6 +53,11 @@
 //           changes ONLY the Phase-B exit test and the provisional warning. Exit
 //           boxes and alerts are shared by both modes (mode-agnostic wording); the
 //           status table names the active mode.
+// v4.1    : mobile table compaction (user request). Disabled gate TFs are DROPPED
+//           from the table (no more "--" rows); Strategy TF merged into the header
+//           row; per-section display toggles (TF rows / regime / grade); the
+//           ratchet row renders only when the governor is on. Optional single-row
+//           gate summary for the tightest phone layout.
 // v3      : UX release. State machine byte-identical to v2 except two PURE additions:
 //           (a) exit-direction capture feeding the EXIT L / EXIT S boxes and split
 //           exit alerts; (b) A+ tagging of setups armed under full regime alignment
@@ -131,6 +136,10 @@ var string g_tbl = 'Status table'
 show_table = input.bool(true, 'Show status table', group = g_tbl, tooltip = 'Per-TF gate states, exec + regime summary, simulated position, working stop, setup grade and ratchet levels -- the whole machine state at a glance. Row 1 names the active Exit mode so two instances are always tellable apart.')
 tbl_pos_s  = input.string('Top Right', 'Position', options = ['Top Left', 'Top Center', 'Top Right', 'Middle Left', 'Middle Right', 'Bottom Left', 'Bottom Center', 'Bottom Right'], group = g_tbl, tooltip = 'Where the table sits. Bottom Left pairs well with mobile. Give each of two instances a different corner.')
 tbl_size_s = input.string('Small', 'Text size', options = ['Tiny', 'Small', 'Normal'], group = g_tbl, tooltip = 'Table text size. Tiny helps on phone screens.')
+tbl_tf_rows = input.bool(true, 'Per-TF gate rows', group = g_tbl, tooltip = 'One row per ENABLED gate TF -- disabled TFs are never shown. Off = all enabled TFs collapse into a single summary row like "240:UP 120:DOWN 60:DOWN", the most compact phone layout.')
+tbl_reg_row = input.bool(true, 'Regime row', group = g_tbl, tooltip = 'Show the regime-layer state row. Hiding it is display-only: the regime still gates entries and grades A+ setups.')
+tbl_grade_row = input.bool(true, 'Setup grade row', group = g_tbl, tooltip = 'Show the A+/standard grade of the armed setup or open position. The A+ alerts work regardless.')
+tbl_ratchet_row = input.bool(true, 'Ratchet row (governor on only)', group = g_tbl, tooltip = 'Show governor ratchet levels. The row only renders when Governor mode = ratchet; with the governor off it is dropped automatically (it could only ever read "-- / --").')
 
 var string g_col = 'Colors'
 col_up    = input.color(color.green,  'Gate up',   inline = 'c1', group = g_col, tooltip = 'Bar/background/level colors for aligned-up, aligned-down and grey states.')
@@ -449,20 +458,54 @@ if show_table and barstate.islast
     arm_txt   = armed > 0 ? 'buy stop ' + str.tostring(stop_price, format.mintick) : armed < 0 ? 'sell stop ' + str.tostring(stop_price, format.mintick) : '--'
     grade_txt = armed != 0 ? (armed_aplus ? 'A+ (regime aligned)' : 'standard') : pos != 0 ? (pos_aplus ? 'A+ (at entry)' : 'standard') : '--'
     grade_c   = (armed != 0 and armed_aplus) or (pos != 0 and pos_aplus) ? color.lime : color.silver
-    f_cell(0,  'TFC Companion v4', exit_mode + ' exit / close-basis', exit_mode == 'flip' ? color.aqua : color.silver)
-    f_cell(1,  'Strategy TF', logic_tf, color.orange)
-    f_cell(2,  'TF1 ' + tf1, f_tf_state(y1, o1), color.white)
-    f_cell(3,  'TF2 ' + tf2, f_tf_state(y2, o2), color.white)
-    f_cell(4,  'TF3 ' + tf3, f_tf_state(y3, o3), color.white)
-    f_cell(5,  'TF4 ' + tf4, f_tf_state(y4, o4), color.white)
-    f_cell(6,  'TF5 ' + tf5, f_tf_state(y5, o5), color.white)
-    f_cell(7,  'TF6 ' + tf6, f_tf_state(y6, o6), color.white)
-    f_cell(8,  'EXEC gate (live)', exec_txt, exec_c)
-    f_cell(9,  'Regime (' + reg_mode + ')', reg_txt, reg_c)
-    f_cell(10, 'Position', pos_txt, pos_c)
-    f_cell(11, 'Armed entry stop', arm_txt, color.orange)
-    f_cell(12, 'Setup grade', grade_txt, grade_c)
-    f_cell(13, 'Ratchet L/S', (na(ratchet_long) ? '--' : str.tostring(ratchet_long, format.mintick)) + ' / ' + (na(ratchet_short) ? '--' : str.tostring(ratchet_short, format.mintick)), color.teal)
+    // dynamic rows: disabled TFs and inapplicable sections are skipped entirely,
+    // not blanked -- the row set is fixed per configuration, so nothing flickers.
+    int r = 0
+    f_cell(r, 'TFC Companion v4', exit_mode + ' exit / TF ' + logic_tf, exit_mode == 'flip' ? color.aqua : color.silver)
+    r += 1
+    if tbl_tf_rows
+        if y1
+            f_cell(r, 'TF ' + tf1, f_tf_state(y1, o1), color.white)
+            r += 1
+        if y2
+            f_cell(r, 'TF ' + tf2, f_tf_state(y2, o2), color.white)
+            r += 1
+        if y3
+            f_cell(r, 'TF ' + tf3, f_tf_state(y3, o3), color.white)
+            r += 1
+        if y4
+            f_cell(r, 'TF ' + tf4, f_tf_state(y4, o4), color.white)
+            r += 1
+        if y5
+            f_cell(r, 'TF ' + tf5, f_tf_state(y5, o5), color.white)
+            r += 1
+        if y6
+            f_cell(r, 'TF ' + tf6, f_tf_state(y6, o6), color.white)
+            r += 1
+    else
+        string gsum = ''
+        gsum += y1 ? tf1 + ':' + f_tf_state(y1, o1) + ' ' : ''
+        gsum += y2 ? tf2 + ':' + f_tf_state(y2, o2) + ' ' : ''
+        gsum += y3 ? tf3 + ':' + f_tf_state(y3, o3) + ' ' : ''
+        gsum += y4 ? tf4 + ':' + f_tf_state(y4, o4) + ' ' : ''
+        gsum += y5 ? tf5 + ':' + f_tf_state(y5, o5) + ' ' : ''
+        gsum += y6 ? tf6 + ':' + f_tf_state(y6, o6) + ' ' : ''
+        f_cell(r, 'Gate TFs', gsum, color.white)
+        r += 1
+    f_cell(r, 'EXEC gate (live)', exec_txt, exec_c)
+    r += 1
+    if tbl_reg_row
+        f_cell(r, 'Regime (' + reg_mode + ')', reg_txt, reg_c)
+        r += 1
+    f_cell(r, 'Position', pos_txt, pos_c)
+    r += 1
+    f_cell(r, 'Armed entry stop', arm_txt, color.orange)
+    r += 1
+    if tbl_grade_row
+        f_cell(r, 'Setup grade', grade_txt, grade_c)
+        r += 1
+    if tbl_ratchet_row and gov_mode == 'ratchet'
+        f_cell(r, 'Ratchet L/S', (na(ratchet_long) ? '--' : str.tostring(ratchet_long, format.mintick)) + ' / ' + (na(ratchet_short) ? '--' : str.tostring(ratchet_short, format.mintick)), color.teal)
 
 // ----------------------------------- Alerts -----------------------------------
 // RECOMMENDED QUIET SETUP: create only the two A+ armed alerts (Once Per Bar).
