@@ -3,7 +3,7 @@
 
 //@version=6
 // =====================================================================================
-// TFC Companion [TVB-10]                    v4 -- signal UX + exit-mode ablation watch
+// TFC Companion [TVB-11]                    v5 -- + intrabar entry-arming ablation watch
 // -------------------------------------------------------------------------------------
 // QUICK START (if you did not build this) ---------------------------------------------
 //   1) Chart TF must evenly tile the Strategy TF (default 60m -> chart on 5/15/30/60
@@ -30,6 +30,14 @@
 //      the overlays stay readable. Backtest read (TVB-10): flip rides bursts,
 //      state harvests swings; neither is universally better -- that question is
 //      exactly what the side-by-side watch is for.
+//   4b) Arming mode (TVB-11 ablation): 'close' (default) arms the entry stop only
+//      AFTER the exec gate is aligned at a Strategy-TF CLOSE -- the deployed strategy,
+//      which lags. 'intrabar' arms the instant the LIVE gate aligns and REVOKES it the
+//      instant the gate crosses back (STRAT 2U-timing). It enters earlier when a fresh
+//      alignment has already run past the prior high, but can fire more often when the
+//      gate flickers around a period open -- run two instances (one each) to watch that
+//      trade-off live. Entry timing only; exits unchanged. Historical intrabar timing
+//      is only chart-TF-grade -- run the chart FINER than the Strategy TF.
 //   5) Alerts: for the quietest, highest-conviction feed create ONLY
 //      "A+ long armed" and "A+ short armed" (trigger: Once Per Bar). They fire when
 //      a stop arms WHILE the regime layer is also fully aligned -- regime layer and
@@ -37,17 +45,31 @@
 //      Every other alert below is optional granularity. Alert names are shared
 //      between instances -- include the mode (state/flip) in the alert NAME you
 //      type when creating it.
-//   6) Nothing decision-level repaints: the machine samples committed bars at
-//      Strategy-TF closes. Live bar/background tint flickers by design (close basis,
-//      reversible tick to tick) -- the state machine itself does not.
+//   6) Repaint model depends on Arming mode (item 4b). In 'close' arming nothing
+//      decision-level repaints: the machine samples committed bars at Strategy-TF
+//      closes; only the live bar/background tint flickers (close basis, reversible
+//      tick to tick). In 'intrabar' arming the ARMED stop and its fill are live BY
+//      DESIGN and can appear or revoke within a bar; on historical bars that timing is
+//      only chart-TF-grade. Exits commit at Strategy-TF closes in BOTH modes.
 // -------------------------------------------------------------------------------------
 // Purpose : MANUAL-TRADING companion to pine/baseline_continuity.pine (pv20 anchor).
 //           Shows, live on any chart, exactly what the backtested strategy sees and
 //           does: the FTFC exec gate, the regime permits, the armed one-bar breakout
-//           trigger, simulated fills/exits, and the governor ratchet levels.
-//           NO new detection logic -- gate/trigger/stop/governor semantics are copied
-//           from the deployed strategy (TVB-1 charter reconciliation: FTFC = close vs
-//           each enabled TF's CURRENT period open).
+//           trigger, simulated fills/exits, and the governor ratchet levels. In
+//           'close' arm mode the gate/trigger/stop/governor semantics are copied from
+//           the deployed strategy verbatim (TVB-1 charter reconciliation: FTFC = close
+//           vs each enabled TF's CURRENT period open). The v5 'intrabar' arm mode is a
+//           DELIBERATE research fork AHEAD of the strategy -- an entry-timing candidate
+//           the deployed script does not yet implement (TVB-11 ablation).
+// v5      : arm_mode input (TVB-11 pre-registered ablation; the STRAT 2U-timing fork).
+//           'close' (default) is behavior-identical to v4.1 -- the exec gate is read at
+//           the Strategy-TF close and a breakout stop arms for the NEXT bar. 'intrabar'
+//           reads the gate LIVE and holds a REVOCABLE in-force breakout stop the instant
+//           the gate aligns (fills earlier; revoked when the gate crosses back). Exits,
+//           the regime layer and the governor are unchanged by it. Also corrects the
+//           governor fidelity note: BOTH the display and the deployed strategy classify
+//           governor win/loss GROSS of commission (TVB-10 review finding 2). Two-instance
+//           live A/B: one 'close', one 'intrabar'.
 // v4      : exit_mode input (TVB-10 pre-registered ablation; = TFCConfig.exit_mode
 //           in the Python engine). 'state' is behavior-identical to v3; 'flip'
 //           changes ONLY the Phase-B exit test and the provisional warning. Exit
@@ -75,17 +97,20 @@
 //           exits fill at the logic bar's open; the breakout stop fills at the stop,
 //           or at the logic OPEN when the logic bar opens through.
 // Fidelity: the trade SEQUENCE is fee-independent EXCEPT via the governor, which
-//           classifies win/loss GROSS here (TVB-7) vs net-of-fees in the strategy.
-//           With gov ON + real commission, near-scratch trades can classify
-//           differently and diverge the ratchet state. slip_ticks (default 1)
-//           mirrors deployed slippage so scratch exits book as losses in both.
+//           classifies win/loss GROSS of commission -- BOTH here AND in the deployed
+//           strategy (TVB-7: strategy.closedtrades.profit() is gross of commission in
+//           this TV build, so the strategy arms the ratchet on gross too). Slippage,
+//           not fees, controls scratch behavior: slip_ticks (default 1) mirrors the
+//           deployed slippage so a scratch exit books as a small loss and ratchets in
+//           both. (Earlier versions said the strategy was net-of-fees here -- wrong;
+//           corrected per the TVB-10 external review, finding 2.)
 // Alerts  : alertcondition() only (charter S4). Fill / exit / armed alerts: create
 //           with "Once Per Bar" (committed events, never repaint). 'Exit condition
 //           live': create with "Once Per Bar Close" (provisional until the
 //           Strategy-TF close).
 // =====================================================================================
 
-indicator('TFC Companion [TVB-10]', overlay = true)
+indicator('TFC Companion [TVB-11]', overlay = true)
 
 // ----------------------------------- Inputs -----------------------------------
 var string g_dir = 'Direction'
@@ -94,6 +119,9 @@ allow_short = input.bool(true, 'Allow Short', group = g_dir, tooltip = 'Master s
 
 var string g_exit = 'Exit rule (TVB-10 ablation -- run two instances to compare live)'
 exit_mode = input.string('state', 'Exit mode', options = ['state', 'flip'], group = g_exit, tooltip = 'How the simulated position exits. state (default, the deployed baseline): exit at the first Strategy-TF close where the exec gate is no longer FULLY aligned with the position -- grey is enough to exit; this harvests trends in slices and churns hardest in long clean regimes. flip: exit ONLY when the exec gate reaches full OPPOSITE alignment -- the position holds through grey and exits at TFO-flip cadence; this rides regimes whole but gives back more inside them and holds with NO stop while grey (deeper adverse excursions -- the TVB-10 backtest measured median MAE 7-8x larger on slow gates). Neither mode is universally better: in the TVB-10 sweep flip dominated burst trends (MU) and state dominated swingy trends (MSTR) -- symbol by symbol, by regime shape. To compare live, run TWO instances of this indicator (one per mode) and give the flip instance different box colors and Table position. Entries, the regime layer, the governor and the A+ grade are identical in both modes.')
+
+var string g_arm = 'Arming rule (TVB-11 ablation -- run two instances to compare live)'
+arm_mode = input.string('close', 'Arming mode', options = ['close', 'intrabar'], group = g_arm, tooltip = 'When the breakout entry stop is allowed to arm. close (default; the deployed baseline; behavior-identical to v4.1): the exec gate is read at the Strategy-TF CLOSE (committed, [1]-sampled), and a stop arms for the NEXT Strategy-TF bar only if the gate was fully aligned at that close -- so alignment that happens mid-bar is not acted on until the bar closes (this is the lag). intrabar (TVB-11; STRAT 2U-timing): the exec gate is read LIVE and the breakout stop is IN FORCE the instant the gate aligns -- it arms mid-bar at the prior Strategy-TF bar high/low (+/- a tick), fills on the break, and is REVOKED the instant the live gate stops being aligned. This is a reversible in-force window: the monotonic level break is intrabar-safe, but the continuity gate can cross back, so the window opens and closes with the gate (STRAT signal_in_force). intrabar enters earlier and at better prices when a fresh alignment has already run past the prior high, but fires more often when the gate flickers around a period open -- watching that trade-off live is the point. FIDELITY: intrabar timing is TRUTH-GRADE going forward (the indicator recomputes every realtime tick) but only CHART-TF-GRADE on historical bars (history has only each chart bar OHLC, so the earliest a past entry can show is a chart-bar close -- run the chart FINER than the Strategy TF, e.g. 15m under 60m, to tighten it; it uses real sub-bar closes, never bar extremes). Exits are UNCHANGED by this input (they still commit at Strategy-TF closes per Exit mode); only entry timing moves. Compare live by running TWO instances (one close, one intrabar) with different box colors and Table positions.')
 
 var string g_tf = 'Strategy TF + execution gate TFs (FTFC set)'
 logic_tf = input.timeframe('60', 'Strategy TF (decisions commit at this TF)', group = g_tf, tooltip = 'The clock the strategy thinks on. Gate reads, exits, governor updates and stop arming all commit at THIS timeframe closes, exactly like the backtest -- the chart TF only changes how early you SEE fills, never the decisions. The chart TF must be equal to or finer than this and tile it evenly (5/15/30/60 tile 60m; 45m does not -- misalignment errors out loudly). Default 60 = the deployed R1E3 configuration. Changing this changes the SYSTEM being mirrored, not just the display: keep it matched to whichever backtest config you run.')
@@ -120,7 +148,7 @@ rg3  = input.bool(true, '', inline = 'r3', group = g_reg)
 rtf3 = input.timeframe('D', 'Regime TF 3', inline = 'r3', group = g_reg, tooltip = 'Regime timeframe. See Regime TF 1 tooltip.')
 
 var string g_gov = 'Re-entry governor (TVB-6, charter S8) -- zero-parameter ratchet'
-gov_mode   = input.string('off', 'Governor mode', options = ['off', 'ratchet'], group = g_gov, tooltip = 'Re-entry throttle after a losing trade. ratchet = after a loss, same-direction entries re-arm ONLY at a trigger STRICTLY beyond the failed trade trigger (longs need a higher high than the failed level, shorts a lower low) -- one level, one chance, until price proves a new extreme. Resets on a winning same-direction exit or when the exec gate reaches FULL OPPOSITE alignment (the episode that set the level has ended). Zero tuned parameters. When to try it: instruments that repeatedly fake the same breakout level and chop you on re-entries. Default off = the pure control. Caveats: this display classifies win/loss GROSS of fees; the live strategy uses net-of-fees, so with real commission a tiny gross winner can be a net loser and the ratchet states can diverge on near-scratch trades. Under Exit mode = flip the governor is structurally inert (the reset event IS the exit event -- TVB-10 verified).')
+gov_mode   = input.string('off', 'Governor mode', options = ['off', 'ratchet'], group = g_gov, tooltip = 'Re-entry throttle after a losing trade. ratchet = after a loss, same-direction entries re-arm ONLY at a trigger STRICTLY beyond the failed trade trigger (longs need a higher high than the failed level, shorts a lower low) -- one level, one chance, until price proves a new extreme. Resets on a winning same-direction exit or when the exec gate reaches FULL OPPOSITE alignment (the episode that set the level has ended). Zero tuned parameters. When to try it: instruments that repeatedly fake the same breakout level and chop you on re-entries. Default off = the pure control. Caveats: both this display and the deployed strategy classify win/loss GROSS of commission (TVB-7: strategy.closedtrades.profit() is gross in this TV build); slippage -- not fees -- controls scratch behavior, so keep slip_ticks equal to the strategy slippage and scratch exits ratchet identically in both. Under Exit mode = flip the governor is structurally inert (the reset event IS the exit event -- TVB-10 verified).')
 slip_ticks = input.int(1, 'Slippage ticks (governor gross fidelity only)', minval = 0, group = g_gov, tooltip = 'Slippage in ticks applied to simulated fill prices, mirroring the strategy slippage=1 property. Its only behavioral role is governor win/loss classification: with slippage on, a scratch exit (out exactly at the trigger) books as a small gross loss and correctly ratchets, matching the strategy. Keep equal to the strategy slippage setting. 0 = fills shown exactly at trigger / open, and scratches count as wins -- only use 0 if the strategy also runs 0.')
 
 var string g_viz = 'Display'
@@ -271,6 +299,8 @@ var float ratchet_long  = na
 var float ratchet_short = na
 var float l_high        = na     // developing logic bar extremes
 var float l_low         = na
+var float prev_lh       = na     // TVB-11: prior COMPLETED logic bar high/low = intrabar trigger levels
+var float prev_ll       = na
 var bool  armed_aplus   = false  // v3: current/last setup armed under FULL regime alignment (committed)
 var bool  pos_aplus     = false  // v3: open position's grade at entry (table display only)
 
@@ -280,6 +310,7 @@ bool exit_fill       = false
 bool exit_long_fill  = false     // v3: exit split by closed-position direction
 bool exit_short_fill = false
 bool just_armed      = false
+bool ib_arm_now      = false     // TVB-11: intrabar stop is armed on THIS chart bar (honest fill)
 float exit_px        = na        // v3: exit fill price this bar (feeds alert placeholder)
 
 if new_logic
@@ -311,22 +342,27 @@ if new_logic
         ratchet_long := na
     if up_c
         ratchet_short := na
-    armed := 0  // the one-logic-bar stop expires unfilled
-    armed_aplus := false
-    gov = gov_mode == 'ratchet'
-    gl_ok = not gov or na(ratchet_long)  or lb_high + syminfo.mintick > ratchet_long
-    gs_ok = not gov or na(ratchet_short) or lb_low - syminfo.mintick < ratchet_short
-    if pos == 0 and not pending_exit and not na(lb_high)
-        if allow_long and up_c and lp_c and gl_ok
-            armed := 1
-            stop_price := lb_high + syminfo.mintick
-            just_armed := true
-            armed_aplus := ru_c
-        else if allow_short and dn_c and sp_c and gs_ok
-            armed := -1
-            stop_price := lb_low - syminfo.mintick
-            just_armed := true
-            armed_aplus := rd_c
+    prev_lh := lb_high  // TVB-11: expose completed-bar extremes to the intrabar arming block
+    prev_ll := lb_low
+    // close arming (the deployed strategy): commit the arm at the Strategy-TF close.
+    // intrabar arming owns `armed` entirely and is handled below, every chart bar.
+    if arm_mode == 'close'
+        armed := 0  // the one-logic-bar stop expires unfilled
+        armed_aplus := false
+        gov = gov_mode == 'ratchet'
+        gl_ok = not gov or na(ratchet_long)  or lb_high + syminfo.mintick > ratchet_long
+        gs_ok = not gov or na(ratchet_short) or lb_low - syminfo.mintick < ratchet_short
+        if pos == 0 and not pending_exit and not na(lb_high)
+            if allow_long and up_c and lp_c and gl_ok
+                armed := 1
+                stop_price := lb_high + syminfo.mintick
+                just_armed := true
+                armed_aplus := ru_c
+            else if allow_short and dn_c and sp_c and gs_ok
+                armed := -1
+                stop_price := lb_low - syminfo.mintick
+                just_armed := true
+                armed_aplus := rd_c
     // ---- Phase A: pending exit fills at the new logic bar's open (= this open) ----
     if pending_exit and pos != 0
         xp = pos > 0 ? open - slip : open + slip
@@ -342,6 +378,7 @@ if new_logic
         pos := 0
         pos_aplus := false
         pending_exit := false
+        armed := 0  // TVB-11: a stale intrabar arm must not re-enter on the exit bar (no-op in close mode)
     // reset running extremes for the new logic bar
     l_high := high
     l_low  := low
@@ -349,12 +386,41 @@ else
     l_high := na(l_high) ? high : math.max(l_high, high)
     l_low  := na(l_low)  ? low  : math.min(l_low, low)
 
+// ---- TVB-11 intrabar arming (arm_mode == 'intrabar'): live revocable in-force window ----
+// Every chart bar, read the LIVE gate (not the committed [1] close). While the gate is
+// aligned in a permitted direction a breakout stop is IN FORCE at the prior completed
+// logic bar's extreme (+/- tick); it is REVOKED the instant the live gate stops being
+// aligned (STRAT signal_in_force -- the level break is monotonic, the continuity gate is
+// reversible). Fills reuse the shared Phase-A logic below. Exits are untouched (still
+// decided at Strategy-TF closes per Exit mode); only entry TIMING moves.
+if arm_mode == 'intrabar' and pos == 0 and not pending_exit and not na(prev_lh)
+    gov_ib   = gov_mode == 'ratchet'
+    trig_l   = prev_lh + syminfo.mintick
+    trig_s   = prev_ll - syminfo.mintick
+    gl_ok_ib = not gov_ib or na(ratchet_long)  or trig_l > ratchet_long
+    gs_ok_ib = not gov_ib or na(ratchet_short) or trig_s < ratchet_short
+    if allow_long and ftfc_up and long_permit and gl_ok_ib
+        if armed != 1
+            just_armed := true
+        armed       := 1
+        stop_price  := trig_l
+        armed_aplus := reg_up
+    else if allow_short and ftfc_dn and short_permit and gs_ok_ib
+        if armed != -1
+            just_armed := true
+        armed       := -1
+        stop_price  := trig_s
+        armed_aplus := reg_dn
+    else
+        armed := 0   // in-force window closed: live gate no longer aligned/permitted
+    ib_arm_now := armed != 0
+
 // ---- Phase A: entry fills, checked every chart bar while armed ----
 // Gap-through applies only to the LOGIC bar's open (the boundary bar); a later
 // chart bar crossing the stop fills AT the stop, as the Strategy Tester assumes
 // on the logic bar (fidelity to the backtest's bar model).
 if armed > 0 and pos == 0
-    if new_logic and open > stop_price
+    if (new_logic and open > stop_price) or (ib_arm_now and open >= stop_price)
         ep := open + slip
         fill_long := true
     else if high >= stop_price
@@ -365,7 +431,7 @@ if armed > 0 and pos == 0
         pos_aplus := armed_aplus
         armed := 0
 else if armed < 0 and pos == 0
-    if new_logic and open < stop_price
+    if (new_logic and open < stop_price) or (ib_arm_now and open <= stop_price)
         ep := open - slip
         fill_short := true
     else if low <= stop_price
@@ -461,7 +527,7 @@ if show_table and barstate.islast
     // dynamic rows: disabled TFs and inapplicable sections are skipped entirely,
     // not blanked -- the row set is fixed per configuration, so nothing flickers.
     int r = 0
-    f_cell(r, 'TFC Companion v4', exit_mode + ' exit / TF ' + logic_tf, exit_mode == 'flip' ? color.aqua : color.silver)
+    f_cell(r, 'TFC Companion v5', arm_mode + ' arm / ' + exit_mode + ' exit / TF ' + logic_tf, arm_mode == 'intrabar' ? color.orange : exit_mode == 'flip' ? color.aqua : color.silver)
     r += 1
     if tbl_tf_rows
         if y1
