@@ -34,7 +34,14 @@ CONSTRUCTION -- the sample-worst MAE is only the worst seen, not the worst
 possible. Characterization, not sizing advice (charter S0).
 
 Usage:
-    uv run --no-sync python analysis/tfc_leverage_overlay.py [--out FILE]
+    uv run --no-sync python analysis/tfc_leverage_overlay.py [--exit-mode state|flip|compare] [--out FILE]
+
+TVB-11 (external review finding F3): --exit-mode adds the flip arm to what was
+a state-only overlay. Default 'state' reproduces the TVB-9 artifact (plus a new
+median_mae_pct field); 'flip' runs the flip exit arm; 'compare' emits state vs
+flip per cell with deltas. The 'compare' artifact is the committed evidence for
+the datasheet's "MU ctrlA L_surv 7.30 -> 5.36 under flip" MAE/L_surv claim
+(expectation 5), which previously had no committed flip-mode runner/artifact.
 """
 
 from __future__ import annotations
@@ -124,9 +131,58 @@ def account_path(pp: np.ndarray, maes: np.ndarray, lever: float, mm: float) -> d
     return {"final": round(eq, 2), "dead": None, "maxdd_pct": round(100.0 * maxdd, 1)}
 
 
+def cell_metrics(bars: Bars, cfg: TFCConfig, mm: float, ml: int) -> dict | None:
+    """Run one config and return its MAE/L_surv/Kelly/$500-account overlay row body.
+
+    Extracted (TVB-11 F3) so state and flip arms share identical MAE methodology.
+    Returns None when the cell produced no closed trades.
+    """
+    res = simulate(bars, cfg)
+    if not res.closed:
+        return None
+    pp = np.array([r["pp"] for r in res.closed])
+    maes = trade_maes(bars, res.closed)
+    dirs = np.array([r["dir"] for r in res.closed])
+    worst_all = float(maes.max())
+    worst_by = {
+        d: (float(maes[dirs == d].max()) if (dirs == d).any() else None) for d in ("le", "se")
+    }
+    l_surv = 1.0 / (worst_all + mm)
+    grid = np.arange(0.1, min(l_surv, ml) + 1e-9, 0.1)
+    growth = [
+        (float(np.sum(np.log1p(lv * pp))) if (maes < 1.0 / lv - mm).all() else -np.inf)
+        for lv in grid
+    ]
+    l_kelly = float(grid[int(np.argmax(growth))]) if len(grid) else None
+    levers = sorted({*BASE_LEVERS, float(ml), round(min(l_surv * 0.99, ml), 1)} - {0.0})
+    acct = {f"{lv:g}x": account_path(pp, maes, lv, mm) for lv in levers if lv >= 1.0}
+    wk = int(np.argmax(maes))
+    return {
+        "trades": len(pp),
+        "worst_mae_pct": round(100 * worst_all, 2),
+        "median_mae_pct": round(
+            100 * float(np.median(maes)), 2
+        ),  # TVB-11: backs the median-MAE claim
+        "worst_mae_dir": str(dirs[wk]),
+        "worst_mae_date": iso(res.closed[wk]["et"] // 1000)[:10],
+        "worst_mae_by_dir_pct": {
+            d: (round(100 * v, 2) if v is not None else None) for d, v in worst_by.items()
+        },
+        "survival_max_L": round(l_surv, 2),
+        "sample_kelly_L": l_kelly,
+        "account_500": acct,
+    }
+
+
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--out", default=str(REFERENCE_DIR / RESULTS_FILE))
+    ap.add_argument(
+        "--exit-mode",
+        default="state",
+        choices=("state", "flip", "compare"),
+        help="state (default, reproduces TVB-9) | flip | compare (both arms + deltas)",
+    )
     args = ap.parse_args(argv)
 
     sinfo = load_symbolinfo()
@@ -139,65 +195,64 @@ def main(argv: list[str]) -> int:
         mm = 1.0 / (2.0 * ml)
         bars = drop_last(load_bars(f"tvb9_hl_{u['slug']}_1h.json"))
         for cell, kw in CONFIGS.items():
-            cfg = TFCConfig(comm_rate=FEE, slip_ticks=1, mintick=float(info["mintick"]), **kw)
-            res = simulate(bars, cfg)
-            if not res.closed:
-                continue
-            pp = np.array([r["pp"] for r in res.closed])
-            maes = trade_maes(bars, res.closed)
-            dirs = np.array([r["dir"] for r in res.closed])
-            worst_all = float(maes.max())
-            worst_by = {
-                d: (float(maes[dirs == d].max()) if (dirs == d).any() else None)
-                for d in ("le", "se")
+            base = dict(comm_rate=FEE, slip_ticks=1, mintick=float(info["mintick"]), **kw)
+            head = {
+                "symbol": coin,
+                "cell": cell,
+                "venue_max_leverage": ml,
+                "mm_pct": round(100 * mm, 3),
             }
-            l_surv = 1.0 / (worst_all + mm)
-            # sample-Kelly on the no-liq range
-            grid = np.arange(0.1, min(l_surv, ml) + 1e-9, 0.1)
-            growth = [
-                (float(np.sum(np.log1p(lv * pp))) if (maes < 1.0 / lv - mm).all() else -np.inf)
-                for lv in grid
-            ]
-            l_kelly = float(grid[int(np.argmax(growth))]) if len(grid) else None
-            levers = sorted({*BASE_LEVERS, float(ml), round(min(l_surv * 0.99, ml), 1)} - {0.0})
-            acct = {f"{lv:g}x": account_path(pp, maes, lv, mm) for lv in levers if lv >= 1.0}
-            wk = int(np.argmax(maes))
-            rows.append(
-                {
-                    "symbol": coin,
-                    "cell": cell,
-                    "venue_max_leverage": ml,
-                    "mm_pct": round(100 * mm, 3),
-                    "trades": len(pp),
-                    "worst_mae_pct": round(100 * worst_all, 2),
-                    "worst_mae_dir": str(dirs[wk]),
-                    "worst_mae_date": iso(res.closed[wk]["et"] // 1000)[:10],
-                    "worst_mae_by_dir_pct": {
-                        d: (round(100 * v, 2) if v is not None else None)
-                        for d, v in worst_by.items()
-                    },
-                    "survival_max_L": round(l_surv, 2),
-                    "sample_kelly_L": l_kelly,
-                    "account_500": acct,
-                }
-            )
-            edge = acct.get(f"{round(min(l_surv * 0.99, ml), 1):g}x", {})
-            print(
-                f"{coin:<11} {cell:<9} worstMAE {100 * worst_all:5.2f}% ({str(dirs[wk])}) "
-                f"L_surv {l_surv:5.2f} (venue max {ml}) kelly~{l_kelly} "
-                f"$500@edge -> {edge.get('final')} {edge.get('dead') or ''}"
-            )
+            if args.exit_mode == "compare":
+                ms = cell_metrics(bars, TFCConfig(exit_mode="state", **base), mm, ml)
+                mf = cell_metrics(bars, TFCConfig(exit_mode="flip", **base), mm, ml)
+                if ms is None or mf is None:
+                    continue
+                rows.append(
+                    {
+                        **head,
+                        "state": ms,
+                        "flip": mf,
+                        "delta_worst_mae_pct": round(mf["worst_mae_pct"] - ms["worst_mae_pct"], 2),
+                        "delta_median_mae_pct": round(
+                            mf["median_mae_pct"] - ms["median_mae_pct"], 2
+                        ),
+                        "delta_survival_max_L": round(
+                            mf["survival_max_L"] - ms["survival_max_L"], 2
+                        ),
+                    }
+                )
+                print(
+                    f"{coin:<11} {cell:<9} "
+                    f"L_surv {ms['survival_max_L']:5.2f}->{mf['survival_max_L']:5.2f}  "
+                    f"worstMAE {ms['worst_mae_pct']:5.2f}->{mf['worst_mae_pct']:5.2f}  "
+                    f"medMAE {ms['median_mae_pct']:5.2f}->{mf['median_mae_pct']:5.2f}  "
+                    f"(n {ms['trades']}->{mf['trades']})"
+                )
+            else:
+                m = cell_metrics(bars, TFCConfig(exit_mode=args.exit_mode, **base), mm, ml)
+                if m is None:
+                    continue
+                rows.append({**head, **m})
+                edge = m["account_500"].get(
+                    f"{round(min(m['survival_max_L'] * 0.99, ml), 1):g}x", {}
+                )
+                print(
+                    f"{coin:<11} {cell:<9} worstMAE {m['worst_mae_pct']:5.2f}% ({m['worst_mae_dir']}) "
+                    f"L_surv {m['survival_max_L']:5.2f} (venue max {ml}) kelly~{m['sample_kelly_L']} "
+                    f"$500@edge -> {edge.get('final')} {edge.get('dead') or ''}"
+                )
 
     doc = {
-        "purpose": "TVB-9 leverage-extreme overlay (survival-max L + $500 account)",
+        "purpose": f"leverage-extreme overlay (survival-max L + $500 account), exit_mode={args.exit_mode}",
         "method": "MAE-clearance vs HL isolated liq (x_liq = 1/L - mm); see module docstring",
+        "exit_mode": args.exit_mode,
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "fee_rate": FEE,
         "start_cash": START_CASH,
         "rows": rows,
     }
     Path(args.out).write_text(json.dumps(doc, indent=1), encoding="utf-8")
-    print(f"wrote {args.out} ({len(rows)} rows)")
+    print(f"wrote {args.out} ({len(rows)} rows, exit_mode={args.exit_mode})")
     return 0
 
 
