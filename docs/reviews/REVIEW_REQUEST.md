@@ -10,7 +10,7 @@
 
 ## Status
 
-- Status: REQUESTED  <!-- REQUESTED | RETURNED (audit file written) -->
+- Status: RETURNED  <!-- REQUESTED | RETURNED (audit file written) -->
 - Session under review: TVB-10 -- exit-symmetry ablation (state-stop vs
   flip-stop; `TFCConfig.exit_mode`; pre-registered 288-run sweep + D1
   flip-line diagnostic); TFC Companion indicator v3 -> v4.1 (exit_mode

@@ -91,7 +91,7 @@ weekly budget.
 > below) and write a verbatim assessment to docs/reviews/tvb10-codex-audit.md.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: REQUESTED
+- Review status: RETURNED (2026-07-08, `docs/reviews/tvb10-codex-audit.md`)
 - Commits to review: `af27900^..258dfb3` on `main` (9 commits, incl. the
   session-end docs commit 258dfb3). RANGE-PIN RULE (Codex TVB-4
   finding 1): git ranges EXCLUDE the left endpoint, so pin `{first}^..{head}`
@@ -107,8 +107,45 @@ weekly budget.
   nan-filtering and within-cell comparison validity; companion v4.1 gate
   parity with the simulator (no request.security claim, [1]-committed
   reads, alertcondition const strings); mtm_net_pct open-trade marking.
-- Reviewed by: pending
-- Findings: (blank until docs/reviews/tvb10-codex-audit.md exists)
+- Reviewed by: Codex CLI / GPT-5 -- APPROVE-WITH-NITS (3 LOW; no BLOCK/NEEDS-CHANGES)
+- Findings: (1) C1 governor-inertness wording too strong for AMD flip rows
+  (real-fee +2.82pp slightly exceeds the 2.5pp gov drift band); (2) companion
+  header/tooltip still says strategy is net-of-fees while it now classifies
+  governor wins/losses GROSS -- stale user-facing guidance, not a behavior bug;
+  (3) TVB-10 MAE/L_surv flip overlay lacks a committed TVB-10-specific
+  artifact (leverage overlay defaults to exit_mode=state).
+
+**Critical synthesis (TVB-11, agree/dispute/act):** All three findings ACCEPTED;
+none is a code bug and none blocks TVB-11 work.
+- **F1 (C1 wording) -- AGREE, act now (wording).** The numbers are right: AMD
+  real-fee flip gov deltas (+2.82pp) do exceed the carried 2.5pp gov drift band,
+  so "structurally inert under flip" was too absolute. Corrected reading:
+  governor is *mostly inert / no longer a major lever* under flip, with small
+  AMD residuals from exit-fill-bar close state. Future sweeps that keep C1 as a
+  formal check must report pass/fail against the declared 2.5pp band, not prose.
+  APPLIED to datasheet point 6 (TVB-11).
+- **F2 (companion tooltip) -- AGREE, DONE THIS SESSION (companion v5).** Code
+  classifies gross correctly; only the header/tooltip still described net-of-fees
+  ratchet divergence that cannot occur at the gross-profit boundary. Fixed in the
+  same companion arming-mode touch (INDICATOR slot: header Fidelity note + gov
+  tooltip now say BOTH display and strategy classify GROSS); strategy-slot pv20
+  comment fix stays queued separately.
+- **F3 (MAE/L_surv evidence gap) -- AGREE, sharpest nit -- RESOLVED THIS SESSION.**
+  The leverage overlay built `TFCConfig(...)` with no `exit_mode` -> defaulted to
+  state, so the datasheet's "MU L_surv 7.3 -> 5.4 under flip" line was NOT a
+  committed flip-mode artifact the way net/MTM and D1 are. FIX: added
+  `--exit-mode {state,flip,compare}` to `analysis/tfc_leverage_overlay.py` (state
+  default reproduces TVB-9 exactly; +median_mae_pct) and committed
+  `analysis/reference/tvb10_exit_leverage_overlay.json` (compare, 36 rows). It
+  reproduces every datasheet number to the decimal: MU ctrlA L_surv 7.30->5.36,
+  worst-MAE 8.69->13.67, median 0.53->4.44; MSTR ctrlA median 0.51->3.70; AMD
+  E3only worst-MAE 7.65->6.55. The claim was HONEST, just un-pinned; now pinned.
+  Bonus: the L_surv collapse is concentrated in the slow ctrlA gate (fast
+  E3only/R1E3 cells barely move under flip).
+- **Process (reviewer meta-suggestion) -- ADOPT.** Add an explicit "evidence
+  inventory" line to REVIEW_REQUEST.md next session-end: each pre-registered
+  check paired with the exact committed artifact/script that proves it. Would
+  have surfaced the F3 gap before review.
 
 ---
 

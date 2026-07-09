@@ -2256,10 +2256,24 @@ regime-locality axis alongside the TF set:
    edge pays in held excursion). Caveat: L_surv is trade-set-dependent
    (AMD E3only worst-MAE IMPROVED 7.65 -> 6.55 because the state arm's
    worst trade does not exist in the flip set). All in-sample.
+   COMMITTED EVIDENCE (TVB-11, review finding F3): every number in this
+   point is now reproduced to the decimal by
+   `analysis/reference/tvb10_exit_leverage_overlay.json`
+   (`tfc_leverage_overlay.py --exit-mode compare`). The L_surv collapse is
+   concentrated in the slow ctrlA (M/W/D/60) gate (AMD ctrlA 8.65 -> 5.83,
+   BTC 23.10 -> 14.22, NVDA 20.76 -> 13.94, TSLA 13.74 -> 9.12); the fast
+   E3only/R1E3 cells barely move (flip holds through grey only when the gate
+   is slow). Originally computed but un-committed -- now pinned.
 6. C1 governor inertness: CONFIRMED operatively -- CRCL's +11.75pp
    state-arm delta collapses to -0.70pp under flip. Residual worst
    |delta| 2.88pp (AMD, 0 fee): the ratchet survives briefly when the
-   exit-fill bar's close is not opposite-aligned; small at real fees.
+   exit-fill bar's close is not opposite-aligned. CORRECTION (TVB-11,
+   review finding F1): "small at real fees" was too strong -- the AMD
+   real-fee flip governor deltas are +2.82pp (s1 and s10), which EXCEED the
+   carried 2.5pp gov-cell drift band. Read C1 as "mostly inert / no longer a
+   major lever under flip, with small AMD residuals from exit-fill-bar close
+   state," NOT literally inert; any future sweep keeping C1 as a formal check
+   must report pass/fail against the declared 2.5pp band.
 7. Chop: directionally as expected (fast-set flip still churns and
    mostly worsens chop-family symbols; CRCL worst). Counter-example
    flagged: TSLA E3only improves under flip (+9.41 -> +23.39).
