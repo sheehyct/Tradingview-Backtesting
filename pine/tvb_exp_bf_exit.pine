@@ -1,0 +1,473 @@
+// This Pine Script code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// (c) sheehyct
+
+//@version=6
+// =====================================================================================
+// TVB-EXP BF Exit [Claude]                          v1 -- BF-deviation exit ablation
+// -------------------------------------------------------------------------------------
+// ONE-OFF EXPERIMENT (2026-07-10, user-directed live-trading side session; not part of
+// the TVB-11 pre-registration queue). Question: does adding a Broadening-Formation
+// line-deviation exit to the TFC strategy improve exits over the native exit alone?
+//
+// Entry engine  = TFC Companion v5 'intrabar' arming, ported to strategy():
+//   live 6-TF gate (close vs current period open, unanimous), breakout stop at the
+//   prior COMPLETED Strategy-TF bar extreme +/- 1 tick, in force only while the live
+//   gate is aligned+permitted. Regime stand_aside + ratchet governor kept for fidelity
+//   to the user's live chart config (gov is inert under flip -- TVB-10).
+// Native exits  = decided at Strategy-TF closes (state | flip), fill at next open.
+// BF exits      = resting orders at the projected broadening line for the NEXT bar:
+//   same_side: long -> sell LIMIT at upper line; short -> buy LIMIT at lower line.
+//   any_side : same_side + adverse line as protective STOP (long: lower line, etc.).
+//   First of {BF fill, native exit} wins; leftover exit orders auto-cancel.
+// BF engine     = verbatim port of "Broadening Formation MTF [BF-1]" v1 (bf.txt):
+//   HTF fractal pivots via the completed-bar [1] + lookahead_on security idiom
+//   (non-repainting by construction -- audited), absolute bar_index anchors,
+//   chart-TF validation walk, deviation vs projected line.
+// Gate fidelity = NO request.security for the gate; local period-open reconstruction
+//   (TVB-3 staleness fix), same as the Companion.
+// Known deltas vs the Companion display (disclosed, shared by all cells):
+//   orders placed on bar N fill from bar N+1 (Companion can fill same-bar), so entries
+//   can lag the on-chart Companion by up to one chart bar; historical intrabar
+//   granularity is chart-TF-grade; a BF line that validates and deviates on the SAME
+//   bar is missed (no order was resting yet).
+// Cells: {exit_mode: flip,state} x {bf_exit: off,same_side,any_side} -- sweep the two
+// inputs, everything else fixed at the user's live config (defaults below).
+// =====================================================================================
+
+strategy('TVB-EXP BF Exit [Claude]', 'BFEXP-C', overlay = true,
+     initial_capital = 10000,
+     default_qty_type = strategy.percent_of_equity, default_qty_value = 100,
+     commission_type = strategy.commission.percent, commission_value = 0.0125,
+     slippage = 1, margin_long = 0, margin_short = 0,
+     use_bar_magnifier = true, max_lines_count = 500, max_labels_count = 500)
+
+// ----------------------------------- Inputs -----------------------------------
+var string g_exp = 'EXPERIMENT CELL (sweep these two; leave the rest at live config)'
+exit_mode = input.string('flip', 'Exit mode', options = ['state', 'flip'], group = g_exp, tooltip = 'Native exit. state: exit at the first Strategy-TF close where the gate is no longer fully aligned with the position (grey exits). flip: exit only on full OPPOSITE alignment (holds through grey). The user live setting is flip; the deployed backtest baseline is state.')
+bf_exit   = input.string('off', 'BF exit', options = ['off', 'same_side', 'any_side'], group = g_exp, tooltip = 'Broadening-formation deviation exit, racing the native exit (first fill wins). off: native exit only. same_side: exhaustion harvest -- long exits at the UPPER line (sell limit), short at the LOWER line (buy limit). any_side: same_side plus the adverse line as a protective stop (long also exits on a LOWER-line break; short on an UPPER-line break).')
+
+var string g_tf = 'Strategy TF + gate TFs (live config: 15m logic, 60/120/240/D/W/M gate)'
+logic_tf = input.timeframe('15', 'Strategy TF', group = g_tf, tooltip = 'Decisions commit at this TF close. Must be intraday (< 1D), tiled by the chart TF, and tile every gate TF. Live config: 15.')
+y1  = input.bool(true, '', inline = '1', group = g_tf)
+tf1 = input.timeframe('60', 'TF 1', inline = '1', group = g_tf)
+y2  = input.bool(true, '', inline = '2', group = g_tf)
+tf2 = input.timeframe('120', 'TF 2', inline = '2', group = g_tf)
+y3  = input.bool(true, '', inline = '3', group = g_tf)
+tf3 = input.timeframe('240', 'TF 3', inline = '3', group = g_tf)
+y4  = input.bool(true, '', inline = '4', group = g_tf)
+tf4 = input.timeframe('D', 'TF 4', inline = '4', group = g_tf)
+y5  = input.bool(true, '', inline = '5', group = g_tf)
+tf5 = input.timeframe('W', 'TF 5', inline = '5', group = g_tf)
+y6  = input.bool(true, '', inline = '6', group = g_tf)
+tf6 = input.timeframe('M', 'TF 6', inline = '6', group = g_tf)
+
+var string g_dir = 'Direction'
+allow_long  = input.bool(true, 'Allow Long', group = g_dir)
+allow_short = input.bool(true, 'Allow Short', group = g_dir)
+
+var string g_reg = 'Regime layer (live config: stand_aside on W+D, M off; redundant here since D/W/M sit in the gate)'
+reg_mode = input.string('stand_aside', 'Regime mode', options = ['off', 'stand_aside'], group = g_reg)
+rg1  = input.bool(false, '', inline = 'r1', group = g_reg)
+rtf1 = input.timeframe('M', 'Regime TF 1', inline = 'r1', group = g_reg)
+rg2  = input.bool(true, '', inline = 'r2', group = g_reg)
+rtf2 = input.timeframe('W', 'Regime TF 2', inline = 'r2', group = g_reg)
+rg3  = input.bool(true, '', inline = 'r3', group = g_reg)
+rtf3 = input.timeframe('D', 'Regime TF 3', inline = 'r3', group = g_reg)
+
+var string g_gov = 'Re-entry governor (live config: ratchet; structurally inert under flip)'
+gov_mode = input.string('ratchet', 'Governor mode', options = ['off', 'ratchet'], group = g_gov)
+
+var string g_bf = 'Broadening Formation engine (live config: pivot TF 30, strength 10)'
+string bf_tf = input.timeframe('30', 'BF pivot timeframe', group = g_bf, tooltip = 'Timeframe the fractal pivots and broadening lines are built from. Live config: 30.')
+int bf_strength = input.int(10, 'BF pivot strength (pivot-TF bars)', minval = 1, maxval = 50, group = g_bf)
+bool bf_show_pivots = input.bool(false, 'Show BF pivot dots', group = g_bf)
+
+var string g_viz = 'Display'
+show_table = input.bool(true, 'Cell/status table', group = g_viz)
+show_trig  = input.bool(true, 'Working entry trigger dots', group = g_viz)
+
+// ------------- Guards: chart tiles logic TF; logic TF tiles gates; BF TF >= chart -------------
+f_guard(simple string base_name, simple int base_s, simple string tf, simple bool enabled) =>
+    if enabled
+        gs = timeframe.in_seconds(tf)
+        if gs < base_s
+            runtime.error('TF "' + tf + '" is finer than ' + base_name + '. It must be >= and tiled by it.')
+        if gs >= 86400
+            if 86400 % base_s != 0
+                runtime.error(base_name + ' does not divide 1D -- D/W/M period-open reconstruction would be approximate.')
+        else if gs % base_s != 0
+            runtime.error('TF "' + tf + '" is not an integer multiple of ' + base_name + ' -- reconstruction would be approximate.')
+
+chart_s = timeframe.in_seconds(timeframe.period)
+logic_s = timeframe.in_seconds(logic_tf)
+if logic_s >= 86400
+    runtime.error('BFEXP: Strategy TF must be intraday (< 1D) -- the last-bar-of-period exit clock needs it.')
+f_guard('the chart TF (' + timeframe.period + ')', chart_s, logic_tf, true)
+f_guard('the Strategy TF (' + logic_tf + ')', logic_s, tf1, y1)
+f_guard('the Strategy TF (' + logic_tf + ')', logic_s, tf2, y2)
+f_guard('the Strategy TF (' + logic_tf + ')', logic_s, tf3, y3)
+f_guard('the Strategy TF (' + logic_tf + ')', logic_s, tf4, y4)
+f_guard('the Strategy TF (' + logic_tf + ')', logic_s, tf5, y5)
+f_guard('the Strategy TF (' + logic_tf + ')', logic_s, tf6, y6)
+if reg_mode != 'off'
+    f_guard('the Strategy TF (' + logic_tf + ')', logic_s, rtf1, rg1)
+    f_guard('the Strategy TF (' + logic_tf + ')', logic_s, rtf2, rg2)
+    f_guard('the Strategy TF (' + logic_tf + ')', logic_s, rtf3, rg3)
+
+int bf_sec = timeframe.in_seconds(bf_tf)
+if bf_sec < chart_s
+    runtime.error('BFEXP: BF pivot timeframe (' + bf_tf + ') is below the chart TF.')
+bool bf_use_sec = bf_sec > chart_s
+
+max_bars_back(time, 4900)
+max_bars_back(high, 4900)
+max_bars_back(low, 4900)
+
+// ------------- Gate (FTFC): LOCAL period-open reconstruction (TVB-3 fix) -------------
+f_open(simple string tf) =>
+    ta.valuewhen(timeframe.change(tf), open, 0)
+
+o1 = f_open(tf1)
+o2 = f_open(tf2)
+o3 = f_open(tf3)
+o4 = f_open(tf4)
+o5 = f_open(tf5)
+o6 = f_open(tf6)
+
+use_arr  = array.from(y1, y2, y3, y4, y5, y6)
+open_arr = array.from(o1, o2, o3, o4, o5, o6)
+
+ftfc_up = true
+ftfc_dn = true
+int n_enabled = 0
+for i = 0 to array.size(use_arr) - 1 by 1
+    if array.get(use_arr, i)
+        n_enabled += 1
+        op = array.get(open_arr, i)
+        if close > op
+            ftfc_dn := false
+        else if close < op
+            ftfc_up := false
+        else
+            ftfc_up := false
+            ftfc_dn := false
+if n_enabled == 0
+    ftfc_up := false
+    ftfc_dn := false
+
+// ------------------------------- Regime layer -------------------------------
+f_agg(u_arr, o_arr) =>
+    up = true
+    dn = true
+    int n = 0
+    for i = 0 to array.size(u_arr) - 1 by 1
+        if array.get(u_arr, i)
+            n += 1
+            op = array.get(o_arr, i)
+            if close > op
+                dn := false
+            else if close < op
+                up := false
+            else
+                up := false
+                dn := false
+    if n == 0
+        up := false
+        dn := false
+    [up, dn]
+
+ro1 = f_open(rtf1)
+ro2 = f_open(rtf2)
+ro3 = f_open(rtf3)
+[reg_up, reg_dn] = f_agg(array.from(rg1, rg2, rg3), array.from(ro1, ro2, ro3))
+
+long_permit  = reg_mode == 'off' ? true : reg_up
+short_permit = reg_mode == 'off' ? true : reg_dn
+
+// ------------- Strategy-TF clock: running extremes + last-bar-of-period detection -------------
+// The chart bar whose close time lands exactly on a Strategy-TF boundary IS the
+// Strategy-TF close (24/7 UTC perps; guard above enforces intraday logic TF). Exit
+// decisions made on that bar's close fill at the next chart bar's open = the new
+// Strategy-TF open, exactly mirroring the Companion/engine fill model.
+new_logic  = timeframe.change(logic_tf)
+logic_last = time_close % (logic_s * 1000) == 0
+
+var float l_high  = na
+var float l_low   = na
+var float prev_lh = na
+var float prev_ll = na
+
+if new_logic
+    l_high := high
+    l_low := low
+else
+    l_high := na(l_high) ? high : math.max(l_high, high)
+    l_low := na(l_low) ? low : math.min(l_low, low)
+
+if logic_last
+    prev_lh := l_high
+    prev_ll := l_low
+
+// ------------- Governor state: classify closed trades gross (fills incl. slippage) -------------
+var float ratchet_long  = na
+var float ratchet_short = na
+var float pend_trig_l   = na
+var float pend_trig_s   = na
+var float trig_l_used   = na
+var float trig_s_used   = na
+var int   closed_cnt    = 0
+
+if strategy.opentrades > 0 and strategy.opentrades[1] == 0
+    if strategy.position_size > 0
+        trig_l_used := pend_trig_l
+    else
+        trig_s_used := pend_trig_s
+
+if strategy.closedtrades > closed_cnt
+    for i = closed_cnt to strategy.closedtrades - 1
+        if strategy.closedtrades.size(i) > 0
+            ratchet_long := strategy.closedtrades.profit(i) > 0 ? na : trig_l_used
+        else
+            ratchet_short := strategy.closedtrades.profit(i) > 0 ? na : trig_s_used
+    closed_cnt := strategy.closedtrades
+
+// ------------- Native exit + governor alignment reset, at Strategy-TF closes -------------
+if logic_last
+    if ftfc_dn
+        ratchet_long := na
+    if ftfc_up
+        ratchet_short := na
+    if strategy.position_size > 0
+        if exit_mode == 'flip' ? ftfc_dn : not ftfc_up
+            strategy.close('L', comment = 'TFC exit')
+    if strategy.position_size < 0
+        if exit_mode == 'flip' ? ftfc_up : not ftfc_dn
+            strategy.close('S', comment = 'TFC exit')
+
+// ------------- Intrabar-armed entry: revocable stop while the live gate is aligned -------------
+float trig_l = prev_lh + syminfo.mintick
+float trig_s = prev_ll - syminfo.mintick
+bool gov_on  = gov_mode == 'ratchet'
+bool gl_ok   = not gov_on or na(ratchet_long) or trig_l > ratchet_long
+bool gs_ok   = not gov_on or na(ratchet_short) or trig_s < ratchet_short
+
+var int armed = 0
+if strategy.position_size == 0 and not na(prev_lh)
+    if allow_long and ftfc_up and long_permit and gl_ok
+        strategy.entry('L', strategy.long, stop = trig_l, comment = 'TFC long')
+        pend_trig_l := trig_l
+        strategy.cancel('S')
+        armed := 1
+    else if allow_short and ftfc_dn and short_permit and gs_ok
+        strategy.entry('S', strategy.short, stop = trig_s, comment = 'TFC short')
+        pend_trig_s := trig_s
+        strategy.cancel('L')
+        armed := -1
+    else
+        strategy.cancel('L')
+        strategy.cancel('S')
+        armed := 0
+else
+    strategy.cancel('L')
+    strategy.cancel('S')
+    armed := 0
+
+// =====================================================================================
+// Broadening Formation engine -- verbatim port of "Broadening Formation MTF [BF-1]" v1
+// (pivot storage, pairing, validation, deviation). delete_old fixed to OFF (lines
+// freeze + recolor on deviation) to match the live chart.
+// =====================================================================================
+f_fractal_hi(int n) =>
+    bool acc = true
+    for j = -n to n
+        if j != 0
+            acc := acc and high[n] > high[n + j]
+    acc ? high[n] : na
+
+f_fractal_lo(int n) =>
+    bool acc = true
+    for j = -n to n
+        if j != 0
+            acc := acc and low[n] < low[n + j]
+    acc ? low[n] : na
+
+f_anchor(int t, int cap) =>
+    int res = na
+    for k = 0 to cap
+        if time[k] <= t
+            res := bar_index - k
+            break
+    res
+
+f_push(array<float> af, array<int> ai, float v, int idx) =>
+    array.unshift(af, v)
+    array.unshift(ai, idx)
+    if array.size(af) > 10
+        array.pop(af)
+        array.pop(ai)
+
+// Non-repaint idiom: completed-bar values ([1]) + lookahead_on. During a forming
+// pivot-TF bar these are the last COMPLETED bar's values -- stable intrabar.
+[s_phv, s_plv, s_pt] = request.security(syminfo.tickerid, bf_tf, [f_fractal_hi(bf_strength)[1], f_fractal_lo(bf_strength)[1], time[bf_strength + 1]], lookahead = barmerge.lookahead_on)
+
+float phv = bf_use_sec ? s_phv : f_fractal_hi(bf_strength)
+float plv = bf_use_sec ? s_plv : f_fractal_lo(bf_strength)
+int   pt  = bf_use_sec ? s_pt : time[bf_strength]
+
+var int last_ph_t = -1
+var int last_pl_t = -1
+
+int ratio    = math.max(1, int(math.ceil(bf_sec / float(chart_s))))
+int scan_cap = math.min(4800, (bf_strength + 3) * ratio)
+int pt_key   = nz(pt, -1)
+
+bool ev_ok  = bf_use_sec or barstate.isconfirmed
+bool new_ph = ev_ok and not na(phv) and pt_key > 0 and pt_key != last_ph_t
+bool new_pl = ev_ok and not na(plv) and pt_key > 0 and pt_key != last_pl_t
+
+var pivot_highs     = array.new_float()
+var pivot_highs_idx = array.new_int()
+var pivot_lows      = array.new_float()
+var pivot_lows_idx  = array.new_int()
+
+if new_ph
+    last_ph_t := pt_key
+    int a = f_anchor(pt_key, scan_cap)
+    if not na(a) and bar_index - a < 4500
+        f_push(pivot_highs, pivot_highs_idx, phv, a)
+        if bf_show_pivots
+            label.new(a, phv, '.', style = label.style_none, textcolor = color.gray, size = size.tiny)
+
+if new_pl
+    last_pl_t := pt_key
+    int a = f_anchor(pt_key, scan_cap)
+    if not na(a) and bar_index - a < 4500
+        f_push(pivot_lows, pivot_lows_idx, plv, a)
+        if bf_show_pivots
+            label.new(a, plv, '.', style = label.style_none, textcolor = color.gray, size = size.tiny)
+
+var line upper_tl = na
+var line lower_tl = na
+
+if (new_ph or new_pl) and array.size(pivot_highs) > 1 and array.size(pivot_lows) > 1
+    float low_new = array.get(pivot_lows, 0)
+    float low_old = array.get(pivot_lows, 1)
+    int   lni     = array.get(pivot_lows_idx, 0)
+    int   loi     = array.get(pivot_lows_idx, 1)
+
+    if not na(low_new) and not na(low_old) and low_new < low_old and lni > loi and bar_index - loi < 4800
+        float slope = (low_new - low_old) / (lni - loi)
+        bool  valid = true
+        int   span  = lni - loi
+        for i = 0 to span
+            if low[bar_index - loi - i] < low_old + slope * i
+                valid := false
+                break
+        if valid
+            lower_tl := line.new(loi, low_old, lni, low_new, style = line.style_solid, color = color.gray, width = 1)
+            array.set(pivot_lows, 0, na)
+            array.set(pivot_lows, 1, na)
+
+    float high_new = array.get(pivot_highs, 0)
+    float high_old = array.get(pivot_highs, 1)
+    int   hni      = array.get(pivot_highs_idx, 0)
+    int   hoi      = array.get(pivot_highs_idx, 1)
+
+    if not na(high_new) and not na(high_old) and high_new > high_old and hni > hoi and bar_index - hoi < 4800
+        float slope = (high_new - high_old) / (hni - hoi)
+        bool  valid = true
+        int   span  = hni - hoi
+        for i = 0 to span
+            if high[bar_index - hoi - i] > high_old + slope * i
+                valid := false
+                break
+        if valid
+            upper_tl := line.new(hoi, high_old, hni, high_new, style = line.style_solid, color = color.gray, width = 1)
+            array.set(pivot_highs, 0, na)
+            array.set(pivot_highs, 1, na)
+
+// Deviation from range: freeze + recolor the line (delete_old = off), clear the handle.
+bool upper_test = false
+bool lower_test = false
+
+if not na(upper_tl)
+    int   ux2  = line.get_x2(upper_tl)
+    float uy2  = line.get_y2(upper_tl)
+    float usl  = (uy2 - line.get_y1(upper_tl)) / (ux2 - line.get_x1(upper_tl))
+    float proj = uy2 + usl * (bar_index - ux2)
+    if high > proj
+        line.set_x2(upper_tl, bar_index)
+        line.set_y2(upper_tl, proj)
+        line.set_color(upper_tl, color.red)
+        upper_tl := na
+        upper_test := true
+
+if not na(lower_tl)
+    int   lx2  = line.get_x2(lower_tl)
+    float ly2  = line.get_y2(lower_tl)
+    float lsl  = (ly2 - line.get_y1(lower_tl)) / (lx2 - line.get_x1(lower_tl))
+    float proj = ly2 + lsl * (bar_index - lx2)
+    if low < proj
+        line.set_x2(lower_tl, bar_index)
+        line.set_y2(lower_tl, proj)
+        line.set_color(lower_tl, color.red)
+        lower_tl := na
+        lower_test := true
+
+plotshape(upper_test, 'BF upper deviation', style = shape.triangledown, color = color.red, size = size.tiny, location = location.abovebar)
+plotshape(lower_test, 'BF lower deviation', style = shape.triangleup, color = color.red, size = size.tiny, location = location.belowbar)
+
+// ------------- BF exit orders: resting at the NEXT bar's line projection -------------
+// Projection for bar_index+1 is fully known at this bar's close (lines are static
+// between deviations), so the resting order is lookahead-free by construction.
+f_proj_next(line ln) =>
+    float p = na
+    if not na(ln)
+        int   px2 = line.get_x2(ln)
+        float py2 = line.get_y2(ln)
+        float psl = (py2 - line.get_y1(ln)) / (px2 - line.get_x1(ln))
+        p := py2 + psl * (bar_index + 1 - px2)
+    p
+
+float u_next = f_proj_next(upper_tl)
+float l_next = f_proj_next(lower_tl)
+float bfx_lim = na
+float bfx_stp = na
+
+if bf_exit != 'off' and strategy.position_size > 0
+    bfx_lim := u_next
+    bfx_stp := bf_exit == 'any_side' ? l_next : na
+    if not na(bfx_lim) or not na(bfx_stp)
+        strategy.exit('BFX-L', from_entry = 'L', limit = bfx_lim, stop = bfx_stp, comment_profit = 'BF upper dev', comment_loss = 'BF lower dev')
+    else
+        strategy.cancel('BFX-L')
+else if bf_exit != 'off' and strategy.position_size < 0
+    bfx_lim := l_next
+    bfx_stp := bf_exit == 'any_side' ? u_next : na
+    if not na(bfx_lim) or not na(bfx_stp)
+        strategy.exit('BFX-S', from_entry = 'S', limit = bfx_lim, stop = bfx_stp, comment_profit = 'BF lower dev', comment_loss = 'BF upper dev')
+    else
+        strategy.cancel('BFX-S')
+else
+    strategy.cancel('BFX-L')
+    strategy.cancel('BFX-S')
+
+// ----------------------------------- Visualization -----------------------------------
+barcolor(ftfc_up ? color.new(color.green, 60) : ftfc_dn ? color.new(color.red, 60) : color.new(color.gray, 75))
+plot(show_trig and armed > 0 ? trig_l : na, 'Working buy stop', color = color.new(color.orange, 0), style = plot.style_circles, linewidth = 2)
+plot(show_trig and armed < 0 ? trig_s : na, 'Working sell stop', color = color.new(color.orange, 0), style = plot.style_circles, linewidth = 2)
+
+var table t = table.new(position.bottom_left, 2, 8, bgcolor = color.new(color.black, 20), border_width = 1, border_color = color.new(color.gray, 60))
+f_cell(int r, string k, string v, color c) =>
+    table.cell(t, 0, r, k, text_color = color.white, text_size = size.small, text_halign = text.align_left)
+    table.cell(t, 1, r, v, text_color = c, text_size = size.small)
+
+if show_table and barstate.islast
+    f_cell(0, 'CELL', exit_mode + ' / bf=' + bf_exit, bf_exit != 'off' ? color.orange : color.aqua)
+    f_cell(1, 'Gate (live)', ftfc_up ? 'UP' : ftfc_dn ? 'DOWN' : 'GREY', ftfc_up ? color.lime : ftfc_dn ? color.red : color.gray)
+    f_cell(2, 'Regime', reg_mode == 'off' ? 'off' : reg_up ? 'UP' : reg_dn ? 'DOWN' : 'GREY', reg_up ? color.lime : reg_dn ? color.red : color.gray)
+    f_cell(3, 'Position', strategy.position_size > 0 ? 'LONG' : strategy.position_size < 0 ? 'SHORT' : 'FLAT', strategy.position_size > 0 ? color.lime : strategy.position_size < 0 ? color.red : color.silver)
+    f_cell(4, 'BF upper', na(u_next) ? '--' : str.tostring(u_next, format.mintick), color.white)
+    f_cell(5, 'BF lower', na(l_next) ? '--' : str.tostring(l_next, format.mintick), color.white)
+    f_cell(6, 'Trades (closed)', str.tostring(strategy.closedtrades), color.white)
+    f_cell(7, 'Net profit', str.tostring(strategy.netprofit, format.mintick), strategy.netprofit >= 0 ? color.lime : color.red)
