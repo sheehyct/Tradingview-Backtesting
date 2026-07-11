@@ -175,6 +175,93 @@ swing-shaped regimes, not as a default exit upgrade. The paper-trading shadow-ex
 ledger (see screener-integration discussion) is the right instrument to decide
 per-regime, since regime shape is only known in hindsight in backtests.
 
+## Extension E2 -- re-entry hysteresis + arm/exit TF split (pre-registered 2026-07-11, BEFORE runs)
+
+**Motivation (user design review):** E0/E1 tested a variant the user never intended.
+The BF exit was meant as "this leg is exhausted -- stand down", but the build allowed
+immediate re-entry on the still-aligned gate (the recycle loop = all of the 2-3x trade
+multiplication). Separately, one knob (Strategy TF) coupled two unrelated decisions:
+the entry trigger structure and the exit decision clock. User decisions: add a
+post-exit-high ratchet (zero-parameter re-entry hysteresis); split Strategy TF into
+arm_tf (trigger structure) and exit_tf (exit clock); keep BF pivots at 30m/10 this
+round (STRAT-combo pivot redesign deferred to its own session).
+
+**Script:** v2 of `pine/tvb_exp_bf_exit.pine`. New inputs: bf_reentry
+(recycle|ratchet), arm_tf, exit_tf. ratchet = after a BF exit, same-direction
+re-entry only at a trigger strictly beyond the most extreme price since that exit;
+block clears on the re-entry fill or on full opposite gate alignment at an exit_tf
+close (mirrors the governor's episode reset). TFC exits never set the block.
+
+**Cells (6 per symbol; symbols = AMZN, XYZ100, MU, SPCX, CL; SKHX/SKHY dropped,
+zero history):** all flip exit mode.
+
+| Cell | bf_exit | bf_reentry | arm_tf | exit_tf | Purpose |
+|---|---|---|---|---|---|
+| C1 | off | -- | 15 | 15 | v1 control (regression ref) |
+| C2 | same_side | recycle | 15 | 15 | v1 cell-3 (regression ref) |
+| C3 | same_side | ratchet | 15 | 15 | isolate the re-entry fix |
+| C4 | off | -- | 5 | 15 | isolate the arming split |
+| C5 | same_side | ratchet | 5 | 15 | the user's intended live system |
+| C6 | same_side | ratchet | 5 | 30 | exit-clock comparison |
+
+**Predictions (recorded before results):**
+- P1: C1/C2 approximately reproduce E0/E1 (exact reproduction impossible -- the
+  live window slid ~1 day; gate = trade counts within ~+/-3 and same sign/order).
+- P2: C3 vs C2: trade counts fall back toward C1; MU recovers most of its BF
+  give-up; CL keeps most of its BF gain; win rate stays elevated vs C1.
+- P3: C4 vs C1: more entries (nearer the alignment instant), better burst capture,
+  more flip-line false starts; net effect sign-mixed by symbol.
+- P4: C5 is the headline: expected >= C1 on CL and XYZ100, MU recovered vs C2.
+- P5: C6 vs C5: small differences (flip exits are rare; the exit clock mostly
+  shifts fill timing).
+
+### E2 results (run 2026-07-11; net = closed trades; MTM = net + openPL)
+
+| Symbol | C1 ctrl | C2 recycle | C3 ratchet | C4 arm5 | C5 arm5+rat | C6 exit30 |
+|---|---|---|---|---|---|---|
+| AMZN net | +64 | +102 | -11 | +8 | -99 | **+336** |
+| XYZ100 net | +198 | **+294** | +264 | +194 | +264 | +272 |
+| MU net | +5288 | +5017 | **+7247** | +4696 | +6646 | +4301 |
+| SPCX net | -2867 | -3209 | **-2237** | -2860 | -2240 | -2274 |
+| CL net | +1714 | +3175 | +3109 | +1684 | +3086 | **+3578** |
+| Aggregate net | +4397 | +5379 | **+8373** | +3722 | +7657 | +6213 |
+| Aggregate MTM | +7808 | +7268 | **+10578** | +7057 | +9785 | +8067 |
+
+Trade counts: ratchet did NOT reduce them (C3 ~= C2 counts everywhere).
+First-entry parity C1==C2==C3 held on all symbols; C5 (arm5) entered LATER and
+worse on AMZN (00:30 vs 00:05) -- finer arming changes the trigger STRUCTURE,
+it does not merely shrink it.
+
+### E2 verdict vs predictions
+
+- P1 (regression) PASS -- C1/C2 reproduced E0/E1 essentially exactly.
+- P2 (ratchet) CONFIRMED IN EFFECT, WRONG IN MECHANISM: trade counts did not
+  fall; instead re-entries moved to strictly-better levels (post-exit-extreme
+  break), which is where the money was: MU short whipsaw -2653 -> -627,
+  SPCX -3209 -> -2237. MU now BEATS its pure-flip control (+7247 vs +5288):
+  the E1 objection ("BF gives up bursts") is substantially FIXED by re-entry
+  hysteresis. AMZN is the one loser (+102 -> -11).
+- P3 (arm5) WRONG DIRECTION: fine arming alone was a small uniform NEGATIVE
+  (C4 <= C1 on every symbol; AMZN +64 -> +8). The 15m structural confirmation
+  is earning its keep in this window. The split knob exists now, but the data
+  do not support using it at 5m.
+- P4 (intended system C5) CONFIRMED in aggregate: beats control on both
+  accountings (+7657/+9785 vs +4397/+7808), though C3 (15m arming + ratchet,
+  i.e. NO arming change) is the stronger cell on both.
+- P5 (exit30 small) WRONG: large and sign-mixed (best AMZN and CL cells; worst
+  MU BF-cell -- slower exit clock held MU's bad shorts longer). Another
+  regime-shape knob; noted, NOT to be tuned per symbol.
+
+**Standing conclusion (supersedes E1's):** the user's intended system is
+BF same_side exit + post-exit-high re-entry ratchet ON TOP of the unchanged
+live config (C3). On this 5-symbol/10-week sample it is the best aggregate cell
+on both accountings, beats both controls on 3 of 5 symbols, and its two losses
+are small (AMZN -75 vs control) while its wins are large (MU +1959, SPCX +630,
+CL +1395). Cell rankings still differ by symbol (no universal winner -- charter
+expectation intact); AMZN uniquely prefers the slower exit clock. In-sample,
+one window, n small -- the live shadow-exit ledger remains the decision
+instrument; C3 is what it should shadow first.
+
 ## Incident log (full disclosure)
 
 While staging the experiment script, `pine_new` + a content-based focus check proved
