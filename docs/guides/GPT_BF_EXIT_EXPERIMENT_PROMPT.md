@@ -99,6 +99,30 @@ After every save, verify via `pine_list_scripts` that ONLY your script's modifie
 stamp changed. Never touch `TFC Baseline`, the Companion scripts,
 `Broadening Formation MTF [BF-1]`, or `TVB-EXP BF Exit [Claude]`.
 
+## Exploration latitude and framing (user directive -- read carefully)
+
+The 30-cell matrix above is the PRE-REGISTERED CORE: run it first, unmodified, so
+your numbers are directly comparable to Claude's. After the core is complete:
+
+- Slight experimentation across timeframes IS allowed (arm_tf, exit_tf, and gate-TF
+  variations), especially to probe cells that came out very good or very bad.
+- The required follow-up to ANY extreme result -- good or bad -- is to WIDEN THE
+  SYMBOL SAMPLE (pull more liquid names from the HIP-3 screener universe at
+  https://hip3-alerts-production.up.railway.app/api/state, field `vol` = 24h
+  notional, `oiUsd` = open interest), NOT to tune deeper on the same symbol. One
+  or two good or bad instances are never truth.
+- Label every run beyond the core matrix as EXPLORATORY in your report, separate
+  from the pre-registered results. Generating data is not selecting on it; keep
+  the two visibly distinct.
+
+Framing, from the user: this system is a BASIC FRAMEWORK, not a finished strategy,
+and it is very unlikely to be perfect as-is. The scanner layer (pattern/TF
+selection, liquidity/volume/OI gating, targets) and other trade-relevant factors
+are deliberately absent -- this is blind testing of the continuity-plus-BF-exit
+skeleton alone. What would be PROMISING is consistency across variables and
+symbols, not any single stellar cell; the full implementation is yet to be
+developed. Report the spread honestly, including where the framework is weak.
+
 ## Procedure
 
 1. `tv_health_check`; stage each symbol at 5m; wait ~15s after a symbol switch and
