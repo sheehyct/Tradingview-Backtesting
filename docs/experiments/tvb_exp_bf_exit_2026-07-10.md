@@ -99,6 +99,82 @@ burst side; the TVB-10 result suggests which side wins is regime-shaped. A live
 two-alert workflow (flip exit alert + BF deviation alert, take whichever first,
 skip the adverse-side stop) matches cell 3, the only cell that beat its control.
 
+## Extension E1 -- multi-ticker generality check (pre-registered 2026-07-11, BEFORE runs)
+
+**Question:** does the cell-3 result (BF same_side improves the flip control) generalize
+beyond AMZNUSDC.P, or was it window/symbol luck?
+
+**Universe rule (mechanical, fixed a-priori):** top 5 xyz-dex names by 24h notional
+volume from the HIP-3 screener `/api/state` (all pass an oiUsd >= $2M floor), excluding
+the already-run AMZN: SKHX, SKHY, XYZ100, MU, SPCX. Plus CL flagged DISCRETIONARY
+(rank 9; the user's live reference symbol). Charts: `HIP3XYZ:<SYM>USDC.P` @ 5m.
+
+**Cells per symbol (2):** flip/off (control) vs flip/same_side (the AMZN winner).
+The refuted cells (any_side, state) are not re-run; TVB-10 already characterized
+state-vs-flip at scale.
+
+**Predictions (recorded before results):**
+1. Sign-mixed outcome across symbols; the SPREAD is the expected finding, not a
+   uniform win. A uniform BF win across all 6 would itself be suspicious.
+2. MU is flip's burst-trend champion (TVB-10: ctrlA +15 -> +137 under flip). Predict
+   BF same_side HURTS MU -- harvesting should give up the burst, as it did on the
+   AMZN June short.
+3. Swingy/range symbols should favor BF same_side (harvest > hold in swings).
+4. Some symbols may have short/no tradeable windows (young listings; M-boundary
+   warmup blocks the 6-TF gate until the first monthly open in loaded history).
+
+**Determination rule (a-priori):** BF same_side is "worth watching live" only if it
+improves net vs flip control on >= 4 of 6 symbols OR improves the aggregate
+(sum of nets) while degrading no symbol catastrophically (>5pp). Anything weaker =
+"regime-shaped overlay, symbol-local, do not promote".
+
+### E1 results (run 2026-07-11, ~10 weeks of 5m history per symbol where available)
+
+| Symbol | Cell | Net (closed) | Net % | PF | Trades | Win% | MaxDD% | OpenPL | Net+Open |
+|---|---|---|---|---|---|---|---|---|---|
+| SKHX | both | 0 trades | -- | -- | 0 | -- | -- | -- | -- |
+| SKHY | both | 0 trades | -- | -- | 0 | -- | -- | -- | -- |
+| XYZ100 | flip/off | +198 | +1.98 | 1.25 | 16 | 6 | 7.9 | +60 | +258 |
+| XYZ100 | flip/same_side | +294 | +2.94 | 1.18 | 28 | 43 | 11.5 | -269 | +25 |
+| MU | flip/off | +5288 | +52.9 | 2.15 | 6 | 33 | 28.5 | +2174 | +7462 |
+| MU | flip/same_side | +5017 | +50.2 | 1.69 | 19 | 68 | 35.1 | +2202 | +7219 |
+| SPCX | flip/off | -2867 | -28.7 | 0.02 | 9 | 11 | 33.9 | +463 | -2404 |
+| SPCX | flip/same_side | -3209 | -32.1 | 0.53 | 16 | 44 | 49.7 | -28 | -3237 |
+| CL | flip/off | +1714 | +17.1 | 2.20 | 9 | 22 | 12.4 | +247 | +1961 |
+| CL | flip/same_side | +3175 | +31.7 | 2.70 | 19 | 58 | 13.8 | -443 | +2732 |
+
+First-entry identity check passed on all four trading symbols. SKHX returned an
+empty report (history too short to generate one), SKHY a populated all-zero report
+-- both consistent with young listings / monthly-warmup gate block. SPCX first
+entry 2026-06-01 vs 2026-05-04 elsewhere (later listing).
+
+### E1 verdict against the pre-registered rule
+
+- Branch 1 (improve >= 4 of 6 symbols): **FAIL** -- improved 2 (XYZ100, CL),
+  degraded 2 (MU, SPCX), no-data 2.
+- Branch 2 (aggregate improves, no catastrophic degradation): **ACCOUNTING-
+  SENSITIVE.** Closed-trade aggregate: control +4,333 vs BF +5,277 (BF +944,
+  no symbol degraded >5pp -> PASS). Mark-to-market aggregate (incl. open
+  positions): control +7,277 vs BF +6,739 (BF -538 -> FAIL). The controls are
+  still HOLDING open winners that BF harvested; whether BF "won" depends on
+  whether you count unrealized marks. This is exactly why TVB-10 ran dual
+  closed+MTM accounting.
+
+**Verdict: NOT "slightly superior" in general.** The AMZN cell-3 result does not
+generalize as a uniform improvement; it is a regime-shaped overlay, as predicted:
+BF harvesting wins on swingy symbols (CL +17.1 -> +31.7 closed AND better MTM;
+XYZ100 closed-better/MTM-worse), loses on burst-trend symbols (MU, prediction 2
+confirmed), and rearranges rather than rescues a hostile symbol (SPCX). Universal
+mechanical effects: win rate up everywhere (6-33% -> 43-68% -- giveback converted
+to banked wins), trade count 2-3x (more fees, more re-entry exposure), and on
+3 of 4 symbols higher maxDD. Strongest single case: CL -- the user's own live
+reference symbol -- better on every accounting.
+
+**Standing conclusion:** use BF same_side as a DISCRETIONARY overlay on
+swing-shaped regimes, not as a default exit upgrade. The paper-trading shadow-exit
+ledger (see screener-integration discussion) is the right instrument to decide
+per-regime, since regime shape is only known in hindsight in backtests.
+
 ## Incident log (full disclosure)
 
 While staging the experiment script, `pine_new` + a content-based focus check proved

@@ -120,6 +120,17 @@ account plan, drop it and say so in the report.
    from bar N+1 (the Companion can fill same-bar), so entries can lag the Companion
    display by up to one 5m bar; historical intrabar granularity is 5m, not tick.
 
+## Extension (run after the 6 AMZN cells)
+
+Repeat ONLY the two cells {flip/off, flip/same_side} on these five additional
+symbols (chosen mechanically: top-5 xyz by 24h volume from the HIP-3 screener,
+plus CL as a flagged discretionary add): `HIP3XYZ:SKHXUSDC.P`, `HIP3XYZ:SKHYUSDC.P`,
+`HIP3XYZ:XYZ100USDC.P`, `HIP3XYZ:MUUSDC.P`, `HIP3XYZ:SPCXUSDC.P`,
+`HIP3XYZ:CLUSDC.P`. Record closed net AND net including open P/L separately --
+the two accountings can disagree on which cell wins (harvest-vs-hold moves P/L
+between realized and unrealized). Zero-trade symbols are valid results (young
+listing / monthly warmup), not errors.
+
 ## Procedure
 
 1. `tv_health_check`; re-stage chart to `HIP3XYZ:AMZNUSDC.P` @ 5m if needed.
