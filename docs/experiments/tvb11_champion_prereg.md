@@ -51,13 +51,17 @@ Reporting rules:
   Record the verdict here and correct the TVB-7 calibrated-facts memory if
   it loses. Governor arming depends on it (low economic impact under flip,
   but the fact must be right before it propagates into more scripts).
-- P1. Harness: extend pine/tvb_exp_bf_exit.pine with the third re-entry
-  option (bf_reentry = recycle | ratchet_c | ratchet_g) implementing GPT's
-  semantics verbatim per Section 3. MANDATORY: invoke the strat-methodology
-  skill before writing this Pine (trigger mechanics). Deploy via the
-  Make-a-copy flow to a NEW script slot ("TVB-EXP Champion [TVB-11]");
-  verify by new script id + unchanged modified stamps on all other scripts
-  (tab-binding trap). STRATEGY slot pv20 anchor stays untouched.
+- P1. DONE 2026-07-14. Harness built (pine/tvb_exp_champion.pine, committed)
+  with bf_reentry = recycle | ratchet_c | ratchet_g per Section 3;
+  strat-methodology skill invoked before writing. Deployed via the
+  Make-a-copy flow to NEW script id USER;1a68d411fe694ccda089602f41c2bf69
+  ("TVB-EXP Champion [TVB-11]"); compiled 0 errors; verified new id +
+  unchanged modified stamps on ALL other scripts (incl. both GPT scripts
+  and the pv20 STRATEGY anchor). Trap note: the fresh editor tab was bound
+  to "TVB-EXP BF Sweep [GPT]" when pine_open loaded the Claude base --
+  the Make-a-copy flow is what made the save safe; never Ctrl+S before
+  the copy. P0b polarity probe and session-robust clocks are in the
+  deployed source; their VERDICTS land with P3.
   CRITICAL (found at P0a): the Claude-base harness marks arm/exit period
   closes by wall-clock modulo (time_close % period == 0). Correct on 24/7
   UTC perps; on RTH mirror charts intraday periods end OFF the wall-clock
