@@ -1,9 +1,12 @@
 # TVB-11 Champion Search -- Pre-Registration (DRAFT v1, PENDING USER APPROVAL)
 
 Date drafted: 2026-07-14
-Status: DRAFT. No runs may execute until the user explicitly approves this
-document. Amendments after approval follow the TVB-10 C2 precedent: allowed
-only PRE-RUN, recorded verbatim with the reason.
+Status: APPROVED v1.1 (user, 2026-07-14). Amendment record: v1.0 -> v1.1
+changes were made AT approval, PRE-RUN, on user request (TVB-10 C2
+precedent): added the OPTIONAL Stage C scalp-profile satellite (Section 5,
+deferred by default) and the post-run winner-indicator deliverables
+(Section 11). No run had executed when these were added. Any further
+amendment must be PRE-RUN and recorded here with its reason.
 
 ---
 
@@ -36,26 +39,34 @@ Reporting rules:
 
 ## 2. Prep items (complete BEFORE any pre-registered run)
 
-- P0a. Ratchet-fork source adjudication: pull the GPT script source
-  ("TVB-EXP BF Exit [GPT]") via TV MCP, diff its re-entry logic against
-  pine/tvb_exp_bf_exit.pine, and record both semantics precisely in this
-  file (Section 3). Requires TV relaunch with CDP (user go-ahead required;
-  heads-up rule applies while GPT shares the instance). Claude side is
-  already characterized from committed source: resting stop RAISED to
-  max(arm trigger, post-exit extreme + 1 tick); block clears on re-entry
-  fill or full opposite alignment at an exit-TF close.
-- P0b. profit() polarity check: settle the TVB-7 (gross) vs GPT audit (net)
-  contradiction on closedtrades.profit() with a targeted 3-trade read on a
-  live chart. Governor arming depends on it; both prior datasets are
-  near-inert under flip so economic impact is low, but the calibrated fact
-  must be right before it is baked into more scripts.
+- P0a. DONE 2026-07-14 (TV relaunched on CDP, user go-ahead; GPT inactive).
+  GPT source read read-only from script id USER;a5a6fd4be3b1457ea1f6f81a3a
+  071c97 v5, title verified. Semantics recorded in Section 3. Both scripts
+  otherwise agree: identical BF-1 engine (30m/10, [1]+lookahead_on idiom),
+  identical local period-open gate reconstruction; the GPT script is
+  flip-exit-only with gate fixed full6 and regime fixed W+D.
+- P0b. profit() polarity check (TVB-7 says GROSS, GPT audit says NET):
+  FOLDED INTO P1 bring-up -- the harness debug echo dumps per-trade
+  entry_px/exit_px/size/profit/commission; one marginal trade decides.
+  Record the verdict here and correct the TVB-7 calibrated-facts memory if
+  it loses. Governor arming depends on it (low economic impact under flip,
+  but the fact must be right before it propagates into more scripts).
 - P1. Harness: extend pine/tvb_exp_bf_exit.pine with the third re-entry
   option (bf_reentry = recycle | ratchet_c | ratchet_g) implementing GPT's
-  semantics verbatim from P0a. MANDATORY: invoke the strat-methodology
+  semantics verbatim per Section 3. MANDATORY: invoke the strat-methodology
   skill before writing this Pine (trigger mechanics). Deploy via the
   Make-a-copy flow to a NEW script slot ("TVB-EXP Champion [TVB-11]");
   verify by new script id + unchanged modified stamps on all other scripts
   (tab-binding trap). STRATEGY slot pv20 anchor stays untouched.
+  CRITICAL (found at P0a): the Claude-base harness marks arm/exit period
+  closes by wall-clock modulo (time_close % period == 0). Correct on 24/7
+  UTC perps; on RTH mirror charts intraday periods end OFF the wall-clock
+  hour (NYSE 60m periods end 10:30, 11:30, ...), so the modulo clock never
+  fires except at session close -- exits would silently never arm. The
+  harness MUST replace modulo clocks with session-robust equivalents (GPT
+  idiom: time_close == time_close(tf)) BEFORE any mirror run, and the two
+  clock idioms must be shown equivalent on one perp cell (part of P3).
+  Check C3 exists to catch exactly this class on the mirror side.
 - P2. Collector: batch runner over the TV MCP with the GPT-proven integrity
   method -- the script echoes symbol + all cell inputs into machine-readable
   output; a run is REJECTED unless the echo matches the requested cell.
@@ -71,13 +82,28 @@ Reporting rules:
   eff_trig = max(natural arm trigger, extreme + 1 tick). Order always
   resting while gate-aligned; fires the instant price exceeds the extreme.
   Observed E2 behavior: trade counts ~unchanged vs recycle, better prices.
-- ratchet_g (GPT, PENDING P0a source read -- hypothesis from observed
-  behavior): arming is GATED rather than the stop being raised -- no order
-  rests until the natural arm-TF trigger structure itself exceeds the
-  post-exit extreme. Observed behavior: fewer/later re-entries (median wait
-  280-5160 min vs 5 min), ~4% price extension. Exact clearing rules TBD
-  from source; this section MUST be completed before approval of any
-  ratchet-cell result.
+- ratchet_g (GPT, CONFIRMED from source 2026-07-14): an ARMING GATE -- the
+  stop is never moved. After a BF exit, a block direction is set (+1 long /
+  -1 short; a SINGLE shared slot, so a BF exit in the other direction
+  OVERWRITES the block -- unlike ratchet_c's independent per-side blocks)
+  and the extreme initializes at the exit bar's high/low, advancing on
+  every later chart bar. The entry order is placed ONLY when the NATURAL
+  trigger (prior completed arm-TF bar extreme +/- 1 tick) stands strictly
+  beyond the running extreme; the stop rests at that natural trigger.
+  Consequence: in a monotone burst the natural trigger always lags the
+  running extreme, so re-entry is impossible until price pauses for at
+  least one full arm period (a completed arm bar whose extreme holds as the
+  running max) and then breaks it. Block clears on the blocked-direction
+  fill or on full opposite alignment at an exit-clock close (same clocks as
+  ratchet_c). This explains the observed 280-5160 min waits and ~4% price
+  extension.
+
+One-line summary: ratchet_c = momentum-continuation reading (enter the
+instant price makes a new post-exit extreme); ratchet_g = structure-
+confirmation reading (enter only after a completed arm bar stands beyond
+the extreme and breaks). Both are defensible readings of the same E2 spec
+sentence; the champion grid carries both, and no result sentence may say
+"ratchet" without the suffix.
 
 ## 4. Frozen roster (a-priori; ratified by user 2026-07-14)
 
@@ -142,9 +168,27 @@ on roster rows 2-8, both columns (7 perps + 7 mirrors): 140 runs. No
 re-tuning per symbol. The deliverable is the generalization map: where the
 ceiling config lands on names it was not fit to, perp vs mirror.
 
-Estimated total: ~1830 runs incl. anchors/canaries. At the GPT-demonstrated
-collection rate (~7-9s/run) this is a 4-7 hour automated collection; the
-collector must checkpoint so partial progress commits.
+Estimated total (Stages A1/A2/B): ~1830 runs incl. anchors/canaries. At the
+GPT-demonstrated collection rate (~7-9s/run) this is a 4-7 hour automated
+collection; the collector must checkpoint so partial progress commits.
+
+### Stage C -- OPTIONAL scalp-profile satellite (deferred by default)
+
+Added at approval on user request; explicitly NOT the main goal. Motivation:
+the main grid finds the swing-horizon ceiling; the user's second scenario is
+a momentum-scalp profile, and charter 3.5 already maps price stops (not
+state stops) to scalp horizons -- so this is a second scenario-champion, not
+scope creep. What the main grid does NOT cover: (a) a fast regime layer
+(D + 4H stand_aside; size_down variant deferred -- not implemented in the
+harness), (b) pure-intraday gate sets with no D/W/M member ({5,15,30} and
+{10,30,60}), (c) a fixed %TP/%SL exit family (entry unchanged: trigger +
+gate; exits = take-profit % and stop % from entry; at 1x/100% equity, ROE%
+== price-move % -- leverage scales both sides, state this wherever ROE is
+quoted). Sketch grid: chart TF 1-5m; gates x 2; TP {0.5, 1, 2}% x SL
+{0.25, 0.5, 1}%; state-exit control cell per gate. Runs ONLY after Stage B,
+time permitting, and ONLY after its own short PRE-RUN amendment fixing the
+final cells and the Pine changes (percent exits are new strategy code ->
+strat-methodology skill gate applies).
 
 ## 6. Scoring and champion definition (pre-declared)
 
@@ -207,6 +251,20 @@ collector must checkpoint so partial progress commits.
 | Harness Pine source | pine/tvb_exp_champion.pine (new file, committed) |
 | Collector script | scripts/tvb11_champion_collect.mjs (or .py) |
 | Results narrative | this file, appended sections |
+
+## 11. Post-run deliverables (user directive at approval)
+
+For the top combinations after Stage B: one MINIMAL indicator() script per
+winner (separate script per winner -- consensus champion, per-TF champions,
+and any plateau member the user picks). Contents: entry/exit signals and
+alertconditions ONLY -- enter long, enter short, exit long, exit short,
+exit-stop long, exit-stop short (const-string alertcondition names; the
+stop-exit pair applies where the winner's exit family distinguishes harvest
+vs stop, e.g. BF or Stage C cells). NO info/alignment table, NO timeframe
+auto-switching. Inputs limited to UI cosmetics: background color on/off,
+bar color on/off, shape colors. This is a deliberate exception to the
+standing Desktop-UX Pine style (recorded in memory). These are watch/alert
+surfaces; the standing no-deployment rule is unchanged.
 
 ## 10. What this pre-reg does NOT license
 
