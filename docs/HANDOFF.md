@@ -97,11 +97,10 @@ Champion search (07-14/15), `docs/experiments/tvb11_champion_prereg.md`:
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: `0561c53^..{head pinned in REVIEW_REQUEST.md after push}`
-  on `main`. RANGE-PIN RULE (Codex TVB-4 finding 1): git ranges EXCLUDE the
-  left endpoint, so the caret keeps 0561c53 (first ticket commit) inside the
-  diff. Sanity-check: `git diff --name-status <range>` must list every file
-  above.
+- Commits to review: `0561c53^..0a1d26a` on `main` (30 commits, 31 files;
+  verified via `git diff --name-status`). RANGE-PIN RULE (Codex TVB-4
+  finding 1): git ranges EXCLUDE the left endpoint, so the caret keeps
+  0561c53 (first ticket commit) inside the diff.
 - Scope / what changed: BF-exit experiment arc + GPT replication reports;
   champion-search pre-reg, harness (Pine), collector (CDP batch runner),
   three grid stages + results; three winner indicators; TVB-7 profit()

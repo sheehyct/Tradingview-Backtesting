@@ -27,7 +27,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | {pending push -- pinned after session-end push; ticket range is `0561c53^..HEAD`, 29+ commits: review fold-in, companion v5, BF E0/E1/E2, GPT reports, champion pre-reg/harness/collector/stages/results, winner indicators, session-end docs} |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `0561c53^..0a1d26a` (30 commits, 31 files: review fold-in, companion v5, BF E0/E1/E2, GPT reports, champion pre-reg/harness/collector/stages/results, winner indicators, session-end docs; verified via `git diff --name-status`) |
 
 No sibling-repo changes this session.
 
