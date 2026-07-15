@@ -268,9 +268,22 @@ strat-methodology skill gate applies).
   docs/experiments/tvb11_champion_anchor2.jsonl.
 - C2 (echo integrity): every accepted run's echoed symbol+inputs match the
   requested cell; mismatches are rejected and logged with counts.
-- C3 (mirror sanity): one hand-verified NASDAQ:MU run (trade list inspected
-  on the chart) before the mirror batch; confirms session handling (RTH
-  bars, gaps) behaves as the script assumes.
+- C3 (mirror sanity): **PASS 2026-07-14 -- and it caught a live
+  contamination vector.** First probe ran on TV's saved per-symbol session
+  preference for NASDAQ:MU, which was the 24/5 OVERNIGHT feed (subsession
+  '24h', session 2000-2000): Sunday-20:00-ET entries, 727/1142 stamps
+  outside RTH. That run was purged from the checkpoint. Fix: the collector
+  now FORCES subsession 'regular' on every RTH-mirror symbol change
+  (mainSeries sessionIdProxyProperty) and the engine settle gate verifies
+  subsession == 'regular' per run. Re-probe on regular (0930-1600): 829
+  closed trades, 0/1658 stamps outside RTH / on weekends / off the 15m
+  grid; loaded window 2023-06-01 -> 2026-07-14 (20,210 RTH bars -- the
+  mirror sees ~3 years of calendar vs the perp's ~10 weeks at 5m).
+  Note for interpretation, NOT a result: the same config read +65% on the
+  24h feed and -21.4% on RTH -- windows differ too, so this is a flag that
+  session structure is a first-order variable, exactly what the mirror rule
+  exists to measure. USER CHART NOTE: NASDAQ:MU session preference was
+  changed to 'regular' for the batch; restore to '24h' after Stage A1.
 - C4 (ratchet variant separation): **PASS 2026-07-14** -- on the current MU
   perp 5m window (20,732 bars) the variants diverge at EXACTLY the two
   post-BF-exit re-entries, ratchet_g entering one-two completed arm bars

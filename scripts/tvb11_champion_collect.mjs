@@ -73,6 +73,11 @@ function cellId(c) {
   return [c.symbol, 'tf' + c.chart_tf, c.gate_set, c.exit_mode, c.dir, c.bf_key, 'a' + c.arm_tf, 'x' + c.exit_tf].join('_');
 }
 
+// RTH mirror symbols must run TV's 'regular' subsession (the underlying-RTH rule).
+function isRthMirror(symbol) {
+  return /^(NASDAQ|NYSE|AMEX):/.test(symbol);
+}
+
 // The exit clock must tile every ENABLED gate TF (engine guard, structural): a gate
 // member finer than the exit TF is incoherent (the gate would flip inside one exit
 // period). Found mid-grid: a60/x240 is only feasible with slow3 (D/W/M).
@@ -191,10 +196,11 @@ function appliedExpr(entityId) {
     var m = {};
     for (var i=0;i<iv.length;i++) m[iv[i].id] = iv[i].value;
     var ms = chart._chartWidget.model().model().mainSeries();
-    var sym = null, interval = null;
+    var sym = null, interval = null, subsession = null;
     try { sym = ms.symbolInfo() ? ms.symbolInfo().full_name || ms.symbolInfo().name : null; } catch(e){}
     try { interval = ms.interval ? ms.interval() : null; } catch(e){}
-    return { inputs: m, symbol: sym, interval: interval };
+    try { subsession = ms.symbolInfo() ? ms.symbolInfo().subsession_id : null; } catch(e){}
+    return { inputs: m, symbol: sym, interval: interval, subsession: subsession };
   })()`;
 }
 
@@ -260,7 +266,8 @@ async function settleAndRead(cell, entity, preKey) {
     let engineOk = false;
     if (applied && applied.inputs) {
       engineOk = Object.entries(wantInputs).every(([k, v]) => String(applied.inputs[k]) === String(v))
-        && applied.symbol === cell.symbol && String(applied.interval) === String(cell.chart_tf);
+        && applied.symbol === cell.symbol && String(applied.interval) === String(cell.chart_tf)
+        && (!isRthMirror(cell.symbol) || applied.subsession === 'regular');
     }
     if (!echoOk && !engineOk) continue;
     const key = `${report.netAbs}|${report.trades}|${report.assert.listLen}`;
@@ -293,7 +300,23 @@ async function runCells(cells, outfile) {
     const id = cellId(cell);
     if (done.has(id)) continue;
     let histInfo = null;
-    if (cell.symbol !== curSymbol) { await setSymbol({ symbol: cell.symbol }); curSymbol = cell.symbol; curTf = null; await sleep(8000); }
+    if (cell.symbol !== curSymbol) {
+      await setSymbol({ symbol: cell.symbol });
+      curSymbol = cell.symbol; curTf = null;
+      await sleep(8000);
+      // RTH mirrors MUST run the regular session -- the chart can carry a saved
+      // per-symbol 24h/extended session preference (found live on NASDAQ:MU: the
+      // 24/5 overnight feed, Sunday-8pm entries). Force + verify.
+      if (isRthMirror(cell.symbol)) {
+        const s = await evaluate(`(function(){
+          var ms = window.TradingViewApi._activeChartWidgetWV.value()._chartWidget.model().model().mainSeries();
+          try { ms.sessionIdProxyProperty().setValue('regular'); } catch(e){ return { err: e.message }; }
+          return { ok: true };
+        })()`);
+        if (s && s.err) throw new Error('could not set regular session: ' + s.err);
+        await sleep(6000);
+      }
+    }
     if (cell.chart_tf !== curTf) {
       await setTimeframe({ timeframe: cell.chart_tf });
       curTf = cell.chart_tf;
