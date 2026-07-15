@@ -5,6 +5,121 @@
 
 ---
 
+## Session TVB-11: BF-exit experiments, GPT blind replication, CHAMPION SEARCH executed end-to-end (COMPLETE)
+
+**Date:** 2026-07-10..15 (champion search 07-14/15)
+**Status:** COMPLETE -- the deliberate-overfit champion search (pre-registered,
+user-approved) ran all three stages on one anchored artifact; the in-sample
+ceiling and its generalization gap are now measured controls; three minimal
+winner indicators shipped for the user's live watch.
+
+### What was accomplished
+
+Early ticket (07-10..12, recorded here for completeness): TVB-10 review folded
+in (RETURNED, APPROVE-WITH-NITS, 3 LOW -- all resolved); Companion v5
+(intrabar entry-arming watch); BF-deviation exit experiment arc E0/E1/E2
+(`docs/experiments/tvb_exp_bf_exit_2026-07-10.md`); GPT blind replication +
+448-run sweep (reports committed 07-14); ratchet-semantics fork discovered.
+
+Champion search (07-14/15), `docs/experiments/tvb11_champion_prereg.md`:
+- Pre-reg drafted, user-APPROVED v1.1 (Stage C scalp satellite optional,
+  winner-indicator deliverables added at approval). New standing rules
+  ratified: underlying-RTH mirror rule (every perp symbol gets a paired
+  regular-hours equity run; silver exempted to a SIL1! venue-fidelity
+  mirror), weekend-ablation directive (own future pre-reg), plain-language
+  results rule.
+- Prep gates, all green and evidenced: P0a ratchet fork adjudicated FROM
+  SOURCE (ratchet_c = raised stop, ratchet_g = arming gate; both swept as
+  named toggles); P0b `closedtrades.profit()` proven NET of commission
+  (direct per-trade arithmetic; TVB-7 "GROSS" calibrated fact CORRECTED,
+  VBT-port marginal-trade parity flagged); P1 harness (ratchet_g port +
+  session-robust clocks + collector echo); P2 collector (echo-first/
+  engine-fallback integrity gate, load-to-floor, checkpoint/resume); P3
+  anchor REDESIGNED (data floor slid past May 1; E2 numbers unreachable) to
+  cross-script trade-for-trade equivalence -- PASS on C1/C3/C6, which also
+  proved the clock swap behavior-identical on perps; C4 ratchet separation
+  PASS (timing-level, counts below data floor).
+- Bugs found BY the process (all pre-run or fail-loud, none contaminating):
+  wall-clock modulo period closes never fire on RTH charts (mirror rule's
+  first catch, before any run); unconditional BF guard killed all 60m cells
+  (BF axis collapses to off on 60m -- structural; neutralized via bf_tf
+  input, artifact unchanged); x240 exit clock infeasible with 60m-containing
+  gates; NASDAQ:MU chart carried a 24/5 OVERNIGHT session preference
+  (Sunday-8pm entries -- C3 mirror gate caught it; collector now forces +
+  verifies 'regular' subsession; contaminated probe purged).
+- Stage A1: 1308/1308 cells (654 MU perp + 654 NASDAQ:MU RTH mirror), zero
+  unexplained rejects; survived a mid-run PC restart with zero accepted-run
+  loss (checkpoint design). Stage A2: 60/60 -- regime layer inert TO THE
+  DECIMAL on champion configs; governor value VENUE-SIGNED (helps perp chop
+  9/10, taxes mirror trend 8/10); ranking stable. Stage B: 130/140 across
+  the ratified roster (SIL1! unresolvable on this TV instance, 10 cells
+  deferred).
+- RESULTS (pre-reg Section 12): ceiling +248.7% perp 15m (slow3/flip/long/
+  BF-harvest-recycle, plateau) and +766% mirror 60m (3yr window, knife-edge);
+  generalization gap ceiling -> +3..6% median across 7 roster perps; best
+  generalizer = slow3/flip/long + BF harvest + ratchet_c (+5.8% median, 6/7
+  positive) = the E2 intended-live-system shape; exit-mode verdict INVERTS
+  by venue (perp medians state>flip; mirror flip +101% vs state -12%);
+  SILVER perp uniformly negative (out-of-family). Scorecard: E1/E3/E4
+  confirmed, E5/E6 REFUTED (surprises flagged), E2 partial. NO promotion --
+  the ceiling is a ruler.
+- Deliverables shipped: three minimal winner indicators (Champion MU15,
+  Generalizer, Slow60) deployed via Make-a-copy, stamp-audited, live on the
+  chart with const-name alertconditions; sources in pine/.
+
+### Context for next session
+- User is reading results and watching the winner indicators live (their
+  stated preference: live conditions after backtesting). Live micro-
+  deployment ($100-200) planned soon -- live-relevant fidelity items stay
+  elevated.
+- The champion artifact in TV is the ORIGINAL deployment; the conditional-
+  guard fix lives only in the repo (TV re-saves after editor reopen silently
+  no-op -- new tab-binding-trap facet in memory; redeploys need fresh
+  Make-a-copy).
+- Deferred: weekend ablation pre-reg, Stage C scalp satellite (own PRE-RUN
+  amendment), SIL1! entitlement question, VBT governor parity re-check,
+  Korea-cluster tests.
+
+### Files created/modified
+- docs/experiments/: tvb11_champion_prereg.md (pre-reg + amendments +
+  results), tvb_exp_bf_exit_gpt.md + tvb_exp_bf_sweep_gpt.md (committed),
+  tvb11_champion_{anchor,anchor2,ratchetsep,a1,a2,b}.jsonl,
+  tvb11_champion_cells_{a1,a2,b}.json
+- pine/: tvb_exp_champion.pine, winner_champion_mu15.pine,
+  winner_generalizer.pine, winner_slow60.pine
+- scripts/: tvb11_champion_collect.mjs
+- docs/HANDOFF.md, .session_startup_prompt.md, docs/reviews/REVIEW_REQUEST.md
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb11-codex-audit.md.
+> See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: `0561c53^..{head pinned in REVIEW_REQUEST.md after push}`
+  on `main`. RANGE-PIN RULE (Codex TVB-4 finding 1): git ranges EXCLUDE the
+  left endpoint, so the caret keeps 0561c53 (first ticket commit) inside the
+  diff. Sanity-check: `git diff --name-status <range>` must list every file
+  above.
+- Scope / what changed: BF-exit experiment arc + GPT replication reports;
+  champion-search pre-reg, harness (Pine), collector (CDP batch runner),
+  three grid stages + results; three winner indicators; TVB-7 profit()
+  calibrated-fact correction.
+- Focus areas (scrutinize these): (1) collector integrity gates -- is the
+  echo-first/engine-fallback settle gate actually sufficient against stale
+  reads? (2) the P3 anchor REDESIGN (cross-script equivalence replacing E2
+  reproduction) -- is it truly stronger, and is the record honest? (3)
+  results Section 12 -- does any sentence promote beyond the evidence?
+  window confounds stated everywhere? (4) profit() NET verdict -- arithmetic
+  and its propagation (TVB-7 memory correction, VBT-port flag); (5) the 60m
+  BF-guard input-neutralization no-op claim; (6) request.security audit on
+  the new Pine (BF engine lookahead_on [1] idiom in 4 scripts).
+- Reviewed by: pending
+- Findings: (blank until docs/reviews/tvb11-codex-audit.md exists)
+
+---
+
 ## Session TVB-10: Exit-symmetry ablation + companion v3-v4.1 + entry-arming fork found live (COMPLETE)
 
 **Date:** 2026-07-08
