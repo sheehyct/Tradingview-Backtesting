@@ -106,6 +106,11 @@ function cellInputs(c) {
     arm_tf: c.arm_tf, exit_tf: c.exit_tf,
     ...GATE_TFS, ...gates, ...dirs, ...A1_FIXED,
   };
+  // 60m-chart cells are all BF-OFF (structural amendment); the deployed artifact's
+  // guard is unconditional, so neutralize it by raising the (unused) BF pivot TF to
+  // the chart TF. With bf_exit='off' the BF engine feeds no orders and no re-entry
+  // blocks -- a no-op on trading. Avoids redeploying the anchored artifact mid-grid.
+  if (c.chart_tf === '60' && c.bf_exit === 'off') logical.bf_tf = '60';
   const byId = {};
   for (const [k, v] of Object.entries(logical)) byId[IN[k]] = v;
   return byId;

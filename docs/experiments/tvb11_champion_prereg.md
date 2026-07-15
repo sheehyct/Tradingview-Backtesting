@@ -183,6 +183,18 @@ records skip). The 630 completed 5m/15m cells predate both fixes and are
 unaffected. User surfaced the on-chart error live (remote desktop) --
 credited assist.
 
+RESOLUTION NOTE (same day): the corrected Pine (conditional guard) is
+committed to the repo, but TV refused to persist ANY re-save of the script
+after the editor panel had been closed/reopened (three save paths tried;
+the saved-script stamp never moved -- new tab-binding-trap facet, recorded
+in memory). The grid therefore runs UNMODIFIED on the original anchored
+artifact, with the guard NEUTRALIZED at the input level for 60m cells:
+bf_tf is raised to '60' (== chart TF) on 60m BF-OFF cells. No-op proof:
+with bf_exit='off' the BF engine places no exit orders and never sets
+re-entry blocks, so its pivot TF cannot affect trading. This keeps every
+accepted cell of the grid on ONE compiled artifact (the one that passed P3
+and C4). Verified live: first 60m cell accepted with 259 trades.
+
 Fixed in A1 at the user's live config (structural declaration, not tuned):
 regime = stand_aside on W+D; governor = ratchet; commission 0.0125%/side;
 slippage 1 tick; margin 0/0; bar magnifier ON; 100% equity, no pyramiding;
