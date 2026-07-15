@@ -244,10 +244,16 @@ strat-methodology skill gate applies).
 - C3 (mirror sanity): one hand-verified NASDAQ:MU run (trade list inspected
   on the chart) before the mirror batch; confirms session handling (RTH
   bars, gaps) behaves as the script assumes.
-- C4 (ratchet variant separation): on one burst window (MU perp, 5m), the
-  ratchet_c and ratchet_g cells must show the E2/GPT signature difference
-  (re-entry wait distributions); if they do not separate, the P1 port is
-  wrong. Fail = STOP.
+- C4 (ratchet variant separation): **PASS 2026-07-14** -- on the current MU
+  perp 5m window (20,732 bars) the variants diverge at EXACTLY the two
+  post-BF-exit re-entries, ratchet_g entering one-two completed arm bars
+  LATER (18:15 -> 18:30; 14:25 -> 15:00) = the arming-gate mechanism;
+  identical everywhere else (net 1288.95 vs 1190.50, both 11 trades).
+  Caveat recorded honestly: this window separates on TIMING only, not
+  counts -- the E2/GPT count-level separation lived in the May bursts,
+  which are below the current data floor. Artifact:
+  docs/experiments/tvb11_champion_ratchetsep.jsonl (compare vs the C3
+  record in tvb11_champion_anchor2.jsonl).
 
 ## 8. Pre-registered expectations (score these honestly afterward)
 
