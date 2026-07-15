@@ -10,7 +10,9 @@
 
 ## Status
 
-- Status: REQUESTED  <!-- REQUESTED | RETURNED (audit file written) -->
+- Status: RETURNED  <!-- REQUESTED | RETURNED (audit file written) -->
+- Returned: 2026-07-15 (GPT 5.6 Sol Ultra via user-run review; audit at
+  `docs/reviews/tvb11-codex-audit.md`; verdict NEEDS-CHANGES)
 - Session under review: TVB-11 -- BF-deviation exit experiments (E0/E1/E2) +
   GPT blind replication; the pre-registered CHAMPION SEARCH executed
   end-to-end (harness, collector, Stages A1/A2/B, results Section 12);

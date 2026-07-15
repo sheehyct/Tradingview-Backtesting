@@ -5,6 +5,128 @@
 
 ---
 
+## Session TVB-12: IN PROGRESS -- TVB-11 review fold-in (critical synthesis below)
+
+**Date:** 2026-07-15
+**Status:** IN PROGRESS. The TVB-11 external review RETURNED (GPT 5.6 Sol Ultra,
+run by the user; audit verbatim in docs/reviews/tvb11-codex-audit.md; verdict
+NEEDS-CHANGES). Every factual claim below was re-verified against the repo this
+session before synthesis; agreement/dispute is ours, not the reviewer's.
+
+### Critical synthesis of the TVB-11 audit (agree / dispute / act)
+
+Reviewer inputs beyond the repo: the user supplied two reference files
+(temporary/BF PINESCRIPT ORIGINAL PLUS CLAUDE VERSIONS.txt and temporary/The
+Broadening Formation Algorithm.pdf -- a theStrat Lab article defining the BF as
+paired HH+LL with continuous redraw). Both are gitignored (verified; the PDF
+carries the user's email header and must stay untracked).
+
+- **F1 collector integrity (HIGH) -- AGREE, with two precision notes.**
+  Verified: 736/1498 accepted records took the engine path and ALL 736 have
+  metrics_table null, so the P2-promised per-run loaded window (prereg line 83)
+  is absent for them; echo-path records DO carry loaded_first/last_ms +
+  loaded_bars. The engine path's true hole is report-to-config binding: the
+  report is located by description prefix (not entity id) and accepted on
+  stable + (changed OR >20s) -- no nonce ties the report to the just-applied
+  inputs. Precision notes: (a) the audit's "wrong chart TF or subsession can
+  pass" sentence applies to the ECHO path (echo string omits chart TF /
+  subsession / BF geometry); the engine path DOES verify symbol + interval +
+  subsession + all mapped inputs incl. bf_tf. The two paths have complementary
+  holes, which is exactly why neither alone suffices. (b) "41 used the timeout
+  escape" is an UPPER BOUND: elapsed>20s cannot be distinguished from
+  slow-but-changed acceptance because the `changed` flag is not recorded --
+  itself part of the evidence gap. Also verified NON-issue: bf_tf cannot stick
+  at '60' across cells (A1_FIXED sets bf_tf='30' in every cellInputs). ACT:
+  harden collector (nonce echoed through the pine table, full echo incl. chart
+  TF/subsession/BF geometry, entity-bound report read, drop the time escape,
+  persist applied readback + window + changed flag), then a BOUNDED replay:
+  anchors, controls, the three per-TF champions, Stage B finalists. No full
+  rerun unless the replay diverges.
+- **F2 Stage B all-long (HIGH) -- AGREE, fully verified.** cells_b.json = 140
+  rows, 10 unique configs, every one dir=long. The 5m SHORT champion
+  (slow3/state/short/ss_ratchet_c a15/x60, +12.9%, 17 trades) is at
+  a1.jsonl:343 -- an engine-path/no-window record -- and never rode along,
+  despite prereg line 252 ("per-TF champions ride along"). The prereg's own
+  Stage B budget (10 configs x 14 symbols = 140, lines 216-217) conflicted
+  with that clause and execution silently resolved it by dropping the short.
+  Our Section 12 sentence "Stage B carried configs unmodified" is therefore
+  misleading as written. ACT: add the omitted short champion + matched
+  long/short/both variants of the generalizer config + BF-off control to the
+  bounded replay; qualify "Generalizer" as best-of-10-long-candidates until
+  it passes.
+- **F3 BF not a paired detector (HIGH) -- AGREE on code, PARTIAL on framing.**
+  Verified in all three sources (original TFO, BF-1 port, champion port
+  414-449/497-513): upper/lower boundaries are created and consumed
+  independently; exits fire off whichever single line exists; no paired
+  formation is required. The article (user's operative definition) requires
+  BOTH expansion facts simultaneously (p.3) + continuous redraw (p.7).
+  DISPUTE on framing only: the repo never claimed article fidelity -- the
+  BF-1 honest-deltas footer explicitly disclaims STRAT-taxonomy detection,
+  and BF geometry (30m/10) was a FIXED a-priori axis, so "full mechanism
+  space" (prereg preamble) overreaches on the BF axis but the sweep itself
+  was honest about what it toggled. The finding's real force: what we measure
+  as "BF" diverges from what the user MEANS by BF, and the ~5-5.5h pivot
+  confirmation lag is disclosed but material. CONVERGENCE: the audit's
+  "specify the detector" prescription lands on the already-planned compound-3
+  BF redesign (memory: project-compound3-bf-redesign -- causal BF drawn the
+  moment the compound 3 fires, killing the pivot lag). ACT: fold F3 into that
+  design-WITH-user session (strat-methodology gate applies); the article's
+  ROC-of-ATR adaptive pivot length is a pre-registrable branch, frozen per
+  candidate; hand-labeled fixtures for paired-vs-independent validation.
+- **F4 P3 "strictly stronger" (MEDIUM) -- AGREE.** Cross-script equivalence
+  cannot detect a bug shared by both scripts and does not anchor the expired
+  E2 window; the prereg's "STRICTLY STRONGER" is an overclaim (the amendment
+  is otherwise honest and the 3 records ARE trade-for-trade equal). Verified:
+  runAnchor2 comment says base inputs "already verified applied" but no
+  appliedExpr readback runs against the base entity. ACT: dated relabel to
+  "narrower current-window cross-script equivalence"; re-run under the
+  hardened collector with entity-bound readback on BOTH studies.
+- **F5 NET propagation (MEDIUM) -- AGREE, verified.** tfc/simulator.py arms
+  the governor on gross (lines 12-13, 168-170) and documents the superseded
+  TVB-7 GROSS fact; tfc_companion.pine computes gross_win from prices only
+  (369-374) and cites TVB-7 (101-102); docs/VBT_BREADTH_PORT_PLAN.md still
+  says gross. TVB-11 flagged the parity risk but flag != fix. ACT: dated
+  supersession notes + NET propagation where parity is intended + a
+  marginal-trade fixture (gross>0, net<=0) that must agree across Pine /
+  companion / Python before any Claude-lineage parity claim.
+- **F6 promotion leak (MEDIUM) -- PARTIAL AGREE.** The Section 12 verdict
+  paragraph is heavily hedged ("worth exactly nothing more than that",
+  deployment forbidden) and the audit acknowledges the indicators were
+  pre-authorized. But "Winner:" naming + "single most portable" now rest on
+  an all-long roster with unproven collector binding, so the labels outrun
+  the evidence. Section 12's integrity sentence also presents both acceptance
+  paths as equivalent, which F1 disproves. ACT: qualifier edits in Section 12
+  (dated, additive -- raw results untouched); keep the no-deployment rule
+  explicit. The user's planned $100-200 micro-deployment is their own
+  loss-tolerable live test (memory: project-live-micro-deployment-plan) and
+  is NOT licensed by the champion search -- restate, not renamed away.
+- **F7 request.security rule (LOW) -- AGREE.** Verified: exactly 4 executable
+  calls, all `expr[1] + lookahead_on` -- TradingView's documented
+  non-repainting HTF idiom (confirmed values, one-HTF-bar latency). The
+  blanket "every call uses lookahead_off" rule (pine/README.md rule 3;
+  project CLAUDE.md Section 6) contradicts accepted code. The TRAP remains
+  un-offset lookahead_on (TVB-1's original TFO finding). ACT: amend both
+  rules to forbid un-offset lookahead_on and explicitly allow the offset
+  idiom, noting the latency cost.
+
+Audit checks that PASSED and we co-sign: 60m BF-off trading no-op, P0b NET
+arithmetic (reviewer recomputed all 11 C3 rows to 1e-12), window-confound
+prose, P3 observed equality (narrow). Overall: the audit is high quality;
+every count it asserted reproduced exactly. NEEDS-CHANGES accepted. The
+champion-search RANKINGS are treated as unverified-pending-replay; the
+process catches (session forcing, checkpoint design) stand.
+
+### Remediation queue (decide-with-user before execution)
+
+1. Collector hardening + bounded replay (F1/F4; enables F2's replay cells).
+2. Stage B direction repair cells + Generalizer relabel (F2).
+3. Doc/label edits: Section 12 qualifiers + P3 relabel + security-rule
+   amendment (F4/F6/F7) -- cheap, no reruns.
+4. NET propagation + fixture (F5).
+5. BF paired-detector design session == the compound-3 redesign (F3).
+
+---
+
 ## Session TVB-11: BF-exit experiments, GPT blind replication, CHAMPION SEARCH executed end-to-end (COMPLETE)
 
 **Date:** 2026-07-10..15 (champion search 07-14/15)
@@ -96,7 +218,9 @@ Champion search (07-14/15), `docs/experiments/tvb11_champion_prereg.md`:
 > below) and write a verbatim assessment to docs/reviews/tvb11-codex-audit.md.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: REQUESTED
+- Review status: RETURNED 2026-07-15 (GPT 5.6 Sol Ultra; verdict
+  NEEDS-CHANGES; audit in docs/reviews/tvb11-codex-audit.md; critical
+  synthesis in the TVB-12 entry above)
 - Commits to review: `0561c53^..0a1d26a` on `main` (30 commits, 31 files;
   verified via `git diff --name-status`). RANGE-PIN RULE (Codex TVB-4
   finding 1): git ranges EXCLUDE the left endpoint, so the caret keeps
