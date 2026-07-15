@@ -1,0 +1,207 @@
+// This Pine Script code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// (c) sheehyct
+
+//@version=6
+// Winner: Champion MU15 [TVB-11] -- minimal live signal monitor (pre-reg Section 11).
+// Baked config (the +249% perp-15m ceiling cell, champion search 2026-07-15):
+//   gates D/W/M (close vs period open, unanimous) | flip exit (full opposite at 60m
+//   close) | LONG ONLY | BF same_side harvest at the projected broadening line with
+//   IMMEDIATE re-entry (recycle) | armed off prior completed 15m bar high + 1 tick.
+// Run on a 5m or 15m chart. Signals fire at decision time; the backtest filled at the
+// NEXT bar open -- live fills will differ by that bar. This is a watch/alert surface,
+// not a deployment (in-sample ceiling; generalization gap measured in the pre-reg).
+indicator('Winner: Champion MU15 [TVB-11]', 'W-CHAMP15', overlay = true, max_lines_count = 500, max_labels_count = 500)
+
+// ---- baked clocks + gates ----
+const string ARM_TF = '15'
+const string EXIT_TF = '60'
+const string BF_TF = '30'
+const int BF_STRENGTH = 10
+
+// ---- UI-only inputs (cosmetics; per user directive: no info tables) ----
+show_bg   = input.bool(true, 'Background tint while in position')
+show_bars = input.bool(false, 'Color bars by gate state')
+c_long  = input.color(color.new(color.lime, 0), 'Enter Long marker')
+c_harv  = input.color(color.new(color.orange, 0), 'BF Harvest marker')
+c_exit  = input.color(color.new(color.red, 0), 'TFC Exit marker')
+
+chart_s = timeframe.in_seconds(timeframe.period)
+arm_s   = timeframe.in_seconds(ARM_TF)
+if chart_s > arm_s or arm_s % chart_s != 0
+    runtime.error('W-CHAMP15: run on a chart TF that tiles 15m (1/3/5/15).')
+
+f_open(simple string tf) =>
+    ta.valuewhen(timeframe.change(tf), open, 0)
+
+oD = f_open('D')
+oW = f_open('W')
+oM = f_open('M')
+bool gate_ready = not na(oD) and not na(oW) and not na(oM)
+bool gate_up = gate_ready and close > oD and close > oW and close > oM
+bool gate_dn = gate_ready and close < oD and close < oW and close < oM
+
+arm_new   = timeframe.change(ARM_TF)
+arm_last  = time_close == time_close(ARM_TF)
+exit_last = time_close == time_close(EXIT_TF)
+
+var float a_high  = na
+var float prev_ah = na
+if arm_new
+    a_high := high
+else
+    a_high := na(a_high) ? high : math.max(a_high, high)
+if arm_last
+    prev_ah := a_high
+
+// ---- BF engine (verbatim BF-1 port: completed-bar [1] + lookahead_on idiom) ----
+max_bars_back(time, 4900)
+max_bars_back(high, 4900)
+max_bars_back(low, 4900)
+
+f_fractal_hi(int n) =>
+    bool acc = true
+    for j = -n to n
+        if j != 0
+            acc := acc and high[n] > high[n + j]
+    acc ? high[n] : na
+
+f_fractal_lo(int n) =>
+    bool acc = true
+    for j = -n to n
+        if j != 0
+            acc := acc and low[n] < low[n + j]
+    acc ? low[n] : na
+
+f_anchor(int t, int cap) =>
+    int res = na
+    for k = 0 to cap
+        if time[k] <= t
+            res := bar_index - k
+            break
+    res
+
+f_push(array<float> af, array<int> ai, float v, int idx) =>
+    array.unshift(af, v)
+    array.unshift(ai, idx)
+    if array.size(af) > 10
+        array.pop(af)
+        array.pop(ai)
+
+int bf_sec = timeframe.in_seconds(BF_TF)
+bool bf_use_sec = bf_sec > chart_s
+[s_phv, s_plv, s_pt] = request.security(syminfo.tickerid, BF_TF, [f_fractal_hi(BF_STRENGTH)[1], f_fractal_lo(BF_STRENGTH)[1], time[BF_STRENGTH + 1]], lookahead = barmerge.lookahead_on)
+float phv = bf_use_sec ? s_phv : f_fractal_hi(BF_STRENGTH)
+float plv = bf_use_sec ? s_plv : f_fractal_lo(BF_STRENGTH)
+int   pt  = bf_use_sec ? s_pt : time[BF_STRENGTH]
+
+var int last_ph_t = -1
+var int last_pl_t = -1
+int ratio    = math.max(1, int(math.ceil(bf_sec / float(chart_s))))
+int scan_cap = math.min(4800, (BF_STRENGTH + 3) * ratio)
+int pt_key   = nz(pt, -1)
+bool ev_ok  = bf_use_sec or barstate.isconfirmed
+bool new_ph = ev_ok and not na(phv) and pt_key > 0 and pt_key != last_ph_t
+bool new_pl = ev_ok and not na(plv) and pt_key > 0 and pt_key != last_pl_t
+
+var pivot_highs     = array.new_float()
+var pivot_highs_idx = array.new_int()
+var pivot_lows      = array.new_float()
+var pivot_lows_idx  = array.new_int()
+
+if new_ph
+    last_ph_t := pt_key
+    int a = f_anchor(pt_key, scan_cap)
+    if not na(a) and bar_index - a < 4500
+        f_push(pivot_highs, pivot_highs_idx, phv, a)
+if new_pl
+    last_pl_t := pt_key
+    int a = f_anchor(pt_key, scan_cap)
+    if not na(a) and bar_index - a < 4500
+        f_push(pivot_lows, pivot_lows_idx, plv, a)
+
+var line upper_tl = na
+var line lower_tl = na
+
+if (new_ph or new_pl) and array.size(pivot_highs) > 1 and array.size(pivot_lows) > 1
+    float low_new = array.get(pivot_lows, 0)
+    float low_old = array.get(pivot_lows, 1)
+    int   lni     = array.get(pivot_lows_idx, 0)
+    int   loi     = array.get(pivot_lows_idx, 1)
+    if not na(low_new) and not na(low_old) and low_new < low_old and lni > loi and bar_index - loi < 4800
+        float slope = (low_new - low_old) / (lni - loi)
+        bool  valid = true
+        for i = 0 to lni - loi
+            if low[bar_index - loi - i] < low_old + slope * i
+                valid := false
+                break
+        if valid
+            lower_tl := line.new(loi, low_old, lni, low_new, style = line.style_solid, color = color.gray, width = 1)
+            array.set(pivot_lows, 0, na)
+            array.set(pivot_lows, 1, na)
+    float high_new = array.get(pivot_highs, 0)
+    float high_old = array.get(pivot_highs, 1)
+    int   hni      = array.get(pivot_highs_idx, 0)
+    int   hoi      = array.get(pivot_highs_idx, 1)
+    if not na(high_new) and not na(high_old) and high_new > high_old and hni > hoi and bar_index - hoi < 4800
+        float slope = (high_new - high_old) / (hni - hoi)
+        bool  valid = true
+        for i = 0 to hni - hoi
+            if high[bar_index - hoi - i] > high_old + slope * i
+                valid := false
+                break
+        if valid
+            upper_tl := line.new(hoi, high_old, hni, high_new, style = line.style_solid, color = color.gray, width = 1)
+            array.set(pivot_highs, 0, na)
+            array.set(pivot_highs, 1, na)
+
+bool upper_test = false
+if not na(upper_tl)
+    int   ux2  = line.get_x2(upper_tl)
+    float uy2  = line.get_y2(upper_tl)
+    float usl  = (uy2 - line.get_y1(upper_tl)) / (ux2 - line.get_x1(upper_tl))
+    float proj = uy2 + usl * (bar_index - ux2)
+    if high > proj
+        line.set_x2(upper_tl, bar_index)
+        line.set_y2(upper_tl, proj)
+        line.set_color(upper_tl, color.red)
+        upper_tl := na
+        upper_test := true
+if not na(lower_tl)
+    int   lx2  = line.get_x2(lower_tl)
+    float ly2  = line.get_y2(lower_tl)
+    float lsl  = (ly2 - line.get_y1(lower_tl)) / (lx2 - line.get_x1(lower_tl))
+    float proj = ly2 + lsl * (bar_index - lx2)
+    if low < proj
+        line.set_x2(lower_tl, bar_index)
+        line.set_y2(lower_tl, proj)
+        line.set_color(lower_tl, color.red)
+        lower_tl := na
+
+// ---- position state machine (long-only; exits evaluated before entries) ----
+var int pos = 0
+bool sig_harvest = false
+bool sig_exit    = false
+bool sig_enter   = false
+
+if pos == 1 and upper_test
+    pos := 0
+    sig_harvest := true
+if pos == 1 and exit_last and gate_dn
+    pos := 0
+    sig_exit := true
+
+float trig = prev_ah + syminfo.mintick
+if pos == 0 and gate_up and not na(prev_ah) and high >= trig
+    pos := 1
+    sig_enter := true
+
+// ---- visuals + alerts ----
+plotshape(sig_enter, 'Enter Long', style = shape.labelup, color = c_long, text = 'LONG', textcolor = color.black, location = location.belowbar, size = size.tiny)
+plotshape(sig_harvest, 'BF Harvest', style = shape.labeldown, color = c_harv, text = 'HARVEST', textcolor = color.black, location = location.abovebar, size = size.tiny)
+plotshape(sig_exit, 'TFC Exit', style = shape.labeldown, color = c_exit, text = 'EXIT', textcolor = color.white, location = location.abovebar, size = size.tiny)
+bgcolor(show_bg and pos == 1 ? color.new(color.teal, 92) : na)
+barcolor(show_bars ? (gate_up ? color.new(color.green, 55) : gate_dn ? color.new(color.red, 55) : color.new(color.gray, 70)) : na)
+
+alertcondition(sig_enter, 'W-CHAMP15 Enter Long', 'Champion MU15: enter long (15m structure break, D/W/M aligned up)')
+alertcondition(sig_harvest, 'W-CHAMP15 BF Harvest', 'Champion MU15: harvest at BF upper line (re-entry re-arms immediately)')
+alertcondition(sig_exit, 'W-CHAMP15 TFC Exit', 'Champion MU15: flip exit (D/W/M fully aligned down at 60m close)')

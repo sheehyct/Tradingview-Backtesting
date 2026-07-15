@@ -1,0 +1,73 @@
+// This Pine Script code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// (c) sheehyct
+
+//@version=6
+// Winner: Slow60 [TVB-11] -- minimal live signal monitor (pre-reg Section 11).
+// Baked config (the +236% perp-60m ceiling cell, champion search 2026-07-15):
+//   gates 60m/D/W/M (close vs period open, unanimous) | flip exit (full opposite at
+//   60m close) | LONG ONLY | no BF overlay | armed off prior completed 60m bar high
+//   + 1 tick. Run on a 15m, 30m, or 60m chart. Signals fire at decision time; the
+//   backtest filled at the NEXT bar open. Watch/alert surface only -- no deployment.
+indicator('Winner: Slow60 [TVB-11]', 'W-SLOW60', overlay = true)
+
+// ---- baked clocks + gates ----
+const string ARM_TF = '60'
+const string EXIT_TF = '60'
+
+// ---- UI-only inputs ----
+show_bg   = input.bool(true, 'Background tint while in position')
+show_bars = input.bool(false, 'Color bars by gate state')
+c_long  = input.color(color.new(color.lime, 0), 'Enter Long marker')
+c_exit  = input.color(color.new(color.red, 0), 'TFC Exit marker')
+
+chart_s = timeframe.in_seconds(timeframe.period)
+arm_s   = timeframe.in_seconds(ARM_TF)
+if chart_s > arm_s or arm_s % chart_s != 0
+    runtime.error('W-SLOW60: run on a chart TF that tiles 60m (1/5/15/30/60).')
+
+f_open(simple string tf) =>
+    ta.valuewhen(timeframe.change(tf), open, 0)
+
+o60 = f_open('60')
+oD  = f_open('D')
+oW  = f_open('W')
+oM  = f_open('M')
+bool gate_ready = not na(o60) and not na(oD) and not na(oW) and not na(oM)
+bool gate_up = gate_ready and close > o60 and close > oD and close > oW and close > oM
+bool gate_dn = gate_ready and close < o60 and close < oD and close < oW and close < oM
+
+arm_new   = timeframe.change(ARM_TF)
+arm_last  = time_close == time_close(ARM_TF)
+exit_last = time_close == time_close(EXIT_TF)
+
+var float a_high  = na
+var float prev_ah = na
+if arm_new
+    a_high := high
+else
+    a_high := na(a_high) ? high : math.max(a_high, high)
+if arm_last
+    prev_ah := a_high
+
+// ---- position state machine (long-only; exits before entries) ----
+var int pos = 0
+bool sig_exit  = false
+bool sig_enter = false
+
+if pos == 1 and exit_last and gate_dn
+    pos := 0
+    sig_exit := true
+
+float trig = prev_ah + syminfo.mintick
+if pos == 0 and gate_up and not na(prev_ah) and high >= trig
+    pos := 1
+    sig_enter := true
+
+// ---- visuals + alerts ----
+plotshape(sig_enter, 'Enter Long', style = shape.labelup, color = c_long, text = 'LONG', textcolor = color.black, location = location.belowbar, size = size.tiny)
+plotshape(sig_exit, 'TFC Exit', style = shape.labeldown, color = c_exit, text = 'EXIT', textcolor = color.white, location = location.abovebar, size = size.tiny)
+bgcolor(show_bg and pos == 1 ? color.new(color.teal, 92) : na)
+barcolor(show_bars ? (gate_up ? color.new(color.green, 55) : gate_dn ? color.new(color.red, 55) : color.new(color.gray, 70)) : na)
+
+alertcondition(sig_enter, 'W-SLOW60 Enter Long', 'Slow60: enter long (60m structure break, 60/D/W/M aligned up)')
+alertcondition(sig_exit, 'W-SLOW60 TFC Exit', 'Slow60: flip exit (60/D/W/M fully aligned down at 60m close)')
