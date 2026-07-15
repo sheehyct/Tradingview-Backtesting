@@ -124,8 +124,12 @@ if reg_mode != 'off'
     f_guard('the Exit TF (' + exit_tf + ')', exit_s, rtf3, rg3)
 
 int bf_sec = timeframe.in_seconds(bf_tf)
-if bf_sec < chart_s
-    runtime.error('CHAMP: BF pivot timeframe (' + bf_tf + ') is below the chart TF.')
+// Guard fires only when the BF engine is actually IN USE: with bf_exit = 'off' the
+// engine's outputs feed nothing (no exit orders, no re-entry blocks), so a BF TF
+// below the chart TF is harmless there. An unconditional guard killed every
+// 60m-chart cell of the A1 grid including BF-off ones (found mid-grid 2026-07-14).
+if bf_exit != 'off' and bf_sec < chart_s
+    runtime.error('CHAMP: BF pivot timeframe (' + bf_tf + ') is below the chart TF -- BF exits cannot run here.')
 bool bf_use_sec = bf_sec > chart_s
 
 max_bars_back(time, 4900)

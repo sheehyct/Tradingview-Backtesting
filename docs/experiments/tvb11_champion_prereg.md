@@ -168,6 +168,21 @@ exit tiles all gate TFs; deepest loadable window per TF, recorded per run):
 
 Cells per venue: (3x2x3x5) x (4+3+2) = 90 x 9 = 810. Both venues: 1620.
 
+AMENDMENT (2026-07-14, discovered mid-grid at the 60m block, recorded
+honestly): on the 60m chart the fixed a-priori BF engine (30m pivots, live
+config) sits BELOW the chart TF and is STRUCTURALLY UNAVAILABLE -- the BF
+axis collapses to 'off' there. This is a physical constraint of the
+pre-registered BF config, not a tuning choice. The 60m BF-on cells (144 per
+venue) are dropped; amended totals: 666 per venue, 1332 overall. Two
+implementation bugs found and fixed in the same incident: (a) the harness
+guard was unconditional and also killed 60m BF-OFF cells (guard now fires
+only when bf_exit != 'off'; zero behavioral change for any previously-valid
+cell -- the guard only ever raised errors, never altered state); (b) the
+collector's resume logic treated REJECTED cells as done (now only accepted
+records skip). The 630 completed 5m/15m cells predate both fixes and are
+unaffected. User surfaced the on-chart error live (remote desktop) --
+credited assist.
+
 Fixed in A1 at the user's live config (structural declaration, not tuned):
 regime = stand_aside on W+D; governor = ratchet; commission 0.0125%/side;
 slippage 1 tick; margin 0/0; bar magnifier ON; 100% equity, no pyramiding;

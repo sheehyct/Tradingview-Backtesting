@@ -56,6 +56,11 @@ const ARM_EXIT_BY_CHART_TF = {
   '15': [['15', '15'], ['15', '30'], ['15', '60']],
   '60': [['60', '60'], ['60', '240']],
 };
+// On the 60m chart the live BF engine (30m pivots) sits BELOW the chart TF and is
+// structurally unavailable -- the BF axis collapses to 'off' there (pre-reg
+// amendment 2026-07-14, discovered mid-grid). Not a tuning choice: physically
+// impossible with the fixed a-priori BF config.
+const BF_BY_CHART_TF = tf => (tf === '60' ? BF_CONFIGS.filter(b => b.key === 'off') : BF_CONFIGS);
 // A1 fixed axes (pre-reg): regime stand_aside on W+D, governor ratchet, BF-1 30/10.
 const A1_FIXED = {
   reg_mode: 'stand_aside', rg1: false, rtf1: 'M', rg2: true, rtf2: 'W', rg3: true, rtf3: 'D',
@@ -76,7 +81,7 @@ function buildStageA1Cells() {
         for (const gate_set of Object.keys(GATE_SETS))
           for (const exit_mode of ['state', 'flip'])
             for (const dir of Object.keys(DIRS))
-              for (const bf of BF_CONFIGS)
+              for (const bf of BF_BY_CHART_TF(chart_tf))
                 cells.push({ stage: 'A1', symbol, chart_tf, gate_set, exit_mode, dir, bf_key: bf.key, bf_exit: bf.bf_exit, bf_reentry: bf.bf_reentry, arm_tf, exit_tf });
   return cells;
 }
@@ -253,10 +258,11 @@ async function settleAndRead(cell, entity, preKey) {
 }
 
 function loadDone(outfile) {
+  // Only ACCEPTED records count as done -- rejected cells re-run on resume.
   const done = new Set();
   if (fs.existsSync(outfile))
     for (const line of fs.readFileSync(outfile, 'utf8').split('\n'))
-      if (line.trim()) { try { done.add(JSON.parse(line).id); } catch { /* skip */ } }
+      if (line.trim()) { try { const r = JSON.parse(line); if (r.accepted) done.add(r.id); } catch { /* skip */ } }
   return done;
 }
 
