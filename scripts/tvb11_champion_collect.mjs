@@ -73,16 +73,28 @@ function cellId(c) {
   return [c.symbol, 'tf' + c.chart_tf, c.gate_set, c.exit_mode, c.dir, c.bf_key, 'a' + c.arm_tf, 'x' + c.exit_tf].join('_');
 }
 
+// The exit clock must tile every ENABLED gate TF (engine guard, structural): a gate
+// member finer than the exit TF is incoherent (the gate would flip inside one exit
+// period). Found mid-grid: a60/x240 is only feasible with slow3 (D/W/M).
+const GATE_MIN_S = { full6: 3600, ctrlA4: 3600, slow3: 86400 };
+function pairGateFeasible(exit_tf, gate_set) {
+  const exit_s = { '15': 900, '30': 1800, '60': 3600, '240': 14400 }[exit_tf];
+  const min_s = GATE_MIN_S[gate_set];
+  return min_s >= exit_s && min_s % exit_s === 0;
+}
+
 function buildStageA1Cells() {
   const cells = [];
   for (const symbol of A1_SYMBOLS)
     for (const chart_tf of Object.keys(ARM_EXIT_BY_CHART_TF))
       for (const [arm_tf, exit_tf] of ARM_EXIT_BY_CHART_TF[chart_tf])
-        for (const gate_set of Object.keys(GATE_SETS))
+        for (const gate_set of Object.keys(GATE_SETS)) {
+          if (!pairGateFeasible(exit_tf, gate_set)) continue;
           for (const exit_mode of ['state', 'flip'])
             for (const dir of Object.keys(DIRS))
               for (const bf of BF_BY_CHART_TF(chart_tf))
                 cells.push({ stage: 'A1', symbol, chart_tf, gate_set, exit_mode, dir, bf_key: bf.key, bf_exit: bf.bf_exit, bf_reentry: bf.bf_reentry, arm_tf, exit_tf });
+        }
   return cells;
 }
 
