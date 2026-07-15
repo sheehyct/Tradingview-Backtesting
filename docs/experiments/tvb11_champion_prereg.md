@@ -350,3 +350,108 @@ surfaces; the standing no-deployment rule is unchanged.
   session-structure + gap + liquidity effects; say so each time).
 - Weekend-window cells are OUT of scope (separate pre-reg,
   project-weekend-liquidity-protocol).
+
+---
+
+## 12. RESULTS (Stages A1 / A2 / B, run 2026-07-14/15)
+
+Collection integrity: 1,550 records across all stages, 1,498 accepted (762
+via pine-table echo, 736 via engine readback). Every rejection traces to one
+of the three documented incidents (60m guard era, infeasible x240 cells,
+SIL1! resolution failure) -- zero unexplained rejects. Runs executed on ONE
+compiled artifact (the P3-anchored deployment) throughout. A PC restart mid
+mirror-batch cost ~40 minutes; the checkpoint design lost zero accepted runs.
+
+### Stage A1 headline (ceiling on the fit pair)
+
+Windows differ per chart TF BY CONSTRUCTION (deepest loadable): perp 5m ~10
+weeks, perp 15m ~7 months, perp 60m ~7 months; mirror (RTH) 5m ~1 year,
+15m ~3 years, 60m ~3 years. Cross-TF and perp-vs-mirror comparisons are
+therefore ALSO cross-window comparisons; every number below carries that.
+
+- Perp champions: tf5 +12.9% (slow3 state SHORT ss_ratchet_c a15/x60);
+  tf15 +248.7% (slow3 flip long ss_recycle a15/x60; top-10 is a PLATEAU
+  249->226); tf60 +236.3% (ctrlA4 flip long off a60/x60; cliff below rank ~6).
+- Mirror champions (all three TFs): slow3 flip long BF-off (a5/x30, a15/x30,
+  a60/x60): +466% / +576% / +766% on the 3-year secular MU run; the 60m
+  top-10 is a KNIFE-EDGE (rank 10 is negative).
+- Axis medians, perp: state > flip (+5.4 vs +2.5); slow3 > ctrlA4 > full6
+  (5.5/3.5/2.2); ratchet_c > ratchet_g > recycle ~ off >> any_side
+  (6.2/5.6/2.7/2.3/0.7); shorts POSITIVE under state (+7.7) and negative
+  under flip (-7.3).
+- Axis medians, mirror: flip >> state (+101 vs -12.2!); long +165 / short
+  -45. The exit-mode verdict INVERTS across venue/window: state harvests the
+  perp's chop, flip rides the mirror's secular trend, and RTH session gaps
+  re-shuffle every period-open comparison at each open, churning state exits.
+
+### Stage A2 (fixed-axis satellites, 60 runs)
+
+- Regime layer (stand_aside W+D): INERT TO THE DECIMAL on all 20 rows, both
+  venues -- structurally redundant when the entry gate already contains W+D
+  and direction is long-only.
+- Governor (loss ratchet): NOT inert; sign flips by venue. Perp: gov-off
+  costs money on 9/10 (249->231 on the champion) -- BF/flip losing exits arm
+  it and its blocks were net good in chop. Mirror: gov-off GAINS on 8/10
+  (440->490) -- every block missed continuation in the secular trend. Third
+  instance of a protection feature whose value is regime-shaped (after exit
+  mode and stand-aside).
+- Ranking stability: rank-1 never leaves top-5 under any toggle. PASS; Stage
+  B carried configs unmodified.
+
+### Stage B (generalization map, 130/140)
+
+The MU-fit ceiling DECAYS HARD off-symbol (E4 confirmed): +249% on the fit
+symbol -> median +3..6% across the 7 roster perps. Per-pair (best/median/
+worst of the 10 champion configs, total %):
+
+| Pair | Perp | RTH mirror |
+|---|---|---|
+| SILVER (commodity) | -28/-29/-30 | SIL1! unresolvable on this TV instance (10 cells deferred) |
+| HOOD | 25/19/11 | 623/360/149 |
+| ORCL | 5/3/-1 | 181/124/103 |
+| NFLX | 6/1/-7 | 469/42/32 |
+| HIMS | 25/20/12 | 379/332/158 |
+| MRVL | 25/17/17 | 122/100/81 |
+| RKLB | 3/-2/-3 | 575/453/404 |
+
+- Best generalizer among the champions: slow3 flip long BF same_side +
+  ratchet_c (a15/x60): median +5.8% across the 7 perps, positive 6/7 -- the
+  RATCHET variant generalizes better than the recycle variant that won on
+  MU (recycle full6 is the worst: -1.2% median). E2's hysteresis conclusion
+  reappears at the generalization level.
+- SILVER perp: uniformly negative -- first out-of-family evidence; the
+  equity-momentum-shaped family dies on the commodity.
+- Mirror numbers are huge everywhere because the RTH windows are ~3 years of
+  a broad bull market; window depth dominates. NOT read as session-structure
+  superiority.
+
+### Expectations scorecard (Section 8)
+
+- E1 (champions TF-local; consensus argmax of no TF): CONFIRMED. Consensus
+  family (flip/long/BF-off) ranks 1-10 on tf15/tf60, ~#105 on tf5.
+- E2 (mirror more knife-edged, slower gates): PARTIAL. Mirror champions are
+  all slow3 (confirmed direction) and the 60m mirror top-10 is a true
+  knife-edge, but 5m/15m mirror top-10s are plateaus. The predicted
+  state>flip-on-mirror mechanism was WRONG -- flip wins the mirror
+  (secular-trend window dominates gap-churn).
+- E3 (ratchet_c > ratchet_g on burst MU): CONFIRMED narrowly (medians 6.2 vs
+  5.6; ratchet_c ahead in the top cells).
+- E4 (large in-sample margin + hard decay off-symbol): CONFIRMED on both
+  halves. The ceiling is real and it is local.
+- E5 (full6 ~ ctrlA4 on 5m): REFUTED in direction -- dropping the 120/240
+  gates HELPS on the 5m perp (medians -3.6 vs -0.4 vs slow3 +0.7); gate
+  count is monotone-negative in this window.
+- E6 (BF-off dominates top-10s): REFUTED on the perp 15m -- BF same_side
+  harvest cells took the top 6 slots. Surprise, flagged as pre-registered.
+
+### Verdict (no promotion -- Section 1 and 10 language in force)
+
+The champion search produced its deliverable: a labeled in-sample CEILING
+(+249% perp tf15 / +766% mirror tf60 at the extreme) with a mapped plateau,
+and the measured generalization gap (ceiling -> +3..6% median off-symbol).
+Every complexity addition from here is judged against this ruler and the
+crude floor. The single most portable member of the champion family --
+slow-gate flip long-only with the BF harvest + raised-stop re-entry ratchet
+-- is ALSO the shape of the user's intended live system from E2, which is
+worth knowing and worth exactly nothing more than that until it survives
+out-of-sample time. Deployment remains forbidden by design.
