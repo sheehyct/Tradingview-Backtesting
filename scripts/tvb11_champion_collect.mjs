@@ -70,7 +70,8 @@ const A1_FIXED = {
 const A1_SYMBOLS = ['HIP3XYZ:MUUSDC.P', 'NASDAQ:MU'];
 
 function cellId(c) {
-  return [c.symbol, 'tf' + c.chart_tf, c.gate_set, c.exit_mode, c.dir, c.bf_key, 'a' + c.arm_tf, 'x' + c.exit_tf].join('_');
+  const base = [c.symbol, 'tf' + c.chart_tf, c.gate_set, c.exit_mode, c.dir, c.bf_key, 'a' + c.arm_tf, 'x' + c.exit_tf].join('_');
+  return c.variant ? base + '_' + c.variant : base;
 }
 
 // RTH mirror symbols must run TV's 'regular' subsession (the underlying-RTH rule).
@@ -128,6 +129,9 @@ function cellInputs(c) {
   // the chart TF. With bf_exit='off' the BF engine feeds no orders and no re-entry
   // blocks -- a no-op on trading. Avoids redeploying the anchored artifact mid-grid.
   if (c.chart_tf === '60' && c.bf_exit === 'off') logical.bf_tf = '60';
+  // Stage A2 fixed-axis overrides (satellites): reg_mode / gov_mode variants.
+  if (c.reg_ov) logical.reg_mode = c.reg_ov;
+  if (c.gov_ov) logical.gov_mode = c.gov_ov;
   const byId = {};
   for (const [k, v] of Object.entries(logical)) byId[IN[k]] = v;
   return byId;
@@ -141,7 +145,9 @@ function expectedEcho(c) {
   for (const [yk, tf] of order) if (gates[yk]) g += tf + '.';
   const dirs = DIRS[c.dir];
   const d = (dirs.allow_long ? 'L' : '') + (dirs.allow_short ? 'S' : '');
-  return `${c.exit_mode};${c.bf_exit};${c.bf_reentry};a${c.arm_tf};x${c.exit_tf};g${g};d${d};r${A1_FIXED.reg_mode};v${A1_FIXED.gov_mode}`;
+  const reg = c.reg_ov || A1_FIXED.reg_mode;
+  const gov = c.gov_ov || A1_FIXED.gov_mode;
+  return `${c.exit_mode};${c.bf_exit};${c.bf_reentry};a${c.arm_tf};x${c.exit_tf};g${g};d${d};r${reg};v${gov}`;
 }
 
 async function findStudyId() {
