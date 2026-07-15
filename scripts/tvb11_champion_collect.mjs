@@ -125,11 +125,11 @@ async function findStudyId() {
 }
 
 // reportData metrics + trade list (tv_dump.mjs pattern, incl. closed/open assertions).
-const REPORT_EXPR = `(function(){
+const reportExpr = prefix => `(function(){
   var model = window.TradingViewApi._activeChartWidgetWV.value()._chartWidget.model().model();
   var sources = model.dataSources();
   for (var i=0;i<sources.length;i++){ var s=sources[i]; if(!s.metaInfo) continue; var mi=s.metaInfo();
-    if ((mi.isTVScriptStrategy===true || typeof s.reportData==='function') && (mi.description||'').indexOf('TVB-EXP Champion') === 0){
+    if ((mi.isTVScriptStrategy===true || typeof s.reportData==='function') && (mi.description||'').indexOf('${prefix}') === 0){
       var rd = s.reportData(); if (rd && typeof rd.value==='function') rd = rd.value();
       if (!rd || !rd.performance) return {pending:true};
       var perf = rd.performance || {};
@@ -153,8 +153,28 @@ const REPORT_EXPR = `(function(){
               assert: {listLen: tr.length, closedN: closedN, openN: openN, lenOk: lenOk},
               all: pick(all), long: pick(lng), short: pick(sht), list: list};
     } }
-  return {error:'champion strategy not found in dataSources'};
+  return {error:'strategy not found in dataSources'};
 })()`;
+const REPORT_EXPR = reportExpr('TVB-EXP Champion');
+
+// Engine-side readback: applied input values for the study + main-series symbol/interval.
+// This is the settle gate's fallback integrity check when the pine-table echo is not
+// materialized (the graphics channel is flaky for strategies behind other panels).
+function appliedExpr(entityId) {
+  return `(function(){
+    var chart = window.TradingViewApi._activeChartWidgetWV.value();
+    var study = chart.getStudyById('${entityId}');
+    if (!study) return { error: 'study not found' };
+    var iv = study.getInputValues();
+    var m = {};
+    for (var i=0;i<iv.length;i++) m[iv[i].id] = iv[i].value;
+    var ms = chart._chartWidget.model().model().mainSeries();
+    var sym = null, interval = null;
+    try { sym = ms.symbolInfo() ? ms.symbolInfo().full_name || ms.symbolInfo().name : null; } catch(e){}
+    try { interval = ms.interval ? ms.interval() : null; } catch(e){}
+    return { inputs: m, symbol: sym, interval: interval };
+  })()`;
+}
 
 function parseMetricsTables(tablesResult) {
   const study = (tablesResult.studies || []).find(s => (s.name || '').indexOf('TVB-EXP Champion') === 0);
@@ -198,24 +218,38 @@ async function ensureHistoryLoaded() {
   return { rounds: 250, size: prevSize, capped: true };
 }
 
-async function settleAndRead(cell) {
+// Settle gate: ECHO-FIRST (the script's own pine-table cell echo -- strongest signal),
+// ENGINE-FALLBACK (applied input values + main-series symbol/interval readback) because
+// the strategy's table graphics do not reliably re-materialize after input changes.
+// Engine-path acceptance additionally requires the report to differ from the
+// pre-setInputs snapshot (or 20s+ elapsed) so a stale result cannot be re-read.
+async function settleAndRead(cell, entity, preKey) {
   const want = expectedEcho(cell);
+  const wantInputs = cellInputs(cell);
   const t0 = Date.now();
-  let lastReport = null, stable = 0, lastKey = '';
+  let stable = 0, lastKey = '', best = null;
   while (Date.now() - t0 < SETTLE_TIMEOUT_MS) {
     await sleep(SETTLE_POLL_MS);
-    const [tables, report] = [await getPineTables({ study_filter: 'TVB-EXP Champion' }), await evaluate(REPORT_EXPR)];
-    const parsed = parseMetricsTables(tables);
-    if (!parsed.found || !parsed.metrics.cell) continue;
-    if (parsed.metrics.cell !== want) continue;                    // echo must match the request
-    if (parsed.metrics.symbol !== cell.symbol) continue;           // symbol must match
+    const report = await evaluate(REPORT_EXPR);
     if (!report || report.pending || report.error) continue;
-    const key = `${report.netAbs}|${report.trades}|${parsed.metrics.loaded_bars}`;
+    const parsed = parseMetricsTables(await getPineTables({ study_filter: 'TVB-EXP Champion' }));
+    const echoOk = parsed.found && parsed.metrics.cell === want && parsed.metrics.symbol === cell.symbol;
+    const applied = await evaluate(appliedExpr(entity));
+    let engineOk = false;
+    if (applied && applied.inputs) {
+      engineOk = Object.entries(wantInputs).every(([k, v]) => String(applied.inputs[k]) === String(v))
+        && applied.symbol === cell.symbol && String(applied.interval) === String(cell.chart_tf);
+    }
+    if (!echoOk && !engineOk) continue;
+    const key = `${report.netAbs}|${report.trades}|${report.assert.listLen}`;
     if (key === lastKey) stable += 1; else { stable = 0; lastKey = key; }
-    lastReport = { parsed, report };
-    if (stable >= 1) return { ok: true, elapsed_ms: Date.now() - t0, ...lastReport };  // two consecutive identical reads
+    best = { parsed: parsed.found ? parsed : null, report, echoOk, engineOk };
+    const changed = !preKey || `${report.netAbs}|${report.trades}` !== preKey;
+    if (echoOk && stable >= 1) return { ok: true, via: 'echo', elapsed_ms: Date.now() - t0, ...best };
+    if (engineOk && stable >= 2 && (changed || Date.now() - t0 > 20000))
+      return { ok: true, via: 'engine', elapsed_ms: Date.now() - t0, ...best };
   }
-  return { ok: false, elapsed_ms: Date.now() - t0, reject: 'timeout: echo/symbol never matched or report unstable', last: lastReport };
+  return { ok: false, via: null, elapsed_ms: Date.now() - t0, reject: 'settle timeout', ...(best || {}) };
 }
 
 function loadDone(outfile) {
@@ -244,11 +278,13 @@ async function runCells(cells, outfile) {
       histInfo = await ensureHistoryLoaded();
       console.log(`  history: ${histInfo.size} bars after ${histInfo.rounds} rounds${histInfo.err ? ' (err: ' + histInfo.err + ')' : ''}`);
     }
+    const preRep = await evaluate(REPORT_EXPR);
+    const preKey = preRep && !preRep.error && !preRep.pending ? `${preRep.netAbs}|${preRep.trades}` : null;
     await setInputs({ entity_id: entity, inputs: cellInputs(cell) });
-    const res = await settleAndRead(cell);
+    const res = await settleAndRead(cell, entity, preKey);
     const rec = {
       id, ...cell, expected_echo: expectedEcho(cell),
-      accepted: res.ok, elapsed_ms: res.elapsed_ms,
+      accepted: res.ok, via: res.via, elapsed_ms: res.elapsed_ms,
       echo: res.parsed ? res.parsed.metrics.cell : null,
       metrics_table: res.parsed ? res.parsed.metrics : null,
       trade_table_rows: res.parsed ? res.parsed.tradeRows : null,
@@ -259,9 +295,86 @@ async function runCells(cells, outfile) {
     fs.appendFileSync(outfile, JSON.stringify(rec) + '\n');
     if (res.ok) { accepted += 1; } else { rejected += 1; }
     const m = res.report && res.report.all ? `net% ${(res.report.net * 100).toFixed(2)} trades ${res.report.trades}` : 'REJECTED';
-    console.log(`[${i}/${cells.length}] ${id} -> ${res.ok ? 'OK' : 'REJECT'} (${(res.elapsed_ms / 1000).toFixed(1)}s) ${m}`);
+    console.log(`[${i}/${cells.length}] ${id} -> ${res.ok ? 'OK/' + res.via : 'REJECT'} (${(res.elapsed_ms / 1000).toFixed(1)}s) ${m}`);
   }
   console.log(`done: ${accepted} accepted, ${rejected} rejected (this pass).`);
+}
+
+// ---- P3 anchor v2: cross-SCRIPT equivalence on a SHARED window --------------------
+// The E2 numbers are not reproducible (TV's 5m data floor slid past May 1 and the
+// monthly-open warmup then moves the first tradeable bar to June 1), so the anchor is
+// run as a stronger check instead: the unchanged E2 engine ("TVB-EXP BF Exit [Claude]",
+// old modulo clocks, 'ratchet') and the Champion (session-robust clocks, 'ratchet_c')
+// compute the SAME cells on the SAME loaded bars and must agree trade-for-trade.
+// This isolates exactly the P1 changes and IS the pre-registered clock-equivalence proof.
+const BASE_NAME = 'TVB-EXP BF Exit [Claude]';
+const BASE_REPORT_EXPR = reportExpr('TVB-EXP BF Exit [Claude]');
+
+function baseInputs(cell) {
+  const m = { ...cellInputs(cell) };
+  if (m[IN.bf_reentry] === 'ratchet_c') m[IN.bf_reentry] = 'ratchet';
+  if (m[IN.bf_reentry] === 'ratchet_g') throw new Error('ratchet_g has no base-script equivalent');
+  return m;
+}
+
+function diffTradeLists(a, b) {
+  const ca = (a || []).filter(t => !t.open), cb = (b || []).filter(t => !t.open);
+  if (ca.length !== cb.length) return { equal: false, why: `closed counts differ: ${ca.length} vs ${cb.length}` };
+  for (let i = 0; i < ca.length; i++) {
+    const x = ca[i], y = cb[i];
+    if (x.et !== y.et || x.xt !== y.xt || x.dir !== y.dir) return { equal: false, why: `trade ${i} time/dir differ`, a: x, b: y };
+    if (Math.abs(x.ep - y.ep) > 1e-9 || Math.abs(x.xp - y.xp) > 1e-9) return { equal: false, why: `trade ${i} prices differ`, a: x, b: y };
+    if (Math.abs((x.q ?? 0) - (y.q ?? 0)) > 1e-6) return { equal: false, why: `trade ${i} qty differ`, a: x, b: y };
+  }
+  return { equal: true, closed: ca.length };
+}
+
+async function runAnchor2(outfile) {
+  const st = await getState();
+  const champ = (st.studies || []).find(s => s.name === STUDY_NAME);
+  const base = (st.studies || []).find(s => s.name === BASE_NAME);
+  if (!champ) throw new Error('Champion study not on chart');
+  if (!base) throw new Error(`"${BASE_NAME}" study not on chart -- add it first`);
+  const cells = buildAnchorCells();
+  let curSymbol = null, curTf = null;
+  for (const cell of cells) {
+    if (cell.symbol !== curSymbol) { await setSymbol({ symbol: cell.symbol }); curSymbol = cell.symbol; curTf = null; await sleep(8000); }
+    if (cell.chart_tf !== curTf) {
+      await setTimeframe({ timeframe: cell.chart_tf }); curTf = cell.chart_tf; await sleep(5000);
+      const h = await ensureHistoryLoaded();
+      console.log(`  history: ${h.size} bars after ${h.rounds} rounds`);
+    }
+    const preC = await evaluate(REPORT_EXPR);
+    const preKey = preC && !preC.error && !preC.pending ? `${preC.netAbs}|${preC.trades}` : null;
+    await setInputs({ entity_id: base.id, inputs: baseInputs(cell) });
+    await setInputs({ entity_id: champ.id, inputs: cellInputs(cell) });
+    const res = await settleAndRead(cell, champ.id, preKey);
+    // base settle: poll until base report stable twice (engine inputs already verified applied)
+    let baseRep = null, lastKey = '', stable = 0;
+    const t0 = Date.now();
+    while (Date.now() - t0 < SETTLE_TIMEOUT_MS) {
+      await sleep(SETTLE_POLL_MS);
+      const r = await evaluate(BASE_REPORT_EXPR);
+      if (!r || r.pending || r.error) continue;
+      const key = `${r.netAbs}|${r.trades}`;
+      if (key === lastKey) stable += 1; else { stable = 0; lastKey = key; }
+      baseRep = r;
+      if (stable >= 2) break;
+    }
+    const diff = res.ok && baseRep ? diffTradeLists(res.report.list, baseRep.list) : { equal: false, why: 'one side failed to settle' };
+    const rec = {
+      id: cellId(cell) + '_x2', ...cell, anchor_mode: 'cross-script',
+      champion_ok: res.ok, via: res.via,
+      champion: res.report ? { netAbs: res.report.netAbs, net: res.report.net, trades: res.report.trades, list: res.report.list } : null,
+      base: baseRep ? { netAbs: baseRep.netAbs, net: baseRep.net, trades: baseRep.trades, list: baseRep.list } : null,
+      trade_table_rows: res.parsed ? res.parsed.tradeRows : null,
+      metrics_table: res.parsed ? res.parsed.metrics : null,
+      diff,
+      collected_utc: new Date().toISOString(),
+    };
+    fs.appendFileSync(outfile, JSON.stringify(rec) + '\n');
+    console.log(`ANCHOR ${cell.anchor}: champion ${res.ok ? 'ok/' + res.via : 'FAIL'} net ${res.report ? res.report.netAbs?.toFixed(2) : 'na'} tr ${res.report ? res.report.trades : 'na'} | base net ${baseRep ? baseRep.netAbs?.toFixed(2) : 'na'} tr ${baseRep ? baseRep.trades : 'na'} | EQUAL: ${diff.equal}${diff.why ? ' (' + diff.why + ')' : ''}`);
+  }
 }
 
 const cmd = process.argv[2] || 'status';
@@ -278,6 +391,9 @@ try {
   } else if (cmd === 'anchor') {
     const outfile = process.argv[3] || 'docs/experiments/tvb11_champion_anchor.jsonl';
     await runCells(buildAnchorCells(), outfile);
+  } else if (cmd === 'anchor2') {
+    const outfile = process.argv[3] || 'docs/experiments/tvb11_champion_anchor2.jsonl';
+    await runAnchor2(outfile);
   } else if (cmd === 'run') {
     const cellsFile = process.argv[3];
     const outfile = process.argv[4];

@@ -45,12 +45,18 @@ Reporting rules:
   otherwise agree: identical BF-1 engine (30m/10, [1]+lookahead_on idiom),
   identical local period-open gate reconstruction; the GPT script is
   flip-exit-only with gate fixed full6 and regime fixed W+D.
-- P0b. profit() polarity check (TVB-7 says GROSS, GPT audit says NET):
-  FOLDED INTO P1 bring-up -- the harness debug echo dumps per-trade
-  entry_px/exit_px/size/profit/commission; one marginal trade decides.
-  Record the verdict here and correct the TVB-7 calibrated-facts memory if
-  it loses. Governor arming depends on it (low economic impact under flip,
-  but the fact must be right before it propagates into more scripts).
+- P0b. VERDICT 2026-07-14: **closedtrades.profit() is NET of commission.**
+  Direct per-trade arithmetic from the harness trade table (anchor C3
+  record, docs/experiments/tvb11_champion_anchor.jsonl): profit ==
+  (exit-entry)*size - commission exactly (1e-6) on independent trades;
+  matches GPT's 2026-07-11 audit; SUPERSEDES the TVB-7 "GROSS" calibrated
+  fact (corrected in memory, with the flag that the VBT port's governor
+  parity should be re-verified on marginal trades). HARNESS DECISION: the
+  champion governor KEEPS profit()>0 classification (i.e., net) -- it
+  matches every prior Claude-lineage dataset (TVB-6/9/10, E2) and the
+  cross-script anchor requires bit-parity with the E2 engine. The known
+  GPT-vs-Claude governor delta (GPT classifies explicit gross) stays a
+  disclosed dataset difference, marginal-trade-only.
 - P1. DONE 2026-07-14. Harness built (pine/tvb_exp_champion.pine, committed)
   with bf_reentry = recycle | ratchet_c | ratchet_g per Section 3;
   strat-methodology skill invoked before writing. Deployed via the
@@ -75,9 +81,22 @@ Reporting rules:
   method -- the script echoes symbol + all cell inputs into machine-readable
   output; a run is REJECTED unless the echo matches the requested cell.
   Record the loaded window (first/last bar, bar count) with every run.
-- P3. Regression anchor: before the grid, re-run E2 cells C1/C3/C6 on MU
-  perp with the new script at live config; they must reproduce the
-  committed E1/E2 results within window drift. Discrepancy = STOP, no grid.
+- P3. Regression anchor -- AMENDED PRE-GRID 2026-07-14 (recorded honestly):
+  the original form ("reproduce committed E2 results within window drift")
+  is NOT EVALUABLE anymore -- TV's 5m data floor slid past May 1 (now
+  ~20.7k bars from ~May 3) and the gate's monthly-open warmup then pushes
+  the first tradeable bar to Jun 1, so E2's May trades are unreachable
+  (evidence is time-perishable; the TVB-6 lesson). REPLACED with a STRICTLY
+  STRONGER check: cross-SCRIPT equivalence -- the unchanged E2 engine
+  ("TVB-EXP BF Exit [Claude]", old modulo clocks, 'ratchet') and the
+  Champion ('ratchet_c', session-robust clocks) run the SAME cells
+  (C1/C3/C6) on the SAME loaded bars and must agree TRADE-FOR-TRADE
+  (times, prices, qty). This isolates exactly the P1 changes and IS the
+  pre-registered clock-equivalence proof on a perp. Any trade mismatch =
+  STOP. Collector command: anchor2; artifact
+  docs/experiments/tvb11_champion_anchor2.jsonl. (The first anchor pass,
+  tvb11_champion_anchor.jsonl, is retained as the P0b evidence carrier and
+  as the record of the data-floor discovery.)
 
 ## 3. Ratchet variant definitions (to be completed at P0a)
 
@@ -213,8 +232,13 @@ strat-methodology skill gate applies).
 
 ## 7. Pre-registered checks
 
-- C1 (anchor): E2 cells C1/C3/C6 on MU perp reproduce committed values
-  within window drift BEFORE the grid (prep P3). Fail = STOP.
+- C1 (anchor): amended to cross-script equivalence (see P3 amendment).
+  **PASS 2026-07-14**: all three cells (C1/C3/C6 configs) trade-for-trade
+  EQUAL between the unchanged E2 engine and the Champion on the shared
+  20,731-bar MU-perp 5m window (C1 -1667.29/6tr, C3 +1288.95/11tr,
+  C6 -715.74/11tr; times/prices/qty exact). Clock-equivalence on perps
+  PROVEN; ratchet_c bit-faithful to E2 'ratchet'. Artifact:
+  docs/experiments/tvb11_champion_anchor2.jsonl.
 - C2 (echo integrity): every accepted run's echoed symbol+inputs match the
   requested cell; mismatches are rejected and logged with counts.
 - C3 (mirror sanity): one hand-verified NASDAQ:MU run (trade list inspected
