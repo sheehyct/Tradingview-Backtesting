@@ -455,3 +455,19 @@ slow-gate flip long-only with the BF harvest + raised-stop re-entry ratchet
 -- is ALSO the shape of the user's intended live system from E2, which is
 worth knowing and worth exactly nothing more than that until it survives
 out-of-sample time. Deployment remains forbidden by design.
+
+### Section 11 deliverable: SHIPPED 2026-07-15
+
+Three minimal winner indicators deployed via the Make-a-copy flow, compiled
+clean, stamp-audited (only new ids changed), and added to the chart:
+
+| TV script (new id) | Baked config | Repo source |
+|---|---|---|
+| Winner: Champion MU15 [TVB-11] (USER;7a7f9307...) | D/W/M gates, flip exit, long-only, BF harvest + recycle re-entry, arm 15m / exit 60m | pine/winner_champion_mu15.pine |
+| Winner: Generalizer [TVB-11] (USER;985ba57d...) | same but ratchet_c re-entry (most portable champion; E2 intended-live-system shape) | pine/winner_generalizer.pine |
+| Winner: Slow60 [TVB-11] (USER;9cdbf563...) | 60/D/W/M gates, flip exit, long-only, no BF, arm/exit 60m | pine/winner_slow60.pine |
+
+Per the Section 11 spec: signals + const-name alertconditions only, no info
+tables, UI-cosmetic inputs only; signals fire at DECISION time while the
+backtest filled at the next bar open (disclosed in each header). Watch/alert
+surfaces -- the no-deployment rule stands.
