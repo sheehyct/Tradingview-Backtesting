@@ -5,10 +5,37 @@
 
 ---
 
-## Session TVB-12: IN PROGRESS -- TVB-11 review fold-in (critical synthesis below)
+## Session TVB-12: audit fold-in + fail-closed replay + ShortChamp + EXIT-ARC redirect (COMPLETE)
 
-**Date:** 2026-07-15
-**Status:** IN PROGRESS. The TVB-11 external review RETURNED (GPT 5.6 Sol Ultra,
+**Date:** 2026-07-15..16
+**Status:** COMPLETE. Four arcs: (1) TVB-11 audit folded in (synthesis below);
+(2) bounded replay EXECUTED -- TVB-11 record VERIFIED, F1/F4 closed, F2
+answered with new direction evidence; (3) "Winner: ShortChamp MU5 [TVB-12]"
+live watch indicator shipped premarket (the replay-verified 5m short champion,
+the one performer without a live surface); (4) USER REDIRECT at session end:
+the TVB-13 mission is EXITS ON WINNERS -- combined-indicator/regime-label arc
+PARKED. See "Session-end redirect" below and memory project-exit-arc-tvb13.
+
+### Session-end redirect: the exit arc (user-set, 2026-07-16)
+
+User evidence (10 screenshots on file): DRAM perp June SHORT entered ~65.88
+(FTFC-down), ran -19.87% in favor in 1d6h, retraced +25.9% off the ~52.7
+bottom, and the strategy exited at 66.66 = a -1.2% LOSS on a +20% open winner,
+through ~7 daily pivots + monthly levels taking nothing. A LIVE July short
+(+27% open) poses the same question with real capital. User demonstrated the
+compound-3 BF exit hand-drawn: line = most recent old scenario-3 candle's low
+attached to the PREVIOUS candle's low, extended forward (causal, zero lag,
+known in advance) -- the DAILY line harvested ~half the fixture move; the 12H
+line (52.79) caught the bottom wick almost to the tick. This is TVB-11's
+winning same_side-harvest concept with the causal line replacing the lagged
+fractal line. TVB-13: companion MFE/MAE/give-back upgrade, then ONE
+exit-ablation pre-reg (controls: flip/state/swing-line BF; candidates:
+compound-3 BF ladder, pivot-ladder trim/caution, ATR/% trails). Decisions
+reserved for the user listed in .session_startup_prompt.md.
+
+### TVB-11 review fold-in (critical synthesis)
+
+The TVB-11 external review RETURNED (GPT 5.6 Sol Ultra,
 run by the user; audit verbatim in docs/reviews/tvb11-codex-audit.md; verdict
 NEEDS-CHANGES). Every factual claim below was re-verified against the repo this
 session before synthesis; agreement/dispute is ours, not the reviewer's.
@@ -161,6 +188,41 @@ JSONLs and comparator output beside it. Headlines:
   version, not the buffer; verify saves by the version bump.
 - User chart state restored: NASDAQ:MU session preference back to '24h',
   chart back to DRAM 15m.
+
+### Files created/modified (TVB-12)
+
+- docs/reviews/: tvb11-codex-audit.md (committed), REVIEW_REQUEST.md
+- docs/experiments/: tvb12_replay_plan.md (plan + RESULTS), tvb12_replay_
+  {run,anchor2,anchor2_gatedebug}.jsonl, tvb12_replay_cells.json,
+  tvb12_replay_compare.json
+- pine/: tvb_exp_champion.pine v2 (nonce echo + realtime-bar table fix),
+  winner_shortchamp_mu5.pine (NEW, deployed USER;b70672d9...)
+- scripts/: tvb12_replay_collect.mjs (fail-closed), tvb12_replay_compare.mjs
+- Unmerged branch worktree-agent-aba898ce6f7f356c9: docs/design/
+  bf_paired_detector_design.md (BF design doc, 11 open questions -- merge
+  after user review; fold in the answered compound-3 geometry)
+- docs/HANDOFF.md, .session_startup_prompt.md
+
+### External Review (for Codex / cloud review agents)
+
+> Review THIS session's work and write a verbatim assessment to
+> docs/reviews/tvb12-codex-audit.md. See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED (LIGHT SCOPE by user decision -- this session was
+  mostly verification; the TVB-13 exit implementation gets the full review)
+- Commits to review: `f97646e^..` HEAD-at-session-end on `main` (f97646e =
+  review fold-in, first TVB-12 commit; head = the session-end docs commit;
+  verify with `git diff --name-status`). RANGE-PIN RULE: the caret keeps
+  f97646e inside the diff.
+- Focus areas: (1) winner_shortchamp_mu5.pine -- is the long->short mirror
+  faithful (state exit on NOT gate_dn, ratchet_c lowered via math.min, strict
+  break of prev completed 15m low, block cleared only on full OPPOSITE
+  alignment)? (2) tvb12_replay_collect.mjs fail-closed gate -- any acceptance
+  path left that is not causally bound? (3) tvb12_replay_compare.mjs method --
+  is CLEAN/DRIFT/SUSPECT sound, esp. matched-fraction thresholds? (4) the
+  HANDOFF/plan-doc claims vs the raw JSONLs (does "record VERIFIED" overreach?).
+- Reviewed by: pending
+- Findings: (blank until docs/reviews/tvb12-codex-audit.md exists)
 
 ---
 
