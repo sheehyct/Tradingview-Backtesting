@@ -321,12 +321,15 @@ async function settleAndRead(cell, entity, attempt) {
         && applied.symbol === cell.symbol && String(applied.interval) === String(cell.chart_tf)
         && (!isRthMirror(cell.symbol) || applied.subsession === 'regular');
     }
-    // report<->table binding: totals must agree with the SAME pass that echoed the nonce.
+    // report<->table binding: CLOSED-side totals must agree with the SAME pass that
+    // echoed the nonce. Closed net to the penny + trade counts is a strong fingerprint.
+    // Open P/L is deliberately NOT compared: the report's openPL updates with every
+    // live tick while the table's is frozen at the last calc -- comparing them makes
+    // any cell holding an open trade unacceptable on a moving market.
     const bindOk = parsed.found
       && report.trades === Number(m.closed_trades)
       && report.openTrades === Number(m.open_trades)
-      && Math.abs(report.netAbs - Number(m.net_abs)) < 0.01
-      && Math.abs((report.openPL ?? 0) - Number(m.open_pl_abs)) < 0.01;
+      && Math.abs(report.netAbs - Number(m.net_abs)) < 0.01;
     if (!echoOk || !engineOk || !bindOk) {
       lastWhy = `echoOk=${echoOk} engineOk=${engineOk} bindOk=${bindOk}` + (parsed.found ? ` nonce=${m.nonce === nonce}` : ' table-missing');
       stable = 0; lastKey = '';
@@ -467,7 +470,7 @@ async function runAnchor2(outfile) {
       : { equal: false, why: !res.ok ? 'champion failed to settle' : !baseRep ? 'base failed to settle' : 'base applied-input readback failed' };
     const rec = {
       id: cellId(cell) + '_x2r', ...cell, anchor_mode: 'cross-script-hardened',
-      champion_ok: res.ok, via: res.via, nonce: res.nonce,
+      champion_ok: res.ok, via: res.via, nonce: res.nonce, champion_reject: res.ok ? null : res.reject,
       base_applied_ok: !!(baseAppliedOk && baseAppliedOk2), base_bound: baseRep ? baseRep.bound : null,
       champion: res.report ? { netAbs: res.report.netAbs, net: res.report.net, trades: res.report.trades, list: res.report.list } : null,
       base: baseRep ? { netAbs: baseRep.netAbs, net: baseRep.net, trades: baseRep.trades, list: baseRep.list } : null,
