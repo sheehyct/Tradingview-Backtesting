@@ -1,0 +1,1298 @@
+{
+ "replay_file": "docs/experiments/tvb12_replay_run.jsonl",
+ "compared_cells": 54,
+ "verdict_counts": {
+  "DRIFT": 18,
+  "CLEAN": 36
+ },
+ "compared": [
+  {
+   "id": "HIP3XYZ:MUUSDC.P_tf5_slow3_state_short_ss_ratc_a15_x60",
+   "tag": "R1",
+   "src": "tvb11_champion_a1.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1777852800000,
+   "replay": {
+    "net": 0.13706098103029976,
+    "trades": 19,
+    "overlap_trades": 19
+   },
+   "original": {
+    "net": 0.1291153257248999,
+    "trades": 17,
+    "overlap_trades": 17
+   },
+   "matched": 17,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 0.8947,
+   "net_delta_pp": 0.795,
+   "verdict": "DRIFT"
+  },
+  {
+   "id": "HIP3XYZ:MUUSDC.P_tf5_ctrlA4_state_both_off_a15_x15",
+   "tag": "R2",
+   "src": "tvb11_champion_a1.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1777852800000,
+   "replay": {
+    "net": -0.000934668376501395,
+    "trades": 112,
+    "overlap_trades": 112
+   },
+   "original": {
+    "net": 0.010354960651798775,
+    "trades": 108,
+    "overlap_trades": 108
+   },
+   "matched": 108,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 0.9643,
+   "net_delta_pp": -1.129,
+   "verdict": "DRIFT"
+  },
+  {
+   "id": "HIP3XYZ:MUUSDC.P_tf5_slow3_state_long_ss_ratc_a15_x60",
+   "tag": "R4",
+   "src": "tvb11_champion_a1.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1777852800000,
+   "replay": {
+    "net": -0.08666427677169974,
+    "trades": 27,
+    "overlap_trades": 27
+   },
+   "original": {
+    "net": -0.08666427677169974,
+    "trades": 27,
+    "overlap_trades": 27
+   },
+   "matched": 27,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:MUUSDC.P_tf5_slow3_state_both_ss_ratc_a15_x60",
+   "tag": "R4",
+   "src": "tvb11_champion_a1.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1777852800000,
+   "replay": {
+    "net": 0.024324553999900037,
+    "trades": 46,
+    "overlap_trades": 46
+   },
+   "original": {
+    "net": 0.0171666986301002,
+    "trades": 44,
+    "overlap_trades": 44
+   },
+   "matched": 44,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 0.9565,
+   "net_delta_pp": 0.716,
+   "verdict": "DRIFT"
+  },
+  {
+   "id": "HIP3XYZ:MUUSDC.P_tf15_slow3_flip_long_ss_recycle_a15_x60",
+   "tag": "R1",
+   "src": "tvb11_champion_a1.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1766161800000,
+   "replay": {
+    "net": 2.4870071768968995,
+    "trades": 34,
+    "overlap_trades": 34
+   },
+   "original": {
+    "net": 2.4870071768968995,
+    "trades": 34,
+    "overlap_trades": 34
+   },
+   "matched": 34,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:MUUSDC.P_tf15_ctrlA4_state_both_off_a15_x15",
+   "tag": "R2",
+   "src": "tvb11_champion_a1.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1766161800000,
+   "replay": {
+    "net": 0.3777836023411972,
+    "trades": 457,
+    "overlap_trades": 457
+   },
+   "original": {
+    "net": 0.3909595097229958,
+    "trades": 453,
+    "overlap_trades": 453
+   },
+   "matched": 452,
+   "price_or_exit_mismatch": 1,
+   "matched_fraction": 0.9891,
+   "net_delta_pp": -1.318,
+   "verdict": "DRIFT"
+  },
+  {
+   "id": "HIP3XYZ:MUUSDC.P_tf15_slow3_flip_long_ss_ratc_a15_x60",
+   "tag": "R4",
+   "src": "tvb11_champion_a1.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1766161800000,
+   "replay": {
+    "net": 2.4459257614529992,
+    "trades": 32,
+    "overlap_trades": 32
+   },
+   "original": {
+    "net": 2.4459257614529992,
+    "trades": 32,
+    "overlap_trades": 32
+   },
+   "matched": 32,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:MUUSDC.P_tf15_slow3_flip_short_ss_ratc_a15_x60",
+   "tag": "R4",
+   "src": "tvb11_champion_a1.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1766161800000,
+   "replay": {
+    "net": 0.003990806501540192,
+    "trades": 17,
+    "overlap_trades": 17
+   },
+   "original": {
+    "net": 0.003990806501540192,
+    "trades": 17,
+    "overlap_trades": 17
+   },
+   "matched": 17,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:MUUSDC.P_tf15_slow3_flip_both_ss_ratc_a15_x60",
+   "tag": "R4",
+   "src": "tvb11_champion_a1.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1766161800000,
+   "replay": {
+    "net": 1.9430956985286998,
+    "trades": 48,
+    "overlap_trades": 48
+   },
+   "original": {
+    "net": 1.9398546860092003,
+    "trades": 48,
+    "overlap_trades": 48
+   },
+   "matched": 47,
+   "price_or_exit_mismatch": 1,
+   "matched_fraction": 0.9792,
+   "net_delta_pp": 0.324,
+   "verdict": "DRIFT"
+  },
+  {
+   "id": "HIP3XYZ:MUUSDC.P_tf15_slow3_flip_long_off_a15_x60",
+   "tag": "R4",
+   "src": "tvb11_champion_a1.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1766161800000,
+   "replay": {
+    "net": 2.2828971314666995,
+    "trades": 11,
+    "overlap_trades": 11
+   },
+   "original": {
+    "net": 2.2828971314666995,
+    "trades": 11,
+    "overlap_trades": 11
+   },
+   "matched": 11,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:MUUSDC.P_tf15_slow3_flip_short_off_a15_x60",
+   "tag": "R4",
+   "src": "tvb11_champion_a1.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1766161800000,
+   "replay": {
+    "net": -0.19557049819873976,
+    "trades": 10,
+    "overlap_trades": 10
+   },
+   "original": {
+    "net": -0.19557049819873976,
+    "trades": 10,
+    "overlap_trades": 10
+   },
+   "matched": 10,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:MUUSDC.P_tf15_slow3_flip_both_off_a15_x60",
+   "tag": "R4",
+   "src": "tvb11_champion_a1.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1766161800000,
+   "replay": {
+    "net": 1.578663892071499,
+    "trades": 20,
+    "overlap_trades": 20
+   },
+   "original": {
+    "net": 1.575653078993,
+    "trades": 20,
+    "overlap_trades": 20
+   },
+   "matched": 19,
+   "price_or_exit_mismatch": 1,
+   "matched_fraction": 0.95,
+   "net_delta_pp": 0.301,
+   "verdict": "DRIFT"
+  },
+  {
+   "id": "HIP3XYZ:MUUSDC.P_tf60_ctrlA4_flip_long_off_a60_x60",
+   "tag": "R1",
+   "src": "tvb11_champion_a1.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1766160000000,
+   "replay": {
+    "net": 2.362920103532399,
+    "trades": 9,
+    "overlap_trades": 9
+   },
+   "original": {
+    "net": 2.362920103532399,
+    "trades": 9,
+    "overlap_trades": 9
+   },
+   "matched": 9,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:MUUSDC.P_tf60_ctrlA4_state_both_off_a60_x60",
+   "tag": "R2",
+   "src": "tvb11_champion_a1.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1766160000000,
+   "replay": {
+    "net": 0.05369136755779782,
+    "trades": 257,
+    "overlap_trades": 257
+   },
+   "original": {
+    "net": 0.0538230787059978,
+    "trades": 257,
+    "overlap_trades": 257
+   },
+   "matched": 257,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": -0.013,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "NASDAQ:MU_tf5_slow3_flip_long_off_a5_x30",
+   "tag": "R1",
+   "src": "tvb11_champion_a1.jsonl",
+   "original_window_unknown": false,
+   "overlap_start_ms": 1751895000000,
+   "replay": {
+    "net": 4.9358237616250005,
+    "trades": 18,
+    "overlap_trades": 18
+   },
+   "original": {
+    "net": 4.658583994875,
+    "trades": 19,
+    "overlap_trades": 19
+   },
+   "matched": 18,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 0.9474,
+   "net_delta_pp": 27.724,
+   "verdict": "DRIFT"
+  },
+  {
+   "id": "NASDAQ:MU_tf5_ctrlA4_state_both_off_a15_x15",
+   "tag": "R2",
+   "src": "tvb11_champion_a1.jsonl",
+   "original_window_unknown": false,
+   "overlap_start_ms": 1751895000000,
+   "replay": {
+    "net": -0.34236033362499985,
+    "trades": 368,
+    "overlap_trades": 368
+   },
+   "original": {
+    "net": -0.3884115409999997,
+    "trades": 382,
+    "overlap_trades": 382
+   },
+   "matched": 363,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 0.9503,
+   "net_delta_pp": 4.605,
+   "verdict": "DRIFT"
+  },
+  {
+   "id": "NASDAQ:MU_tf15_slow3_flip_long_off_a15_x30",
+   "tag": "R1",
+   "src": "tvb11_champion_a1.jsonl",
+   "original_window_unknown": false,
+   "overlap_start_ms": 1685626200000,
+   "replay": {
+    "net": 5.761063793375002,
+    "trades": 60,
+    "overlap_trades": 60
+   },
+   "original": {
+    "net": 5.761063793375002,
+    "trades": 60,
+    "overlap_trades": 60
+   },
+   "matched": 60,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "NASDAQ:MU_tf15_ctrlA4_state_both_off_a15_x15",
+   "tag": "R2",
+   "src": "tvb11_champion_a1.jsonl",
+   "original_window_unknown": false,
+   "overlap_start_ms": 1685626200000,
+   "replay": {
+    "net": -0.1330168854999949,
+    "trades": 849,
+    "overlap_trades": 849
+   },
+   "original": {
+    "net": -0.14394232862499448,
+    "trades": 847,
+    "overlap_trades": 847
+   },
+   "matched": 847,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 0.9976,
+   "net_delta_pp": 1.093,
+   "verdict": "DRIFT"
+  },
+  {
+   "id": "NASDAQ:MU_tf60_slow3_flip_long_off_a60_x60",
+   "tag": "R1",
+   "src": "tvb11_champion_a1.jsonl",
+   "original_window_unknown": false,
+   "overlap_start_ms": 1420209000000,
+   "replay": {
+    "net": 7.6570875651250025,
+    "trades": 207,
+    "overlap_trades": 207
+   },
+   "original": {
+    "net": 7.6570875651250025,
+    "trades": 207,
+    "overlap_trades": 207
+   },
+   "matched": 207,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "NASDAQ:MU_tf60_ctrlA4_state_both_off_a60_x60",
+   "tag": "R2",
+   "src": "tvb11_champion_a1.jsonl",
+   "original_window_unknown": false,
+   "overlap_start_ms": 1420209000000,
+   "replay": {
+    "net": -0.3326087818749962,
+    "trades": 1708,
+    "overlap_trades": 1708
+   },
+   "original": {
+    "net": -0.34236116612499606,
+    "trades": 1707,
+    "overlap_trades": 1707
+   },
+   "matched": 1707,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 0.9994,
+   "net_delta_pp": 0.975,
+   "verdict": "DRIFT"
+  },
+  {
+   "id": "HIP3XYZ:HOODUSDC.P_tf15_slow3_flip_long_ss_recycle_a15_x60",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1764547200000,
+   "replay": {
+    "net": 0.2230391446644996,
+    "trades": 26,
+    "overlap_trades": 26
+   },
+   "original": {
+    "net": 0.2230391446644996,
+    "trades": 26,
+    "overlap_trades": 26
+   },
+   "matched": 26,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:HOODUSDC.P_tf15_full6_flip_long_ss_recycle_a15_x60",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1764547200000,
+   "replay": {
+    "net": 0.2487471716365997,
+    "trades": 24,
+    "overlap_trades": 24
+   },
+   "original": {
+    "net": 0.2487471716365997,
+    "trades": 24,
+    "overlap_trades": 24
+   },
+   "matched": 24,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:HOODUSDC.P_tf15_ctrlA4_flip_long_ss_recycle_a15_x60",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1764547200000,
+   "replay": {
+    "net": 0.2502784411683997,
+    "trades": 24,
+    "overlap_trades": 24
+   },
+   "original": {
+    "net": 0.2502784411683997,
+    "trades": 24,
+    "overlap_trades": 24
+   },
+   "matched": 24,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:HOODUSDC.P_tf15_slow3_flip_long_ss_ratc_a15_x60",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": false,
+   "overlap_start_ms": 1764547200000,
+   "replay": {
+    "net": 0.16622347398019974,
+    "trades": 25,
+    "overlap_trades": 25
+   },
+   "original": {
+    "net": 0.16622347398019974,
+    "trades": 25,
+    "overlap_trades": 25
+   },
+   "matched": 25,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:HOODUSDC.P_tf15_full6_flip_long_ss_ratc_a15_x60",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1764547200000,
+   "replay": {
+    "net": 0.19219507459969992,
+    "trades": 23,
+    "overlap_trades": 23
+   },
+   "original": {
+    "net": 0.19219507459969992,
+    "trades": 23,
+    "overlap_trades": 23
+   },
+   "matched": 23,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:HOODUSDC.P_tf15_ctrlA4_flip_long_ss_ratc_a15_x60",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1764547200000,
+   "replay": {
+    "net": 0.19219507459969992,
+    "trades": 23,
+    "overlap_trades": 23
+   },
+   "original": {
+    "net": 0.19219507459969992,
+    "trades": 23,
+    "overlap_trades": 23
+   },
+   "matched": 23,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:HOODUSDC.P_tf15_slow3_flip_long_ss_recycle_a15_x15",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1764547200000,
+   "replay": {
+    "net": 0.12158163464932958,
+    "trades": 30,
+    "overlap_trades": 30
+   },
+   "original": {
+    "net": 0.12158163464932958,
+    "trades": 30,
+    "overlap_trades": 30
+   },
+   "matched": 30,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:HOODUSDC.P_tf60_ctrlA4_flip_long_off_a60_x60",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1764165600000,
+   "replay": {
+    "net": -0.03054596358150984,
+    "trades": 13,
+    "overlap_trades": 13
+   },
+   "original": {
+    "net": -0.03054596358150984,
+    "trades": 13,
+    "overlap_trades": 13
+   },
+   "matched": 13,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:HOODUSDC.P_tf60_slow3_flip_long_off_a60_x60",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1764165600000,
+   "replay": {
+    "net": -0.030096254699609925,
+    "trades": 13,
+    "overlap_trades": 13
+   },
+   "original": {
+    "net": -0.030096254699609925,
+    "trades": 13,
+    "overlap_trades": 13
+   },
+   "matched": 13,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:HOODUSDC.P_tf60_full6_flip_long_off_a60_x60",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1764165600000,
+   "replay": {
+    "net": -0.03173333191410975,
+    "trades": 13,
+    "overlap_trades": 13
+   },
+   "original": {
+    "net": -0.03173333191410975,
+    "trades": 13,
+    "overlap_trades": 13
+   },
+   "matched": 13,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:HIMSUSDC.P_tf15_slow3_flip_long_ss_recycle_a15_x60",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": false,
+   "overlap_start_ms": 1774467000000,
+   "replay": {
+    "net": 0.20610957334619975,
+    "trades": 16,
+    "overlap_trades": 16
+   },
+   "original": {
+    "net": 0.18593636073829967,
+    "trades": 15,
+    "overlap_trades": 15
+   },
+   "matched": 15,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 0.9375,
+   "net_delta_pp": 2.017,
+   "verdict": "DRIFT"
+  },
+  {
+   "id": "HIP3XYZ:HIMSUSDC.P_tf15_full6_flip_long_ss_recycle_a15_x60",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": false,
+   "overlap_start_ms": 1774467000000,
+   "replay": {
+    "net": 0.18600840839189978,
+    "trades": 16,
+    "overlap_trades": 16
+   },
+   "original": {
+    "net": 0.1661712961347997,
+    "trades": 15,
+    "overlap_trades": 15
+   },
+   "matched": 15,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 0.9375,
+   "net_delta_pp": 1.984,
+   "verdict": "DRIFT"
+  },
+  {
+   "id": "HIP3XYZ:HIMSUSDC.P_tf15_ctrlA4_flip_long_ss_recycle_a15_x60",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": false,
+   "overlap_start_ms": 1774467000000,
+   "replay": {
+    "net": 0.18600840839189978,
+    "trades": 16,
+    "overlap_trades": 16
+   },
+   "original": {
+    "net": 0.1661712961347997,
+    "trades": 15,
+    "overlap_trades": 15
+   },
+   "matched": 15,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 0.9375,
+   "net_delta_pp": 1.984,
+   "verdict": "DRIFT"
+  },
+  {
+   "id": "HIP3XYZ:HIMSUSDC.P_tf15_slow3_flip_long_ss_ratc_a15_x60",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": false,
+   "overlap_start_ms": 1774467000000,
+   "replay": {
+    "net": 0.12422937684509988,
+    "trades": 16,
+    "overlap_trades": 16
+   },
+   "original": {
+    "net": 0.10542550019029977,
+    "trades": 15,
+    "overlap_trades": 15
+   },
+   "matched": 15,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 0.9375,
+   "net_delta_pp": 1.88,
+   "verdict": "DRIFT"
+  },
+  {
+   "id": "HIP3XYZ:HIMSUSDC.P_tf15_full6_flip_long_ss_ratc_a15_x60",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": false,
+   "overlap_start_ms": 1774467000000,
+   "replay": {
+    "net": 0.13116165243629976,
+    "trades": 15,
+    "overlap_trades": 15
+   },
+   "original": {
+    "net": 0.11224183012089971,
+    "trades": 14,
+    "overlap_trades": 14
+   },
+   "matched": 14,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 0.9333,
+   "net_delta_pp": 1.892,
+   "verdict": "DRIFT"
+  },
+  {
+   "id": "HIP3XYZ:HIMSUSDC.P_tf15_ctrlA4_flip_long_ss_ratc_a15_x60",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": false,
+   "overlap_start_ms": 1774467000000,
+   "replay": {
+    "net": 0.14366441238049965,
+    "trades": 15,
+    "overlap_trades": 15
+   },
+   "original": {
+    "net": 0.12453549584399957,
+    "trades": 14,
+    "overlap_trades": 14
+   },
+   "matched": 14,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 0.9333,
+   "net_delta_pp": 1.913,
+   "verdict": "DRIFT"
+  },
+  {
+   "id": "HIP3XYZ:HIMSUSDC.P_tf15_slow3_flip_long_ss_recycle_a15_x15",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": false,
+   "overlap_start_ms": 1774467000000,
+   "replay": {
+    "net": 0.2553423873138998,
+    "trades": 17,
+    "overlap_trades": 17
+   },
+   "original": {
+    "net": 0.2343457186973997,
+    "trades": 16,
+    "overlap_trades": 16
+   },
+   "matched": 16,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 0.9412,
+   "net_delta_pp": 2.1,
+   "verdict": "DRIFT"
+  },
+  {
+   "id": "HIP3XYZ:HIMSUSDC.P_tf60_ctrlA4_flip_long_off_a60_x60",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1774465200000,
+   "replay": {
+    "net": 0.2070860027293001,
+    "trades": 8,
+    "overlap_trades": 8
+   },
+   "original": {
+    "net": 0.2070860027293001,
+    "trades": 8,
+    "overlap_trades": 8
+   },
+   "matched": 8,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:HIMSUSDC.P_tf60_slow3_flip_long_off_a60_x60",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1774465200000,
+   "replay": {
+    "net": 0.2070860027293001,
+    "trades": 8,
+    "overlap_trades": 8
+   },
+   "original": {
+    "net": 0.2070860027293001,
+    "trades": 8,
+    "overlap_trades": 8
+   },
+   "matched": 8,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:HIMSUSDC.P_tf60_full6_flip_long_off_a60_x60",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1774465200000,
+   "replay": {
+    "net": 0.1950064273804001,
+    "trades": 8,
+    "overlap_trades": 8
+   },
+   "original": {
+    "net": 0.1950064273804001,
+    "trades": 8,
+    "overlap_trades": 8
+   },
+   "matched": 8,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:RKLBUSDC.P_tf15_slow3_flip_long_ss_recycle_a15_x60",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1777926600000,
+   "replay": {
+    "net": -0.02433181481659991,
+    "trades": 3,
+    "overlap_trades": 3
+   },
+   "original": {
+    "net": -0.02433181481659991,
+    "trades": 3,
+    "overlap_trades": 3
+   },
+   "matched": 3,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:RKLBUSDC.P_tf15_full6_flip_long_ss_recycle_a15_x60",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1777926600000,
+   "replay": {
+    "net": -0.02433181481659991,
+    "trades": 3,
+    "overlap_trades": 3
+   },
+   "original": {
+    "net": -0.02433181481659991,
+    "trades": 3,
+    "overlap_trades": 3
+   },
+   "matched": 3,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:RKLBUSDC.P_tf15_ctrlA4_flip_long_ss_recycle_a15_x60",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1777926600000,
+   "replay": {
+    "net": -0.02433181481659991,
+    "trades": 3,
+    "overlap_trades": 3
+   },
+   "original": {
+    "net": -0.02433181481659991,
+    "trades": 3,
+    "overlap_trades": 3
+   },
+   "matched": 3,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:RKLBUSDC.P_tf15_slow3_flip_long_ss_ratc_a15_x60",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1777926600000,
+   "replay": {
+    "net": 0.03202625656210006,
+    "trades": 2,
+    "overlap_trades": 2
+   },
+   "original": {
+    "net": 0.03202625656210006,
+    "trades": 2,
+    "overlap_trades": 2
+   },
+   "matched": 2,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:RKLBUSDC.P_tf15_full6_flip_long_ss_ratc_a15_x60",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1777926600000,
+   "replay": {
+    "net": 0.03202625656210006,
+    "trades": 2,
+    "overlap_trades": 2
+   },
+   "original": {
+    "net": 0.03202625656210006,
+    "trades": 2,
+    "overlap_trades": 2
+   },
+   "matched": 2,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:RKLBUSDC.P_tf15_ctrlA4_flip_long_ss_ratc_a15_x60",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1777926600000,
+   "replay": {
+    "net": 0.03202625656210006,
+    "trades": 2,
+    "overlap_trades": 2
+   },
+   "original": {
+    "net": 0.03202625656210006,
+    "trades": 2,
+    "overlap_trades": 2
+   },
+   "matched": 2,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:RKLBUSDC.P_tf15_slow3_flip_long_ss_recycle_a15_x15",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1777926600000,
+   "replay": {
+    "net": -0.009595257116599908,
+    "trades": 3,
+    "overlap_trades": 3
+   },
+   "original": {
+    "net": -0.009595257116599908,
+    "trades": 3,
+    "overlap_trades": 3
+   },
+   "matched": 3,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:RKLBUSDC.P_tf60_ctrlA4_flip_long_off_a60_x60",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1777924800000,
+   "replay": {
+    "net": -0.030801008219899968,
+    "trades": 2,
+    "overlap_trades": 2
+   },
+   "original": {
+    "net": -0.030801008219899968,
+    "trades": 2,
+    "overlap_trades": 2
+   },
+   "matched": 2,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:RKLBUSDC.P_tf60_slow3_flip_long_off_a60_x60",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1777924800000,
+   "replay": {
+    "net": -0.030801008219899968,
+    "trades": 2,
+    "overlap_trades": 2
+   },
+   "original": {
+    "net": -0.030801008219899968,
+    "trades": 2,
+    "overlap_trades": 2
+   },
+   "matched": 2,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:RKLBUSDC.P_tf60_full6_flip_long_off_a60_x60",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1777924800000,
+   "replay": {
+    "net": -0.030801008219899968,
+    "trades": 2,
+    "overlap_trades": 2
+   },
+   "original": {
+    "net": -0.030801008219899968,
+    "trades": 2,
+    "overlap_trades": 2
+   },
+   "matched": 2,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:ORCLUSDC.P_tf15_slow3_flip_long_ss_ratc_a15_x60",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1764945000000,
+   "replay": {
+    "net": 0.03379519604847028,
+    "trades": 26,
+    "overlap_trades": 26
+   },
+   "original": {
+    "net": 0.03379519604847028,
+    "trades": 26,
+    "overlap_trades": 26
+   },
+   "matched": 26,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:NFLXUSDC.P_tf15_slow3_flip_long_ss_ratc_a15_x60",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1765204200000,
+   "replay": {
+    "net": 0.05806973547899975,
+    "trades": 22,
+    "overlap_trades": 22
+   },
+   "original": {
+    "net": 0.05806973547899975,
+    "trades": 22,
+    "overlap_trades": 22
+   },
+   "matched": 22,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:MRVLUSDC.P_tf15_slow3_flip_long_ss_ratc_a15_x60",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1777914000000,
+   "replay": {
+    "net": 0.17279887777350028,
+    "trades": 7,
+    "overlap_trades": 7
+   },
+   "original": {
+    "net": 0.17279887777350028,
+    "trades": 7,
+    "overlap_trades": 7
+   },
+   "matched": 7,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 1,
+   "net_delta_pp": 0,
+   "verdict": "CLEAN"
+  },
+  {
+   "id": "HIP3XYZ:SILVERUSDC.P_tf15_slow3_flip_long_ss_ratc_a15_x60",
+   "tag": "R3",
+   "src": "tvb11_champion_b.jsonl",
+   "original_window_unknown": true,
+   "overlap_start_ms": 1766707200000,
+   "replay": {
+    "net": -0.30023992087017976,
+    "trades": 36,
+    "overlap_trades": 36
+   },
+   "original": {
+    "net": -0.29037878670952977,
+    "trades": 35,
+    "overlap_trades": 35
+   },
+   "matched": 35,
+   "price_or_exit_mismatch": 0,
+   "matched_fraction": 0.9722,
+   "net_delta_pp": -0.986,
+   "verdict": "DRIFT"
+  }
+ ],
+ "new_evidence": [
+  {
+   "id": "HIP3XYZ:HOODUSDC.P_tf15_slow3_flip_short_ss_ratc_a15_x60",
+   "tag": "R4",
+   "net": -0.17467961626969983,
+   "trades": 28,
+   "window_first_ms": 1764547200000
+  },
+  {
+   "id": "HIP3XYZ:HOODUSDC.P_tf15_slow3_flip_both_ss_ratc_a15_x60",
+   "tag": "R4",
+   "net": 0.062480016630000135,
+   "trades": 47,
+   "window_first_ms": 1764547200000
+  },
+  {
+   "id": "HIP3XYZ:HIMSUSDC.P_tf15_slow3_flip_short_ss_ratc_a15_x60",
+   "tag": "R4",
+   "net": -0.2608390717591599,
+   "trades": 11,
+   "window_first_ms": 1774467000000
+  },
+  {
+   "id": "HIP3XYZ:HIMSUSDC.P_tf15_slow3_flip_both_ss_ratc_a15_x60",
+   "tag": "R4",
+   "net": -0.21533043914877006,
+   "trades": 26,
+   "window_first_ms": 1774467000000
+  },
+  {
+   "id": "HIP3XYZ:RKLBUSDC.P_tf15_slow3_flip_short_ss_ratc_a15_x60",
+   "tag": "R4",
+   "net": 0.4301378864985898,
+   "trades": 7,
+   "window_first_ms": 1777926600000
+  },
+  {
+   "id": "HIP3XYZ:RKLBUSDC.P_tf15_slow3_flip_both_ss_ratc_a15_x60",
+   "tag": "R4",
+   "net": 0.4802959783492899,
+   "trades": 8,
+   "window_first_ms": 1777926600000
+  },
+  {
+   "id": "HIP3XYZ:ORCLUSDC.P_tf15_slow3_flip_short_ss_ratc_a15_x60",
+   "tag": "R4",
+   "net": 0.18374232400581067,
+   "trades": 32,
+   "window_first_ms": 1764945000000
+  },
+  {
+   "id": "HIP3XYZ:ORCLUSDC.P_tf15_slow3_flip_both_ss_ratc_a15_x60",
+   "tag": "R4",
+   "net": 0.2800638085114306,
+   "trades": 54,
+   "window_first_ms": 1764945000000
+  },
+  {
+   "id": "HIP3XYZ:NFLXUSDC.P_tf15_slow3_flip_short_ss_ratc_a15_x60",
+   "tag": "R4",
+   "net": 0.12047223800240021,
+   "trades": 30,
+   "window_first_ms": 1765204200000
+  },
+  {
+   "id": "HIP3XYZ:NFLXUSDC.P_tf15_slow3_flip_both_ss_ratc_a15_x60",
+   "tag": "R4",
+   "net": 0.17479532361239972,
+   "trades": 51,
+   "window_first_ms": 1765204200000
+  },
+  {
+   "id": "HIP3XYZ:MRVLUSDC.P_tf15_slow3_flip_short_ss_ratc_a15_x60",
+   "tag": "R4",
+   "net": 0.08443877570439987,
+   "trades": 7,
+   "window_first_ms": 1777914000000
+  },
+  {
+   "id": "HIP3XYZ:MRVLUSDC.P_tf15_slow3_flip_both_ss_ratc_a15_x60",
+   "tag": "R4",
+   "net": 0.24177873919729995,
+   "trades": 14,
+   "window_first_ms": 1777914000000
+  },
+  {
+   "id": "HIP3XYZ:SILVERUSDC.P_tf15_slow3_flip_short_ss_ratc_a15_x60",
+   "tag": "R4",
+   "net": -0.2752565430348396,
+   "trades": 34,
+   "window_first_ms": 1766707200000
+  },
+  {
+   "id": "HIP3XYZ:SILVERUSDC.P_tf15_slow3_flip_both_ss_ratc_a15_x60",
+   "tag": "R4",
+   "net": -0.5704225068967502,
+   "trades": 64,
+   "window_first_ms": 1766707200000
+  }
+ ]
+}

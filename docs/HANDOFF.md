@@ -119,11 +119,48 @@ process catches (session forcing, checkpoint design) stand.
 ### Remediation queue (decide-with-user before execution)
 
 1. Collector hardening + bounded replay (F1/F4; enables F2's replay cells).
-2. Stage B direction repair cells + Generalizer relabel (F2).
+   -- EXECUTED 2026-07-16 (user-approved): see below.
+2. Stage B direction repair cells + Generalizer relabel (F2). -- direction
+   cells EXECUTED 2026-07-16; relabel/doc edits still pending.
 3. Doc/label edits: Section 12 qualifiers + P3 relabel + security-rule
-   amendment (F4/F6/F7) -- cheap, no reruns.
-4. NET propagation + fixture (F5).
+   amendment (F4/F6/F7) -- cheap, no reruns. PENDING.
+4. NET propagation + fixture (F5). PENDING.
 5. BF paired-detector design session == the compound-3 redesign (F3).
+   -- design DOC drafted 2026-07-16 on worktree branch
+   worktree-agent-aba898ce6f7f356c9 (docs/design/bf_paired_detector_design.md,
+   11 open questions); design session with user pending; merge after review.
+
+### Bounded replay EXECUTED 2026-07-16 (audit F1/F2/F4 closure)
+
+Full record: docs/experiments/tvb12_replay_plan.md (plan + results) with raw
+JSONLs and comparator output beside it. Headlines:
+
+- 3/3 anchors + 68/68 cells accepted through a FAIL-CLOSED gate (per-run nonce
+  echoed by the Pine table + entity-bound applied readback + closed-side
+  report<->table binding; no time escape); zero rejections, all first-attempt.
+- TVB-11 record VERIFIED on the replayed subset: 36 CLEAN / 18 DRIFT /
+  0 SUSPECT vs originals; all drift is window-slide shaped; ceiling +248.70%
+  reproduces to the decimal; 5m SHORT champion (+13.7%) is real; Stage B
+  finalist rank order Spearman 0.988-1.000. The champion-search rankings
+  stand.
+- ROOT CAUSE of TVB-11 echo flakiness found and fixed: strategy tables gated
+  on barstate.islast never draw on 24/7 perps (a realtime bar always exists;
+  no-tick strategies never calculate it). v2 harness draws on
+  islastconfirmedhistory + last-bar fallback -- display-only.
+- Direction repair (new evidence, no promotion): the 5m short champion is
+  direction-specific (long -8.7% on the same config); on the 15m generalizer
+  config, SHORT beats LONG on 3/7 roster perps (RKLB +43 / ORCL +18 / NFLX
+  +12) -- precisely the symbols where the all-long Stage B scored weakest;
+  BOTH is not LONG+SHORT (HIMS interaction); SILVER negative in all
+  directions (out-of-family confirmed direction-robust). Direction is a live
+  per-symbol axis; future breadth stages must carry long/short/both.
+- New artifact: "TVB-EXP Champion [TVB-12r]" study (script TVB-12r4,
+  USER;e9873a6d...); anchors prove it behavior-identical to the E2 lineage.
+  Pine tab-binding trap SHARPENED (memory updated): saves persist only in the
+  FIRST Pine-dialog session per TV launch; "Add to chart" compiles the SAVED
+  version, not the buffer; verify saves by the version bump.
+- User chart state restored: NASDAQ:MU session preference back to '24h',
+  chart back to DRAM 15m.
 
 ---
 

@@ -82,6 +82,89 @@ not the mechanism; the paired-BF redesign (docs/design/
 bf_paired_detector_design.md) owns the mechanism question and will ablate
 against these replayed controls on common windows.
 
-## Results
+## Results (collected 2026-07-16, premarket; artifacts beside this file)
 
-(appended after collection)
+Collection: 3/3 anchors + 68/68 grid cells ACCEPTED through the fail-closed
+gate (nonce echo + entity-bound readback + closed-side report<->table binding,
+stable x2, no time escape), zero rejections, every cell on attempt 1 (~6s
+settle each). Every record carries its loaded window, applied-input readback,
+and nonce. Raw: tvb12_replay_anchor2.jsonl, tvb12_replay_run.jsonl; comparator
+output: tvb12_replay_compare.json. Two collector defects were found and fixed
+fail-loud DURING bring-up (recorded in tvb12_replay_anchor2_gatedebug.jsonl):
+the harness tables never drew on live perps (barstate.islast starvation on
+realtime bars -- the TVB-11 echo-flakiness ROOT CAUSE, fixed in the v2 Pine),
+and the first bindOk compared tick-live open P/L to per-calc table values
+(any open-trade cell was unacceptable; binding narrowed to closed-side totals).
+
+### R0 anchors: PASS 3/3
+
+C1/C3/C6 trade-for-trade EQUAL between the fresh [TVB-12r] v2 artifact and the
+unchanged E2 engine (nets -1667.29 / +1288.95 / -715.74; counts 6/11/11 on
+both), with the base study's applied inputs verified by entity readback before
+AND after settle (the audit F4 gap). The redeployed harness is behaviorally
+identical to the TVB-11 lineage.
+
+### Collector-integrity verdict (F1): TVB-11 record VERIFIED on this subset
+
+54 replayed cells had TVB-11 originals: 36 CLEAN (every overlap trade
+identical), 18 DRIFT, 0 SUSPECT. No cell shows the wrong-config signature the
+TVB-11 gate made possible. All 18 DRIFTs carry the window-slide signature, not
+the contamination signature: matched fractions 0.89-0.999 with small uniform
+deltas sweeping whole symbol blocks alike (e.g. all seven HIMS 15m finalists
+shifted ~+2pp together; state-exit control cells differ by boundary trades at
+~1pp; the largest, mirror 5m champion +27.7pp, sits on the fastest-sliding
+1-year 5m window during a bull run with matched fraction 0.947). Headline
+reproductions: perp 15m ceiling +248.70% IDENTICAL to the decimal; the 5m
+SHORT champion (engine-path/no-window in TVB-11, the least-evidenced record of
+the search) replays +13.7%/19tr vs +12.9%/17tr two days older -- real, not a
+stale read. Stage B finalist rank order: Spearman 1.000 (HOOD), 0.988 (HIMS),
+1.000 (RKLB); top-1 identical on all three.
+
+### R4 direction repair (F2): NEW evidence, no promotion
+
+The omitted 5m short champion is direction-SPECIFIC on its window: same config
+long -8.7%/27tr, both +2.4%/46tr, short +13.7%/19tr -- the short side was the
+edge, and its omission from Stage B lost real information. On the 15m
+generalizer config (D/W/M gates, flip exit, BF same-side harvest + raised-stop
+ratchet re-entry, arm 15m/exit 60m), direction value is SYMBOL-LOCAL in this
+window, not uniformly long:
+
+| Symbol (perp, 15m) | Long | Short | Both |
+|---|---|---|---|
+| MU (fit symbol) | +244.6% /32 | +0.4% /17 | +194.3% /48 |
+| MU, BF off (matched control) | +228.3% /11 | -19.6% /10 | +157.9% /20 |
+| HOOD | ~+19..25% (Stage B) | -17.5% /28 | +6.2% /47 |
+| HIMS | ~+20% (Stage B) | -26.1% /11 | -21.5% /26 |
+| MRVL | ~+17..25% (Stage B) | +8.4% /7 | +24.2% /14 |
+| RKLB | +3/-2/-3% (Stage B) | +43.0% /7 | +48.0% /8 |
+| ORCL | +5/3/-1% (Stage B) | +18.4% /32 | +28.0% /54 |
+| NFLX | +6/1/-7% (Stage B) | +12.0% /30 | +17.5% /51 |
+| SILVER | -30.0% /36 | -27.5% /34 | -57.0% /64 |
+
+Readings (window confound applies to every line; Stage B longs quoted from the
+07-14/15 windows, direction cells from today's):
+- On THREE of seven roster perps (RKLB, ORCL, NFLX) the SHORT side of the
+  identical config beat the long side -- exactly the symbols where Stage B's
+  long-only roster scored the config weakest. The all-long Stage B did not just
+  encode launch-regime bias; it flattened a per-symbol axis with real spread.
+  "Best generalizer" remains a best-of-10-LONG-candidates claim.
+- On MU the BF harvest rescues shorts (+20pp: -19.6 -> +0.4) and helps longs
+  (+16pp) -- the harvest's value is not direction-symmetric-negative as the
+  chop-loss framing assumed.
+- BOTH is not LONG plus SHORT: HIMS both (-21.5) is worse than short alone
+  (-26.1 vs long ~+20) because position occupancy and governor state interact.
+- SILVER dies in ALL directions -- the out-of-family verdict is
+  direction-robust, the cleanest kill of the batch.
+
+### Standing verdicts after this replay
+
+1. The TVB-11 champion-search RANKINGS stand (unverified -> verified on
+   anchors, per-TF champions, controls, and Stage B finalists). The absent
+   window evidence on 736 engine-path records remains a documentation gap in
+   the ORIGINAL record; it no longer taints the conclusions drawn from it.
+2. Audit F1/F4 remediations are CLOSED (fail-closed collector operational,
+   anchors re-established). F2 is answered with new evidence: direction is a
+   live per-symbol axis; any future breadth stage must carry long/short/both.
+3. No promotion. Every number above is in-sample on a sliding window; the
+   direction map is one window's reading of a regime-shaped quantity (the
+   TVB-10/11 lesson applies to it in full).
