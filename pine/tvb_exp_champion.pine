@@ -3,7 +3,13 @@
 
 //@version=6
 // =====================================================================================
-// TVB-EXP Champion [TVB-11]                v1 -- champion-search harness (pre-reg v1.1)
+// TVB-EXP Champion [TVB-12r]        v2 -- champion-search harness, hardened collector echo
+// v2 (TVB-12, audit F1 remediation): adds a collector nonce input (echoed in the METRICS
+//   table -- a report is only accepted when the echoed nonce matches the inputs just
+//   applied, causally binding report to configuration) plus chart_tf / session / bf_tf /
+//   bf_strength echo rows. Trading logic UNCHANGED from v1 (incl. the conditional 60m BF
+//   guard fix); all v2 additions are display-only. Tables draw on islastconfirmedhistory
+//   as well as islast (realtime-bar fix -- the TVB-11 echo flakiness root cause).
 // -------------------------------------------------------------------------------------
 // Pre-registration: docs/experiments/tvb11_champion_prereg.md (APPROVED 2026-07-14).
 // Base = TVB-EXP BF Exit [Claude] v2 (pine/tvb_exp_bf_exit.pine), byte-compatible in
@@ -37,7 +43,7 @@
 //   chart-TF-grade; a BF line that validates and deviates on the SAME bar is missed.
 // =====================================================================================
 
-strategy('TVB-EXP Champion [TVB-11]', 'CHAMP', overlay = true,
+strategy('TVB-EXP Champion [TVB-12r]', 'CHAMP', overlay = true,
      initial_capital = 10000,
      default_qty_type = strategy.percent_of_equity, default_qty_value = 100,
      commission_type = strategy.commission.percent, commission_value = 0.0125,
@@ -90,6 +96,8 @@ bool bf_show_pivots = input.bool(false, 'Show BF pivot dots', group = g_bf)
 var string g_viz = 'Display'
 show_table = input.bool(true, 'Cell/status table', group = g_viz)
 show_trig  = input.bool(true, 'Working entry trigger dots', group = g_viz)
+// MUST stay the LAST input: the collector's input-id map depends on declaration order.
+coll_nonce = input.string('', 'Collector nonce (blank for manual use)', group = g_viz, tooltip = 'Set per-run by the batch collector and echoed back in the METRICS table. The collector only accepts a report whose echoed nonce matches the one it just applied, so a stale report can never be attributed to a new configuration. No effect on trading.')
 
 // ------------- Guards: chart tiles arm_tf; arm_tf tiles exit_tf; exit_tf tiles gates -------------
 f_guard(simple string base_name, simple int base_s, simple string tf, simple bool enabled) =>
@@ -562,14 +570,19 @@ var int first_loaded_bar_time = na
 if na(first_loaded_bar_time)
     first_loaded_bar_time := time
 
-var table mtab = table.new(position.top_left, 2, 22, bgcolor = color.new(color.black, 100), frame_color = color.new(color.black, 100))
+var table mtab = table.new(position.top_left, 2, 27, bgcolor = color.new(color.black, 100), frame_color = color.new(color.black, 100))
 var table ttab = table.new(position.bottom_left, 1, 61, bgcolor = color.new(color.black, 100), frame_color = color.new(color.black, 100))
 
 f_mrow(int row, string k, string v) =>
     table.cell(mtab, 0, row, k, text_color = color.new(color.white, 100), bgcolor = color.new(color.black, 100), text_size = size.tiny)
     table.cell(mtab, 1, row, v, text_color = color.new(color.white, 100), bgcolor = color.new(color.black, 100), text_size = size.tiny)
 
-if barstate.islast
+// Realtime-bar fix: without calc_on_every_tick a strategy never calculates the live
+// realtime bar, and on 24/7 perps a new realtime bar exists within seconds of every
+// close -- so `islast` alone leaves these tables UNDRAWN almost always (the root cause
+// of the TVB-11 echo-path flakiness). islastconfirmedhistory + a bar_index fallback
+// cover every calc pass; later bars simply overwrite, so the final pass wins.
+if barstate.islast or barstate.islastconfirmedhistory or bar_index >= last_bar_index - 1
     float long_net = 0.0
     float short_net = 0.0
     float commission_total = 0.0
@@ -600,7 +613,7 @@ if barstate.islast
     float win_rate = strategy.closedtrades > 0 ? 100.0 * strategy.wintrades / strategy.closedtrades : na
     float total_net = strategy.netprofit + strategy.openprofit
 
-    f_mrow(0, 'METRICS', 'TVB-EXP Champion [TVB-11]')
+    f_mrow(0, 'METRICS', 'TVB-EXP Champion [TVB-12r]')
     f_mrow(1, 'cell', cell_echo)
     f_mrow(2, 'symbol', syminfo.tickerid)
     f_mrow(3, 'net_abs', str.tostring(strategy.netprofit))
@@ -622,6 +635,12 @@ if barstate.islast
     f_mrow(19, 'loaded_bars', str.tostring(bar_index + 1))
     f_mrow(20, 'open_trades', str.tostring(strategy.opentrades))
     f_mrow(21, 'gross_profit_loss', str.tostring(strategy.grossprofit) + ';' + str.tostring(strategy.grossloss))
+    // v2 binding rows (audit F1): chart state + BF geometry + the causal nonce.
+    f_mrow(22, 'chart_tf', timeframe.period)
+    f_mrow(23, 'session', syminfo.session)
+    f_mrow(24, 'bf_tf', bf_tf)
+    f_mrow(25, 'bf_strength', str.tostring(bf_strength))
+    f_mrow(26, 'nonce', coll_nonce)
 
     // Per-trade rows. 'gross' is the slippage-adjusted price P/L computed from the
     // engine's own entry/exit prices and size -- comparing it to profit() and
