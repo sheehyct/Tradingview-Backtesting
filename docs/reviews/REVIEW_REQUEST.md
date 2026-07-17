@@ -29,7 +29,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `1f53463^..` head-at-session-end (1f53463 = BF design draft, first TVB-13 commit; head = the session-end docs commits; sanity-check with `git diff --name-status`) |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `1f53463^..32efec6` (8 commits: 1f53463 = BF design draft, first TVB-13 commit; 32efec6 = session-end docs; sanity-check with `git diff --name-status 1f53463^ 32efec6`) |
 
 No sibling-repo changes this session.
 

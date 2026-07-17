@@ -204,8 +204,9 @@ June episode was days from unfetchable).
 
 - Review status: REQUESTED (FULL scope -- the user reserved the deep review
   for the TVB-13 implementation when scoping TVB-12 light)
-- Commits to review: `1f53463^..e590365` on `main` (7 commits; sanity-check
-  with `git diff --name-status 1f53463^ e590365`)
+- Commits to review: `1f53463^..32efec6` on `main` (8 commits incl. the
+  session-end docs; sanity-check with
+  `git diff --name-status 1f53463^ 32efec6`)
 - Scope / what changed: TVB-12 audit fold-in + synthesis; BF comprehension
   design doc + order-free indicator + freeze tool; winner surfaces frozen;
   give-back calculator + archived fixture bars + acceptance tests.
