@@ -46,8 +46,10 @@
 
 Proposed defaults (user veto at review; a-priori, never tuned on results):
 
-- TF ladder: {60m, 4h, 12h, D, W}; default-visible {12h, D} (the two rungs
-  the user demonstrated), the rest toggleable.
+- TF ladder: {60m, 4h, 12h, D, W, M}; default-visible {12h, D} (the two
+  rungs the user demonstrated), the rest toggleable. (M added 2026-07-17:
+  Rob draws top-down -- monthly BF first, then weekly, daily, one intraday
+  -- with higher-TF lines carrying much higher bounce odds.)
 - Build/verify surface: the DRAM 15m live-watch layout.
 - Rolling-mode default windows: N chosen to SPAN the same wall-clock as each
   aggregate rung (e.g. 48 x 15m = 12h) so the two modes are directly
@@ -78,14 +80,46 @@ with HIGHS for longs.
   single scenario-3 candle (the cheat sheet's fractality premise: "3 12-hour
   bars that together would form a single scenario 3 candle").
 
-Proposed mechanization of mode 2 (Claude's formalization of the drawings --
-CONFIRM WITH USER before code): per side, walk back from the 3 through the
-maximal consecutive run of bars whose side-extreme the 3 strictly took out;
-the anchor = that run's most extreme value. The two sides are anchored
-INDEPENDENTLY (their run depths differ, as in the ES example). Mode 2
-degenerates to mode 1 on any side where the immediately-previous bar is the
-local extreme. Open sub-question: is the walk-back uncapped or bounded by an
-a-priori lookback?
+ANCHOR RULE RESOLVED (user, 2026-07-17 -- Rob-canonical): draw back to the
+closest PRICE beyond the current extreme from inside the range. For the
+LOWER line: the nearest prior low that is slightly HIGHER than the current
+candle's low (the minimum over prior lows strictly above it). For the UPPER
+line: the nearest prior high that is slightly LOWER than the current
+candle's high. The search is PRICE-proximity, not bar-proximity -- the
+anchor can sit months back; that is the huge compound 3, which on the right
+aggregate timeframe would read as a single (e.g. quarterly-class) scenario
+3. The two sides are anchored INDEPENDENTLY. Claude's earlier run-based
+walk-back (maximal consecutive taken-out run, anchored at its extreme)
+coincides with this on the ES fixture (~7585) but is only a LOCAL
+approximation -- SUPERSEDED by the price-proximity rule. First-run
+implementation choice (delegated by the user): mode 2 = the price-proximity
+rule, lookback bounded only by loaded history (max_bars_back ~4900 --
+declared implementation constraint, not methodology). Mode 2 degenerates to
+mode 1 when the immediately-previous bar is the nearest-in-price extreme.
+Rob's practice context, recorded: infinite BF lines exist on any chart; he
+trains eyes rather than drawing them all, but an algorithmic system must
+fix a rule.
+
+### 2b. Behavioral semantics (user, 2026-07-17 -- recorded for the exit arc)
+
+- A bounce off a BF line -- especially a higher-TF line -- is NOT a
+  full-reversal call. In a short, price can bounce off the lower line, print
+  a LOWER HIGH inside the formation, and retest the lower line (mirror for
+  longs at the upper line).
+- Breaking a line and STAYING outside it = riding along/outside the boundary
+  ("trading through a previous range"): while price does not come back
+  inside the formation, the position is never against us. RE-ENTRY into the
+  formation is the event that changes the trade's footing (ties directly to
+  L4's re-start/reclaim semantics).
+- "If price fails one side of the range it tries to take the other" IS the
+  scenario-3 definition -- and a full line-to-line traversal of the
+  formation is itself a COMPOUND SCENARIO 3 on the aggregate timeframe: it
+  takes out the recent low and the recent high in one swing, prints the next
+  extreme, becomes the next anchor, and EXTENDS the formation. The megaphone
+  is self-generating; this is the fractality premise closing on itself.
+- On this comprehension surface these are display/annotation semantics only;
+  their order-logic meaning (harvest vs hold-through, rung policy) belongs
+  to the exit-ablation pre-registration.
 
 Classification is strict throughout (R10): H > pH AND L < pL; equality never
 breaks anything, including window extremes in rolling mode.
@@ -127,6 +161,14 @@ remains a design-session question.
 confirmed-bar idiom (`expr[1]` + lookahead_on, per the pending F7 rule
 amendment); the CURRENT HTF bar's running extremes are computed from chart-TF
 running max/min inside the current HTF period, never from a lookahead call.
+
+Clock-pattern requirement (TVB-12 audit C1, 2026-07-17): any port of the
+ARM/entry replication into TVB-13 surfaces MUST use the corrected clock --
+roll the arm-period snapshot AFTER the entry evaluation (rollback semantics
+then give the completed-period reference on every child bar, including
+chart TF == ARM_TF) and gate close-based exits on barstate.isconfirmed. The
+four TVB-11/12 winner indicators embed the defective ordering and are frozen
+as historical surfaces with header notes.
 
 ## 5. Acceptance protocol
 

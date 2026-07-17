@@ -2,6 +2,14 @@
 // (c) sheehyct
 
 //@version=6
+// STATUS (2026-07-17, TVB-12 audit C1 -- FROZEN pending the TVB-13 combined
+// implementation): on the 5m chart the arm snapshot rolls BEFORE the trigger
+// test on each final 5m child of the 15m arm period, so breaks first occurring
+// in that final child are never signaled (~1/3 of arming windows); the 60m
+// state exit can flash intrabar before the close confirms it (no
+// barstate.isconfirmed guard). The backtested record is unaffected (the
+// strategy enters via resting stop orders). See docs/HANDOFF.md TVB-13
+// synthesis C1.
 // Winner: ShortChamp MU5 [TVB-12] -- minimal live signal monitor (pre-reg Section 11
 // family; the 5m-window SHORT champion omitted from the TVB-11 Stage B roster and
 // re-verified by the TVB-12 fail-closed replay 2026-07-16: +13.7%/19tr, vs +12.9%/17tr

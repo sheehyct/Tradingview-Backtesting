@@ -2,6 +2,13 @@
 // (c) sheehyct
 
 //@version=6
+// STATUS (2026-07-17, TVB-12 audit C1 -- FROZEN as the historical TVB-11 watch
+// surface): on this script's nominal chart TF (== ARM_TF 15m) every bar is
+// arm_last, the arm snapshot rolls BEFORE the trigger test, and the in-bar
+// entry signal can NEVER fire; the state exit can flash intrabar (no
+// barstate.isconfirmed guard). The backtested record is unaffected (the
+// strategy enters via resting stop orders). Corrected clock pattern goes into
+// the TVB-13 combined implementation. See docs/HANDOFF.md TVB-13 synthesis C1.
 // Winner: Generalizer [TVB-11] -- minimal live signal monitor (pre-reg Section 11).
 // Baked config (the most PORTABLE champion cell: +5.8% median across 7 roster perps,
 // positive 6/7 -- and the shape of the user's intended live system from E2):
