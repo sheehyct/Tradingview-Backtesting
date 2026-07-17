@@ -5,16 +5,25 @@
 
 ---
 
-## Session TVB-13: exit arc -- BF comprehension design + TVB-12 audit fold-in (IN PROGRESS)
+## Session TVB-13: BF comprehension surface + TVB-12 fold-in + give-back v1 (COMPLETE)
 
 **Date:** 2026-07-17
-**Status:** IN PROGRESS. Done so far: (1) BF comprehension indicator DESIGN
-drafted and corrected with the user
-(docs/design/bf_comprehension_indicator_design.md -- two line modes: adjacent
-vs compound take-out, never 3-to-previous-3; both compound-3 window semantics
-as toggles; 60m TF floor with HTF precedence; ES 12h demonstration screenshots
-preserved in temporary/tvb13_fixture_screens/); (2) TVB-12 external review
-RETURNED and folded in (synthesis below).
+**Status:** COMPLETE -- three arcs: (1) TVB-12 external review RETURNED
+(NEEDS-CHANGES) and folded in with every recomputation independently re-run
+(synthesis below); the audit's HIGH finding was EXTENDED to all four live
+winner watch surfaces and the champion STRATEGY was exonerated (resting stop
+orders); user decision: fix-forward, four surfaces FROZEN with header notes,
+no redeploys. (2) BF Comprehension [TVB-13] designed WITH the user (two
+corrections folded live), BUILT, and DEPLOYED to the DRAM 15m pane (v3.0,
+USER;84bb0f1e...) incl. a freeze-as-of fixture tool; the frozen June
+screenshots were delivered and the user ACCEPTED ship-as-is (will grade it
+live via written-down paper trades; clutter noted, layer toggles are the
+mitigation). (3) Give-back instrumentation v1: the DRAM June episode
+archived from the Hyperliquid API (floor had already slid to May 26) and
+hand-labeled as acceptance tests that reproduce the user's live account to
+the decimal (MFE 19.87% at 30.8h, bottom 52.788, realized -1.18%, give-back
+21.06pp -- more than the whole peak surrendered); suite 73 passed.
+Companion-Pine MFE/MAE surface deferred to TVB-14.
 
 ### TVB-12 review fold-in (critical synthesis)
 
@@ -120,6 +129,98 @@ are real.
 5. Standing from the TVB-11 audit, still pending: Section 12 qualifiers, P3
    relabel, security-rule amendment (F4/F6/F7), NET propagation + fixture
    (F5).
+
+### BF comprehension arc (what was built and why)
+
+- Design doc docs/design/bf_comprehension_indicator_design.md, corrected
+  twice with the user in-session: (a) the line is NEVER 3-to-previous-3 --
+  TWO modes: adjacent (3's extreme to the immediately previous candle's) and
+  compound take-out, which the user then sharpened to the Rob-canonical
+  PRICE-PROXIMITY rule (lower line anchors at the nearest prior low slightly
+  HIGHER than the 3's low, upper at the nearest prior high slightly LOWER
+  than its high; months-back reach = the huge compound 3); (b) fractality
+  confirmed as the architecture -- a compound 3 IS a plain scenario 3 on the
+  higher timeframe (user's example: 2U-1-2D-2U rev strat-2U daily week = one
+  weekly 3), so aggregate detection is just strict classification of real
+  HTF candles, firing the instant the second side breaks. Behavioral
+  semantics recorded for the exit arc: bounce != reversal; outside a line
+  the position is never against us until price re-enters the formation; a
+  full line-to-line traversal IS a compound 3 that EXTENDS the formation
+  (user quizzed this; the answer is canon).
+- pine/bf_comprehension.pine: order-free indicator(); L1 strict-ops chars,
+  L2 HTF-3 span shading, L3 compound-3 fire markers + line pairs (both
+  anchor modes; aggregate + rolling detection; ladder 60m/4h/12h/D/W/M,
+  defaults 12h+D, HTF precedence by width), L4 restart + reclaim levels,
+  freeze-as-of input (grade historical episodes with period-true lines).
+  Chart-side aggregation, ZERO request.security calls; reference rolls at
+  period START then tests (the corrected C1 clock by construction).
+- Deployed v3.0 via the first-dialog recipe (a second-session save silently
+  failed exactly per the trap memory; one extra TV restart). Frozen June
+  fixture screenshots (proximity + adjacent) delivered; copies in
+  temporary/tvb13_fixture_screens/. NEW TRAP found and memory'd: jackson's
+  indicator_set_inputs CORRUPTS indicator() studies ("Can't parse pine";
+  getInputValues returns null on indicators, unlike strategies) -- use the
+  study settings dialog UI; recovery = remove + re-add the study.
+
+### Give-back instrumentation (the leak, quantified on the fixture)
+
+analysis/giveback.py (episode MFE/MAE/realized/give-back pp+frac,
+distribution summary, CLI) + analysis/reference/tvb13_dram_jun_15m_hl.json
+(xyz:DRAM 15m, 2026-05-30..06-15, Hyperliquid public candleSnapshot) +
+tests/test_giveback_fixture.py. The mechanical episode definition (entry =
+LAST downward cross of 65.88 before the bottom -> 2026-06-04T19:45Z; exit =
+first touch of 66.66 after -> 2026-06-14T06:45Z) reproduces the user's live
+account exactly: MFE 19.87% (their figure to the second decimal), 30.8h to
+the 52.788 bottom ("1d6h"), MAE 1.21%, realized -1.18% ("-1.2% loss"),
+give-back 21.06pp with give_back_frac > 1.0. The distribution over champion
+trade lists needs a bars archive per symbol -- which is the standing HL
+archiving thread (HL's 15m floor was ALREADY at May 26 when captured; the
+June episode was days from unfetchable).
+
+### Context for next session
+
+- The user tests BF-COMP live by writing down mental entries/exits; their
+  grade + divergences feed the exit-ablation design session. Freeze is ON
+  (June 4) on the deployed instance; they can uncheck it in settings.
+- The DRAM 15m surface lives in the pane that previously held NQ.
+- Companion MFE/MAE Pine surface: deferred, first build item of TVB-14.
+- Remediation queue above: comparator v2 (C2) before leaning on DRIFT
+  labels again; collector digest (C3) before the next collection run.
+
+### Files created/modified
+
+- docs/design/bf_comprehension_indicator_design.md (new)
+- pine/bf_comprehension.pine (new); pine/winner_*.pine x4 (frozen headers)
+- analysis/giveback.py, analysis/reference/tvb13_dram_jun_15m_hl.json,
+  tests/test_giveback_fixture.py (new)
+- docs/reviews/tvb12-codex-audit.md (new, committed), REVIEW_REQUEST.md,
+  docs/experiments/tvb12_replay_plan.md (dated correction), this file
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb13-codex-audit.md.
+> See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED (FULL scope -- the user reserved the deep review
+  for the TVB-13 implementation when scoping TVB-12 light)
+- Commits to review: `1f53463^..e590365` on `main` (7 commits; sanity-check
+  with `git diff --name-status 1f53463^ e590365`)
+- Scope / what changed: TVB-12 audit fold-in + synthesis; BF comprehension
+  design doc + order-free indicator + freeze tool; winner surfaces frozen;
+  give-back calculator + archived fixture bars + acceptance tests.
+- Focus areas (scrutinize these): (1) pine/bf_comprehension.pine -- strict
+  R10 operators everywhere, chart-side aggregation correctness on 24/7
+  perps, the proximity anchor scan, freeze semantics, repaint honesty of
+  provisional drawings; (2) the TVB-12 synthesis C1 ADJUDICATION -- does the
+  resting-stop-order argument really exonerate the champion strategy's
+  early arm_last roll at every child position (tvb_exp_champion.pine:
+  213-231 vs :327-345)?; (3) analysis/giveback.py + the fixture derivation
+  (is the entry/exit pinning method sound; tolerance choices); (4) the C4
+  relabels -- do the dated corrections fully cure the overreach the audit
+  named.
+- Reviewed by: pending
+- Findings: (blank until docs/reviews/tvb13-codex-audit.md exists)
 
 ---
 
