@@ -45,6 +45,11 @@ det_mode = input.string('aggregate', 'Compound-3 detection', options = ['aggrega
   tooltip = 'aggregate = classify real higher-timeframe candles against the PRIOR aggregate candle (canonical: a compound 3 on this chart IS a plain 3 up there). rolling = boundary-free comparison: the last N chart bars vs the N bars before them, N spanning the rung. both = aggregate drawings + rolling fire markers for side-by-side comparison.')
 line_mode = input.string('proximity', 'Line anchor mode', options = ['adjacent', 'proximity'], group = grp_m,
   tooltip = 'adjacent = 3 candle extreme to the immediately previous candle extreme. proximity = Rob-canonical price-nearest anchor: lower line to the closest prior low slightly HIGHER than the 3 low, upper line to the closest prior high slightly LOWER than the 3 high; can reach months back. Falls back to adjacent when no qualifying anchor exists in loaded history.')
+use_asof = input.bool(false, 'Freeze at a past moment', group = grp_m,
+  tooltip = 'Fixture tool: ignore all bars after the freeze moment, so the formation state is shown exactly as it stood THEN. Frozen lines keep extending right, so later price can be graded against them (the DRAM June acceptance test). Drawings only -- nothing here ever trades.')
+asof_t = input.time(timestamp('2026-06-04T00:00:00+0000'), 'Freeze moment (UTC)', group = grp_m,
+  tooltip = 'Only used when the freeze toggle is on.')
+bool proc_ok = not use_asof or time <= asof_t
 
 grp_l = 'Ladder (floor 60m; higher TF = heavier line = higher bounce odds)'
 en_60 = input.bool(false, '60m rung', group = grp_l, tooltip = 'Draw BF structure from 60m aggregate candles. OFF by default; the demonstrated rungs are 12H and D.')
@@ -109,7 +114,7 @@ f_rung(string tf, bool en, color col, int wdt) =>
     var array<int> hLoT = array.new_int()
     bool active = en and timeframe.in_seconds(tf) > timeframe.in_seconds()
     bool fired_now = false
-    if active
+    if active and proc_ok
         if timeframe.change(tf)
             if not na(curHi)
                 array.push(hHi, curHi)
@@ -237,7 +242,7 @@ f_roll(string tf, bool en, color col) =>
     float pHi = cHi[n]
     float pLo = cLo[n]
     bool cond = ok and not na(pHi) and not na(pLo) and cHi > pHi and cLo < pLo
-    bool fire = cond and not cond[1]
+    bool fire = proc_ok and cond and not cond[1]
     if fire
         label.new(bar_index, high, 'r3 ' + tf, style = label.style_label_down, color = color.new(col, 60), textcolor = color.white, size = size.tiny,
           tooltip = 'Rolling-window compound 3: the last ' + str.tostring(n) + ' chart bars took out both extremes of the ' + str.tostring(n) + ' bars before them (strict). Detection comparison only -- no lines in v1.')
@@ -273,6 +278,6 @@ if barstate.islast
     if na(tbl)
         tbl := table.new(position.top_right, 1, 3, bgcolor = color.new(color.black, 30), border_width = 1)
     table.cell(tbl, 0, 0, 'BF-COMP [TVB-13]', text_color = color.white, text_size = size.small)
-    table.cell(tbl, 0, 1, 'detect: ' + det_mode + ' | lines: ' + line_mode, text_color = color.silver, text_size = size.tiny)
+    table.cell(tbl, 0, 1, 'detect: ' + det_mode + ' | lines: ' + line_mode + (use_asof ? ' | FROZEN' : ''), text_color = color.silver, text_size = size.tiny)
     string rungs = (en_60 ? '60 ' : '') + (en_240 ? '4h ' : '') + (en_720 ? '12h ' : '') + (en_D ? 'D ' : '') + (en_W ? 'W ' : '') + (en_M ? 'M' : '')
     table.cell(tbl, 0, 2, 'rungs: ' + (rungs == '' ? 'none' : rungs), text_color = color.silver, text_size = size.tiny)
