@@ -1,0 +1,278 @@
+//@version=6
+// =============================================================================
+// BF Comprehension [TVB-13] -- scenario-3 / broadening-formation comprehension
+// surface. ORDER-FREE: it draws, it never trades. Purpose: prove the
+// compound-3 / BF principle on the chart BEFORE the exit detector is designed.
+// Design: docs/design/bf_comprehension_indicator_design.md.
+//
+// QUICK START
+//   1. Add to a 24/7 perp chart (fixture: DRAM 15m). Rungs 12H + D default on.
+//   2. THE PREMISE (fractality): a compound 3 is just a regular scenario 3 you
+//      cannot see because it lives on a higher timeframe. Five daily candles
+//      (e.g. 2U-1-2D-2U rev strat-2U) = one weekly candle; if the week took
+//      out the prior week's high AND low, the weekly chart shows a plain 3.
+//      Detection here = classify the aggregate candle with the same strict
+//      operators (H > pH and L < pL; equality never breaks) and fire the
+//      INSTANT the second side breaks -- causal, zero lag, mid-period.
+//   3. Line anchor modes: 'adjacent' connects the 3 candle's extreme to the
+//      immediately previous candle's extreme. 'proximity' is Rob-canonical:
+//      the lower line draws back to the nearest prior candle low slightly
+//      HIGHER than the 3's low; the upper line to the nearest prior high
+//      slightly LOWER than the 3's high -- the anchor can sit months back
+//      (the huge compound 3). Sides anchor independently.
+//   4. DASHED lines / hollow shading = PROVISIONAL (the 3's period is still
+//      open; its extremes can extend). They solidify at the period close.
+//   5. Reclaims: when price closes back inside the taken-out prior range, the
+//      formation re-starts -- dotted reclaim levels appear at that range's
+//      extremes ("if we fail the highs we target the lows").
+//
+// HONEST DELTAS (v1):
+//   - HTF candles are aggregated CHART-SIDE (running extremes between
+//     timeframe boundaries). Exact on 24/7 perps; session-gapped symbols may
+//     differ from TV's native HTF candles. Zero request.security calls.
+//   - Historical 3s cannot show which side broke first (OHLC path unknown);
+//     the 3 marker is colored by close location per the skill.
+//   - Rolling mode is a DETECTION COMPARISON only (fire markers, no lines);
+//     rungs whose window exceeds the history buffer are skipped.
+//   - Proximity search is bounded by loaded history (2000 candles per rung).
+// =============================================================================
+indicator('BF Comprehension [TVB-13]', 'BF-COMP', overlay = true,
+  max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
+
+// ------------------------------- inputs --------------------------------------
+grp_m = 'Modes'
+det_mode = input.string('aggregate', 'Compound-3 detection', options = ['aggregate', 'rolling', 'both'], group = grp_m,
+  tooltip = 'aggregate = classify real higher-timeframe candles against the PRIOR aggregate candle (canonical: a compound 3 on this chart IS a plain 3 up there). rolling = boundary-free comparison: the last N chart bars vs the N bars before them, N spanning the rung. both = aggregate drawings + rolling fire markers for side-by-side comparison.')
+line_mode = input.string('proximity', 'Line anchor mode', options = ['adjacent', 'proximity'], group = grp_m,
+  tooltip = 'adjacent = 3 candle extreme to the immediately previous candle extreme. proximity = Rob-canonical price-nearest anchor: lower line to the closest prior low slightly HIGHER than the 3 low, upper line to the closest prior high slightly LOWER than the 3 high; can reach months back. Falls back to adjacent when no qualifying anchor exists in loaded history.')
+
+grp_l = 'Ladder (floor 60m; higher TF = heavier line = higher bounce odds)'
+en_60 = input.bool(false, '60m rung', group = grp_l, tooltip = 'Draw BF structure from 60m aggregate candles. OFF by default; the demonstrated rungs are 12H and D.')
+en_240 = input.bool(false, '4h rung', group = grp_l, tooltip = 'Draw BF structure from 4h aggregate candles.')
+en_720 = input.bool(true, '12h rung', group = grp_l, tooltip = 'Draw BF structure from 12h aggregate candles (fixture: the 12h line caught the DRAM June bottom at 52.79 almost to the tick).')
+en_D = input.bool(true, 'Daily rung', group = grp_l, tooltip = 'Draw BF structure from daily candles (fixture: the daily line harvested roughly half the DRAM June move).')
+en_W = input.bool(false, 'Weekly rung', group = grp_l, tooltip = 'Draw BF structure from weekly candles.')
+en_M = input.bool(false, 'Monthly rung', group = grp_l, tooltip = 'Draw BF structure from monthly candles. Rob draws the monthly BF first; highest bounce odds of the ladder.')
+
+grp_v = 'Layers'
+show_l1 = input.bool(true, 'L1: bar classification chars', group = grp_v, tooltip = 'Chart-TF 1 / 2U / 2D / 3 marks via the strict operators. The 3 is colored by close location (green above open, red below).')
+show_l2 = input.bool(true, 'L2: shade HTF 3 spans', group = grp_v, tooltip = 'Shades the chart-TF span of every aggregate candle that classifies as a 3 -- the fractality premise made visible: an HTF outside bar IS an LTF broadening structure.')
+show_l4 = input.bool(true, 'L4: restart + reclaim levels', group = grp_v, tooltip = 'When price closes back inside the taken-out prior range, the formation re-starts: dotted reclaim levels at that range extremes; the active lines fade.')
+
+grp_c = 'Colors'
+c_60 = input.color(color.new(#9598a1, 0), '60m', group = grp_c, inline = 'c1')
+c_240 = input.color(color.new(#26a69a, 0), '4h', group = grp_c, inline = 'c1')
+c_720 = input.color(color.new(#ff9800, 0), '12h', group = grp_c, inline = 'c1')
+c_D = input.color(color.new(#2962ff, 0), 'D', group = grp_c, inline = 'c2')
+c_W = input.color(color.new(#e040fb, 0), 'W', group = grp_c, inline = 'c2')
+c_M = input.color(color.new(#ff1744, 0), 'M', group = grp_c, inline = 'c2')
+
+// ------------------------- L1: chart-TF classification -----------------------
+bool bh = high > high[1]
+bool bl = low < low[1]
+bool cls1 = not bh and not bl
+bool cls2u = bh and not bl
+bool cls2d = bl and not bh
+bool cls3 = bh and bl
+plotchar(show_l1 and cls1 ? true : false, 'Type 1', '1', location.belowbar, color.new(color.gray, 30), size = size.tiny)
+plotchar(show_l1 and cls2u ? true : false, 'Type 2U', 'U', location.belowbar, color.new(color.green, 30), size = size.tiny)
+plotchar(show_l1 and cls2d ? true : false, 'Type 2D', 'D', location.abovebar, color.new(color.red, 30), size = size.tiny)
+plotchar(show_l1 and cls3 and close >= open ? true : false, 'Type 3 (green close)', '3', location.belowbar, color.new(color.purple, 0), size = size.small)
+plotchar(show_l1 and cls3 and close < open ? true : false, 'Type 3 (red close)', '3', location.abovebar, color.new(color.purple, 0), size = size.small)
+
+// --------------------- per-rung aggregate BF engine --------------------------
+// Chart-side aggregation: running extremes between timeframe.change boundaries.
+// The latch reference = the LAST COMPLETED aggregate candle (from the history
+// arrays); the reference rolls at PERIOD START, then the test runs -- the
+// corrected clock ordering (TVB-12 audit C1) by construction.
+f_rung(string tf, bool en, color col, int wdt) =>
+    var float curHi = na
+    var float curLo = na
+    var int curHiT = na
+    var int curLoT = na
+    var int perT = na
+    var int perIdx = na
+    var bool b_hi = false
+    var bool b_lo = false
+    var bool fired = false
+    var box bx = na
+    var line lnU = na
+    var line lnL = na
+    var line rcU = na
+    var line rcL = na
+    var float refHi = na
+    var float refLo = na
+    var bool restarted = false
+    var array<float> hHi = array.new_float()
+    var array<float> hLo = array.new_float()
+    var array<int> hHiT = array.new_int()
+    var array<int> hLoT = array.new_int()
+    bool active = en and timeframe.in_seconds(tf) > timeframe.in_seconds()
+    bool fired_now = false
+    if active
+        if timeframe.change(tf)
+            if not na(curHi)
+                array.push(hHi, curHi)
+                array.push(hLo, curLo)
+                array.push(hHiT, curHiT)
+                array.push(hLoT, curLoT)
+                if array.size(hHi) > 2000
+                    array.shift(hHi)
+                    array.shift(hLo)
+                    array.shift(hHiT)
+                    array.shift(hLoT)
+            if not na(bx)
+                box.set_right(bx, bar_index - 1)
+            if fired
+                if not na(lnL)
+                    line.set_style(lnL, line.style_solid)
+                if not na(lnU)
+                    line.set_style(lnU, line.style_solid)
+            curHi := high
+            curLo := low
+            curHiT := time
+            curLoT := time
+            perT := time
+            perIdx := bar_index
+            b_hi := false
+            b_lo := false
+            fired := false
+            bx := na
+        else
+            if na(curHi) or high > curHi
+                curHi := high
+                curHiT := time
+            if na(curLo) or low < curLo
+                curLo := low
+                curLoT := time
+        int n = array.size(hLo)
+        if n > 0 and not fired
+            float pHi = array.get(hHi, n - 1)
+            float pLo = array.get(hLo, n - 1)
+            b_hi := b_hi or high > pHi
+            b_lo := b_lo or low < pLo
+            if b_hi and b_lo
+                fired := true
+                fired_now := true
+                refHi := pHi
+                refLo := pLo
+                restarted := false
+                label.new(bar_index, low, tf + ' 3', style = label.style_label_up, color = color.new(col, 20), textcolor = color.white, size = size.small,
+                  tooltip = 'Compound 3 fired: the ' + tf + ' aggregate candle has now taken out BOTH sides of the prior ' + tf + ' candle (strict). On the ' + tf + ' chart this is a plain scenario 3. Provisional until the period closes.')
+                if show_l2
+                    bx := box.new(perIdx, curHi, bar_index, curLo, border_color = color.new(col, 50), bgcolor = color.new(col, 92))
+                if not na(lnL)
+                    line.set_extend(lnL, extend.none)
+                    line.set_color(lnL, color.new(col, 80))
+                if not na(lnU)
+                    line.set_extend(lnU, extend.none)
+                    line.set_color(lnU, color.new(col, 80))
+                if not na(rcU)
+                    line.delete(rcU)
+                    rcU := na
+                if not na(rcL)
+                    line.delete(rcL)
+                    rcL := na
+                float aLoY = pLo
+                int aLoT = array.get(hLoT, n - 1)
+                float aHiY = pHi
+                int aHiT = array.get(hHiT, n - 1)
+                if line_mode == 'proximity'
+                    float bestL = na
+                    int bestLT = na
+                    float bestH = na
+                    int bestHT = na
+                    for i = 0 to n - 1
+                        float vLo = array.get(hLo, i)
+                        if vLo > curLo and (na(bestL) or vLo < bestL)
+                            bestL := vLo
+                            bestLT := array.get(hLoT, i)
+                        float vHi = array.get(hHi, i)
+                        if vHi < curHi and (na(bestH) or vHi > bestH)
+                            bestH := vHi
+                            bestHT := array.get(hHiT, i)
+                    if not na(bestL)
+                        aLoY := bestL
+                        aLoT := bestLT
+                    if not na(bestH)
+                        aHiY := bestH
+                        aHiT := bestHT
+                lnL := line.new(aLoT, aLoY, curLoT, curLo, xloc = xloc.bar_time, extend = extend.right, style = line.style_dashed, color = col, width = wdt)
+                lnU := line.new(aHiT, aHiY, curHiT, curHi, xloc = xloc.bar_time, extend = extend.right, style = line.style_dashed, color = col, width = wdt)
+        if fired and not fired_now
+            if not na(bx)
+                box.set_right(bx, bar_index)
+                box.set_top(bx, curHi)
+                box.set_bottom(bx, curLo)
+            if not na(lnL)
+                line.set_xy2(lnL, curLoT, curLo)
+            if not na(lnU)
+                line.set_xy2(lnU, curHiT, curHi)
+        // L4: restart when price closes back INSIDE the taken-out prior range
+        // (the cheat sheet's rule -- an outside bar closing back within the
+        // prior range is itself the canonical restart illustration)
+        if show_l4 and not restarted and not na(refHi) and not fired_now
+            if close < refHi and close > refLo and barstate.isconfirmed
+                restarted := true
+                rcU := line.new(time, refHi, time + 1, refHi, xloc = xloc.bar_time, extend = extend.right, style = line.style_dotted, color = color.new(col, 40), width = 1)
+                rcL := line.new(time, refLo, time + 1, refLo, xloc = xloc.bar_time, extend = extend.right, style = line.style_dotted, color = color.new(col, 40), width = 1)
+                label.new(bar_index, close, tf + ' reclaim', style = label.style_label_left, color = color.new(col, 70), textcolor = color.white, size = size.tiny,
+                  tooltip = 'Price is back inside the taken-out ' + tf + ' range: the formation RE-STARTS. Reclaim levels mark the prior range extremes -- fail the highs, target the lows (and mirror).')
+                if not na(lnL)
+                    line.set_color(lnL, color.new(col, 65))
+                if not na(lnU)
+                    line.set_color(lnU, color.new(col, 65))
+    fired_now
+
+// ---------------------- rolling-mode comparison markers ----------------------
+// Boundary-free reading: extremes of the last N chart bars vs the N bars
+// before them (N spans the rung). Fire on the transition to both-sides-out.
+// Skipped when the window would exceed the history buffer.
+f_roll(string tf, bool en, color col) =>
+    int nRaw = math.max(1, math.round(timeframe.in_seconds(tf) / timeframe.in_seconds()))
+    bool ok = en and nRaw > 1 and nRaw * 2 <= 2000
+    int n = ok ? nRaw : 1
+    float cHi = ta.highest(high, n)
+    float cLo = ta.lowest(low, n)
+    float pHi = cHi[n]
+    float pLo = cLo[n]
+    bool cond = ok and not na(pHi) and not na(pLo) and cHi > pHi and cLo < pLo
+    bool fire = cond and not cond[1]
+    if fire
+        label.new(bar_index, high, 'r3 ' + tf, style = label.style_label_down, color = color.new(col, 60), textcolor = color.white, size = size.tiny,
+          tooltip = 'Rolling-window compound 3: the last ' + str.tostring(n) + ' chart bars took out both extremes of the ' + str.tostring(n) + ' bars before them (strict). Detection comparison only -- no lines in v1.')
+    fire
+
+// ------------------------------- dispatch ------------------------------------
+bool agg_on = det_mode == 'aggregate' or det_mode == 'both'
+bool rol_on = det_mode == 'rolling' or det_mode == 'both'
+
+bool f60 = f_rung('60', agg_on and en_60, c_60, 1)
+bool f240 = f_rung('240', agg_on and en_240, c_240, 1)
+bool f720 = f_rung('720', agg_on and en_720, c_720, 2)
+bool fD = f_rung('D', agg_on and en_D, c_D, 2)
+bool fW = f_rung('W', agg_on and en_W, c_W, 3)
+bool fM = f_rung('M', agg_on and en_M, c_M, 4)
+
+bool r60 = f_roll('60', rol_on and en_60, c_60)
+bool r240 = f_roll('240', rol_on and en_240, c_240)
+bool r720 = f_roll('720', rol_on and en_720, c_720)
+bool rD = f_roll('D', rol_on and en_D, c_D)
+bool rW = f_roll('W', rol_on and en_W, c_W)
+bool rM = f_roll('M', rol_on and en_M, c_M)
+
+bool any_agg = f60 or f240 or f720 or fD or fW or fM
+bool any_rol = r60 or r240 or r720 or rD or rW or rM
+
+alertcondition(any_agg, 'Compound 3 fired (aggregate)', 'BF-COMP: an enabled rung printed a compound 3 (aggregate detection)')
+alertcondition(any_rol, 'Compound 3 fired (rolling)', 'BF-COMP: an enabled rung printed a compound 3 (rolling detection)')
+
+// ------------------------------ status table ---------------------------------
+var table tbl = na
+if barstate.islast
+    if na(tbl)
+        tbl := table.new(position.top_right, 1, 3, bgcolor = color.new(color.black, 30), border_width = 1)
+    table.cell(tbl, 0, 0, 'BF-COMP [TVB-13]', text_color = color.white, text_size = size.small)
+    table.cell(tbl, 0, 1, 'detect: ' + det_mode + ' | lines: ' + line_mode, text_color = color.silver, text_size = size.tiny)
+    string rungs = (en_60 ? '60 ' : '') + (en_240 ? '4h ' : '') + (en_720 ? '12h ' : '') + (en_D ? 'D ' : '') + (en_W ? 'W ' : '') + (en_M ? 'M' : '')
+    table.cell(tbl, 0, 2, 'rungs: ' + (rungs == '' ? 'none' : rungs), text_color = color.silver, text_size = size.tiny)
