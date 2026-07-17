@@ -53,19 +53,39 @@ Proposed defaults (user veto at review; a-priori, never tuned on results):
   aggregate rung (e.g. 48 x 15m = 12h) so the two modes are directly
   comparable rung-for-rung.
 
-## 2. Geometry under test (the user's demonstrated line)
+## 2. Geometry under test (CORRECTED by the user, 2026-07-17)
 
-For a SHORT harvest line (mirror with HIGHS for longs):
+The user corrected the draft-1 single-geometry read-back. The line is NEVER
+drawn 3-to-previous-3. There are TWO valid drawing modes, demonstrated on an
+ES 12h example (12h is illustrative, NOT a definitive timeframe; screenshots
+preserved as temporary/tvb13_fixture_screens/es12h_line_mode1_adjacent.png
+and es12h_line_mode2_compound.png). Both modes are per-rung toggles -- the
+same try-both stance as D-A. All described for the SHORT (lows) side; mirror
+with HIGHS for longs.
 
-- anchor A = the LOW of the bar immediately PRECEDING the most recent old
-  scenario-3 candle;
-- anchor B = the LOW of that scenario-3 candle;
-- the line through (A, B), extended forward.
+- **LINE MODE 1 -- adjacent (the easy way).** Connect the LOW of the bar
+  immediately preceding the scenario 3 to the 3's own LOW; extend forward.
+  ES example: inside bar's low (~7590) -> the 3's low (7578); the steeper
+  line.
+- **LINE MODE 2 -- compound take-out ("take out the highs, take out the
+  lows").** The 3 completes a COMPOUND scenario 3: it strictly took out not
+  only the previous bar's low but a slightly LOWER low one bar further back.
+  The line anchors at that deeper taken-out low instead. ES example: the
+  low-side run is two bars deep (inside bar ~7590, prior green bar ~7585),
+  so the lower line runs ~7585 -> 7578 -- the shallower line -- while the
+  upper line is UNCHANGED from mode 1 because the high-side run is only one
+  bar deep. Conceptually the taken-out run plus the 3 aggregate into a
+  single scenario-3 candle (the cheat sheet's fractality premise: "3 12-hour
+  bars that together would form a single scenario 3 candle").
 
-Recorded in memory (project-exit-arc-tvb13, project-compound3-bf-redesign) as
-"most recent OLD scenario-3 candle's low attached to the PREVIOUS candle's
-low, extended forward" -- restated here so the user can correct any misread
-before code exists.
+Proposed mechanization of mode 2 (Claude's formalization of the drawings --
+CONFIRM WITH USER before code): per side, walk back from the 3 through the
+maximal consecutive run of bars whose side-extreme the 3 strictly took out;
+the anchor = that run's most extreme value. The two sides are anchored
+INDEPENDENTLY (their run depths differ, as in the ES example). Mode 2
+degenerates to mode 1 on any side where the immediately-previous bar is the
+local extreme. Open sub-question: is the walk-back uncapped or bounded by an
+a-priori lookback?
 
 Classification is strict throughout (R10): H > pH AND L < pL; equality never
 breaks anything, including window extremes in rolling mode.
@@ -84,11 +104,12 @@ smoothing, no derived series, only real wicks.
   every HTF bar that classifies as a 3. This is the cheat sheet's universal
   truth made visible: an HTF outside bar IS an LTF broadening structure.
   Decision-free demonstration layer.
-- **L3 Compound-3 birth + the exit line.** Per mode (D-A) and per ladder rung:
-  fire a marker the instant the second side of the reference range strictly
-  breaks, and at that instant draw the Section 2 geometry. Both sides drawn
-  whenever both exist (lows line and highs line). HTF precedence via visual
-  weight (D-B).
+- **L3 Compound-3 birth + the exit line.** Per detection mode (D-A), per
+  line mode (Section 2), and per ladder rung: fire a marker the instant the
+  second side of the reference range strictly breaks, and at that instant
+  draw the Section 2 geometry. Both sides drawn whenever both exist (lows
+  line and highs line), each side anchored independently per its own
+  take-out depth. HTF precedence via visual weight (D-B).
 - **L4 Restart and reclaims.** When price trades back inside a previous
   range, the formation RE-STARTS; mark reclaim levels at the prior range
   extremes. Semantics from the cheat sheet: "if we fail the highs we target
