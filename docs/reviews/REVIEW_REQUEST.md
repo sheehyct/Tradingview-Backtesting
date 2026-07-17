@@ -10,7 +10,10 @@
 
 ## Status
 
-- Status: REQUESTED  <!-- REQUESTED | RETURNED (audit file written) -->
+- Status: RETURNED 2026-07-17  <!-- REQUESTED | RETURNED (audit file written) -->
+  (Codex CLI / GPT-5.6 Sol Max, run by the user; verdict NEEDS-CHANGES;
+  audit: docs/reviews/tvb12-codex-audit.md; critical synthesis: the TVB-13
+  entry in docs/HANDOFF.md)
 - Session under review: TVB-12 -- TVB-11 audit fold-in + critical synthesis;
   fail-closed bounded replay (68 cells + 3 anchors, TVB-11 record verified
   36 CLEAN/18 DRIFT/0 SUSPECT, direction repair mapped); champion harness v2

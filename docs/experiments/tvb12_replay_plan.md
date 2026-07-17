@@ -158,10 +158,28 @@ Readings (window confound applies to every line; Stage B longs quoted from the
 
 ### Standing verdicts after this replay
 
+> CORRECTION (2026-07-17, TVB-12 audit C4 -- dated, additive; the raw results
+> above are untouched): verdict 1 as originally written overreaches. The
+> replay compared 54 of 1,438 eligible original ids (3.76%), a deliberately
+> TARGETED subset -- it verifies the named conclusions it replayed (anchors,
+> per-TF champions, controls, and the HOOD/HIMS/RKLB Stage B full blocks,
+> Spearman 1.000/0.988/1.000) and found no contamination in any tested cell.
+> It cannot retroactively validate the unobserved original rows, and the
+> 10-config x 7-perp Stage B median ranking was NOT recomputed (four
+> competitor medians were never rerun). The 736 engine-path records' missing
+> window evidence REMAINS an open provenance gap; "no longer taints the
+> conclusions drawn from it" is withdrawn in favor of: no tested cell showed
+> the contamination signature. Also noted by the audit: the 18 DRIFT labels
+> come from a 0.8 matched-fraction threshold that was not pre-declared and
+> does not itself prove boundary confinement (the auditor's common-window
+> recount gives 49 CLEAN / 5 DRIFT / 0 SUSPECT); comparator v2 is queued in
+> the TVB-13 remediation list before any further claims lean on these labels.
+
 1. The TVB-11 champion-search RANKINGS stand (unverified -> verified on
    anchors, per-TF champions, controls, and Stage B finalists). The absent
    window evidence on 736 engine-path records remains a documentation gap in
    the ORIGINAL record; it no longer taints the conclusions drawn from it.
+   [superseded -- see the dated CORRECTION above]
 2. Audit F1/F4 remediations are CLOSED (fail-closed collector operational,
    anchors re-established). F2 is answered with new evidence: direction is a
    live per-symbol axis; any future breadth stage must carry long/short/both.

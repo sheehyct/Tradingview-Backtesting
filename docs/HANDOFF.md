@@ -5,12 +5,133 @@
 
 ---
 
+## Session TVB-13: exit arc -- BF comprehension design + TVB-12 audit fold-in (IN PROGRESS)
+
+**Date:** 2026-07-17
+**Status:** IN PROGRESS. Done so far: (1) BF comprehension indicator DESIGN
+drafted and corrected with the user
+(docs/design/bf_comprehension_indicator_design.md -- two line modes: adjacent
+vs compound take-out, never 3-to-previous-3; both compound-3 window semantics
+as toggles; 60m TF floor with HTF precedence; ES 12h demonstration screenshots
+preserved in temporary/tvb13_fixture_screens/); (2) TVB-12 external review
+RETURNED and folded in (synthesis below).
+
+### TVB-12 review fold-in (critical synthesis)
+
+Reviewer: Codex CLI / GPT-5.6 Sol Max (run by the user), LIGHT scope, verdict
+NEEDS-CHANGES; audit verbatim in docs/reviews/tvb12-codex-audit.md. Every
+recomputation was re-run independently this session before synthesis and all
+counts reproduce exactly (raw gate failures all zero, 68 unique nonces,
+anchors 3/3, stored verdicts 36 CLEAN / 18 DRIFT / 0 SUSPECT, bounded recount
+49/5/0 with 25 right-tail trades removed, fingerprint 1438/241/35, coverage
+3.76%, ceiling 248.7007 on both sides, short champion 13.7061%/19tr vs
+12.9115%/17tr, Spearman 1.000/0.988/1.000) -- the second consecutive external
+audit whose every asserted count reproduced. Agreement/dispute below is ours.
+
+- **C1 winner-surface clocks (HIGH) -- AGREE + EXTEND, with one adjudication
+  the audit lacked.** Verified: ShortChamp folds the current bar's low into
+  a_low BEFORE assigning prev_al on arm_last bars and tests the trigger
+  afterward (winner_shortchamp_mu5.pine:56-61 vs :210-215), so on every final
+  child bar the in-bar test `low <= prev_al - tick` is unsatisfiable -- on
+  the 5m chart, breaks first occurring in the third 5m child are never
+  signaled. The state exit (:204) has no barstate.isconfirmed guard, so
+  intrabar grey can flash an exit that the actual 60m close would not
+  confirm. ADJUDICATION (the audit did not check the strategy): the champion
+  STRATEGY shares the identical snapshot ordering
+  (tvb_exp_champion.pine:213-231) but enters via RESTING STOP ORDERS
+  (:329/:334) -- an order placed during the final child bar activates on the
+  NEXT bar, by which time the period has genuinely completed, and breaks
+  during the final child fill from the order rested on the prior bar. The
+  backtest therefore implements the advertised contract correctly at every
+  child position; the TVB-11/12 measured record is NOT touched by this
+  finding. The defect is specific to the in-bar signal replication in the
+  watch indicators. EXTENSION (ours, beyond the audit's light scope): all
+  three LONG winner surfaces run with chart TF == ARM_TF (generalizer
+  a15/15m chart, champion_mu15 a15/15m, slow60 a60/60m), where EVERY bar is
+  arm_last -- their entry signal can NEVER fire at all. Three of the four
+  deployed live watch surfaces are entry-dead; the fourth (ShortChamp, 5m
+  chart) misses ~1/3 of arming windows. ACT: reorder the arm_last roll to
+  AFTER the entry evaluation (Pine rollback semantics then give the
+  completed-period reference on every child bar including chart == ARM_TF),
+  add barstate.isconfirmed to the state exit, add per-child-position
+  fixtures, redeploy all four surfaces.
+- **C2 comparator (HIGH) -- AGREE, one precision note.** Verified: the code
+  implements a start-bound-only overlap plus a scalar 0.8 verdict
+  (tvb12_replay_compare.mjs:42-60) while its own header comment and the plan
+  describe the semantic boundary test; R4 rows enter the headline counts
+  (byTag: R4 = 5 CLEAN / 3 DRIFT) though the plan pre-declared R4 as having
+  no reproduction target. PRECISION: the missing common-window END was also
+  missing from the pre-registered acceptance text (plan lines 58-69 declare
+  only the start bound), so the comparator faithfully implemented an
+  under-specified pre-reg; the 0.8 threshold, however, was never
+  pre-declared anywhere. The auditor's own bounded recount (49 CLEAN /
+  5 DRIFT / 0 SUSPECT; 13 DRIFT->CLEAN; all 25 removed trades are
+  replay-side right-tail additions) STRENGTHENS the window-slide reading of
+  the drift -- but the audit's point stands: the shipped artifact asserts
+  what it should demonstrate. The 3 interior price mismatches are all
+  direction=BOTH cells on MU 15m (one R2 control, two R4); path-dependent
+  position occupancy (a boundary-shifted exit re-arms the resting stop on a
+  different bar -> same entry bar, different level) is the plausible
+  mechanism, unproven. ACT: comparator v2 -- common window bounded at BOTH
+  ends, one-to-one match consumption, field-complete comparison (quantity,
+  exit semantics), DRIFT requires explicit boundary/path attribution else
+  SUSPECT, R4 excluded from the headline tally; regenerate compare.json and
+  reconcile prose.
+- **C3 collector join (MEDIUM) -- AGREE.** Verified: the nonce lives only in
+  the Pine table; report<->table binding is the coarse 3-field fingerprint
+  (closed count + open count + closed net to a cent,
+  tvb12_replay_collect.mjs:329-332); the stability key adds no trade content
+  (:338); the report lookup falls back from entity id to exact description
+  (:199-211); session/subsession are asserted only for RTH-mirror symbols
+  (:316, :322). Collision recount reproduced: 241 multi-id groups / 35 with
+  different trade lists across the 1,438 eligible TVB-11 reports. All 68
+  committed rows bound by id and pass every recorded check -- the finding is
+  the remaining adversarial path, not this batch. ACT (gates the NEXT
+  collection run): Pine-side digest over the COMPLETE closed trade list
+  echoed in the METRICS table, remove the name fallback (fail loud), assert
+  the expected session per symbol class.
+- **C4 closure language (MEDIUM) -- AGREE; relabels applied this session.**
+  54 compared ids / 1,438 eligible = 3.76%, deliberately targeted, not
+  random; the unqualified top-line "record VERIFIED" (TVB-12 status) and
+  "no longer taints the conclusions drawn from it" (plan standing verdict 1)
+  overreach a targeted subset; Stage B rank stability is proven on the
+  HOOD/HIMS/RKLB full blocks only -- the 10-config x 7-perp median ranking
+  was not recomputed and the four unrerun competitor medians remain part of
+  the original ordering. ACT (DONE 2026-07-17, dated + additive): TVB-12
+  status line qualified below; plan standing-verdict correction note added.
+  The 736-row provenance gap REMAINS OPEN.
+
+Audit checks co-signed: the short mirror's comparisons/ratchet/harvest are
+faithful; the sole executable request.security call uses the accepted
+offset idiom; no long-side residue; the collector has no time-based escape;
+all four named reproductions (ceiling, short champion, anchors, Spearman)
+are real.
+
+### Remediation queue (TVB-13, execution order decided with user)
+
+1. Winner-surface clock fix (C1) -- HIGH, LIVE-RELEVANT: three surfaces
+   entry-dead on their nominal charts, one missing final-child entries;
+   state exits can flash intrabar. Mechanical and well-specified; needs a
+   TV redeploy per surface (tab-binding recipe applies).
+2. Comparator v2 + regenerated compare.json + prose reconciliation (C2).
+3. Collector digest + no-name-fallback + session assertion (C3) -- required
+   before any future collection run; no urgency until one is scheduled.
+4. Prose relabels (C4) -- DONE 2026-07-17.
+5. Standing from the TVB-11 audit, still pending: Section 12 qualifiers, P3
+   relabel, security-rule amendment (F4/F6/F7), NET propagation + fixture
+   (F5).
+
+---
+
 ## Session TVB-12: audit fold-in + fail-closed replay + ShortChamp + EXIT-ARC redirect (COMPLETE)
 
 **Date:** 2026-07-15..16
 **Status:** COMPLETE. Four arcs: (1) TVB-11 audit folded in (synthesis below);
-(2) bounded replay EXECUTED -- TVB-11 record VERIFIED, F1/F4 closed, F2
-answered with new direction evidence; (3) "Winner: ShortChamp MU5 [TVB-12]"
+(2) bounded replay EXECUTED -- TVB-11 record VERIFIED [2026-07-17 qualifier,
+per TVB-12 audit C4: verified on the 54-cell TARGETED subset (3.76% of
+eligible ids) -- anchors, named champions, controls, three Stage B full
+blocks; the 736-row provenance gap remains open; see the TVB-13 synthesis
+above], F1/F4 closed, F2 answered with new direction evidence; (3) "Winner: ShortChamp MU5 [TVB-12]"
 live watch indicator shipped premarket (the replay-verified 5m short champion,
 the one performer without a live surface); (4) USER REDIRECT at session end:
 the TVB-13 mission is EXITS ON WINNERS -- combined-indicator/regime-label arc
@@ -208,8 +329,11 @@ JSONLs and comparator output beside it. Headlines:
 > Review THIS session's work and write a verbatim assessment to
 > docs/reviews/tvb12-codex-audit.md. See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: REQUESTED (LIGHT SCOPE by user decision -- this session was
-  mostly verification; the TVB-13 exit implementation gets the full review)
+- Review status: RETURNED 2026-07-17 (Codex CLI / GPT-5.6 Sol Max, run by the
+  user; verdict NEEDS-CHANGES; audit in docs/reviews/tvb12-codex-audit.md;
+  critical synthesis in the TVB-13 entry above). Original request: LIGHT
+  SCOPE by user decision -- this session was mostly verification; the TVB-13
+  exit implementation gets the full review.
 - Commits to review: `f97646e^..` HEAD-at-session-end on `main` (f97646e =
   review fold-in, first TVB-12 commit; head = the session-end docs commit;
   verify with `git diff --name-status`). RANGE-PIN RULE: the caret keeps
