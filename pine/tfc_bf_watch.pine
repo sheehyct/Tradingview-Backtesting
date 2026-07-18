@@ -1,0 +1,257 @@
+//@version=6
+// =============================================================================
+// TFC Entry + BF Exit [TVB-13] -- the tier-1 live watch surface.
+// ORDER-FREE indicator: paints entries/exits and fires alerts; never trades.
+//
+// WHAT IT IS: the strategy the user described 2026-07-18 -- enter long/short
+// on timeframe continuity (the entries that already work), exit when price
+// TOUCHES a broadening-formation line on the high-timeframe ladder. The BF
+// exit is the harvest that the DRAM June fixture showed the old exits lack
+// (+19.87% peak round-tripped to a -1.18% loss; give-back 21pp).
+//
+// QUICK START
+//   1. Add to a 24/7 perp chart (15m recommended; arm TF default 15m).
+//   2. ENTRY: full D/W/M alignment (close vs each period open) + strict break
+//      of the prior COMPLETED arm-TF bar extreme (+/- 1 tick), intrabar.
+//      Corrected clock: the trigger is tested BEFORE the arm snapshot rolls,
+//      so entries arm correctly on every child bar incl. chart TF == arm TF.
+//   3. EXIT: first touch of the relevant BF line on any enabled rung
+//      (12h/D/W/M) -- LOWER line for shorts, UPPER line for longs. Lines are
+//      ADJACENT-mode from the most recent COMPLETED scenario 3 per rung (the
+//      3's extreme connected to the immediately previous candle's extreme,
+//      extended right). Completed-3 adjacent geometry is the audit-clean
+//      mode: anchors never move after the line is born. Exit marker names
+//      the rung (highest enabled TF checked first). Optional heads-up char
+//      when price is within warn% of the relevant line.
+//   4. BACKSTOP: if no line is touched, full OPPOSITE alignment at a
+//      confirmed bar close exits (flip backstop, toggleable).
+//   5. Alerts: Enter Long / Enter Short / Exit Long / Exit Short / Any.
+//      Use "Once per bar" (intrabar signals; entries fire at the break).
+//
+// HONEST DELTAS (v1, go-for-it build):
+//   - Chart-side HTF aggregation: exact when the chart TF tiles the rung
+//     (15m/5m do for all default rungs on 24/7 perps).
+//   - One exit line pair per rung (the most recent completed 3); a new 3
+//     REPLACES the pair. History lives in BF Comprehension, not here.
+//   - Signals are marks/alerts only; live execution is the user's market
+//     order. No fees/funding/slippage modeled here.
+// =============================================================================
+indicator('TFC Entry + BF Exit [TVB-13]', 'TFC-BF', overlay = true, max_lines_count = 100, max_labels_count = 500)
+
+// ------------------------------- inputs --------------------------------------
+grp_g = 'Entry gate'
+g1 = input.timeframe('D', 'Gate TF 1', group = grp_g, tooltip = 'Continuity gate: close vs this timeframe period open. Full alignment of all three gates in a direction permits entries that way.')
+g2 = input.timeframe('W', 'Gate TF 2', group = grp_g)
+g3 = input.timeframe('M', 'Gate TF 3', group = grp_g)
+arm_tf = input.timeframe('15', 'Arm TF (trigger = prior completed bar extreme)', group = grp_g, tooltip = 'Entry trigger = strict break of the PRIOR COMPLETED bar of this timeframe, +/- 1 tick. Corrected clock: tested before the snapshot rolls.')
+allow_long = input.bool(true, 'Long entries', group = grp_g, inline = 'd')
+allow_short = input.bool(true, 'Short entries', group = grp_g, inline = 'd')
+
+grp_x = 'BF exit ladder (touch = exit; highest TF checked first)'
+en_720 = input.bool(true, '12h rung', group = grp_x, tooltip = 'Exit line pair from the most recent COMPLETED 12h scenario 3 (adjacent anchors). The 12h line caught the DRAM June bottom at 52.79.')
+en_D = input.bool(true, 'Daily rung', group = grp_x)
+en_W = input.bool(true, 'Weekly rung', group = grp_x)
+en_M = input.bool(true, 'Monthly rung', group = grp_x, tooltip = 'Rob draws the monthly BF first; highest bounce odds of the ladder.')
+flip_backstop = input.bool(true, 'Flip backstop exit', group = grp_x, tooltip = 'If no BF line is touched, exit on full OPPOSITE alignment at a confirmed bar close. The no-line fallback.')
+warn_pct = input.float(0.5, 'Heads-up distance (%)', minval = 0.0, step = 0.1, group = grp_x, tooltip = 'Paint a warning char when price is within this percent of the relevant exit line. 0 disables.')
+
+grp_v = 'Visuals'
+show_bg = input.bool(true, 'Tint background while in position', group = grp_v)
+c_long = input.color(color.new(#26a69a, 0), 'Long', group = grp_v, inline = 'c')
+c_short = input.color(color.new(#ef5350, 0), 'Short', group = grp_v, inline = 'c')
+c_720 = input.color(color.new(#ff9800, 0), '12h', group = grp_v, inline = 'r')
+c_D = input.color(color.new(#2962ff, 0), 'D', group = grp_v, inline = 'r')
+c_W = input.color(color.new(#e040fb, 0), 'W', group = grp_v, inline = 'r')
+c_M = input.color(color.new(#ff1744, 0), 'M', group = grp_v, inline = 'r')
+
+// ------------------------------- gates ---------------------------------------
+f_open(simple string tf) =>
+    ta.valuewhen(timeframe.change(tf), open, 0)
+
+oA = f_open(g1)
+oB = f_open(g2)
+oC = f_open(g3)
+bool gate_ready = not na(oA) and not na(oB) and not na(oC)
+bool gate_up = gate_ready and close > oA and close > oB and close > oC
+bool gate_dn = gate_ready and close < oA and close < oB and close < oC
+
+// ------------------- arm snapshot (corrected clock) --------------------------
+bool arm_new = timeframe.change(arm_tf)
+bool arm_last = time_close == time_close(arm_tf)
+var float a_hi = na
+var float a_lo = na
+var float prev_ah = na
+var float prev_al = na
+if arm_new
+    a_hi := high
+    a_lo := low
+else
+    a_hi := na(a_hi) ? high : math.max(a_hi, high)
+    a_lo := na(a_lo) ? low : math.min(a_lo, low)
+// NOTE: prev_ah/prev_al are tested by the entry logic BELOW and only rolled at
+// the very end of the script -- rollback then guarantees the completed-period
+// reference on every child bar, including chart TF == arm TF (audit C1 fix).
+
+// ------------- BF exit rungs (completed-3, adjacent anchors) -----------------
+f_rung(simple string tf, bool en, color col) =>
+    var float cHi = na
+    var float cLo = na
+    var int cHiT = na
+    var int cLoT = na
+    var float pHi = na
+    var float pLo = na
+    var int pHiT = na
+    var int pLoT = na
+    var line upL = na
+    var line loL = na
+    bool active = en and timeframe.in_seconds(tf) > timeframe.in_seconds()
+    if active
+        if timeframe.change(tf)
+            // the accumulating candle just COMPLETED; classify vs the prior completed (strict R10)
+            if not na(pHi) and cHi > pHi and cLo < pLo
+                if not na(loL)
+                    line.delete(loL)
+                if not na(upL)
+                    line.delete(upL)
+                loL := line.new(pLoT, pLo, cLoT, cLo, xloc = xloc.bar_time, extend = extend.right, color = col, width = 2)
+                upL := line.new(pHiT, pHi, cHiT, cHi, xloc = xloc.bar_time, extend = extend.right, color = col, width = 2)
+            pHi := cHi
+            pLo := cLo
+            pHiT := cHiT
+            pLoT := cLoT
+            cHi := high
+            cLo := low
+            cHiT := time
+            cLoT := time
+        else
+            if na(cHi) or high > cHi
+                cHi := high
+                cHiT := time
+            if na(cLo) or low < cLo
+                cLo := low
+                cLoT := time
+    float loProj = na
+    float upProj = na
+    if not na(loL)
+        loProj := line.get_y2(loL) + (line.get_y2(loL) - line.get_y1(loL)) / (line.get_x2(loL) - line.get_x1(loL)) * (time - line.get_x2(loL))
+    if not na(upL)
+        upProj := line.get_y2(upL) + (line.get_y2(upL) - line.get_y1(upL)) / (line.get_x2(upL) - line.get_x1(upL)) * (time - line.get_x2(upL))
+    [loProj, upProj]
+
+[lo720, up720] = f_rung('720', en_720, c_720)
+[loD, upD] = f_rung('D', en_D, c_D)
+[loW, upW] = f_rung('W', en_W, c_W)
+[loM, upM] = f_rung('M', en_M, c_M)
+
+// --------------------------- position machine --------------------------------
+var int pos = 0
+bool sig_el = false
+bool sig_es = false
+bool sig_xl = false
+bool sig_xs = false
+string x_rung = ''
+
+// exits first (an entry this bar is not exited on the same bar)
+if pos == 1
+    if not na(upM) and high >= upM
+        pos := 0
+        sig_xl := true
+        x_rung := 'M'
+    else if not na(upW) and high >= upW
+        pos := 0
+        sig_xl := true
+        x_rung := 'W'
+    else if not na(upD) and high >= upD
+        pos := 0
+        sig_xl := true
+        x_rung := 'D'
+    else if not na(up720) and high >= up720
+        pos := 0
+        sig_xl := true
+        x_rung := '12h'
+    else if flip_backstop and gate_dn and barstate.isconfirmed
+        pos := 0
+        sig_xl := true
+        x_rung := 'flip'
+if pos == -1
+    if not na(loM) and low <= loM
+        pos := 0
+        sig_xs := true
+        x_rung := 'M'
+    else if not na(loW) and low <= loW
+        pos := 0
+        sig_xs := true
+        x_rung := 'W'
+    else if not na(loD) and low <= loD
+        pos := 0
+        sig_xs := true
+        x_rung := 'D'
+    else if not na(lo720) and low <= lo720
+        pos := 0
+        sig_xs := true
+        x_rung := '12h'
+    else if flip_backstop and gate_up and barstate.isconfirmed
+        pos := 0
+        sig_xs := true
+        x_rung := 'flip'
+
+float trig_l = prev_ah + syminfo.mintick
+float trig_s = prev_al - syminfo.mintick
+if pos == 0 and not sig_xl and not sig_xs
+    if allow_long and gate_up and not na(prev_ah) and high >= trig_l
+        pos := 1
+        sig_el := true
+    else if allow_short and gate_dn and not na(prev_al) and low <= trig_s
+        pos := -1
+        sig_es := true
+
+// roll the arm snapshot LAST (corrected clock)
+if arm_last
+    prev_ah := a_hi
+    prev_al := a_lo
+
+// ------------------------- heads-up proximity --------------------------------
+float near_lo = na
+if pos == -1
+    for p in array.from(loM, loW, loD, lo720)
+        if not na(p) and p < low and (na(near_lo) or p > near_lo)
+            near_lo := p
+float near_up = na
+if pos == 1
+    for p in array.from(upM, upW, upD, up720)
+        if not na(p) and p > high and (na(near_up) or p < near_up)
+            near_up := p
+bool warn_s = warn_pct > 0 and pos == -1 and not na(near_lo) and (low - near_lo) / low * 100 <= warn_pct
+bool warn_l = warn_pct > 0 and pos == 1 and not na(near_up) and (near_up - high) / high * 100 <= warn_pct
+
+// ------------------------------ visuals --------------------------------------
+bgcolor(show_bg and pos == 1 ? color.new(c_long, 92) : show_bg and pos == -1 ? color.new(c_short, 92) : na)
+plotshape(sig_el, 'Enter Long', style = shape.labelup, color = c_long, text = 'LONG', textcolor = color.white, location = location.belowbar, size = size.tiny)
+plotshape(sig_es, 'Enter Short', style = shape.labeldown, color = c_short, text = 'SHORT', textcolor = color.white, location = location.abovebar, size = size.tiny)
+plotchar(warn_s, 'Heads-up (short near lower line)', '!', location.belowbar, color.new(color.yellow, 20), size = size.tiny)
+plotchar(warn_l, 'Heads-up (long near upper line)', '!', location.abovebar, color.new(color.yellow, 20), size = size.tiny)
+if sig_xl
+    label.new(bar_index, high, 'EXIT L ' + x_rung, style = label.style_label_down, color = color.new(c_long, 20), textcolor = color.white, size = size.small,
+      tooltip = x_rung == 'flip' ? 'Flip backstop: full opposite alignment at a confirmed close, no BF line touched first.' : 'Long harvested at the ' + x_rung + ' broadening-formation UPPER line touch.')
+if sig_xs
+    label.new(bar_index, low, 'EXIT S ' + x_rung, style = label.style_label_up, color = color.new(c_short, 20), textcolor = color.white, size = size.small,
+      tooltip = x_rung == 'flip' ? 'Flip backstop: full opposite alignment at a confirmed close, no BF line touched first.' : 'Short harvested at the ' + x_rung + ' broadening-formation LOWER line touch.')
+
+// ------------------------------ alerts ---------------------------------------
+alertcondition(sig_el, 'Enter Long', 'TFC-BF: LONG entry (gate aligned, arm break)')
+alertcondition(sig_es, 'Enter Short', 'TFC-BF: SHORT entry (gate aligned, arm break)')
+alertcondition(sig_xl, 'Exit Long', 'TFC-BF: EXIT LONG (BF line touch or flip backstop)')
+alertcondition(sig_xs, 'Exit Short', 'TFC-BF: EXIT SHORT (BF line touch or flip backstop)')
+alertcondition(sig_el or sig_es or sig_xl or sig_xs, 'Any signal', 'TFC-BF: signal')
+
+// ------------------------------ status table ---------------------------------
+var table tbl = na
+if barstate.islast
+    if na(tbl)
+        tbl := table.new(position.top_right, 1, 3, bgcolor = color.new(color.black, 30), border_width = 1)
+    string s_pos = pos == 1 ? 'LONG' : pos == -1 ? 'SHORT' : 'flat'
+    string s_gate = gate_up ? 'gate UP' : gate_dn ? 'gate DOWN' : 'gate grey'
+    string s_rungs = (en_720 and not na(lo720) ? '12h ' : '') + (en_D and not na(loD) ? 'D ' : '') + (en_W and not na(loW) ? 'W ' : '') + (en_M and not na(loM) ? 'M' : '')
+    table.cell(tbl, 0, 0, 'TFC-BF [TVB-13]', text_color = color.white, text_size = size.small)
+    table.cell(tbl, 0, 1, s_pos + ' | ' + s_gate, text_color = color.silver, text_size = size.tiny)
+    table.cell(tbl, 0, 2, 'BF lines live: ' + (s_rungs == '' ? 'none yet' : s_rungs), text_color = color.silver, text_size = size.tiny)
