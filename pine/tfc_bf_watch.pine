@@ -15,8 +15,10 @@
 //      of the prior COMPLETED arm-TF bar extreme (+/- 1 tick), intrabar.
 //      Corrected clock: the trigger is tested BEFORE the arm snapshot rolls,
 //      so entries arm correctly on every child bar incl. chart TF == arm TF.
-//   3. EXIT: first touch of the relevant BF line on any enabled rung
-//      (12h/D/W/M) -- LOWER line for shorts, UPPER line for longs. Lines are
+//   3. EXIT: first bar whose RANGE TOUCHES (straddles) the relevant BF line
+//      on any enabled rung (12h/D/W/M) -- LOWER line for shorts, UPPER line
+//      for longs; a line sitting entirely beyond price does not exit until
+//      price actually reaches it. Lines are
 //      ADJACENT-mode from the most recent COMPLETED scenario 3 per rung (the
 //      3's extreme connected to the immediately previous candle's extreme,
 //      extended right). Completed-3 adjacent geometry is the audit-clean
@@ -151,21 +153,27 @@ bool sig_xl = false
 bool sig_xs = false
 string x_rung = ''
 
-// exits first (an entry this bar is not exited on the same bar)
+// exits first (an entry this bar is not exited on the same bar).
+// TOUCH = the bar's range CONTAINS the line (low <= line <= high) -- a
+// one-sided test degenerates when a stale line sits entirely beyond price
+// (day-one DRAM: the overhead weekly line instant-exited every short).
+f_touch(float ln) =>
+    not na(ln) and low <= ln and high >= ln
+
 if pos == 1
-    if not na(upM) and high >= upM
+    if f_touch(upM)
         pos := 0
         sig_xl := true
         x_rung := 'M'
-    else if not na(upW) and high >= upW
+    else if f_touch(upW)
         pos := 0
         sig_xl := true
         x_rung := 'W'
-    else if not na(upD) and high >= upD
+    else if f_touch(upD)
         pos := 0
         sig_xl := true
         x_rung := 'D'
-    else if not na(up720) and high >= up720
+    else if f_touch(up720)
         pos := 0
         sig_xl := true
         x_rung := '12h'
@@ -174,19 +182,19 @@ if pos == 1
         sig_xl := true
         x_rung := 'flip'
 if pos == -1
-    if not na(loM) and low <= loM
+    if f_touch(loM)
         pos := 0
         sig_xs := true
         x_rung := 'M'
-    else if not na(loW) and low <= loW
+    else if f_touch(loW)
         pos := 0
         sig_xs := true
         x_rung := 'W'
-    else if not na(loD) and low <= loD
+    else if f_touch(loD)
         pos := 0
         sig_xs := true
         x_rung := 'D'
-    else if not na(lo720) and low <= lo720
+    else if f_touch(lo720)
         pos := 0
         sig_xs := true
         x_rung := '12h'
