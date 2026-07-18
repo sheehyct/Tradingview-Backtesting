@@ -196,14 +196,97 @@ June episode was days from unfetchable).
 - docs/reviews/tvb12-codex-audit.md (new, committed), REVIEW_REQUEST.md,
   docs/experiments/tvb12_replay_plan.md (dated correction), this file
 
+### TVB-13 review fold-in (critical synthesis -- post-session addendum, 2026-07-18)
+
+Reviewer: Codex CLI / GPT-5 (run by the user), FULL scope, verdict
+NEEDS-CHANGES; audit verbatim in docs/reviews/tvb13-codex-audit.md. The
+load-bearing replay (proximity-anchor staleness) was independently re-run
+this addendum and reproduced exactly; the audit also re-executed the TVB-12
+recomputation block and matched. Agreement/dispute is ours.
+
+- **A1 proximity anchor staleness (HIGH) -- AGREE, defect by construction.**
+  The anchor scan runs only on the FIRE bar; later extension of the open HTF
+  candle's extremes updates only the line's second endpoint, and the line
+  solidifies at the boundary without re-scanning -- so "nearest prior low
+  strictly above the 3's low" is evaluated against the fire-time low, not
+  the candle's final low. Replay on the committed DRAM bars: 2 of 4 12h
+  fires solidify with stale anchors, INCLUDING the June-3 13:30Z fire at
+  the fixture entry (fire anchor 68.624 vs rule-correct 67.15) -- the frozen
+  proximity screenshot delivered to the user carries this defect. ADJACENT
+  mode is unaffected (its anchor never depends on the open candle's final
+  extremes) -- the user's live grading should prefer adjacent mode until
+  fixed. ACT (TVB-14 fix 1): recompute the affected side's anchor whenever
+  its extreme extends + final scan before solidify; fixture asserting both
+  fire-time and close-time geometry.
+- **A2 C1 narrowing (MEDIUM) -- AGREE; the exoneration itself SURVIVED
+  hostile review.** The audit found NO path where an entry stop references
+  an uncompleted arm period ("resting stops do cure that specific
+  early-snapshot problem at every child position, including chart_tf ==
+  arm_tf") and its child-position fill counts disprove any entry-dead
+  strategy. The narrowing: a default close-calculated strategy cannot
+  cancel/create the pending order intrabar, so the record proves the
+  COMPLETED-ARM-LEVEL contract but not a continuously-synchronized live
+  gate (pending order can fill after the gate turned neutral at a new
+  D/W/M open; a mid-bar gate flip + break yields a delayed next-bar entry).
+  This is precisely the ENTRY-ARMING FORK the user already found live on
+  EWY (memory project-entry-arming-fork) -- independently re-derived by the
+  audit; converged evidence elevates that standing thread. ACT: dated
+  narrowing note below (the clock claim stands; the live-gate fidelity
+  claim was never established and is now explicitly open).
+- **A3 freeze boundary + L1 (MEDIUM) -- AGREE.** `time <= asof_t` admits the
+  freeze bar's full OHLC (open-time compare); L1 chars ignore the freeze
+  entirely while the table says FROZEN. ACT: time_close-based predicate +
+  gate L1.
+- **A4 L4 same-bar restart + supersede retraction (MEDIUM) -- AGREE.** The
+  `not fired_now` guard makes the cheat sheet's CANONICAL case (outside bar
+  closing back inside) one bar late (3 of 8 committed fires); superseded
+  lines drop extension without pinning x2, so faded history retracts. ACT:
+  same-bar restart eval + pin x2 at supersede.
+- **A5 give-back fidelity wording (MEDIUM) -- AGREE.** Arithmetic, long
+  mirror, and selector reproducibility all verified by the audit (and the
+  committed bars live-matched the HL API, 0 mismatches); the findings are
+  labels: MFE/MAE are full-bar-envelope metrics on 15m OHLC (capping the
+  exit bar gives MAE 1.184% vs 1.210%), `realized` is GROSS price return
+  (no fees/funding -- consistent with the standing F5 NET thread), and the
+  retrospectively pinned episode is an acceptance fixture, never validation
+  of a candidate rule. ACT: docstring/HANDOFF relabels; keep hand-labeled
+  framing.
+- **A6 summarize() median (LOW) -- AGREE, real future bug.** Nearest-rank
+  with ties-to-even makes median([0,10]) = 0. ACT: statistics.median +
+  declared p90 method + even/odd tests before any distribution is read.
+- **A7 disclosure bounds (LOW) -- AGREE.** "Exact on 24/7 perps" needs a
+  tiling qualifier (a 45m chart straddles 60m boundaries); box/label lack a
+  visible provisional->confirmed transition; design doc drift (4900 vs the
+  shipped 2000-candle archive; stale "no Pine exists" footer). ACT: header
+  qualifier + doc reconciliation.
+
+Co-signed passes (audit verified, we accept): strict R10 everywhere with
+equality never breaking; the corrected period-start aggregation clock with
+no ordering defect; zero request.security calls; the rolling buffer guard
+safe; C4 relabels "pass without a finding"; all four frozen winner-surface
+header diagnoses accurate from code; the archive move byte-exact; suite
+73 passed under no-cache.
+
+DATED NARROWING (2026-07-18, applies to the C1 adjudication above): "the
+TVB-11/12 measured record is NOT touched by this finding" holds for the
+ARM-SNAPSHOT CLOCK question the audit raised -- no uncompleted arm level can
+reach a fill. It does NOT establish that fills always occur under a
+still-aligned gate, nor same-bar entries after mid-bar gate flips; that
+live-gate fidelity question is open, pre-existing, and identical to the
+entry-arming fork (project-entry-arming-fork). Any future claim leaning on
+gate-synchronized entries needs per-fill gate/order-state traces or an
+explicit intrabar strategy contract.
+
 ### External Review (for Codex / cloud review agents)
 
 > For Codex / other external review agents: review THIS session's work (range
 > below) and write a verbatim assessment to docs/reviews/tvb13-codex-audit.md.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: REQUESTED (FULL scope -- the user reserved the deep review
-  for the TVB-13 implementation when scoping TVB-12 light)
+- Review status: RETURNED 2026-07-18 (Codex CLI / GPT-5, run by the user;
+  verdict NEEDS-CHANGES; audit in docs/reviews/tvb13-codex-audit.md;
+  critical synthesis in the addendum above). Originally REQUESTED at FULL
+  scope -- the deep review the user reserved when scoping TVB-12 light.
 - Commits to review: `1f53463^..32efec6` on `main` (8 commits incl. the
   session-end docs; sanity-check with
   `git diff --name-status 1f53463^ 32efec6`)
@@ -220,8 +303,14 @@ June episode was days from unfetchable).
   (is the entry/exit pinning method sound; tolerance choices); (4) the C4
   relabels -- do the dated corrections fully cure the overreach the audit
   named.
-- Reviewed by: pending
-- Findings: (blank until docs/reviews/tvb13-codex-audit.md exists)
+- Reviewed by: Codex CLI / GPT-5 (user-run), 2026-07-18
+- Findings: NEEDS-CHANGES -- 1 HIGH (proximity anchors stale at HTF close;
+  verified on committed bars incl. the fixture's June-3 12h fire), 4 MEDIUM
+  (C1 narrowed to the completed-arm snapshot -- the exoneration itself
+  survived; freeze not boundary-exact + L1 ungated; L4 restart one bar late
+  + supersede retraction; give-back = gross full-bar-envelope labels),
+  2 LOW (summarize median; disclosure bounds). Synthesis above; fix list
+  seeded as TVB-14 priority 1.
 
 ---
 

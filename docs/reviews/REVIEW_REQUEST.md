@@ -10,7 +10,10 @@
 
 ## Status
 
-- Status: REQUESTED  <!-- REQUESTED | RETURNED (audit file written) -->
+- Status: RETURNED 2026-07-18  <!-- REQUESTED | RETURNED (audit file written) -->
+  (Codex CLI / GPT-5, run by the user; verdict NEEDS-CHANGES; audit:
+  docs/reviews/tvb13-codex-audit.md; critical synthesis: the 2026-07-18
+  addendum in the docs/HANDOFF.md TVB-13 entry)
 - Session under review: TVB-13 -- TVB-12 audit fold-in (every recomputation
   independently re-run; C1 extended to all four winner watch surfaces; the
   champion strategy exonerated via resting stop orders; C4 relabels applied);
