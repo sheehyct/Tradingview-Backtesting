@@ -83,8 +83,10 @@ FIXTURE_SUPERSEDE_SHADOWS = {
 
 @pytest.mark.parametrize("tf", ["W", "D", "12h"])
 def test_pool_parity_vs_fixture_golden(tf):
+    # v6.0 flags: the goldens pin the AS-DEPLOYED-in-TVB-14 semantics; the
+    # v6.1 audit fixes are pinned separately below.
     key_fn, period_s = POOLS[tf]
-    pool = Pool(tf, key_fn, period_s, n_max=6, min_sep=1.0, pool_cap=None)
+    pool = Pool(tf, key_fn, period_s, n_max=6, min_sep=1.0, pool_cap=None, supersede_per_side=False)
     for ts, _o, h, l, c in BARS:
         pool.process_bar(ts, h, l, c, pos=0, entry_px=None)
     got = fixture_format(tf, pool, BARS[-1][0])
@@ -101,7 +103,7 @@ def test_supersede_shadow_invariant():
     formation's birth, on a side sharing that formation's left anchor --
     i.e. exactly the case where Pine's interleaved order consumes first."""
     key_fn, period_s = POOLS["12h"]
-    pool = Pool("12h", key_fn, period_s, pool_cap=None)
+    pool = Pool("12h", key_fn, period_s, pool_cap=None, supersede_per_side=False)
     for ts, _o, h, l, c in BARS:
         pool.process_bar(ts, h, l, c, 0, None)
     fs = pool.formations
@@ -110,6 +112,56 @@ def test_supersede_shadow_invariant():
         assert shadowed.lo.state == "consumed"
         assert shadowed.lo.state_ts < superseder.born
         assert shadowed.lo.anchors()[:2] == superseder.lo.anchors()[:2]
+
+
+def test_v61_per_side_supersede_keeps_unchanged_side():
+    """Audit F1 regression, committed data: the Jun-23 daily formation's
+    upper (81.242@06-21 06:00 -> 82.016@06-22 20:00) is UNCHANGED by the
+    Jun-24 same-left re-anchor. v6.0 superseded it and ghosted its identical
+    replacement (line lost); v6.1 keeps it alive. Membership/indices are
+    identical in both modes (supersede changes state only)."""
+    key_fn, period_s = POOLS["D"]
+    for per_side, want in ((True, "alive"), (False, "superseded")):
+        pool = Pool("D", key_fn, period_s, pool_cap=None, supersede_per_side=per_side)
+        for ts, _o, h, l, c in BARS:
+            pool.process_bar(ts, h, l, c, 0, None)
+        f17, f18 = pool.formations[16], pool.formations[17]
+        assert (f17.up.v1, f17.up.v2) == (81.242, 82.016)
+        assert f18.up.anchors() == f17.up.anchors()
+        assert f17.up.state == want
+        assert f18.up.state == "ghost"  # duplicate candidate in both modes
+    # the 12h twin case: F23's unchanged upper survives under v6.1
+    key_fn, period_s = POOLS["12h"]
+    pool = Pool("12h", key_fn, period_s, pool_cap=None, supersede_per_side=True)
+    for ts, _o, h, l, c in BARS:
+        pool.process_bar(ts, h, l, c, 0, None)
+    f23 = pool.formations[22]
+    assert (f23.up.v1, f23.up.v2) == (68.972, 70.154)
+    assert f23.up.state == "alive"
+
+
+def test_v61_retired_first_eviction_census():
+    """Audit F2 regression, committed data, cap=12: v6.0 alive-at-eviction
+    counts reproduce the audit's census exactly (12h 22, D 6); v6.1
+    retired-first cuts them to 13 and 1 and restores alive rungs."""
+    expected = {"12h": (22, 13), "D": (6, 1)}
+    for tf, (want60, want61) in expected.items():
+        key_fn, period_s = POOLS[tf]
+        v60 = Pool(
+            tf, key_fn, period_s, pool_cap=12, supersede_per_side=False, evict_retired_first=False
+        )
+        v61 = Pool(tf, key_fn, period_s, pool_cap=12)
+        for ts, _o, h, l, c in BARS:
+            v60.process_bar(ts, h, l, c, 0, None)
+            v61.process_bar(ts, h, l, c, 0, None)
+        assert v60.evict_alive == want60
+        assert v61.evict_alive == want61
+        assert len(v60.formations) == 12 and len(v61.formations) == 12
+
+        def alive(p):
+            return {s.anchors() for f in p.formations for s in (f.lo, f.up) if s.state == "alive"}
+
+        assert len(alive(v61) - alive(v60)) > 0  # rungs restored
 
 
 def test_pool_cap_eviction_bounds_the_pool():

@@ -133,12 +133,18 @@ class Pool:
         n_max: int = 6,
         min_sep: float = 1.0,
         pool_cap: int | None = 12,
+        supersede_per_side: bool = True,
+        evict_retired_first: bool = True,
     ):
         self.name = name
         self.key_fn = key_fn
         self.n_max = n_max
         self.min_gap = int(period_s * min_sep)
         self.pool_cap = pool_cap
+        # v6.1 audit fixes; pass False for v6.0-parity replays
+        self.supersede_per_side = supersede_per_side
+        self.evict_retired_first = evict_retired_first
+        self.evict_alive = 0  # alive-at-eviction counter (either mode)
         self.candles: list[tuple[float, float, int, int]] = []  # (hi, lo, hiT, loT)
         self.cur: list | None = None  # [key, hi, lo, hiT, loT]
         self.formations: list[Formation] = []
@@ -161,13 +167,16 @@ class Pool:
             up_t = (b_hmt, b_hm, a_hmt, a_hm)
             if self.formations:
                 last = self.formations[-1]
-                if last.lo.anchors() == lo_t and last.up.anchors() == up_t:
+                lo_same = last.lo.anchors() == lo_t
+                up_same = last.up.anchors() == up_t
+                if lo_same and up_same:
                     break  # identical to the newest formation: nothing new (:228-231)
                 if last.lo.anchors()[:2] == lo_t[:2] and last.up.anchors()[:2] == up_t[:2]:
-                    # same left anchors re-anchored -> supersede (:232-239)
-                    if last.lo.state == "alive":
+                    # same left anchors re-anchored -> supersede (:232-239); v6.1
+                    # (audit F1) supersedes ONLY sides that actually re-anchored
+                    if (not self.supersede_per_side or not lo_same) and last.lo.state == "alive":
                         last.lo.state, last.lo.state_ts = "superseded", born
-                    if last.up.state == "alive":
+                    if (not self.supersede_per_side or not up_same) and last.up.state == "alive":
                         last.up.state, last.up.state_ts = "superseded", born
             lo_ghost = a_lmt - b_lmt < self.min_gap
             up_ghost = a_hmt - b_hmt < self.min_gap
@@ -186,7 +195,21 @@ class Pool:
                     )
                 )
                 if self.pool_cap is not None and len(self.formations) > self.pool_cap:
-                    self.formations.pop(0)  # oldest-formation eviction (:265-284)
+                    # v6.1 (audit F2): oldest fully-RETIRED formation first;
+                    # alive only when unavoidable (counted). v6.0: always oldest.
+                    ei = 0
+                    if self.evict_retired_first:
+                        for k, g in enumerate(self.formations):
+                            if g.lo.state != "alive" and g.up.state != "alive":
+                                ei = k
+                                break
+                        else:
+                            self.evict_alive += 1
+                    else:
+                        f0 = self.formations[0]
+                        if f0.lo.state == "alive" or f0.up.state == "alive":
+                            self.evict_alive += 1
+                    self.formations.pop(ei)
             break  # smallest qualifying N wins
 
     def process_bar(
@@ -269,6 +292,8 @@ class TwinConfig:
     n_max: int = 6
     min_sep: float = 1.0
     pool_cap: int | None = 12
+    supersede_per_side: bool = True
+    evict_retired_first: bool = True
     arm_tf_s: int = 900
 
 
@@ -292,7 +317,16 @@ class Twin:
     def __post_init__(self):
         if not self.pools:
             self.pools = [
-                Pool(name, kf, ps, self.cfg.n_max, self.cfg.min_sep, self.cfg.pool_cap)
+                Pool(
+                    name,
+                    kf,
+                    ps,
+                    self.cfg.n_max,
+                    self.cfg.min_sep,
+                    self.cfg.pool_cap,
+                    supersede_per_side=self.cfg.supersede_per_side,
+                    evict_retired_first=self.cfg.evict_retired_first,
+                )
                 for name, kf, ps in POOL_SPECS
             ]
 

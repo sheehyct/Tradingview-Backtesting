@@ -3,6 +3,23 @@
 // TFC Entry + BF Exit [TVB-14] -- tier-1 live watch surface, v6.
 // ORDER-FREE indicator: paints entries/exits and fires alerts; never trades.
 //
+// WHAT CHANGED IN v6.1 (2026-07-20, TVB-15 fix-forward; external audit F1/F2):
+//   - PER-SIDE SUPERSEDE (audit F1, HIGH): on a same-left re-anchor, only
+//     the sides that actually re-anchored are superseded. Previously BOTH
+//     old sides retired and an unchanged side's identical replacement was
+//     ghosted as a duplicate -- silently removing a valid exit line
+//     (committed DRAM case: the Jun-21/22 daily upper 81.242->82.016).
+//   - RETIRED-FIRST EVICTION (audit F2, HIGH): over pool_cap the oldest
+//     fully-retired formation is evicted first; an alive formation is
+//     evicted only when none is retired, and that count shows in the
+//     table. Previously the oldest was evicted regardless of state (on
+//     the committed DRAM 1h replay: 22 12h-pool / 6 D-pool alive sides
+//     were silently dropped).
+//   - Non-tiling chart TFs warn in the table: envelope aggregation is
+//     exact only when the chart TF tiles the base TF; anchor TIMESTAMPS
+//     are chart-resolution-quantized regardless.
+//   - min_sep relabeled provisional example-derived (was "a-priori").
+//
 // WHAT CHANGED IN v6 (2026-07-20, user CL/WTIOIL field case):
 //   - ADVERSE-LINE BREAK EXIT (toggle, default on): a long exits when a
 //     confirmed chart-bar close crosses BELOW an alive lower line; a
@@ -64,12 +81,20 @@
 //   - The same structural object found by two pools (e.g. a daily 3 that
 //     is also a 12h N=2) draws in BOTH pools' colors, overlapping; the
 //     alive count includes both. Cross-pool dedup is future work.
-//   - min_sep is the one new a-priori parameter (default 1.0 periods,
-//     from the user's validated examples: good pairs 1.25-54 periods
-//     apart, junk pairs < 0.5). Dial, do not tune on backtests.
-//   - Chart-side aggregation: exact when the chart TF tiles the base TF
-//     on 24/7 perps. No request.security anywhere. Pool history limited
-//     to chart history.
+//   - min_sep is the one new dial (default 1.0 periods, PROVISIONAL
+//     example-derived: good pairs 1.25-54 periods apart, junk < 0.5; the
+//     filter FORM is structural, the threshold is not). Dial from live
+//     watching, do not tune on backtests. Weekly UPPER pairs on young
+//     instruments often ghost under it (wicks land days apart); the
+//     faster pools supply the long-side rungs.
+//   - Old valid lines that have decayed far from price stay alive but
+//     harmless (never reached before nearer rungs); they sit off-screen
+//     -- and v6.1's retired-first eviction keeps more of them, by design.
+//   - Chart-side aggregation: base-candle OHLC exact when the chart TF
+//     tiles the base TF on 24/7 perps; anchor timestamps (and therefore
+//     line slopes and min_sep gaps) are chart-resolution-quantized
+//     regardless. Non-tiling TFs warn in the table. No request.security
+//     anywhere. Pool history limited to chart history.
 //   - Detection at base-TF closes (closed candles); touches intrabar.
 //     Signals/marks only; no fees/funding/slippage modeled.
 // =============================================================================
@@ -90,7 +115,7 @@ en_D = input.bool(true, 'Daily pool', group = grp_x, inline = 'p1')
 en_W = input.bool(true, 'Weekly pool', group = grp_x, inline = 'p2')
 en_M = input.bool(true, 'Monthly pool', group = grp_x, inline = 'p2', tooltip = 'Each pool runs the same rolling rule on its own closed candles. Exits race across ALL alive lines -- near rungs (12h/D) harvest ordinary moves, far rungs (W/M) the big traversals. A pool only runs when the chart TF is below its base TF.')
 n_max = input.int(6, 'Max series length N', minval = 1, maxval = 13, group = grp_x, tooltip = 'Largest window tried by the rolling scan. N=1 is a plain scenario 3; N=4 found the DRAM Jun-22..Jul-13 weekly compound.')
-min_sep = input.float(1.0, 'Min anchor separation (periods)', minval = 0.0, step = 0.25, group = grp_x, tooltip = 'A side is valid only if its two anchor wicks are at least this many base-TF periods apart. Filters the same-session junk lines that decay absurdly fast ("old steep lines retire themselves"). 0 disables. A-priori default 1.0 -- dial from live watching, do not tune on backtests.')
+min_sep = input.float(1.0, 'Min anchor separation (periods)', minval = 0.0, step = 0.25, group = grp_x, tooltip = 'A side is valid only if its two anchor wicks are at least this many base-TF periods apart. Filters the same-session junk lines that decay absurdly fast ("old steep lines retire themselves"). 0 disables. Provisional example-derived default 1.0 (the filter form is structural; the threshold came from labeled examples) -- dial from live watching, do not tune on backtests.')
 pool_cap = input.int(12, 'Max formations kept per pool', minval = 3, maxval = 30, group = grp_x)
 flip_backstop = input.bool(true, 'Flip backstop exit', group = grp_x, tooltip = 'If no BF line is reached, exit on full OPPOSITE gate alignment at a confirmed bar close. The no-line fallback.')
 brk_exit = input.bool(true, 'Adverse-line break exit', group = grp_x, tooltip = 'Long: exit when a confirmed bar close crosses BELOW an alive lower line (short: mirror at upper lines). The structural-stop side of the BF -- the bounce FAILING, not the touch. Labels "BF Break L/S Exit".')
@@ -181,6 +206,7 @@ f_pool(simple string tf, simple bool en, int _pos, float _entry, color col) =>
     var array<float> p_up_v2 = array.new<float>()
     var array<int> p_up_st = array.new<int>()
     var array<line> p_up_ln = array.new<line>()
+    var int ev_alive = 0
     bool active = en and timeframe.in_seconds(tf) > timeframe.in_seconds()
     int min_gap = int(timeframe.in_seconds(tf) * 1000.0 * min_sep)
     if active
@@ -228,13 +254,18 @@ f_pool(simple string tf, simple bool en, int _pos, float _entry, color col) =>
                         bool identical = false
                         if sz > 0
                             int li = sz - 1
-                            identical := array.get(p_lo_t1, li) == bLt and array.get(p_lo_v1, li) == bLm and array.get(p_lo_t2, li) == aLt and array.get(p_lo_v2, li) == aLm and array.get(p_up_t1, li) == bHt and array.get(p_up_v1, li) == bHm and array.get(p_up_t2, li) == aHt and array.get(p_up_v2, li) == aHm
+                            bool lo_same = array.get(p_lo_t1, li) == bLt and array.get(p_lo_v1, li) == bLm and array.get(p_lo_t2, li) == aLt and array.get(p_lo_v2, li) == aLm
+                            bool up_same = array.get(p_up_t1, li) == bHt and array.get(p_up_v1, li) == bHm and array.get(p_up_t2, li) == aHt and array.get(p_up_v2, li) == aHm
+                            identical := lo_same and up_same
                             // same structure re-anchored (same left anchors) -> supersede
+                            // ONLY the sides that actually re-anchored (v6.1, audit F1:
+                            // an unchanged side keeps its alive line; its duplicate
+                            // candidate ghosts in the scan below)
                             if not identical and array.get(p_lo_t1, li) == bLt and array.get(p_lo_v1, li) == bLm and array.get(p_up_t1, li) == bHt and array.get(p_up_v1, li) == bHm
-                                if array.get(p_lo_st, li) == 0
+                                if not lo_same and array.get(p_lo_st, li) == 0
                                     array.set(p_lo_st, li, 3)
                                     f_retire(array.get(p_lo_ln, li), col)
-                                if array.get(p_up_st, li) == 0
+                                if not up_same and array.get(p_up_st, li) == 0
                                     array.set(p_up_st, li, 3)
                                     f_retire(array.get(p_up_ln, li), col)
                         if not identical
@@ -263,25 +294,35 @@ f_pool(simple string tf, simple bool en, int _pos, float _entry, color col) =>
                                 array.push(p_up_st, up_ghost ? 4 : 0)
                                 array.push(p_up_ln, up_ghost ? line(na) : f_draw(bHt, bHm, aHt, aHm, col))
                                 if array.size(p_N) > pool_cap
-                                    line d1 = array.get(p_lo_ln, 0)
-                                    line d2 = array.get(p_up_ln, 0)
+                                    // v6.1 (audit F2): evict the oldest fully-RETIRED
+                                    // formation first; evict an alive one only when none
+                                    // is retired (counted, shown in the table)
+                                    int ei = -1
+                                    for k = 0 to array.size(p_N) - 1
+                                        if ei < 0 and array.get(p_lo_st, k) != 0 and array.get(p_up_st, k) != 0
+                                            ei := k
+                                    if ei < 0
+                                        ei := 0
+                                        ev_alive += 1
+                                    line d1 = array.get(p_lo_ln, ei)
+                                    line d2 = array.get(p_up_ln, ei)
                                     if not na(d1)
                                         line.delete(d1)
                                     if not na(d2)
                                         line.delete(d2)
-                                    array.shift(p_N)
-                                    array.shift(p_lo_t1)
-                                    array.shift(p_lo_v1)
-                                    array.shift(p_lo_t2)
-                                    array.shift(p_lo_v2)
-                                    array.shift(p_lo_st)
-                                    array.shift(p_lo_ln)
-                                    array.shift(p_up_t1)
-                                    array.shift(p_up_v1)
-                                    array.shift(p_up_t2)
-                                    array.shift(p_up_v2)
-                                    array.shift(p_up_st)
-                                    array.shift(p_up_ln)
+                                    array.remove(p_N, ei)
+                                    array.remove(p_lo_t1, ei)
+                                    array.remove(p_lo_v1, ei)
+                                    array.remove(p_lo_t2, ei)
+                                    array.remove(p_lo_v2, ei)
+                                    array.remove(p_lo_st, ei)
+                                    array.remove(p_lo_ln, ei)
+                                    array.remove(p_up_t1, ei)
+                                    array.remove(p_up_v1, ei)
+                                    array.remove(p_up_t2, ei)
+                                    array.remove(p_up_v2, ei)
+                                    array.remove(p_up_st, ei)
+                                    array.remove(p_up_ln, ei)
         if timeframe.change(tf) or na(cur_hi)
             cur_hi := high
             cur_lo := low
@@ -348,16 +389,23 @@ f_pool(simple string tf, simple bool en, int _pos, float _entry, color col) =>
                 else if barstate.isconfirmed and close > v
                     array.set(p_up_st, i, 2)
                     f_retire(array.get(p_up_ln, i), col)
-    [xs_v, xs_n, xl_v, xl_n, ctx_lo, ctx_up, near_s, near_l, psz, nal, brk_lo, brk_up]
+    [xs_v, xs_n, xl_v, xl_n, ctx_lo, ctx_up, near_s, near_l, psz, nal, brk_lo, brk_up, ev_alive]
 
 // --------------------------- run the four pools ------------------------------
 var int pos = 0
 var float entry_px = na
 
-[xsA, xsnA, xlA, xlnA, cloA, cupA, nsA, nlA, nfA, nalA, bloA, bupA] = f_pool('720', en_12h, pos, entry_px, c_12h)
-[xsB, xsnB, xlB, xlnB, cloB, cupB, nsB, nlB, nfB, nalB, bloB, bupB] = f_pool('D', en_D, pos, entry_px, c_D)
-[xsC, xsnC, xlC, xlnC, cloC, cupC, nsC, nlC, nfC, nalC, bloC, bupC] = f_pool('W', en_W, pos, entry_px, c_W)
-[xsD, xsnD, xlD, xlnD, cloD, cupD, nsD, nlD, nfD, nalD, bloD, bupD] = f_pool('M', en_M, pos, entry_px, c_M)
+[xsA, xsnA, xlA, xlnA, cloA, cupA, nsA, nlA, nfA, nalA, bloA, bupA, evA] = f_pool('720', en_12h, pos, entry_px, c_12h)
+[xsB, xsnB, xlB, xlnB, cloB, cupB, nsB, nlB, nfB, nalB, bloB, bupB, evB] = f_pool('D', en_D, pos, entry_px, c_D)
+[xsC, xsnC, xlC, xlnC, cloC, cupC, nsC, nlC, nfC, nalC, bloC, bupC, evC] = f_pool('W', en_W, pos, entry_px, c_W)
+[xsD, xsnD, xlD, xlnD, cloD, cupD, nsD, nlD, nfD, nalD, bloD, bupD, evD] = f_pool('M', en_M, pos, entry_px, c_M)
+
+// v6.1 (audit F4): warn when an active pool's base TF is not tiled by the
+// chart TF (envelopes then approximate; months tile whenever days do)
+f_tiles(simple string tf) =>
+    tf == 'M' ? 86400 % timeframe.in_seconds() == 0 : timeframe.in_seconds(tf) % timeframe.in_seconds() == 0
+
+bool warn_tile = (en_12h and timeframe.in_seconds('720') > timeframe.in_seconds() and not f_tiles('720')) or (en_D and timeframe.in_seconds('D') > timeframe.in_seconds() and not f_tiles('D')) or (en_W and timeframe.in_seconds('W') > timeframe.in_seconds() and not f_tiles('W')) or (en_M and timeframe.in_seconds('M') > timeframe.in_seconds() and not f_tiles('M'))
 
 // combine short-exit candidates: highest touched eligible line wins
 float xs_v = na
@@ -513,7 +561,7 @@ alertcondition(sig_el or sig_es or sig_xl or sig_xs, 'Any signal', 'TFC-BF: sign
 var table tbl = na
 if barstate.islast and show_table
     if na(tbl)
-        tbl := table.new(position.top_right, 1, 4, bgcolor = color.new(color.black, 30), border_width = 1)
+        tbl := table.new(position.top_right, 1, 5, bgcolor = color.new(color.black, 30), border_width = 1)
     string s_pos = pos == 1 ? 'LONG' : pos == -1 ? 'SHORT' : 'flat'
     string s_gate = gate_up ? 'gate UP' : gate_dn ? 'gate DOWN' : 'gate grey'
     float ctx_lo = na
@@ -524,7 +572,9 @@ if barstate.islast and show_table
     for v in array.from(cupA, cupB, cupC, cupD)
         if not na(v) and (na(ctx_up) or v < ctx_up)
             ctx_up := v
-    table.cell(tbl, 0, 0, 'TFC-BF [TVB-14] v6 pools', text_color = color.white, text_size = size.small)
+    table.cell(tbl, 0, 0, 'TFC-BF [TVB-14] v6.1 pools', text_color = color.white, text_size = size.small)
     table.cell(tbl, 0, 1, s_pos + ' | ' + s_gate, text_color = color.silver, text_size = size.tiny)
     table.cell(tbl, 0, 2, 'next line dn ' + (na(ctx_lo) ? '--' : str.tostring(ctx_lo, format.mintick)) + ' | up ' + (na(ctx_up) ? '--' : str.tostring(ctx_up, format.mintick)), text_color = color.silver, text_size = size.tiny)
-    table.cell(tbl, 0, 3, '12h ' + str.tostring(nalA) + ' | D ' + str.tostring(nalB) + ' | W ' + str.tostring(nalC) + ' | M ' + str.tostring(nalD) + ' alive', text_color = color.silver, text_size = size.tiny)
+    table.cell(tbl, 0, 3, '12h ' + str.tostring(nalA) + ' | D ' + str.tostring(nalB) + ' | W ' + str.tostring(nalC) + ' | M ' + str.tostring(nalD) + ' alive' + (evA + evB + evC + evD > 0 ? ' | evict-alive ' + str.tostring(evA + evB + evC + evD) : ''), text_color = color.silver, text_size = size.tiny)
+    if warn_tile
+        table.cell(tbl, 0, 4, 'WARN: chart TF does not tile a pool base -- approx envelopes', text_color = color.yellow, text_size = size.tiny)
