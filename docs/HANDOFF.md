@@ -5,6 +5,167 @@
 
 ---
 
+## Session TVB-15: Paper twin + week-1 freeze; TVB-14 audit folded same day; v6.1 (COMPLETE)
+
+**Date:** 2026-07-20
+**Status:** COMPLETE -- four arcs in one session: (1) the week-1
+paper-trading system designed WITH the user and built (Python twin recorder,
+scanner-fed frozen roster, HL archive, deterministic replay + scoreboard);
+(2) the TVB-14 external audit RETURNED, every count independently
+reproduced, and its two HIGH findings fixed forward as v6.1 SAME DAY under
+the pre-declared policy, deployed and parity-verified live; (3) the
+heat-score dual review (Claude + GPT blind, then compared) delivered to the
+hip3-scanner workspace; (4) day-1 replay produced 18 events and the first
+exit-class numbers.
+
+### What was accomplished
+
+- PAPER-TRADING WEEK 1 (decide-WITH-user; forks ratified via dialog):
+  recorder = PYTHON TWIN over archived HL bars (not TV-alert webhooks);
+  roster rule = xyz, vol>=5M, OI>=3M, top-5 |score| per direction, FROZEN
+  for the week; both directions enabled everywhere (score selects, the
+  D/W/M gate decides). Built analysis/paper/{engine,roster,archive,replay}
+  .py + 24 tests + byte-for-byte fixture-parity goldens (tests/golden/).
+  Roster frozen 14:31Z: long MRVL/GOOGL/AMZN/MSFT/GOLD, short AAPL/SKHX/
+  SKHY/NBIS/TSLA, + DRAM as labeled parity entry. TV minticks captured via
+  scripts/tvb15_symbolinfo.mjs (SKHX has NO TV listing -- twin-only,
+  hl_inferred tick). Score rotation observed live at freeze (NBIS +75 ->
+  -40 in 2.5h) -- recorded, not re-litigated. Archive: 33 files, 11
+  symbols x 5m/1h/1d (~5MB committed; 5m floor ~17d -> refresh <= 3 days).
+  Day-1 replay: 18 events; TSLA harvested 2 BF exits (both green), AAPL
+  took the first adverse-break exit, GOOGL/GOLD flip backstops; 7 open.
+  Protocol doc: docs/experiments/tvb15_paper_week1_protocol.md (a-priori
+  conventions, declared deltas, grading contract, mid-week policy).
+- TVB-15 FINDING (pre-audit, morning): the committed TVB-14 fixture's
+  two-pass ordering shadows supersede over two real touches (12h F23/F39
+  lowers print "superseded", Pine consumes first) -- engine matches Pine;
+  pinned as FIXTURE_SUPERSEDE_SHADOWS + invariant test. The afternoon
+  audit independently found the same two lines (its F3): convergent.
+- TVB-14 AUDIT FOLD-IN (returned NEEDS-CHANGES, Codex CLI user-run):
+  every quantitative claim reproduced before acting. F1 HIGH
+  supersede-before-ghost deletes an unchanged still-valid side --
+  CONFIRMED (D F17/F18 + 12h F23/F24 in committed data; live roster: AAPL
+  twin lost a D lower at -13.9%). F2 HIGH pool_cap evicts alive lines --
+  census reproduced TO THE DIGIT (12h 54 births/42 evictions/22
+  alive-at-eviction; D 27/15/6); roster sweep found evicted-alive rungs at
+  4-8% on AAPL/MSFT/GOOGL/GOLD/TSLA incl. the standing TSLA short's -7.4%
+  harvest rung. F4/F5/F6 agreed (tiling overstatement; min_sep relabel
+  "provisional example-derived"; commit count 4 not 5). One partial
+  dispute: the v5-header "57 -> handful" sentence referred to structural
+  alive lines, not kept-formation count.
+- v6.1 FIX-FORWARD (user ratified: retired-first eviction + full bundle,
+  same day; pre-declared mid-week policy exercised): per-side supersede,
+  retired-first eviction with visible evict-alive counter, non-tiling
+  chart-TF warning, min_sep relabel. Engine in lockstep behind flags
+  (v6.0 mode kept for goldens); regression pins: v6.0 alive-at-eviction
+  22/6 reproduces the audit, v6.1 cuts to 13/1, DRAM restores 10+6 alive
+  sides. Deployed to the live DRAM 5m (USER;7c28fa0b version 6.0 -> 7.0,
+  saved 16:04Z, on-chart ~16:08Z; binding verified, version bump
+  verified; deploy restored two v6-only header bullets the repo had
+  dropped). POST-FIX PARITY: chart and twin alive counts EXACT
+  (13/11/2/0); on-chart evict-alive 14 vs twin census 13+1=14; next-line
+  values agree once slopes are projected across the 1.6h read gap.
+  WEEK-LOG CONTINUITY: v6.1 re-replay = the IDENTICAL 18 events (no
+  affected line had been touched); TVB15-D1 (day-1 stale-line divergence)
+  substantially RESOLVED -- it was mostly F1/F2 behavior, not
+  warm-history resolution.
+- SCORE DUAL REVIEW (user request; scanner moved to its own workspace):
+  my six proposals formed from two live /api/state snapshots 3.5h apart
+  (median |dScore| 30, p90 74, 72/262 sign flips, tails 1/10 + 0/10, the
+  dot term -- not momentum -- drives rotation, corr(dot,mom)=0.703
+  double-count); independent GPT review returned and ALL its code claims
+  verified against source (stale live-signal counting vs skill 4.1
+  in-force; RVOL median 0.56 makes |score|>=60 unreachable + missing-RVOL
+  outranks median; r60 anchor jump from the 7-min mid-history prune;
+  dashboard UI-TF recompute parity gap; score_cross DISABLED in config).
+  Blind convergence on: consumer-contract split, selection reads
+  D/W/M formingDir (ALREADY served by /api/state), ATR-normalized
+  exact-horizon momentum, direction/activity separation, instrument
+  before retuning. Key system fact: the alert config already runs
+  {1d,1w,1M} rev-only -- the score is the timescale outlier. Deliverable
+  written to hip3-scanner/docs/SCORE_METHODOLOGY_DUAL_REVIEW_2026-07-20.md
+  (UNCOMMITTED there; that repo's session commits it). GPT's roster-
+  contamination framing adopted: week 1 = exit-class grading on
+  heat-selected names (state it at week end); week-2 candidate =
+  full-universe twin.
+- Repo hygiene: pyproject ruff config now explicitly ignores E741 (`l` =
+  OHLC low, the codebase-wide bar-row idiom; the committed fixture already
+  used it).
+
+### Decisions recorded (user-ratified)
+
+Twin as recorder (TV = eyes + parity reference); roster rule + freeze +
+xyz-only; retired-first eviction; v6.1 full bundle deployed same day;
+filter-by-gate-yes/rank-no until validated (score compare adjudication).
+
+### Known deltas / open questions
+
+Deferred audit items: last-only supersede search (duplicate-line class,
+design question); fixture assertions/interleave (twin engine + goldens are
+the parity oracle meanwhile); min_sep holdout-freeze protocol. Carried:
+flip-backstop granularity; cross-pool dedup; consumption-while-flat review;
+same-bar entry+touch edge. Twin deltas declared in the protocol doc
+(anchor resolution, tick-live vs 5m, TV-vs-HL wicks, flat start). v6.1
+evict-alive residual is counted and visible (chart 14 at deploy).
+
+### Files created/modified
+
+analysis/paper/{__init__,engine,roster,archive,replay}.py (new);
+tests/test_paper_{engine,roster,archive}.py + tests/golden/ (new);
+analysis/reference/tvb15_apistate_trimmed.json (new);
+analysis/paper/{roster_week1.json,bars/ (33),tvb15_symbolinfo.json,
+events_week1.jsonl,scoreboard_week1.md} (new);
+scripts/tvb15_symbolinfo.mjs (new);
+docs/experiments/tvb15_paper_week1_protocol.md (new);
+pine/tfc_bf_watch.pine (v6 -> v6.1, deployed);
+docs/reviews/tvb14-codex-audit.md (returned, committed);
+docs/reviews/REVIEW_REQUEST.md, docs/HANDOFF.md, pyproject.toml,
+.session_startup_prompt.md; sibling workspace:
+hip3-scanner/docs/SCORE_METHODOLOGY_DUAL_REVIEW_2026-07-20.md (delivered,
+uncommitted there).
+
+### Context for next session
+
+TVB-16 = ride-along refresh (archive+replay MUST run by 2026-07-23; 5m
+floor), collect exit-class grades, fold in the TVB-15 review, and -- at
+week end -- the parity pass + exit-class report + deferred design
+questions + week-2 protocol. The scanner score work happens in the
+hip3-scanner workspace; TVB may consume tf.{1d,1w,1M}.formingDir any time.
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work
+> (range below) and write a verbatim assessment to
+> docs/reviews/tvb15-codex-audit.md. See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: `75eba90^..{session-end head}` on `main` -- pinned
+  concretely in docs/reviews/REVIEW_REQUEST.md after the final push.
+  RANGE-PIN RULE: caret included; sanity-check
+  `git diff --name-status {range}`.
+- Scope / what changed: the paper-trading twin layer (engine port of the
+  live v6/v6.1 Pine + roster/archive/replay + goldens), the week-1 frozen
+  artifacts, the TVB-14 audit fold-in with same-day v6.1 fix-forward
+  (Pine + engine + regression pins), and the protocol doc.
+- Focus areas (scrutinize these): (1) engine-vs-Pine port fidelity
+  (per-bar order, collect-before-transition, exit race, corrected arm
+  clock, float trigger arithmetic) and the v6.0/v6.1 flag split; (2) the
+  golden methodology (fixture goldens + FIXTURE_SUPERSEDE_SHADOWS
+  exceptions -- is pinning the engine's own formatter against
+  fixture-generated text sound?); (3) v6.1 fix edges: per-side supersede
+  interaction with the dup-ghost scan, retired-first eviction under
+  sustained alive pressure, Pine array.remove lockstep x13; (4) replay
+  conventions honesty (fill prices, last-bar drop, warm-up boundary,
+  flat start, 5m confirmed semantics); (5) roster selector rule vs its
+  stated a-priori claims; archive merge newest-wins; (6) the audit
+  fold-in's own verification claims (census reproductions, roster
+  live-impact sweep method -- uncapped-as-truth caveat); (7) deploy
+  verification claims (version bump, table parity numbers).
+- Reviewed by: pending
+- Findings: (blank until docs/reviews/tvb15-codex-audit.md exists)
+
+---
+
 ## Session TVB-14: TFC-BF v4->v6 -- rolling compound-3 pools, field-graded same day (COMPLETE)
 
 **Date:** 2026-07-19..20
@@ -87,7 +248,10 @@ no mid-week tuning.
 > (range below) and write a verbatim assessment to
 > docs/reviews/tvb14-codex-audit.md. See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: RETURNED (2026-07-20; audit in docs/reviews/tvb14-codex-audit.md)
+- Review status: ADDRESSED (returned + acted on same day 2026-07-20:
+  v6.1 fix-forward for F1/F2/F4/F5, F6 corrected; F3 remediation deferred
+  with the twin engine + goldens as the interim parity oracle; synthesis
+  in the TVB-15 entry above)
 - Commits to review: `b324f80^..bd09895` on `main` (v4/v5/v6 + fixture +
   reference bars; session-end docs commit follows and may extend the head
   -- REVIEW_REQUEST.md pins the final range). RANGE-PIN RULE: caret

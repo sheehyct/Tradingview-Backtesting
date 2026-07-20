@@ -10,68 +10,74 @@
 
 ## Status
 
-- Status: RETURNED  <!-- REQUESTED | RETURNED (audit file written) -->
-- Returned: 2026-07-20, Codex CLI (user-run); verdict NEEDS-CHANGES
-  (2 HIGH confirmed + reproduced by TVB-15; synthesis in HANDOFF)
-- Session under review: TVB-14 -- TFC-BF v4->v6: the tier-1 watch
-  indicator's BF exit engine rebuilt as rolling compound-3 pools
-  (12h/D/W/M), designed with the user from MU/DRAM examples, deployed
-  before the Jul-20 weekly open, then twice field-fixed same day (v5:
-  multi-TF pools + min-anchor-separation filter after the zero-BF-exit
-  report; v6: adverse-line break exit after the CL/WTIOIL case).
+- Status: REQUESTED  <!-- REQUESTED | RETURNED (audit file written) -->
+- Session under review: TVB-15 -- the paper-trading twin layer (Python port
+  of the live v6/v6.1 Pine + scanner-fed roster + HL archive +
+  deterministic replay + fixture-parity goldens), the week-1 frozen
+  artifacts, and the same-day TVB-14 audit fold-in (both HIGH findings
+  reproduced, fixed as v6.1, deployed, parity-verified live).
 - SCOPE: standard.
 - Requested: 2026-07-20
-- Write the audit to: `docs/reviews/tvb14-codex-audit.md` (copy
+- Write the audit to: `docs/reviews/tvb15-codex-audit.md` (copy
   `docs/reviews/_TEMPLATE.md`)
-- NOTE: tvb8/tvb9 requests remain unreturned (standing note).
+- NOTE: tvb8/tvb9 requests remain unreturned (standing note). tvb14 was
+  returned AND addressed same day (see the TVB-14 HANDOFF block).
 
 ## Commits to review
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `b324f80^..129336a` (4 commits: b324f80 = v4, first TVB-14 commit; 915e678 = v5; bd09895 = v6; 129336a = session-end docs; sanity-check with `git diff --name-status b324f80^ 129336a`; count corrected 5->4 per audit F6) |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | {pending push -- pinned after the session-end commit; expected `75eba90^..{head}`; sanity-check with `git diff --name-status`} |
 
-No sibling-repo changes this session.
+Sibling-workspace delivery (context only, NOT part of this repo's range):
+`C:\Strat_Trading_Bot\hip3-scanner\docs\SCORE_METHODOLOGY_DUAL_REVIEW_2026-07-20.md`
+(uncommitted there; local transport only).
 
 ## Read first (in this order)
 
 1. `CLAUDE.md`; charter Section 0.
-2. `docs/HANDOFF.md` -- the TVB-14 entry at top (the v4->v6 arc, ratified
-   decisions, known deltas).
-3. `pine/tfc_bf_watch.pine` header (the honest-deltas list is part of the
-   reviewed claim set).
-4. `docs/EXTERNAL_REVIEW_PROTOCOL.md`.
+2. `docs/HANDOFF.md` -- the TVB-15 entry at top (four arcs; the External
+   Review block there mirrors this request).
+3. `docs/experiments/tvb15_paper_week1_protocol.md` (the week's a-priori
+   contract + fix-forward record -- part of the reviewed claim set).
+4. `docs/reviews/tvb14-codex-audit.md` (the prior audit this session
+   folded in; its findings are load-bearing context for v6.1).
+5. `docs/EXTERNAL_REVIEW_PROTOCOL.md`.
 
 ## Focus areas (scrutinize these)
 
-1. `pine/tfc_bf_watch.pine` f_pool: the rolling sweep (envelope window
-   indexing `cnt-2n..cnt-n-1` / `cnt-n..cnt-1`, smallest-N-wins, novelty/
-   supersede/per-side-ghost rules, min_sep ghosting, pool-cap eviction of
-   13 parallel arrays in lockstep).
-2. Pine semantics: f_pool called 4x with per-call-site `var` state; pos/
-   entry_px passed as prior-bar state; any cross-instance leakage.
-3. Exit correctness: direction-relative eligibility (v < entry_px shorts /
-   v > entry_px longs), exit ordering (harvest -> break -> flip), same-bar
-   edges (entry+touch consumes without exit; stranded-line one-bar break
-   window), barstate.isconfirmed on historical bars.
-4. Lifecycle: consumption on ANY containment touch (incl. while flat) --
-   implications for rung availability; crossed vs consumed transitions.
-5. min_sep (1.0 periods): the a-priori claim -- derived from the user's
-   previously-validated examples vs fitted to the DRAM sample? Attack it.
-6. Zero `request.security` claim; chart-TF-tiling aggregation honesty.
-7. analysis/tvb14_bf_pool_fixture.py: parity method vs the deployed
-   drawings (1h-resolution lifecycle vs 5m chart; TV-vs-HL wick variance
-   attribution to the TVB-6 class); committed reference bars
-   (tvb14_dram_{1d,1h}_hl.json) provenance.
-8. Deploy-verification claims in HANDOFF (version bumps, drawn-line
-   cross-checks to the penny, the F3-birth-at-the-roll prediction).
+1. Engine-vs-Pine port fidelity (analysis/paper/engine.py vs
+   pine/tfc_bf_watch.pine): per-bar processing order (sweep -> accumulate
+   -> collect-before-transition scan -> exit race bf>brk>flip -> entry ->
+   arm roll LAST), direction-relative eligibility, float trigger
+   arithmetic, the v6.0/v6.1 behavior flags.
+2. Golden methodology: byte-for-byte parity vs fixture-generated text
+   (tests/golden/) with the two FIXTURE_SUPERSEDE_SHADOWS exceptions --
+   attack the soundness of pinning the engine's formatter against the
+   fixture's output, and the exception invariant test.
+3. v6.1 fix edges: per-side supersede vs the dup-ghost scan ordering;
+   retired-first eviction under sustained all-alive pressure (residual
+   evict-alive counting); the Pine 13-array array.remove lockstep.
+4. Replay conventions honesty: fill prices (bf at line value, brk/flip at
+   close), last-bar drop, warm-up boundary + flat start, 5m confirmed
+   semantics, seeded arm window; declared-deltas completeness.
+5. Roster selector (analysis/paper/roster.py) vs its a-priori claims;
+   archive merge newest-wins semantics; provisional-vs-TV mintick
+   provenance handling (SKHX hl_inferred path).
+6. The session's own verification claims: the audit census reproductions
+   (12h 54/42/22, D 27/15/6), the roster live-impact sweep (note its
+   uncapped-as-truth caveat), post-fix parity numbers (13/11/2/0;
+   evict-alive 14 vs 13+1), and the identical-18-events continuity claim.
+7. Deploy verification (version 6.0 -> 7.0 on USER;7c28fa0b, table title
+   v6.1) and the restored header bullets (repo-vs-deployed drift).
 
-Standing priorities apply (request.security lookahead; model fidelity;
-overfitting language -- note the charter S0 framing on a-priori dials).
+Standing priorities apply (request.security lookahead -- the Pine still
+claims zero; model fidelity; overfitting language -- min_sep is now labeled
+provisional example-derived, check the relabel landed everywhere it should).
 
 ## Output contract
 
-- Verbatim audit -> `docs/reviews/tvb14-codex-audit.md` (template:
+- Verbatim audit -> `docs/reviews/tvb15-codex-audit.md` (template:
   `docs/reviews/_TEMPLATE.md`, skeptic preamble included).
 - Be concrete; cite `file:line`. Never paste a secret/IP/account value.
 - The critical synthesis is written by the NEXT session into `docs/HANDOFF.md`.

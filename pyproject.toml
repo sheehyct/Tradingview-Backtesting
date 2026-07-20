@@ -42,3 +42,8 @@ markers = [
 
 [tool.ruff]
 line-length = 100
+
+[tool.ruff.lint]
+# E741: `l` is the OHLC low in bar rows across the codebase (fixture,
+# giveback, paper twin) -- the ambiguity rule loses to the domain idiom.
+ignore = ["E741"]
