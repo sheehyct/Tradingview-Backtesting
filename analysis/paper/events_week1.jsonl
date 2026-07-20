@@ -1,0 +1,18 @@
+{"action": "enter", "dir": "long", "price": 334.691, "sym": "xyz:AAPL", "ts": 1784505600}
+{"action": "enter", "dir": "short", "price": 3990.29, "sym": "xyz:GOLD", "ts": 1784505600}
+{"action": "enter", "dir": "short", "price": 348.529, "sym": "xyz:GOOGL", "ts": 1784505600}
+{"action": "enter", "dir": "short", "price": 383.829, "sym": "xyz:TSLA", "ts": 1784505600}
+{"action": "enter", "dir": "long", "price": 155.0901, "sym": "xyz:SKHY", "ts": 1784505900}
+{"action": "enter", "dir": "long", "price": 247.721, "sym": "xyz:AMZN", "ts": 1784506200}
+{"action": "enter", "dir": "short", "price": 189.6199, "sym": "xyz:MRVL", "ts": 1784508600}
+{"action": "exit", "dir": "short", "entry_px": 3990.29, "entry_ts": 1784505600, "kind": "flip", "line_N": null, "line_tf": null, "pnl_pct": -0.47390039320450034, "price": 4009.2, "sym": "xyz:GOLD", "ts": 1784508900}
+{"action": "enter", "dir": "long", "price": 4009.21, "sym": "xyz:GOLD", "ts": 1784509200}
+{"action": "enter", "dir": "short", "price": 179.8399, "sym": "xyz:NBIS", "ts": 1784509200}
+{"action": "exit", "dir": "short", "entry_px": 383.829, "entry_ts": 1784505600, "kind": "bf", "line_N": 1, "line_tf": "12h", "pnl_pct": 0.7030812235734235, "price": 381.1303703703704, "sym": "xyz:TSLA", "ts": 1784511600}
+{"action": "enter", "dir": "short", "price": 381.03900000000004, "sym": "xyz:TSLA", "ts": 1784511900}
+{"action": "enter", "dir": "short", "price": 52.56399, "sym": "xyz:DRAM", "ts": 1784514300}
+{"action": "exit", "dir": "long", "entry_px": 334.691, "entry_ts": 1784505600, "kind": "brk", "line_N": null, "line_tf": "12h", "pnl_pct": -1.0579908034575167, "price": 331.15, "sym": "xyz:AAPL", "ts": 1784548800}
+{"action": "exit", "dir": "short", "entry_px": 348.529, "entry_ts": 1784505600, "kind": "flip", "line_N": null, "line_tf": null, "pnl_pct": -2.5510072332574967, "price": 357.42, "sym": "xyz:GOOGL", "ts": 1784554500}
+{"action": "enter", "dir": "long", "price": 351.181, "sym": "xyz:GOOGL", "ts": 1784554800}
+{"action": "exit", "dir": "short", "entry_px": 381.03900000000004, "entry_ts": 1784511900, "kind": "bf", "line_N": 1, "line_tf": "12h", "pnl_pct": 0.634222516628259, "price": 378.6223648648649, "sym": "xyz:TSLA", "ts": 1784555700}
+{"action": "enter", "dir": "short", "price": 375.629, "sym": "xyz:TSLA", "ts": 1784556000}
