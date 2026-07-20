@@ -139,10 +139,9 @@ hip3-scanner workspace; TVB may consume tf.{1d,1w,1M}.formingDir any time.
 > docs/reviews/tvb15-codex-audit.md. See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: `75eba90^..{session-end head}` on `main` -- pinned
-  concretely in docs/reviews/REVIEW_REQUEST.md after the final push.
-  RANGE-PIN RULE: caret included; sanity-check
-  `git diff --name-status {range}`.
+- Commits to review: `75eba90^..b9b93cb` on `main` (5 commits; the pin
+  commit follows outside the range, per precedent). RANGE-PIN RULE: caret
+  included; sanity-check `git diff --name-status 75eba90^ b9b93cb`.
 - Scope / what changed: the paper-trading twin layer (engine port of the
   live v6/v6.1 Pine + roster/archive/replay + goldens), the week-1 frozen
   artifacts, the TVB-14 audit fold-in with same-day v6.1 fix-forward

@@ -27,7 +27,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | {pending push -- pinned after the session-end commit; expected `75eba90^..{head}`; sanity-check with `git diff --name-status`} |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `75eba90^..b9b93cb` (5 commits: 75eba90 = paper twin tooling; 416c84e = week-1 freeze; 73670ff = v6.1 fix; 142dfe6 = audit RETURNED docs; b9b93cb = session-end docs; sanity-check with `git diff --name-status 75eba90^ b9b93cb`) |
 
 Sibling-workspace delivery (context only, NOT part of this repo's range):
 `C:\Strat_Trading_Bot\hip3-scanner\docs\SCORE_METHODOLOGY_DUAL_REVIEW_2026-07-20.md`
