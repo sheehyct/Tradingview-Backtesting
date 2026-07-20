@@ -10,21 +10,16 @@
 
 ## Status
 
-- Status: RETURNED 2026-07-18  <!-- REQUESTED | RETURNED (audit file written) -->
-  (Codex CLI / GPT-5, run by the user; verdict NEEDS-CHANGES; audit:
-  docs/reviews/tvb13-codex-audit.md; critical synthesis: the 2026-07-18
-  addendum in the docs/HANDOFF.md TVB-13 entry)
-- Session under review: TVB-13 -- TVB-12 audit fold-in (every recomputation
-  independently re-run; C1 extended to all four winner watch surfaces; the
-  champion strategy exonerated via resting stop orders; C4 relabels applied);
-  BF Comprehension [TVB-13] designed with the user, built, and deployed
-  (order-free indicator, two line-anchor modes incl. Rob-canonical
-  price-proximity, freeze-as-of fixture tool); give-back instrumentation v1
-  (calculator + archived DRAM June bars + hand-labeled acceptance tests that
-  reproduce the user's live episode to the decimal).
-- SCOPE: FULL (the deep review the user reserved when scoping TVB-12 light).
-- Requested: 2026-07-17
-- Write the audit to: `docs/reviews/tvb13-codex-audit.md` (copy
+- Status: REQUESTED  <!-- REQUESTED | RETURNED (audit file written) -->
+- Session under review: TVB-14 -- TFC-BF v4->v6: the tier-1 watch
+  indicator's BF exit engine rebuilt as rolling compound-3 pools
+  (12h/D/W/M), designed with the user from MU/DRAM examples, deployed
+  before the Jul-20 weekly open, then twice field-fixed same day (v5:
+  multi-TF pools + min-anchor-separation filter after the zero-BF-exit
+  report; v6: adverse-line break exit after the CL/WTIOIL case).
+- SCOPE: standard.
+- Requested: 2026-07-20
+- Write the audit to: `docs/reviews/tvb14-codex-audit.md` (copy
   `docs/reviews/_TEMPLATE.md`)
 - NOTE: tvb8/tvb9 requests remain unreturned (standing note).
 
@@ -32,55 +27,49 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `1f53463^..32efec6` (8 commits: 1f53463 = BF design draft, first TVB-13 commit; 32efec6 = session-end docs; sanity-check with `git diff --name-status 1f53463^ 32efec6`) |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `{pending push -- pinned after session-end commit}` |
 
 No sibling-repo changes this session.
 
 ## Read first (in this order)
 
 1. `CLAUDE.md`; charter Section 0.
-2. `docs/HANDOFF.md` -- the TVB-13 entry at top (critical synthesis of the
-   TVB-12 audit, the BF comprehension arc, give-back instrumentation).
-3. `docs/design/bf_comprehension_indicator_design.md` -- the shipped design
-   incl. both line-anchor modes and the behavioral semantics.
+2. `docs/HANDOFF.md` -- the TVB-14 entry at top (the v4->v6 arc, ratified
+   decisions, known deltas).
+3. `pine/tfc_bf_watch.pine` header (the honest-deltas list is part of the
+   reviewed claim set).
 4. `docs/EXTERNAL_REVIEW_PROTOCOL.md`.
 
-## Focus areas (full scope -- scrutinize these)
+## Focus areas (scrutinize these)
 
-1. `pine/bf_comprehension.pine`: strict R10 operators everywhere (equality
-   never breaks); chart-side HTF aggregation correctness on 24/7 perps and
-   its honesty notes; the price-proximity anchor scan (nearest prior low
-   strictly above the 3's low / high strictly below); per-side independent
-   anchoring; freeze-as-of semantics; repaint honesty of provisional
-   (dashed) drawings; the rolling-mode window comparison and its buffer
-   guard; supersede/fade lifecycle.
-2. The TVB-12 synthesis C1 ADJUDICATION (docs/HANDOFF.md TVB-13 entry):
-   does the resting-stop-order argument really exonerate the champion
-   STRATEGY's early arm_last snapshot roll at EVERY child-bar position
-   (tvb_exp_champion.pine:213-231 vs :313-345), including chart==ARM_TF
-   cells and intrabar fills? This claim protects the entire TVB-11/12
-   record -- attack it.
-3. `analysis/giveback.py` + `tests/test_giveback_fixture.py` + the archived
-   `analysis/reference/tvb13_dram_jun_15m_hl.json`: is the episode-pinning
-   method (last downward cross before the bottom / first exit-level touch
-   after) sound and honestly derived, or curve-fit to the user's account?
-   Are the metric definitions (MFE/MAE window, give_back_pp/frac) correct
-   and unambiguous?
-4. The C4 relabels (TVB-12 status line, tvb12_replay_plan.md standing-verdict
-   correction): do the dated corrections fully cure the overreach the TVB-12
-   audit named, without touching raw results?
-5. The frozen winner-surface header notes (pine/winner_*.pine): are the
-   claims in them (entry-dead at chart==ARM_TF; final-child suppression;
-   backtest unaffected) each independently verifiable from the code?
+1. `pine/tfc_bf_watch.pine` f_pool: the rolling sweep (envelope window
+   indexing `cnt-2n..cnt-n-1` / `cnt-n..cnt-1`, smallest-N-wins, novelty/
+   supersede/per-side-ghost rules, min_sep ghosting, pool-cap eviction of
+   13 parallel arrays in lockstep).
+2. Pine semantics: f_pool called 4x with per-call-site `var` state; pos/
+   entry_px passed as prior-bar state; any cross-instance leakage.
+3. Exit correctness: direction-relative eligibility (v < entry_px shorts /
+   v > entry_px longs), exit ordering (harvest -> break -> flip), same-bar
+   edges (entry+touch consumes without exit; stranded-line one-bar break
+   window), barstate.isconfirmed on historical bars.
+4. Lifecycle: consumption on ANY containment touch (incl. while flat) --
+   implications for rung availability; crossed vs consumed transitions.
+5. min_sep (1.0 periods): the a-priori claim -- derived from the user's
+   previously-validated examples vs fitted to the DRAM sample? Attack it.
+6. Zero `request.security` claim; chart-TF-tiling aggregation honesty.
+7. analysis/tvb14_bf_pool_fixture.py: parity method vs the deployed
+   drawings (1h-resolution lifecycle vs 5m chart; TV-vs-HL wick variance
+   attribution to the TVB-6 class); committed reference bars
+   (tvb14_dram_{1d,1h}_hl.json) provenance.
+8. Deploy-verification claims in HANDOFF (version bumps, drawn-line
+   cross-checks to the penny, the F3-birth-at-the-roll prediction).
 
-Standing priorities apply (request.security lookahead -- note the pending F7
-amendment: the trap is UN-OFFSET lookahead_on; bf_comprehension.pine has ZERO
-security calls by design, verify; model fidelity; overfitting language;
-fee/turnover math).
+Standing priorities apply (request.security lookahead; model fidelity;
+overfitting language -- note the charter S0 framing on a-priori dials).
 
 ## Output contract
 
-- Verbatim audit -> `docs/reviews/tvb13-codex-audit.md` (template:
+- Verbatim audit -> `docs/reviews/tvb14-codex-audit.md` (template:
   `docs/reviews/_TEMPLATE.md`, skeptic preamble included).
 - Be concrete; cite `file:line`. Never paste a secret/IP/account value.
 - The critical synthesis is written by the NEXT session into `docs/HANDOFF.md`.

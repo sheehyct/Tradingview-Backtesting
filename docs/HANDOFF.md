@@ -5,6 +5,115 @@
 
 ---
 
+## Session TVB-14: TFC-BF v4->v6 -- rolling compound-3 pools, field-graded same day (COMPLETE)
+
+**Date:** 2026-07-19..20
+**Status:** COMPLETE -- the tier-1 exit engine was redesigned with the user,
+built, deployed BEFORE the new weekly candle, and then twice field-fixed the
+same day from the user's live observations. Three ships: v4 (rolling
+compound-3 pool, weekly base), v5 (multi-TF pools 12h/D/W/M + junk filter,
+after the user's zero-BF-exit report), v6 (adverse-line break exit, after
+the user's CL/WTIOIL case). TV USER;7c28fa0b at v6.0, live on DRAM 5m.
+
+### What was accomplished
+
+- DESIGN (with the user, MU + DRAM screenshots): the BF detection rule is
+  the user's sentence mechanized -- at each base-TF close, the envelope of
+  the last N closed candles strictly takes out BOTH sides of the prior N's
+  envelope (N=1..6 ascending, smallest wins; N=1 = plain scenario 3, N>1 =
+  compound 3; R10 strict). No calendars -- month-straddling "atypical
+  timeframe" structures found natively. Wick-time anchors ratified (the MU
+  "same lines, just switching timeframes" argument; the weekly-column
+  hand-draw fork is material: BF2 44.02 wick vs 37.30 column at Jul-20).
+  BF2 pinned = the previous weekly 3 (May-25 55.000 -> crash-week 52.788).
+- VERIFICATION-FIRST BUILD: xyz:DRAM 1d+1h archived from HL
+  (analysis/reference/tvb14_dram_{1d,1h}_hl.json), fixture
+  analysis/tvb14_bf_pool_fixture.py replays the pool per base TF; v4's
+  drawn lines matched the fixture to the penny (weekly trio incl. the N=4
+  compound BORN AT THE JUL-20 ROLL at 48.42, observed 48.414 live).
+- v5 (field fix 1): user report "zero BF exits, any ticker" -- structural:
+  weekly-only lines sit 15-35% away (SKHYNIX next rung -36%), flip fires in
+  days, flips win every race; the June DRAM harvests were 12h/D rungs. Fix:
+  four parallel pools (12h/D/W/M toggles, per-pool colors) + the
+  min-anchor-separation validity filter (1.0 base periods, a-priori from
+  the user's own good-vs-junk examples; naive 12h pool 57 formations ->
+  the structural handful matching the hand-drawn ladder 48.4/44.1/41.4/
+  39.7/38.8).
+- v6 (field fix 2): user CL/WTIOIL case -- sim long rode a crash through a
+  lower line with no exit (correct under v5: adverse side never exits on
+  touch; flip blocked by monthly-still-up; line consumed silently). Fix:
+  ASYMMETRIC EXIT SEMANTICS (canon): harvest side touch = exit (sharp
+  bounce takes profit); adverse side exits on the bounce FAILING = a
+  confirmed chart-bar close through an alive line ("BF Break L/S Exit",
+  toggleable). The user's close-confirmation sketch landed on the side it
+  belongs.
+- Memory hygiene: retracted day-one churn diagnosis corrected; the
+  touch-confirmation supersede honored; roadmap memory tracks v6 state.
+
+### Decisions recorded (user-ratified)
+
+Wick-time anchors; smallest-N; lifecycle alive/consumed(any touch)/crossed/
+superseded/ghost; direction-relative exits; asymmetric harvest-touch vs
+adverse-break; min_sep 1.0 a-priori (dial live, never tune on backtests);
+naming "BF S/L Exit", "BF Break L/S Exit", "Flip S/L Exit".
+
+### Known deltas / open questions
+
+Cross-pool duplicate lines (no dedup yet); weekly UPPER pairs often ghost
+under min_sep on young instruments (faster pools supply long rungs);
+deep-decayed lines linger alive but unreachable; same-bar entry+touch
+consumes without exit (one-bar edge); stranded-line birth can fire one
+break exit (one-bar window); flip-backstop granularity (full vs partial
+alignment -- the CL monthly-held-it-open case) OPEN; TV-vs-HL wick variance
+cents-level on some anchors (TVB-6 class).
+
+### Files created/modified
+
+pine/tfc_bf_watch.pine (v3->v6); analysis/tvb14_bf_pool_fixture.py (new);
+analysis/reference/tvb14_dram_1d_hl.json + tvb14_dram_1h_hl.json (new);
+.session_startup_prompt.md; docs/reviews/REVIEW_REQUEST.md; this entry.
+
+### Context for next session
+
+TVB-15 = paper-trading protocol for the week (designed with user) + what-
+gets-traded via the scanner (https://hip3-alerts-production.up.railway.app/,
+/api/state). Alerts must be RE-CREATED on the v6 instance; other layouts
+hold older versions until updated. The week grades the three exit classes;
+no mid-week tuning.
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work
+> (range below) and write a verbatim assessment to
+> docs/reviews/tvb14-codex-audit.md. See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: `b324f80^..bd09895` on `main` (v4/v5/v6 + fixture +
+  reference bars; session-end docs commit follows and may extend the head
+  -- REVIEW_REQUEST.md pins the final range). RANGE-PIN RULE: caret
+  included; sanity-check `git diff --name-status b324f80^..bd09895`.
+- Scope / what changed: the tier-1 watch indicator's BF exit engine
+  rebuilt (rolling compound-3 pools, multi-TF, lifecycle, three exit
+  classes) + the Python acceptance fixture + committed venue bars.
+- Focus areas (scrutinize these): (1) the rolling sweep in
+  pine/tfc_bf_watch.pine f_pool -- window indexing, smallest-N, novelty/
+  supersede/per-side-ghost rules, pool-cap eviction of 13 parallel
+  arrays; (2) per-call-site var instantiation of f_pool x4 (Pine
+  semantics) and the pos/entry_px prior-bar-state pass; (3) exit
+  correctness: direction-relative eligibility (v < entry_px), break-exit
+  ordering vs harvest vs flip, same-bar edges, barstate.isconfirmed use
+  on historical vs realtime bars; (4) lifecycle consumption-on-ANY-touch
+  implications; (5) min_sep filter honesty (a-priori claim vs the
+  fixture-derived good/junk boundary -- is it selection-on-sample?);
+  (6) zero request.security claim; chart-TF-tiling honesty notes;
+  (7) fixture parity method (1h-resolution lifecycle vs 5m chart; TV-vs-
+  HL wick variance attribution); (8) the deploy-verification claims
+  (version bumps, drawn-line cross-checks).
+- Reviewed by: pending
+- Findings: (blank until docs/reviews/tvb14-codex-audit.md exists)
+
+---
+
 ## Session TVB-13: BF comprehension surface + TVB-12 fold-in + give-back v1 (COMPLETE)
 
 **Date:** 2026-07-17
