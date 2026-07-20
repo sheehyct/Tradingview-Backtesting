@@ -87,7 +87,7 @@ no mid-week tuning.
 > (range below) and write a verbatim assessment to
 > docs/reviews/tvb14-codex-audit.md. See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: REQUESTED
+- Review status: RETURNED (2026-07-20; audit in docs/reviews/tvb14-codex-audit.md)
 - Commits to review: `b324f80^..bd09895` on `main` (v4/v5/v6 + fixture +
   reference bars; session-end docs commit follows and may extend the head
   -- REVIEW_REQUEST.md pins the final range). RANGE-PIN RULE: caret
@@ -109,8 +109,20 @@ no mid-week tuning.
   (7) fixture parity method (1h-resolution lifecycle vs 5m chart; TV-vs-
   HL wick variance attribution); (8) the deploy-verification claims
   (version bumps, drawn-line cross-checks).
-- Reviewed by: pending
-- Findings: (blank until docs/reviews/tvb14-codex-audit.md exists)
+- Reviewed by: Codex CLI (user-run, 2026-07-20)
+- Findings: NEEDS-CHANGES. F1 HIGH supersede-before-ghost silently deletes
+  an unchanged still-valid side (TVB-15 reproduced: D F17->F18 upper + 12h
+  F23->F24 upper in committed data; live AAPL twin shows a lost D lower at
+  -13.9%). F2 HIGH pool_cap evicts alive lines and the fixture omits the
+  cap (TVB-15 reproduced the census exactly: 12h 54/42/22, D 27/15/6;
+  roster sweep finds evicted-alive rungs at 4-8% on AAPL/MSFT/GOOGL/GOLD/
+  TSLA incl. the standing TSLA short's -7.4% harvest rung). F3 MED fixture
+  two-pass supersede masks consumed (independently found by TVB-15 the
+  same morning; pinned in tests/test_paper_engine.py). F4 MED tiling
+  overstatement + silent non-tiling TFs. F5 MED min_sep=1.0 relabel:
+  form structural, threshold sample-derived. F6 LOW commit count 5->4
+  (corrected). Critical synthesis + fix-forward record in the TVB-15
+  session entry.
 
 ---
 

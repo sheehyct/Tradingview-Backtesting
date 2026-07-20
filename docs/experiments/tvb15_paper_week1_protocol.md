@@ -124,6 +124,44 @@ event log with the fix commit, keep grading. Anything less than a confirmed
 bug -- including ugly results -- waits for week end. No roster changes, no
 default changes, no min_sep dialing on backtests.
 
+## Fix-forward record (pre-declared policy exercised)
+
+- 2026-07-20 (day 1): the TVB-14 external audit RETURNED (NEEDS-CHANGES,
+  docs/reviews/tvb14-codex-audit.md). Both HIGH findings were confirmed and
+  independently reproduced by TVB-15 before acting: F1 supersede-before-
+  ghost silently deleted an unchanged still-valid side (committed DRAM
+  cases D F17/F18 + 12h F23/F24; live AAPL twin lost a D lower at -13.9%);
+  F2 pool_cap evicted alive lines (census reproduced to the digit: 12h
+  54 births / 42 evictions / 22 alive-at-eviction, D 27/15/6) and the
+  acceptance fixture omitted the cap entirely -- roster sweep found
+  evicted-alive rungs at 4-8% on AAPL/MSFT/GOOGL/GOLD/TSLA including the
+  standing TSLA short's -7.4% harvest rung.
+- v6.1 deployed same day (user-ratified: retired-first eviction + full
+  bundle): per-side supersede, retired-first eviction with a visible
+  evict-alive counter, non-tiling chart-TF warning, min_sep relabeled
+  provisional. Saved 16:04Z (script version 6.0 -> 7.0 on USER;7c28fa0b),
+  on the DRAM 5m chart ~16:08Z. Twin engine updated in lockstep (v6.0
+  mode retained behind flags for the fixture-parity goldens; regression
+  pins: v6.0 evict-alive 22/6 -> v6.1 13/1; DRAM alive sides restored
+  10 (12h) + 6 (D)).
+- Week-log impact: NONE -- the re-replay under v6.1 produced the identical
+  18 events (no affected line had been touched before the fix), so the
+  event log is continuous with no retroactive mutation. The live chart ran
+  v6.0 from Mon 00:00Z to ~16:08Z; chart-vs-twin label differences in that
+  window attribute to the fixed defects.
+- Post-fix parity (DRAM, first read after deploy): alive counts EXACT on
+  all four pools (chart 13/11/2/0 = twin 13/11/2/0); on-chart evict-alive
+  14 vs twin 15 (history-depth class); next-line values agree once each
+  line's slope is projected across the 1.6h evaluation-time gap
+  (48.349/57.041 chart vs 48.358/56.955 twin at 14:30Z data). Delta note
+  2 (TVB15-D1) is therefore substantially RESOLVED: the day-1 stale-line
+  divergence was mostly audit-F1/F2 behavior, not warm-history resolution.
+- Still open from the audit, deliberately deferred to week end: the
+  last-only supersede search (duplicate-line class, audit F1 second half),
+  fixture assertion/interleave remediation (F3; the twin engine + goldens
+  already serve as the parity oracle), and the min_sep holdout-freeze
+  protocol (F5).
+
 ## Out of scope this week
 
 Tier-2 STRAT targets (present in `/api/state` per-TF blocks incl. 1w/1M;

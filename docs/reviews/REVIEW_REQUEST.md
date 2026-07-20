@@ -10,7 +10,9 @@
 
 ## Status
 
-- Status: REQUESTED  <!-- REQUESTED | RETURNED (audit file written) -->
+- Status: RETURNED  <!-- REQUESTED | RETURNED (audit file written) -->
+- Returned: 2026-07-20, Codex CLI (user-run); verdict NEEDS-CHANGES
+  (2 HIGH confirmed + reproduced by TVB-15; synthesis in HANDOFF)
 - Session under review: TVB-14 -- TFC-BF v4->v6: the tier-1 watch
   indicator's BF exit engine rebuilt as rolling compound-3 pools
   (12h/D/W/M), designed with the user from MU/DRAM examples, deployed
@@ -27,7 +29,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `b324f80^..129336a` (5 commits: b324f80 = v4, first TVB-14 commit; 915e678 = v5; bd09895 = v6; 129336a = session-end docs; sanity-check with `git diff --name-status b324f80^ 129336a`) |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `b324f80^..129336a` (4 commits: b324f80 = v4, first TVB-14 commit; 915e678 = v5; bd09895 = v6; 129336a = session-end docs; sanity-check with `git diff --name-status b324f80^ 129336a`; count corrected 5->4 per audit F6) |
 
 No sibling-repo changes this session.
 
