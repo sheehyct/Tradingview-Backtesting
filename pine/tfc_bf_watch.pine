@@ -1,61 +1,63 @@
 //@version=6
 // =============================================================================
-// TFC Entry + BF Exit [TVB-14] -- tier-1 live watch surface, v4.
+// TFC Entry + BF Exit [TVB-14] -- tier-1 live watch surface, v5.
 // ORDER-FREE indicator: paints entries/exits and fires alerts; never trades.
 //
-// WHAT CHANGED IN v4 (designed with the user 2026-07-19, pre new-weekly-open):
-//   - BF detection is now the ROLLING COMPOUND-3 POOL on ONE base timeframe
-//     (default W), replacing the four fixed calendar rungs. The rule, the
-//     user's own sentence mechanized: at each base-TF close, the envelope
-//     (highest high / lowest low) of the last N closed candles strictly takes
-//     out BOTH sides of the envelope of the N candles before them. N=1 is the
-//     ordinary scenario 3; N>1 is the compound 3. No calendars, so
-//     month-straddling "atypical timeframe" structures are found natively.
-//   - Wick-time anchors (user-ratified): each line connects the taken-out
-//     extreme to the extreme that took it out, at the times those wicks
-//     printed. This is the only convention where a line survives switching
-//     chart timeframes unchanged (the MU Feb->Mar lesson).
-//   - DIRECTION-RELATIVE exits: a short exits only at a line BELOW its entry
-//     (long: above). A line on the wrong side is retest-rejection context and
-//     NEVER an exit (the day-one overhead-line lesson, now structural).
-//   - Lifecycle: alive -> consumed (containment touch; faded reclaim level)
-//     or crossed (confirmed close beyond; faded) or superseded (same
-//     structure re-anchored). Retired lines stay drawn faded (toggle) --
-//     the TTO ladder back-walk emerges naturally: next alive line down IS
-//     the next harvest rung.
+// WHAT CHANGED IN v5 (same-day field fix, 2026-07-19 evening):
+//   - v4's weekly-only pool put every alive line 15-35% from price, so the
+//     flip backstop won every exit race (user field report: zero BF exits,
+//     any ticker). v5 restores the REACHABLE LADDER: the SAME rolling
+//     compound-3 rule now runs as FOUR PARALLEL POOLS (12h / D / W / M,
+//     each toggleable) and exits race across all alive lines.
+//   - ANCHOR-SEPARATION VALIDITY FILTER (the user's own discard rule,
+//     mechanized): a side is only born valid if its two anchor wicks are
+//     at least min_sep base-periods apart (default 1.0). Same-session wick
+//     pairs -- the "old steep lines retire themselves" junk that decays at
+//     absurd rates -- are born retired and never drawn. On DRAM this
+//     collapses the naive 12h pool from 57 formations to the handful of
+//     structural lines, reproducing the user's hand-drawn ladder:
+//     48.4 (W) -> 44.1 (W) -> 41.4 (D) -> 39.7 (D) -> 38.8 (D).
+//   - Alive-sides counter now counts BOTH sides (v4 cosmetic bug).
+//   - Exit tooltips name the pool TF (e.g. "D-pool N=2").
+//
+// CORE RULE (user-ratified 2026-07-19, unchanged): at each base-TF close,
+// the envelope (highest high / lowest low) of the last N closed candles
+// strictly takes out BOTH sides of the envelope of the N candles before
+// them (N=1..n_max ascending, smallest wins; N=1 = plain scenario 3, N>1 =
+// compound 3; R10 strict operators). Lines anchor wick-to-wick. Exits are
+// DIRECTION-RELATIVE (short: alive line BELOW entry; long: above); touch =
+// the bar's range CONTAINS the line. Lifecycle: alive -> consumed (any
+// containment touch; faded reclaim) / crossed (confirmed close beyond) /
+// superseded (same left anchors re-anchored) / ghost (duplicate side or
+// invalid separation; never drawn, never active).
 //
 // QUICK START
-//   1. Add to a 24/7 perp chart (5m/15m fine; chart TF must tile the base TF).
-//   2. ENTRY (unchanged from v3): full D/W/M alignment (close vs each period
-//      open) + strict break of the prior COMPLETED arm-TF bar extreme
-//      (+/- 1 tick), intrabar, corrected clock.
-//   3. EXIT: first bar whose range CONTAINS an alive BF line on the profit
-//      side of the position (short: line below entry; long: above). Labels:
-//      "BF S Exit" / "BF L Exit" (+ "Flip S/L Exit" backstop).
-//   4. Lines: solid = alive; faded dashed = retired (consumed/crossed/
-//      superseded). New formations appear on the FIRST bar after a base-TF
-//      close -- watch the redraw live at 00:00 UTC Monday on W.
+//   1. Add to a 24/7 perp chart. Chart TF must be BELOW a pool's base TF
+//      for that pool to run (5m/15m/1h charts run all four; a 1D chart
+//      runs only W/M pools).
+//   2. ENTRY (unchanged): full D/W/M alignment (close vs each period open)
+//      + strict break of the prior COMPLETED arm-TF bar extreme (+/- 1
+//      tick), intrabar, corrected clock.
+//   3. EXIT labels: "BF S Exit" / "BF L Exit" (+ "Flip S/L Exit" backstop).
+//   4. Lines: solid = alive; faded dashed = retired. Color per pool TF.
+//      New formations appear on the first bar after their base-TF close.
 //   5. Alerts: Enter Long / Enter Short / Exit Long / Exit Short / Any.
-//      Use "Once per bar".
+//      Use "Once per bar". Re-create alerts after every script update.
 //
-// HONEST DELTAS (v4):
-//   - ONE base timeframe per instance (default W). The multi-TF fractal grid
-//     is future work; add a second instance on another base TF meanwhile.
-//   - Chart-side aggregation: exact when the chart TF tiles the base TF on
-//     24/7 perps (5m/15m -> W: yes). No request.security anywhere.
-//   - The pool needs chart history back to the structures you care about;
-//     on short-history charts the earliest formations may be missed.
-//   - Detection at base-TF closes only (closed candles, Rob-canonical);
-//     touches/exits evaluate intrabar continuously. Signals/marks only; no
-//     fees/funding/slippage modeled.
-//   - DRAM weekly acceptance fixture (venue bars, 2026-07-19): F1 born
-//     Jun-8 N=1 lower 55.000@May-26 -> 52.788@Jun-6 (alive, 44.02 at
-//     Jul-20); F2 born Jun-29 N=1 lower 67.417@Jun-15 -> 67.184@Jun-24
-//     (consumed Jun-29 14:00); F3 births at the Jul-20 00:00 UTC roll,
-//     N=4, lower 52.788@Jun-6 -> 48.663@Jul-17 (48.42 at Jul-20), upper
-//     duplicates F2's upper (per-side dup guard keeps one line).
+// HONEST DELTAS (v5):
+//   - The same structural object found by two pools (e.g. a daily 3 that
+//     is also a 12h N=2) draws in BOTH pools' colors, overlapping; the
+//     alive count includes both. Cross-pool dedup is future work.
+//   - min_sep is the one new a-priori parameter (default 1.0 periods,
+//     from the user's validated examples: good pairs 1.25-54 periods
+//     apart, junk pairs < 0.5). Dial, do not tune on backtests.
+//   - Chart-side aggregation: exact when the chart TF tiles the base TF
+//     on 24/7 perps. No request.security anywhere. Pool history limited
+//     to chart history.
+//   - Detection at base-TF closes (closed candles); touches intrabar.
+//     Signals/marks only; no fees/funding/slippage modeled.
 // =============================================================================
-indicator('TFC Entry + BF Exit [TVB-14]', 'TFC-BF', overlay = true, max_lines_count = 100, max_labels_count = 500)
+indicator('TFC Entry + BF Exit [TVB-14]', 'TFC-BF', overlay = true, max_lines_count = 500, max_labels_count = 500)
 
 // ------------------------------- inputs --------------------------------------
 grp_g = 'Entry gate'
@@ -66,21 +68,28 @@ arm_tf = input.timeframe('15', 'Arm TF (trigger = prior completed bar extreme)',
 allow_long = input.bool(true, 'Long entries', group = grp_g, inline = 'd')
 allow_short = input.bool(true, 'Short entries', group = grp_g, inline = 'd')
 
-grp_x = 'BF exit (rolling compound-3 pool)'
-tf_base = input.timeframe('W', 'Base timeframe', group = grp_x, tooltip = 'Formations are detected on CLOSED candles of this timeframe. The rolling rule: last N candles envelope strictly outside the prior N candles envelope. Start weekly (less noisy); one base TF per instance.')
-n_max = input.int(6, 'Max series length N', minval = 1, maxval = 13, group = grp_x, tooltip = 'Largest window tried by the rolling scan. N=1 is a plain scenario 3; N=4 found the DRAM Jun-22..Jul-13 compound. Bounded by available history (needs 2N closed candles).')
-pool_cap = input.int(12, 'Max formations kept', minval = 3, maxval = 30, group = grp_x, tooltip = 'Oldest formations (and their lines) are dropped beyond this. Keeps charts and memory clean.')
+grp_x = 'BF exit pools (rolling compound-3 per timeframe)'
+en_12h = input.bool(true, '12h pool', group = grp_x, inline = 'p1')
+en_D = input.bool(true, 'Daily pool', group = grp_x, inline = 'p1')
+en_W = input.bool(true, 'Weekly pool', group = grp_x, inline = 'p2')
+en_M = input.bool(true, 'Monthly pool', group = grp_x, inline = 'p2', tooltip = 'Each pool runs the same rolling rule on its own closed candles. Exits race across ALL alive lines -- near rungs (12h/D) harvest ordinary moves, far rungs (W/M) the big traversals. A pool only runs when the chart TF is below its base TF.')
+n_max = input.int(6, 'Max series length N', minval = 1, maxval = 13, group = grp_x, tooltip = 'Largest window tried by the rolling scan. N=1 is a plain scenario 3; N=4 found the DRAM Jun-22..Jul-13 weekly compound.')
+min_sep = input.float(1.0, 'Min anchor separation (periods)', minval = 0.0, step = 0.25, group = grp_x, tooltip = 'A side is valid only if its two anchor wicks are at least this many base-TF periods apart. Filters the same-session junk lines that decay absurdly fast ("old steep lines retire themselves"). 0 disables. A-priori default 1.0 -- dial from live watching, do not tune on backtests.')
+pool_cap = input.int(12, 'Max formations kept per pool', minval = 3, maxval = 30, group = grp_x)
 flip_backstop = input.bool(true, 'Flip backstop exit', group = grp_x, tooltip = 'If no BF line is reached, exit on full OPPOSITE gate alignment at a confirmed bar close. The no-line fallback.')
 warn_pct = input.float(0.5, 'Heads-up distance (%)', minval = 0.0, step = 0.1, group = grp_x, tooltip = 'Paint a warning char when price is within this percent of the next harvest line. 0 disables.')
 
 grp_v = 'Display'
-show_lines = input.bool(true, 'Show BF lines', group = grp_v, tooltip = 'The lines themselves. Toggle off for a signals-only chart (entries/exits still fire).')
+show_lines = input.bool(true, 'Show BF lines', group = grp_v, tooltip = 'The lines themselves. Toggle off for a signals-only chart (exits still fire).')
 show_retired = input.bool(true, 'Show retired lines (faded)', group = grp_v, tooltip = 'Consumed/crossed/superseded lines kept as faded dashed reclaim levels. Toggle off to declutter (phone mode).')
 show_bg = input.bool(true, 'Tint background while in position', group = grp_v)
 show_table = input.bool(true, 'Status table', group = grp_v)
 c_long = input.color(color.new(#26a69a, 0), 'Long', group = grp_v, inline = 'c')
 c_short = input.color(color.new(#ef5350, 0), 'Short', group = grp_v, inline = 'c')
-c_line = input.color(color.new(#ffb74d, 0), 'BF line', group = grp_v, inline = 'c')
+c_12h = input.color(color.new(#ff9800, 0), '12h', group = grp_v, inline = 'r')
+c_D = input.color(color.new(#2962ff, 0), 'D', group = grp_v, inline = 'r')
+c_W = input.color(color.new(#e040fb, 0), 'W', group = grp_v, inline = 'r')
+c_M = input.color(color.new(#ff1744, 0), 'M', group = grp_v, inline = 'r')
 
 // ------------------------------- gates ---------------------------------------
 f_open(simple string tf) =>
@@ -110,210 +119,278 @@ else
 // the very end of the script -- rollback then guarantees the completed-period
 // reference on every child bar, including chart TF == arm TF (audit C1 fix).
 
-// --------------- base-TF accumulation (closed-candle history) ----------------
-// Envelope history of CLOSED base-TF candles, with wick times. Chart-side
-// aggregation, zero request.security. Capped at 2*n_max (sweep lookback).
-var array<float> bH = array.new<float>()
-var array<float> bL = array.new<float>()
-var array<int> bHT = array.new<int>()
-var array<int> bLT = array.new<int>()
-var float cur_hi = na
-var float cur_lo = na
-var int cur_hiT = na
-var int cur_loT = na
-
-// ------------------------------ formation pool -------------------------------
-// Parallel arrays; states: 0 alive, 1 consumed (touch), 2 crossed (confirmed
-// close beyond), 3 superseded (same structure re-anchored), 4 ghost (side
-// duplicated an existing line -- never drawn, never active).
-var array<int> p_N = array.new<int>()
-var array<int> p_born = array.new<int>()
-var array<int> p_lo_t1 = array.new<int>()
-var array<float> p_lo_v1 = array.new<float>()
-var array<int> p_lo_t2 = array.new<int>()
-var array<float> p_lo_v2 = array.new<float>()
-var array<int> p_lo_st = array.new<int>()
-var array<line> p_lo_ln = array.new<line>()
-var array<int> p_up_t1 = array.new<int>()
-var array<float> p_up_v1 = array.new<float>()
-var array<int> p_up_t2 = array.new<int>()
-var array<float> p_up_v2 = array.new<float>()
-var array<int> p_up_st = array.new<int>()
-var array<line> p_up_ln = array.new<line>()
-
+// ------------------------- shared helpers ------------------------------------
 f_val(int t1, float v1, int t2, float v2) =>
     t2 == t1 ? v2 : v2 + (v2 - v1) / (t2 - t1) * (time - t2)
 
-f_lo_val(int i) =>
-    f_val(array.get(p_lo_t1, i), array.get(p_lo_v1, i), array.get(p_lo_t2, i), array.get(p_lo_v2, i))
-
-f_up_val(int i) =>
-    f_val(array.get(p_up_t1, i), array.get(p_up_v1, i), array.get(p_up_t2, i), array.get(p_up_v2, i))
-
-f_retire(line ln) =>
+f_retire(line ln, color col) =>
     if not na(ln)
         if show_retired
-            line.set_color(ln, color.new(c_line, 72))
+            line.set_color(ln, color.new(col, 72))
             line.set_style(ln, line.style_dashed)
             line.set_width(ln, 1)
         else
             line.delete(ln)
 
-f_draw(int t1, float v1, int t2, float v2) =>
-    show_lines ? line.new(t1, v1, t2, v2, xloc = xloc.bar_time, extend = extend.right, color = c_line, width = 2) : line(na)
+f_draw(int t1, float v1, int t2, float v2, color col) =>
+    show_lines ? line.new(t1, v1, t2, v2, xloc = xloc.bar_time, extend = extend.right, color = col, width = 2) : line(na)
 
-// ---------------- detection at base-TF close (the rolling sweep) -------------
-bool base_roll = timeframe.change(tf_base)
-if base_roll and not na(cur_hi)
-    // the accumulating candle just COMPLETED: push it, then sweep (closed data only)
-    array.push(bH, cur_hi)
-    array.push(bL, cur_lo)
-    array.push(bHT, cur_hiT)
-    array.push(bLT, cur_loT)
-    if array.size(bH) > 2 * n_max
-        array.shift(bH)
-        array.shift(bL)
-        array.shift(bHT)
-        array.shift(bLT)
-    int cnt = array.size(bH)
-    bool found = false
-    for n = 1 to n_max
-        if not found and cnt >= 2 * n
-            float aHm = -1.0e18
-            float aLm = 1.0e18
-            int aHt = 0
-            int aLt = 0
-            float bHm = -1.0e18
-            float bLm = 1.0e18
-            int bHt = 0
-            int bLt = 0
-            for j = cnt - n to cnt - 1
-                if array.get(bH, j) > aHm
-                    aHm := array.get(bH, j)
-                    aHt := array.get(bHT, j)
-                if array.get(bL, j) < aLm
-                    aLm := array.get(bL, j)
-                    aLt := array.get(bLT, j)
-            for j = cnt - 2 * n to cnt - n - 1
-                if array.get(bH, j) > bHm
-                    bHm := array.get(bH, j)
-                    bHt := array.get(bHT, j)
-                if array.get(bL, j) < bLm
-                    bLm := array.get(bL, j)
-                    bLt := array.get(bLT, j)
-            // strict both-sides takeout (R10 operators; equality never breaks)
-            if aHm > bHm and aLm < bLm
-                found := true
-                int sz = array.size(p_N)
-                bool identical = false
-                if sz > 0
-                    int li = sz - 1
-                    identical := array.get(p_lo_t1, li) == bLt and array.get(p_lo_v1, li) == bLm and array.get(p_lo_t2, li) == aLt and array.get(p_lo_v2, li) == aLm and array.get(p_up_t1, li) == bHt and array.get(p_up_v1, li) == bHm and array.get(p_up_t2, li) == aHt and array.get(p_up_v2, li) == aHm
-                    // same structure re-anchored (same left anchors, new extremes) -> supersede
-                    if not identical and array.get(p_lo_t1, li) == bLt and array.get(p_lo_v1, li) == bLm and array.get(p_up_t1, li) == bHt and array.get(p_up_v1, li) == bHm
-                        if array.get(p_lo_st, li) == 0
-                            array.set(p_lo_st, li, 3)
-                            f_retire(array.get(p_lo_ln, li))
-                        if array.get(p_up_st, li) == 0
-                            array.set(p_up_st, li, 3)
-                            f_retire(array.get(p_up_ln, li))
-                if not identical
-                    // per-side duplicate guard (e.g. DRAM F3 upper == F2 upper)
-                    bool lo_dup = false
-                    bool up_dup = false
-                    if sz > 0
-                        for i = 0 to sz - 1
-                            if array.get(p_lo_t1, i) == bLt and array.get(p_lo_v1, i) == bLm and array.get(p_lo_t2, i) == aLt and array.get(p_lo_v2, i) == aLm
-                                lo_dup := true
-                            if array.get(p_up_t1, i) == bHt and array.get(p_up_v1, i) == bHm and array.get(p_up_t2, i) == aHt and array.get(p_up_v2, i) == aHm
-                                up_dup := true
-                    array.push(p_N, n)
-                    array.push(p_born, time)
-                    array.push(p_lo_t1, bLt)
-                    array.push(p_lo_v1, bLm)
-                    array.push(p_lo_t2, aLt)
-                    array.push(p_lo_v2, aLm)
-                    array.push(p_lo_st, lo_dup ? 4 : 0)
-                    array.push(p_lo_ln, lo_dup ? line(na) : f_draw(bLt, bLm, aLt, aLm))
-                    array.push(p_up_t1, bHt)
-                    array.push(p_up_v1, bHm)
-                    array.push(p_up_t2, aHt)
-                    array.push(p_up_v2, aHm)
-                    array.push(p_up_st, up_dup ? 4 : 0)
-                    array.push(p_up_ln, up_dup ? line(na) : f_draw(bHt, bHm, aHt, aHm))
-                    if array.size(p_N) > pool_cap
-                        line d1 = array.get(p_lo_ln, 0)
-                        line d2 = array.get(p_up_ln, 0)
-                        if not na(d1)
-                            line.delete(d1)
-                        if not na(d2)
-                            line.delete(d2)
-                        array.shift(p_N)
-                        array.shift(p_born)
-                        array.shift(p_lo_t1)
-                        array.shift(p_lo_v1)
-                        array.shift(p_lo_t2)
-                        array.shift(p_lo_v2)
-                        array.shift(p_lo_st)
-                        array.shift(p_lo_ln)
-                        array.shift(p_up_t1)
-                        array.shift(p_up_v1)
-                        array.shift(p_up_t2)
-                        array.shift(p_up_v2)
-                        array.shift(p_up_st)
-                        array.shift(p_up_ln)
-if base_roll or na(cur_hi)
-    cur_hi := high
-    cur_lo := low
-    cur_hiT := time
-    cur_loT := time
-else
-    if high > cur_hi
-        cur_hi := high
-        cur_hiT := time
-    if low < cur_lo
-        cur_lo := low
-        cur_loT := time
+// ------------------------------- the pool ------------------------------------
+// One rolling compound-3 pool on base TF `tf`. Self-contained per call site
+// (Pine instantiates the var state per call). Detection at base-TF closes;
+// lifecycle + touch collection every bar. Returns exit candidates for the
+// CURRENT position (passed in as prior-bar state), context values, counts.
+// States: 0 alive, 1 consumed, 2 crossed, 3 superseded, 4 ghost (dup side
+// or invalid anchor separation -- never drawn, never active).
+f_pool(simple string tf, simple bool en, int _pos, float _entry, color col) =>
+    var array<float> bH = array.new<float>()
+    var array<float> bL = array.new<float>()
+    var array<int> bHT = array.new<int>()
+    var array<int> bLT = array.new<int>()
+    var float cur_hi = na
+    var float cur_lo = na
+    var int cur_hiT = na
+    var int cur_loT = na
+    var array<int> p_N = array.new<int>()
+    var array<int> p_lo_t1 = array.new<int>()
+    var array<float> p_lo_v1 = array.new<float>()
+    var array<int> p_lo_t2 = array.new<int>()
+    var array<float> p_lo_v2 = array.new<float>()
+    var array<int> p_lo_st = array.new<int>()
+    var array<line> p_lo_ln = array.new<line>()
+    var array<int> p_up_t1 = array.new<int>()
+    var array<float> p_up_v1 = array.new<float>()
+    var array<int> p_up_t2 = array.new<int>()
+    var array<float> p_up_v2 = array.new<float>()
+    var array<int> p_up_st = array.new<int>()
+    var array<line> p_up_ln = array.new<line>()
+    bool active = en and timeframe.in_seconds(tf) > timeframe.in_seconds()
+    int min_gap = int(timeframe.in_seconds(tf) * 1000.0 * min_sep)
+    if active
+        if timeframe.change(tf) and not na(cur_hi)
+            // the accumulating candle just COMPLETED: push, then sweep closed data
+            array.push(bH, cur_hi)
+            array.push(bL, cur_lo)
+            array.push(bHT, cur_hiT)
+            array.push(bLT, cur_loT)
+            if array.size(bH) > 2 * n_max
+                array.shift(bH)
+                array.shift(bL)
+                array.shift(bHT)
+                array.shift(bLT)
+            int cnt = array.size(bH)
+            bool found = false
+            for n = 1 to n_max
+                if not found and cnt >= 2 * n
+                    float aHm = -1.0e18
+                    float aLm = 1.0e18
+                    int aHt = 0
+                    int aLt = 0
+                    float bHm = -1.0e18
+                    float bLm = 1.0e18
+                    int bHt = 0
+                    int bLt = 0
+                    for j = cnt - n to cnt - 1
+                        if array.get(bH, j) > aHm
+                            aHm := array.get(bH, j)
+                            aHt := array.get(bHT, j)
+                        if array.get(bL, j) < aLm
+                            aLm := array.get(bL, j)
+                            aLt := array.get(bLT, j)
+                    for j = cnt - 2 * n to cnt - n - 1
+                        if array.get(bH, j) > bHm
+                            bHm := array.get(bH, j)
+                            bHt := array.get(bHT, j)
+                        if array.get(bL, j) < bLm
+                            bLm := array.get(bL, j)
+                            bLt := array.get(bLT, j)
+                    // strict both-sides takeout (R10; equality never breaks)
+                    if aHm > bHm and aLm < bLm
+                        found := true
+                        int sz = array.size(p_N)
+                        bool identical = false
+                        if sz > 0
+                            int li = sz - 1
+                            identical := array.get(p_lo_t1, li) == bLt and array.get(p_lo_v1, li) == bLm and array.get(p_lo_t2, li) == aLt and array.get(p_lo_v2, li) == aLm and array.get(p_up_t1, li) == bHt and array.get(p_up_v1, li) == bHm and array.get(p_up_t2, li) == aHt and array.get(p_up_v2, li) == aHm
+                            // same structure re-anchored (same left anchors) -> supersede
+                            if not identical and array.get(p_lo_t1, li) == bLt and array.get(p_lo_v1, li) == bLm and array.get(p_up_t1, li) == bHt and array.get(p_up_v1, li) == bHm
+                                if array.get(p_lo_st, li) == 0
+                                    array.set(p_lo_st, li, 3)
+                                    f_retire(array.get(p_lo_ln, li), col)
+                                if array.get(p_up_st, li) == 0
+                                    array.set(p_up_st, li, 3)
+                                    f_retire(array.get(p_up_ln, li), col)
+                        if not identical
+                            // ghost a side when it duplicates an existing line OR
+                            // fails the anchor-separation validity filter
+                            bool lo_ghost = aLt - bLt < min_gap
+                            bool up_ghost = aHt - bHt < min_gap
+                            if sz > 0
+                                for i = 0 to sz - 1
+                                    if array.get(p_lo_t1, i) == bLt and array.get(p_lo_v1, i) == bLm and array.get(p_lo_t2, i) == aLt and array.get(p_lo_v2, i) == aLm
+                                        lo_ghost := true
+                                    if array.get(p_up_t1, i) == bHt and array.get(p_up_v1, i) == bHm and array.get(p_up_t2, i) == aHt and array.get(p_up_v2, i) == aHm
+                                        up_ghost := true
+                            if not (lo_ghost and up_ghost)
+                                array.push(p_N, n)
+                                array.push(p_lo_t1, bLt)
+                                array.push(p_lo_v1, bLm)
+                                array.push(p_lo_t2, aLt)
+                                array.push(p_lo_v2, aLm)
+                                array.push(p_lo_st, lo_ghost ? 4 : 0)
+                                array.push(p_lo_ln, lo_ghost ? line(na) : f_draw(bLt, bLm, aLt, aLm, col))
+                                array.push(p_up_t1, bHt)
+                                array.push(p_up_v1, bHm)
+                                array.push(p_up_t2, aHt)
+                                array.push(p_up_v2, aHm)
+                                array.push(p_up_st, up_ghost ? 4 : 0)
+                                array.push(p_up_ln, up_ghost ? line(na) : f_draw(bHt, bHm, aHt, aHm, col))
+                                if array.size(p_N) > pool_cap
+                                    line d1 = array.get(p_lo_ln, 0)
+                                    line d2 = array.get(p_up_ln, 0)
+                                    if not na(d1)
+                                        line.delete(d1)
+                                    if not na(d2)
+                                        line.delete(d2)
+                                    array.shift(p_N)
+                                    array.shift(p_lo_t1)
+                                    array.shift(p_lo_v1)
+                                    array.shift(p_lo_t2)
+                                    array.shift(p_lo_v2)
+                                    array.shift(p_lo_st)
+                                    array.shift(p_lo_ln)
+                                    array.shift(p_up_t1)
+                                    array.shift(p_up_v1)
+                                    array.shift(p_up_t2)
+                                    array.shift(p_up_v2)
+                                    array.shift(p_up_st)
+                                    array.shift(p_up_ln)
+        if timeframe.change(tf) or na(cur_hi)
+            cur_hi := high
+            cur_lo := low
+            cur_hiT := time
+            cur_loT := time
+        else
+            if high > cur_hi
+                cur_hi := high
+                cur_hiT := time
+            if low < cur_lo
+                cur_lo := low
+                cur_loT := time
+    // per-bar scan: exit candidates (vs the standing position), lifecycle,
+    // context values, counts
+    float xs_v = na
+    int xs_n = 0
+    float xl_v = na
+    int xl_n = 0
+    float ctx_lo = na
+    float ctx_up = na
+    float near_s = na
+    float near_l = na
+    int nal = 0
+    int psz = array.size(p_N)
+    if active and psz > 0
+        for i = 0 to psz - 1
+            if array.get(p_lo_st, i) == 0
+                float v = f_val(array.get(p_lo_t1, i), array.get(p_lo_v1, i), array.get(p_lo_t2, i), array.get(p_lo_v2, i))
+                nal += 1
+                bool touched = low <= v and high >= v
+                if _pos == -1 and touched and v < _entry and (na(xs_v) or v > xs_v)
+                    xs_v := v
+                    xs_n := array.get(p_N, i)
+                if v < close and (na(ctx_lo) or v > ctx_lo)
+                    ctx_lo := v
+                if _pos == -1 and v < _entry and v < low and (na(near_s) or v > near_s)
+                    near_s := v
+                if touched
+                    array.set(p_lo_st, i, 1)
+                    f_retire(array.get(p_lo_ln, i), col)
+                else if barstate.isconfirmed and close < v
+                    array.set(p_lo_st, i, 2)
+                    f_retire(array.get(p_lo_ln, i), col)
+            if array.get(p_up_st, i) == 0
+                float v = f_val(array.get(p_up_t1, i), array.get(p_up_v1, i), array.get(p_up_t2, i), array.get(p_up_v2, i))
+                nal += 1
+                bool touched = low <= v and high >= v
+                if _pos == 1 and touched and v > _entry and (na(xl_v) or v < xl_v)
+                    xl_v := v
+                    xl_n := array.get(p_N, i)
+                if v > close and (na(ctx_up) or v < ctx_up)
+                    ctx_up := v
+                if _pos == 1 and v > _entry and v > high and (na(near_l) or v < near_l)
+                    near_l := v
+                if touched
+                    array.set(p_up_st, i, 1)
+                    f_retire(array.get(p_up_ln, i), col)
+                else if barstate.isconfirmed and close > v
+                    array.set(p_up_st, i, 2)
+                    f_retire(array.get(p_up_ln, i), col)
+    [xs_v, xs_n, xl_v, xl_n, ctx_lo, ctx_up, near_s, near_l, psz, nal]
 
-// --------------------------- position machine --------------------------------
+// --------------------------- run the four pools ------------------------------
 var int pos = 0
 var float entry_px = na
+
+[xsA, xsnA, xlA, xlnA, cloA, cupA, nsA, nlA, nfA, nalA] = f_pool('720', en_12h, pos, entry_px, c_12h)
+[xsB, xsnB, xlB, xlnB, cloB, cupB, nsB, nlB, nfB, nalB] = f_pool('D', en_D, pos, entry_px, c_D)
+[xsC, xsnC, xlC, xlnC, cloC, cupC, nsC, nlC, nfC, nalC] = f_pool('W', en_W, pos, entry_px, c_W)
+[xsD, xsnD, xlD, xlnD, cloD, cupD, nsD, nlD, nfD, nalD] = f_pool('M', en_M, pos, entry_px, c_M)
+
+// combine short-exit candidates: highest touched eligible line wins
+float xs_v = na
+int xs_n = 0
+string xs_tf = ''
+if not na(xsA)
+    xs_v := xsA
+    xs_n := xsnA
+    xs_tf := '12h'
+if not na(xsB) and (na(xs_v) or xsB > xs_v)
+    xs_v := xsB
+    xs_n := xsnB
+    xs_tf := 'D'
+if not na(xsC) and (na(xs_v) or xsC > xs_v)
+    xs_v := xsC
+    xs_n := xsnC
+    xs_tf := 'W'
+if not na(xsD) and (na(xs_v) or xsD > xs_v)
+    xs_v := xsD
+    xs_n := xsnD
+    xs_tf := 'M'
+// combine long-exit candidates: lowest touched eligible line wins
+float xl_v = na
+int xl_n = 0
+string xl_tf = ''
+if not na(xlA)
+    xl_v := xlA
+    xl_n := xlnA
+    xl_tf := '12h'
+if not na(xlB) and (na(xl_v) or xlB < xl_v)
+    xl_v := xlB
+    xl_n := xlnB
+    xl_tf := 'D'
+if not na(xlC) and (na(xl_v) or xlC < xl_v)
+    xl_v := xlC
+    xl_n := xlnC
+    xl_tf := 'W'
+if not na(xlD) and (na(xl_v) or xlD < xl_v)
+    xl_v := xlD
+    xl_n := xlnD
+    xl_tf := 'M'
+
+// --------------------------- position machine --------------------------------
 bool sig_el = false
 bool sig_es = false
 bool sig_xl = false
 bool sig_xs = false
-float x_line = na
-int x_n = 0
 string x_kind = ''
-
-// exits first (an entry this bar is not exited on the same bar).
-// TOUCH = the bar's range CONTAINS the line. DIRECTION-RELATIVE: shorts only
-// at alive lower lines BELOW entry; longs only at alive upper lines ABOVE.
-int psz = array.size(p_N)
-if pos == -1 and psz > 0
-    for i = 0 to psz - 1
-        if array.get(p_lo_st, i) == 0
-            float v = f_lo_val(i)
-            if v < entry_px and low <= v and high >= v
-                if na(x_line) or v > x_line
-                    x_line := v
-                    x_n := array.get(p_N, i)
-    if not na(x_line)
-        pos := 0
-        sig_xs := true
-        x_kind := 'bf'
-if pos == 1 and psz > 0
-    for i = 0 to psz - 1
-        if array.get(p_up_st, i) == 0
-            float v = f_up_val(i)
-            if v > entry_px and low <= v and high >= v
-                if na(x_line) or v < x_line
-                    x_line := v
-                    x_n := array.get(p_N, i)
-    if not na(x_line)
-        pos := 0
-        sig_xl := true
-        x_kind := 'bf'
+if pos == -1 and not na(xs_v)
+    pos := 0
+    sig_xs := true
+    x_kind := 'bf'
+if pos == 1 and not na(xl_v)
+    pos := 0
+    sig_xl := true
+    x_kind := 'bf'
 if pos == 1 and flip_backstop and gate_dn and barstate.isconfirmed
     pos := 0
     sig_xl := true
@@ -322,27 +399,6 @@ if pos == -1 and flip_backstop and gate_up and barstate.isconfirmed
     pos := 0
     sig_xs := true
     x_kind := 'flip'
-
-// lifecycle: ANY containment touch consumes an alive line (it is a tested
-// level now); a confirmed close beyond an alive line marks it crossed.
-if psz > 0
-    for i = 0 to psz - 1
-        if array.get(p_lo_st, i) == 0
-            float v = f_lo_val(i)
-            if low <= v and high >= v
-                array.set(p_lo_st, i, 1)
-                f_retire(array.get(p_lo_ln, i))
-            else if barstate.isconfirmed and close < v
-                array.set(p_lo_st, i, 2)
-                f_retire(array.get(p_lo_ln, i))
-        if array.get(p_up_st, i) == 0
-            float v = f_up_val(i)
-            if low <= v and high >= v
-                array.set(p_up_st, i, 1)
-                f_retire(array.get(p_up_ln, i))
-            else if barstate.isconfirmed and close > v
-                array.set(p_up_st, i, 2)
-                f_retire(array.get(p_up_ln, i))
 
 float trig_l = prev_ah + syminfo.mintick
 float trig_s = prev_al - syminfo.mintick
@@ -362,23 +418,16 @@ if arm_last
     prev_al := a_lo
 
 // ------------------------- heads-up proximity --------------------------------
-float near_lo = na
-float near_up = na
-if psz > 0
-    if pos == -1
-        for i = 0 to psz - 1
-            if array.get(p_lo_st, i) == 0
-                float v = f_lo_val(i)
-                if v < entry_px and v < low and (na(near_lo) or v > near_lo)
-                    near_lo := v
-    if pos == 1
-        for i = 0 to psz - 1
-            if array.get(p_up_st, i) == 0
-                float v = f_up_val(i)
-                if v > entry_px and v > high and (na(near_up) or v < near_up)
-                    near_up := v
-bool warn_s = warn_pct > 0 and pos == -1 and not na(near_lo) and (low - near_lo) / low * 100 <= warn_pct
-bool warn_l = warn_pct > 0 and pos == 1 and not na(near_up) and (near_up - high) / high * 100 <= warn_pct
+float near_s = na
+for v in array.from(nsA, nsB, nsC, nsD)
+    if not na(v) and (na(near_s) or v > near_s)
+        near_s := v
+float near_l = na
+for v in array.from(nlA, nlB, nlC, nlD)
+    if not na(v) and (na(near_l) or v < near_l)
+        near_l := v
+bool warn_s = warn_pct > 0 and pos == -1 and not na(near_s) and (low - near_s) / low * 100 <= warn_pct
+bool warn_l = warn_pct > 0 and pos == 1 and not na(near_l) and (near_l - high) / high * 100 <= warn_pct
 
 // ------------------------------ visuals --------------------------------------
 bgcolor(show_bg and pos == 1 ? color.new(c_long, 92) : show_bg and pos == -1 ? color.new(c_short, 92) : na)
@@ -388,10 +437,10 @@ plotchar(warn_s, 'Heads-up (short near line)', '!', location.belowbar, color.new
 plotchar(warn_l, 'Heads-up (long near line)', '!', location.abovebar, color.new(color.yellow, 20), size = size.tiny)
 if sig_xl
     label.new(bar_index, high, x_kind == 'flip' ? 'Flip L Exit' : 'BF L Exit', style = label.style_label_down, color = color.new(c_long, 20), textcolor = color.white, size = size.small,
-      tooltip = x_kind == 'flip' ? 'Flip backstop: full opposite alignment at a confirmed close; no BF line reached.' : 'Long exit: bar range contains the N=' + str.tostring(x_n) + ' compound upper line at ' + str.tostring(x_line, format.mintick) + ' (above entry ' + str.tostring(entry_px, format.mintick) + ').')
+      tooltip = x_kind == 'flip' ? 'Flip backstop: full opposite alignment at a confirmed close; no BF line reached.' : 'Long exit: ' + xl_tf + '-pool N=' + str.tostring(xl_n) + ' upper line at ' + str.tostring(xl_v, format.mintick) + ' (above entry ' + str.tostring(entry_px, format.mintick) + ').')
 if sig_xs
     label.new(bar_index, low, x_kind == 'flip' ? 'Flip S Exit' : 'BF S Exit', style = label.style_label_up, color = color.new(c_short, 20), textcolor = color.white, size = size.small,
-      tooltip = x_kind == 'flip' ? 'Flip backstop: full opposite alignment at a confirmed close; no BF line reached.' : 'Short exit: bar range contains the N=' + str.tostring(x_n) + ' compound lower line at ' + str.tostring(x_line, format.mintick) + ' (below entry ' + str.tostring(entry_px, format.mintick) + ').')
+      tooltip = x_kind == 'flip' ? 'Flip backstop: full opposite alignment at a confirmed close; no BF line reached.' : 'Short exit: ' + xs_tf + '-pool N=' + str.tostring(xs_n) + ' lower line at ' + str.tostring(xs_v, format.mintick) + ' (below entry ' + str.tostring(entry_px, format.mintick) + ').')
 
 // ------------------------------ alerts ---------------------------------------
 alertcondition(sig_el, 'Enter Long', 'TFC-BF: LONG entry (gate aligned, arm break)')
@@ -407,22 +456,15 @@ if barstate.islast and show_table
         tbl := table.new(position.top_right, 1, 4, bgcolor = color.new(color.black, 30), border_width = 1)
     string s_pos = pos == 1 ? 'LONG' : pos == -1 ? 'SHORT' : 'flat'
     string s_gate = gate_up ? 'gate UP' : gate_dn ? 'gate DOWN' : 'gate grey'
-    // nearest alive lines around price (context regardless of position)
     float ctx_lo = na
+    for v in array.from(cloA, cloB, cloC, cloD)
+        if not na(v) and (na(ctx_lo) or v > ctx_lo)
+            ctx_lo := v
     float ctx_up = na
-    int alive_n = 0
-    if psz > 0
-        for i = 0 to psz - 1
-            if array.get(p_lo_st, i) == 0
-                alive_n += 1
-                float v = f_lo_val(i)
-                if v < close and (na(ctx_lo) or v > ctx_lo)
-                    ctx_lo := v
-            if array.get(p_up_st, i) == 0
-                float v = f_up_val(i)
-                if v > close and (na(ctx_up) or v < ctx_up)
-                    ctx_up := v
-    table.cell(tbl, 0, 0, 'TFC-BF [TVB-14] ' + tf_base + '-pool', text_color = color.white, text_size = size.small)
+    for v in array.from(cupA, cupB, cupC, cupD)
+        if not na(v) and (na(ctx_up) or v < ctx_up)
+            ctx_up := v
+    table.cell(tbl, 0, 0, 'TFC-BF [TVB-14] v5 pools', text_color = color.white, text_size = size.small)
     table.cell(tbl, 0, 1, s_pos + ' | ' + s_gate, text_color = color.silver, text_size = size.tiny)
     table.cell(tbl, 0, 2, 'next line dn ' + (na(ctx_lo) ? '--' : str.tostring(ctx_lo, format.mintick)) + ' | up ' + (na(ctx_up) ? '--' : str.tostring(ctx_up, format.mintick)), text_color = color.silver, text_size = size.tiny)
-    table.cell(tbl, 0, 3, str.tostring(array.size(p_N)) + ' formations, ' + str.tostring(alive_n) + ' alive sides', text_color = color.silver, text_size = size.tiny)
+    table.cell(tbl, 0, 3, '12h ' + str.tostring(nalA) + ' | D ' + str.tostring(nalB) + ' | W ' + str.tostring(nalC) + ' | M ' + str.tostring(nalD) + ' alive', text_color = color.silver, text_size = size.tiny)
