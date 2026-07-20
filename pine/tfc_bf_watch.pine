@@ -1,7 +1,23 @@
 //@version=6
 // =============================================================================
-// TFC Entry + BF Exit [TVB-14] -- tier-1 live watch surface, v5.
+// TFC Entry + BF Exit [TVB-14] -- tier-1 live watch surface, v6.
 // ORDER-FREE indicator: paints entries/exits and fires alerts; never trades.
+//
+// WHAT CHANGED IN v6 (2026-07-20, user CL/WTIOIL field case):
+//   - ADVERSE-LINE BREAK EXIT (toggle, default on): a long exits when a
+//     confirmed chart-bar close crosses BELOW an alive lower line; a
+//     short when a confirmed close crosses ABOVE an alive upper line.
+//     Labels "BF Break L/S Exit". The asymmetry is structural: on the
+//     harvest side the line's sharp bounce takes profit away, so touch =
+//     exit; on the adverse side that same bounce works FOR the position,
+//     so the exit event is the bounce FAILING -- the confirmed close
+//     through the line. (The user's close-confirmation sketch, landed on
+//     the side where it belongs.) CL case: the long exits at the
+//     breakdown bar's close ~82.4 instead of riding to 80.4; the DRAM
+//     overhead retests stay correctly silent (never closed beyond).
+//   - Edge accepted: a line BORN beyond price is retired by the crossed
+//     transition within one confirmed bar; a standing position can take
+//     one break exit from such a stranded line in that window.
 //
 // WHAT CHANGED IN v5 (same-day field fix, 2026-07-19 evening):
 //   - v4's weekly-only pool put every alive line 15-35% from price, so the
@@ -77,6 +93,7 @@ n_max = input.int(6, 'Max series length N', minval = 1, maxval = 13, group = grp
 min_sep = input.float(1.0, 'Min anchor separation (periods)', minval = 0.0, step = 0.25, group = grp_x, tooltip = 'A side is valid only if its two anchor wicks are at least this many base-TF periods apart. Filters the same-session junk lines that decay absurdly fast ("old steep lines retire themselves"). 0 disables. A-priori default 1.0 -- dial from live watching, do not tune on backtests.')
 pool_cap = input.int(12, 'Max formations kept per pool', minval = 3, maxval = 30, group = grp_x)
 flip_backstop = input.bool(true, 'Flip backstop exit', group = grp_x, tooltip = 'If no BF line is reached, exit on full OPPOSITE gate alignment at a confirmed bar close. The no-line fallback.')
+brk_exit = input.bool(true, 'Adverse-line break exit', group = grp_x, tooltip = 'Long: exit when a confirmed bar close crosses BELOW an alive lower line (short: mirror at upper lines). The structural-stop side of the BF -- the bounce FAILING, not the touch. Labels "BF Break L/S Exit".')
 warn_pct = input.float(0.5, 'Heads-up distance (%)', minval = 0.0, step = 0.1, group = grp_x, tooltip = 'Paint a warning char when price is within this percent of the next harvest line. 0 disables.')
 
 grp_v = 'Display'
@@ -287,6 +304,8 @@ f_pool(simple string tf, simple bool en, int _pos, float _entry, color col) =>
     float ctx_up = na
     float near_s = na
     float near_l = na
+    float brk_lo = na
+    float brk_up = na
     int nal = 0
     int psz = array.size(p_N)
     if active and psz > 0
@@ -302,6 +321,8 @@ f_pool(simple string tf, simple bool en, int _pos, float _entry, color col) =>
                     ctx_lo := v
                 if _pos == -1 and v < _entry and v < low and (na(near_s) or v > near_s)
                     near_s := v
+                if _pos == 1 and barstate.isconfirmed and close < v and (na(brk_lo) or v > brk_lo)
+                    brk_lo := v
                 if touched
                     array.set(p_lo_st, i, 1)
                     f_retire(array.get(p_lo_ln, i), col)
@@ -319,22 +340,24 @@ f_pool(simple string tf, simple bool en, int _pos, float _entry, color col) =>
                     ctx_up := v
                 if _pos == 1 and v > _entry and v > high and (na(near_l) or v < near_l)
                     near_l := v
+                if _pos == -1 and barstate.isconfirmed and close > v and (na(brk_up) or v < brk_up)
+                    brk_up := v
                 if touched
                     array.set(p_up_st, i, 1)
                     f_retire(array.get(p_up_ln, i), col)
                 else if barstate.isconfirmed and close > v
                     array.set(p_up_st, i, 2)
                     f_retire(array.get(p_up_ln, i), col)
-    [xs_v, xs_n, xl_v, xl_n, ctx_lo, ctx_up, near_s, near_l, psz, nal]
+    [xs_v, xs_n, xl_v, xl_n, ctx_lo, ctx_up, near_s, near_l, psz, nal, brk_lo, brk_up]
 
 // --------------------------- run the four pools ------------------------------
 var int pos = 0
 var float entry_px = na
 
-[xsA, xsnA, xlA, xlnA, cloA, cupA, nsA, nlA, nfA, nalA] = f_pool('720', en_12h, pos, entry_px, c_12h)
-[xsB, xsnB, xlB, xlnB, cloB, cupB, nsB, nlB, nfB, nalB] = f_pool('D', en_D, pos, entry_px, c_D)
-[xsC, xsnC, xlC, xlnC, cloC, cupC, nsC, nlC, nfC, nalC] = f_pool('W', en_W, pos, entry_px, c_W)
-[xsD, xsnD, xlD, xlnD, cloD, cupD, nsD, nlD, nfD, nalD] = f_pool('M', en_M, pos, entry_px, c_M)
+[xsA, xsnA, xlA, xlnA, cloA, cupA, nsA, nlA, nfA, nalA, bloA, bupA] = f_pool('720', en_12h, pos, entry_px, c_12h)
+[xsB, xsnB, xlB, xlnB, cloB, cupB, nsB, nlB, nfB, nalB, bloB, bupB] = f_pool('D', en_D, pos, entry_px, c_D)
+[xsC, xsnC, xlC, xlnC, cloC, cupC, nsC, nlC, nfC, nalC, bloC, bupC] = f_pool('W', en_W, pos, entry_px, c_W)
+[xsD, xsnD, xlD, xlnD, cloD, cupD, nsD, nlD, nfD, nalD, bloD, bupD] = f_pool('M', en_M, pos, entry_px, c_M)
 
 // combine short-exit candidates: highest touched eligible line wins
 float xs_v = na
@@ -376,6 +399,35 @@ if not na(xlD) and (na(xl_v) or xlD < xl_v)
     xl_v := xlD
     xl_n := xlnD
     xl_tf := 'M'
+// combine adverse-break events: nearest broken structure names the label
+float brk_lo = na
+string brk_lo_tf = ''
+if not na(bloA)
+    brk_lo := bloA
+    brk_lo_tf := '12h'
+if not na(bloB) and (na(brk_lo) or bloB > brk_lo)
+    brk_lo := bloB
+    brk_lo_tf := 'D'
+if not na(bloC) and (na(brk_lo) or bloC > brk_lo)
+    brk_lo := bloC
+    brk_lo_tf := 'W'
+if not na(bloD) and (na(brk_lo) or bloD > brk_lo)
+    brk_lo := bloD
+    brk_lo_tf := 'M'
+float brk_up = na
+string brk_up_tf = ''
+if not na(bupA)
+    brk_up := bupA
+    brk_up_tf := '12h'
+if not na(bupB) and (na(brk_up) or bupB < brk_up)
+    brk_up := bupB
+    brk_up_tf := 'D'
+if not na(bupC) and (na(brk_up) or bupC < brk_up)
+    brk_up := bupC
+    brk_up_tf := 'W'
+if not na(bupD) and (na(brk_up) or bupD < brk_up)
+    brk_up := bupD
+    brk_up_tf := 'M'
 
 // --------------------------- position machine --------------------------------
 bool sig_el = false
@@ -391,6 +443,14 @@ if pos == 1 and not na(xl_v)
     pos := 0
     sig_xl := true
     x_kind := 'bf'
+if brk_exit and pos == 1 and not na(brk_lo)
+    pos := 0
+    sig_xl := true
+    x_kind := 'brk'
+if brk_exit and pos == -1 and not na(brk_up)
+    pos := 0
+    sig_xs := true
+    x_kind := 'brk'
 if pos == 1 and flip_backstop and gate_dn and barstate.isconfirmed
     pos := 0
     sig_xl := true
@@ -436,17 +496,17 @@ plotshape(sig_es, 'Enter Short', style = shape.labeldown, color = c_short, text 
 plotchar(warn_s, 'Heads-up (short near line)', '!', location.belowbar, color.new(color.yellow, 20), size = size.tiny)
 plotchar(warn_l, 'Heads-up (long near line)', '!', location.abovebar, color.new(color.yellow, 20), size = size.tiny)
 if sig_xl
-    label.new(bar_index, high, x_kind == 'flip' ? 'Flip L Exit' : 'BF L Exit', style = label.style_label_down, color = color.new(c_long, 20), textcolor = color.white, size = size.small,
-      tooltip = x_kind == 'flip' ? 'Flip backstop: full opposite alignment at a confirmed close; no BF line reached.' : 'Long exit: ' + xl_tf + '-pool N=' + str.tostring(xl_n) + ' upper line at ' + str.tostring(xl_v, format.mintick) + ' (above entry ' + str.tostring(entry_px, format.mintick) + ').')
+    label.new(bar_index, high, x_kind == 'flip' ? 'Flip L Exit' : x_kind == 'brk' ? 'BF Break L Exit' : 'BF L Exit', style = label.style_label_down, color = color.new(c_long, 20), textcolor = color.white, size = size.small,
+      tooltip = x_kind == 'flip' ? 'Flip backstop: full opposite alignment at a confirmed close; no BF line reached.' : x_kind == 'brk' ? 'Structural break: confirmed close BELOW the ' + brk_lo_tf + '-pool lower line at ' + str.tostring(brk_lo, format.mintick) + ' while long.' : 'Long exit: ' + xl_tf + '-pool N=' + str.tostring(xl_n) + ' upper line at ' + str.tostring(xl_v, format.mintick) + ' (above entry ' + str.tostring(entry_px, format.mintick) + ').')
 if sig_xs
-    label.new(bar_index, low, x_kind == 'flip' ? 'Flip S Exit' : 'BF S Exit', style = label.style_label_up, color = color.new(c_short, 20), textcolor = color.white, size = size.small,
-      tooltip = x_kind == 'flip' ? 'Flip backstop: full opposite alignment at a confirmed close; no BF line reached.' : 'Short exit: ' + xs_tf + '-pool N=' + str.tostring(xs_n) + ' lower line at ' + str.tostring(xs_v, format.mintick) + ' (below entry ' + str.tostring(entry_px, format.mintick) + ').')
+    label.new(bar_index, low, x_kind == 'flip' ? 'Flip S Exit' : x_kind == 'brk' ? 'BF Break S Exit' : 'BF S Exit', style = label.style_label_up, color = color.new(c_short, 20), textcolor = color.white, size = size.small,
+      tooltip = x_kind == 'flip' ? 'Flip backstop: full opposite alignment at a confirmed close; no BF line reached.' : x_kind == 'brk' ? 'Structural break: confirmed close ABOVE the ' + brk_up_tf + '-pool upper line at ' + str.tostring(brk_up, format.mintick) + ' while short.' : 'Short exit: ' + xs_tf + '-pool N=' + str.tostring(xs_n) + ' lower line at ' + str.tostring(xs_v, format.mintick) + ' (below entry ' + str.tostring(entry_px, format.mintick) + ').')
 
 // ------------------------------ alerts ---------------------------------------
 alertcondition(sig_el, 'Enter Long', 'TFC-BF: LONG entry (gate aligned, arm break)')
 alertcondition(sig_es, 'Enter Short', 'TFC-BF: SHORT entry (gate aligned, arm break)')
-alertcondition(sig_xl, 'Exit Long', 'TFC-BF: EXIT LONG (BF line or flip backstop)')
-alertcondition(sig_xs, 'Exit Short', 'TFC-BF: EXIT SHORT (BF line or flip backstop)')
+alertcondition(sig_xl, 'Exit Long', 'TFC-BF: EXIT LONG (BF line, break, or flip backstop)')
+alertcondition(sig_xs, 'Exit Short', 'TFC-BF: EXIT SHORT (BF line, break, or flip backstop)')
 alertcondition(sig_el or sig_es or sig_xl or sig_xs, 'Any signal', 'TFC-BF: signal')
 
 // ------------------------------ status table ---------------------------------
@@ -464,7 +524,7 @@ if barstate.islast and show_table
     for v in array.from(cupA, cupB, cupC, cupD)
         if not na(v) and (na(ctx_up) or v < ctx_up)
             ctx_up := v
-    table.cell(tbl, 0, 0, 'TFC-BF [TVB-14] v5 pools', text_color = color.white, text_size = size.small)
+    table.cell(tbl, 0, 0, 'TFC-BF [TVB-14] v6 pools', text_color = color.white, text_size = size.small)
     table.cell(tbl, 0, 1, s_pos + ' | ' + s_gate, text_color = color.silver, text_size = size.tiny)
     table.cell(tbl, 0, 2, 'next line dn ' + (na(ctx_lo) ? '--' : str.tostring(ctx_lo, format.mintick)) + ' | up ' + (na(ctx_up) ? '--' : str.tostring(ctx_up, format.mintick)), text_color = color.silver, text_size = size.tiny)
     table.cell(tbl, 0, 3, '12h ' + str.tostring(nalA) + ' | D ' + str.tostring(nalB) + ' | W ' + str.tostring(nalC) + ' | M ' + str.tostring(nalD) + ' alive', text_color = color.silver, text_size = size.tiny)
