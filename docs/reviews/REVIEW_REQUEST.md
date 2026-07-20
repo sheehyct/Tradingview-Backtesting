@@ -27,7 +27,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `{pending push -- pinned after session-end commit}` |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `b324f80^..129336a` (5 commits: b324f80 = v4, first TVB-14 commit; 915e678 = v5; bd09895 = v6; 129336a = session-end docs; sanity-check with `git diff --name-status b324f80^ 129336a`) |
 
 No sibling-repo changes this session.
 
