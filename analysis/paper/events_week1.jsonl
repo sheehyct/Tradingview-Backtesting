@@ -16,3 +16,23 @@
 {"action": "enter", "dir": "long", "price": 351.181, "sym": "xyz:GOOGL", "ts": 1784554800}
 {"action": "exit", "dir": "short", "entry_px": 381.03900000000004, "entry_ts": 1784511900, "kind": "bf", "line_N": 1, "line_tf": "12h", "pnl_pct": 0.634222516628259, "price": 378.6223648648649, "sym": "xyz:TSLA", "ts": 1784555700}
 {"action": "enter", "dir": "short", "price": 375.629, "sym": "xyz:TSLA", "ts": 1784556000}
+{"action": "enter", "dir": "long", "price": 396.981, "sym": "xyz:MSFT", "ts": 1784560500}
+{"action": "exit", "dir": "long", "entry_px": 155.0901, "entry_ts": 1784505900, "kind": "flip", "line_N": null, "line_tf": null, "pnl_pct": -1.1864716058600817, "price": 153.25, "sym": "xyz:SKHY", "ts": 1784575200}
+{"action": "enter", "dir": "short", "price": 153.0999, "sym": "xyz:SKHY", "ts": 1784575500}
+{"action": "exit", "dir": "short", "entry_px": 153.0999, "entry_ts": 1784575500, "kind": "bf", "line_N": 1, "line_tf": "12h", "pnl_pct": 0.6434075071244235, "price": 152.11484375, "sym": "xyz:SKHY", "ts": 1784576100}
+{"action": "enter", "dir": "short", "price": 152.69989999999999, "sym": "xyz:SKHY", "ts": 1784576400}
+{"action": "exit", "dir": "long", "entry_px": 4009.21, "entry_ts": 1784509200, "kind": "bf", "line_N": 2, "line_tf": "12h", "pnl_pct": 1.0195691087936778, "price": 4050.086666666667, "sym": "xyz:GOLD", "ts": 1784604300}
+{"action": "enter", "dir": "long", "price": 4049.3100000000004, "sym": "xyz:GOLD", "ts": 1784606400}
+{"action": "exit", "dir": "long", "entry_px": 4049.3100000000004, "entry_ts": 1784606400, "kind": "bf", "line_N": 1, "line_tf": "12h", "pnl_pct": 0.3494422506550521, "price": 4063.4600000000005, "sym": "xyz:GOLD", "ts": 1784612100}
+{"action": "enter", "dir": "long", "price": 4058.11, "sym": "xyz:GOLD", "ts": 1784612400}
+{"action": "exit", "dir": "short", "entry_px": 152.69989999999999, "entry_ts": 1784576400, "kind": "flip", "line_N": null, "line_tf": null, "pnl_pct": -5.5534417507804665, "price": 161.18, "sym": "xyz:SKHY", "ts": 1784621100}
+{"action": "enter", "dir": "long", "price": 160.0701, "sym": "xyz:SKHY", "ts": 1784621400}
+{"action": "exit", "dir": "long", "entry_px": 351.181, "entry_ts": 1784554800, "kind": "flip", "line_N": null, "line_tf": null, "pnl_pct": -0.7150159034799626, "price": 348.67, "sym": "xyz:GOOGL", "ts": 1784641500}
+{"action": "enter", "dir": "short", "price": 348.899, "sym": "xyz:GOOGL", "ts": 1784644500}
+{"action": "exit", "dir": "long", "entry_px": 247.721, "entry_ts": 1784506200, "kind": "brk", "line_N": null, "line_tf": "D", "pnl_pct": -0.4484884204407337, "price": 246.61, "sym": "xyz:AMZN", "ts": 1784678400}
+{"action": "exit", "dir": "long", "entry_px": 4058.11, "entry_ts": 1784612400, "kind": "bf", "line_N": 4, "line_tf": "12h", "pnl_pct": 0.9514633307482759, "price": 4096.721428571429, "sym": "xyz:GOLD", "ts": 1784679300}
+{"action": "exit", "dir": "long", "entry_px": 160.0701, "entry_ts": 1784621400, "kind": "bf", "line_N": 3, "line_tf": "12h", "pnl_pct": 9.607039391476368, "price": 175.4480975609756, "sym": "xyz:SKHY", "ts": 1784679300}
+{"action": "enter", "dir": "long", "price": 4094.9100000000003, "sym": "xyz:GOLD", "ts": 1784679600}
+{"action": "enter", "dir": "long", "price": 175.2001, "sym": "xyz:SKHY", "ts": 1784679600}
+{"action": "exit", "dir": "long", "entry_px": 4094.9100000000003, "entry_ts": 1784679600, "kind": "bf", "line_N": 1, "line_tf": "12h", "pnl_pct": 0.6698653844742127, "price": 4122.340384615373, "sym": "xyz:GOLD", "ts": 1784682900}
+{"action": "enter", "dir": "long", "price": 4122.71, "sym": "xyz:GOLD", "ts": 1784684400}
