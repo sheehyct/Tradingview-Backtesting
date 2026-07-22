@@ -162,6 +162,63 @@ default changes, no min_sep dialing on backtests.
   already serve as the parity oracle), and the min_sep holdout-freeze
   protocol (F5).
 
+## TVB-16 mid-week check-in (2026-07-22)
+
+Recorded during the ride-along refresh. NONE of it changes the frozen
+a-priori config or the week-1 record; design work is deferred to week end
+per the mid-week policy.
+
+### Ride-along refresh
+
+Archive + replay advanced the record from the day-1 freeze (07-20 14:30Z) to
+07-22 02:05Z. Deterministic and additive: the 18 day-1 events reproduced
+byte-identically, 20 day-2 events appended (18 -> 38); 24 paper goldens
+green. 15 closed trades, 8 open. Closed exit classes: BF harvest 8/8 green
+(+1.82% avg, 0.14pp give-back), BF adverse-break 2 (-0.75%), flip backstop 5
+(-2.10%, 4.18pp give-back). Realized sum +2.59pp; open mark-to-market ~-49pp
+across all 8 open positions (incl. DRAM), three shorts dominating.
+
+### Headline finding -- config-invariant adverse-runner exit gap
+
+Three shorts (NBIS -22%, DRAM -13%, MRVL -11%) entered within the first
+~2.5h of the week from the flat seed and rode a rally ~49h with NO exit.
+Mechanism confirmed by dumping gate + alive-line state (not inferred): all
+three read D=down / W=up / M=down, so the flip backstop (needs full D/W/M up)
+never arms; the nearest alive adverse (upper) BF line sits 3-17% above price,
+so no break exit fires; price rose in open air with no line in the path. The
+flat-seed entry timing (a declared delta) placed the entries right before the
+rally and materially inflates the severity. This is the week's headline
+finding; the fix (flip full-vs-partial D/W/M granularity, or a structural
+stop for open-air adverse runs) is a STOP-and-ASK methodology question to
+design WITH the user at week end -- carried from the TVB-14 open
+"flip-backstop granularity" item.
+
+### Ablation -- frozen control vs the user's live variant (measurement, not a change)
+
+`analysis/paper/compare_config.py` runs the same committed week-1 bars
+through two configs: control = 15m arm + 12h/D/W/M pools (shipped defaults);
+variant = 1H arm + D/W/M pools (12h off, the user's manual live settings).
+
+| metric | control (15m, 12h on) | variant (1H, 12h off) |
+|---|---|---|
+| closed trades | 15 | 9 |
+| BF harvest | 8 @ +1.82%, gb 0.14 | 3 @ +3.94%, gb 0.07 |
+| flip backstop | 5 @ -2.10%, gb 4.18 | 5 @ -2.12%, gb 4.15 |
+| realized sum | +2.59pp | +0.76pp |
+| open MTM sum (roster, DRAM excl) | -35.95pp | -35.44pp |
+| combined | -33.36pp | -34.68pp |
+
+Reading: 12h-off had LOWER realized on this sample (the 12h pool was
+harvesting winners, not noise), but its harvests were fewer/bigger/cleaner
+(+3.94 vs +1.82, gb 0.07 vs 0.14) -- the "12h harvests too eagerly"
+intuition, measured. Combined P&L is ~equal (both ~-34pp): the two knobs
+mostly RE-TIME the same book (give-back/timing), not change its edge. The
+three stuck shorts are IDENTICAL across configs (NBIS -22.1/-22.4, MRVL
+-11.0/-11.1, DRAM -13.2/-13.4) -- the adverse-runner gap is invariant to both
+knobs. Caveat: 2 days, one rally regime, 9-15 trades -- a measurement to
+populate over more regimes, not a verdict. The frozen control remains the
+week-1 record.
+
 ## Out of scope this week
 
 Tier-2 STRAT targets (present in `/api/state` per-TF blocks incl. 1w/1M;
