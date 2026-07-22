@@ -5,6 +5,96 @@
 
 ---
 
+## Session TVB-16: Ride-along refresh + config ablation + mid-week check-in (COMPLETE)
+
+**Date:** 2026-07-22
+**Status:** COMPLETE -- a check-in session (not a build): the week-1 paper
+record was refreshed from the day-1 freeze to current, the recording accuracy
+was verified, the entry model and the live-config framing were clarified WITH
+the user, a read-only ablation harness was built to measure the user's live
+settings against the frozen control, and the week's headline finding (a
+config-invariant adverse-runner exit gap) was logged for a week-end design
+session. No strategy or frozen-record change; mid-week no-tune held.
+
+### What was accomplished
+
+- RIDE-ALONG REFRESH: archive + replay advanced the week-1 record from the
+  day-1 freeze (07-20 14:30Z) to 07-22 02:05Z. Deterministic and additive --
+  the 18 day-1 events reproduced BYTE-IDENTICALLY on re-replay (verified by
+  set comparison; the CRLF `diff` mismatch was an artifact), 20 day-2 events
+  appended (18 -> 38); 24 paper goldens green. 15 closed trades, 8 open.
+  Closed exit classes: BF harvest 8/8 green (+1.82% avg, 0.14pp give-back),
+  BF adverse-break 2 (-0.75%), flip backstop 5 (-2.10%, 4.18pp give-back);
+  realized sum +2.59pp. Open mark-to-market ~-49pp across all 8 opens (three
+  shorts dominate). Committed 89e2fb5, pushed.
+- ENTRY MODEL CLARIFIED (corrected a user assumption): the twin is
+  ALWAYS-IN-market, seeded FLAT at the week boundary (07-20 00:00 UTC), and
+  re-enters on the very next qualifying 5m bar after any exit. 6/10 symbols
+  opened within an hour of 00:00 from the flat seed (NOT fresh mid-week
+  triggers); MSFT (+915min) was the only genuine mid-week-signal entry. The
+  user's "last active enter" read was right, not "enter once on first
+  signal." The flat-seed timing (a declared delta) placed the bleeding
+  shorts right before the rally and materially inflates their severity.
+- CONFIG FRAMING RESOLVED (with user): the frozen twin (15m arm, 12h/D/W/M,
+  all v6.1 defaults) IS the shipped/established strategy = the legitimate
+  a-priori CONTROL; the user's live manual settings (1H arm, 12h pool OFF)
+  are a post-ship drift the user owns = the VARIANT. The week-1 record keeps
+  its integrity; the live chart is NOT a mirror of the twin (divergence by
+  config is expected). NOTE: the shipped Pine `en_12h` is all-or-nothing
+  (lines + exits together, pine :113); there is NO "12h lines on, harvest
+  off" toggle -- if wanted, that is a feature, not a checkbox.
+- ABLATION HARNESS + RESULT (analysis/paper/compare_config.py, read-only,
+  never writes the frozen record; no engine change -- drop the 12h pool
+  post-construction, set arm_tf_s): control (15m, 12h/D/W/M) vs variant (1H,
+  D/W/M) on the SAME committed bars. 12h-off had LOWER realized (+0.76 vs
+  +2.59pp -- the 12h pool harvests winners, not noise) but fewer/bigger/
+  cleaner harvests (+3.94 vs +1.82, gb 0.07 vs 0.14 = the "12h harvests too
+  eagerly" intuition, measured). Combined ~equal (both ~-34pp): the two knobs
+  RE-TIME the same book, not re-edge it. The three stuck shorts are IDENTICAL
+  across configs -- the adverse-runner gap is invariant to both knobs.
+  Committed 39fd165, pushed.
+- HEADLINE FINDING (user chose "log it, design at week-end"): config-
+  invariant adverse-runner exit gap. NBIS -22% / DRAM -13% / MRVL -11% rode
+  ~49h with NO exit. Mechanism confirmed by dumping gate + alive-line state
+  (not inferred): all three read D=down / W=up / M=down, so the flip backstop
+  (needs FULL D/W/M) never arms; the nearest alive adverse (upper) BF line
+  sits 3-17% above price, so no break exit; open-air run with no line in the
+  path. Ties to the TVB-14 open "flip-backstop granularity (full vs partial
+  D+W)". Fix is a STOP-and-ASK design question for week end.
+- ACCURACY VERDICT: the RECORD is sound (deterministic, additive, goldens
+  green, day-1 DRAM parity was exact). The one real gap was STALENESS (the
+  record sat at day-1 until refreshed); the ~3-day archive cadence (5m floor
+  ~17d) is the standing operational risk -- worth automating. Live-chart
+  parity spot-check still pending (TV was not on CDP this session).
+
+### Context for next session
+
+TVB-17 = keep the cadence (archive+replay+compare by ~07-25), collect grades;
+at week end (>= 07-27) run the parity/give-back pass THEN design the headline
+adverse-runner fix WITH the user (flip full-vs-partial, or open-air stop --
+design before code). TVB-15 external review is still PENDING. The scanner
+score work stays in the hip3-scanner workspace.
+
+### Files created/modified
+
+analysis/paper/compare_config.py (new, read-only ablation tool);
+analysis/paper/bars/ (33 refreshed), events_week1.jsonl, scoreboard_week1.md
+(refreshed via replay); docs/experiments/tvb15_paper_week1_protocol.md
+(+ TVB-16 mid-week check-in section); .session_startup_prompt.md,
+docs/HANDOFF.md, docs/reviews/REVIEW_REQUEST.md.
+
+### External Review (for Codex / cloud review agents)
+
+- Review status: N/A -- SKIPPED (user decision). TVB-16 was a light session:
+  a data refresh, a read-only ablation tool, and docs notes; no strategy or
+  engine change. The standing external-review request remains TVB-15
+  (docs/reviews/tvb15-codex-audit.md, still pending).
+- Commits (context, not a review request): `89e2fb5` (ride-along refresh),
+  `39fd165` (ablation tool + mid-week note), plus the session-end docs commit
+  on `main`.
+
+---
+
 ## Session TVB-15: Paper twin + week-1 freeze; TVB-14 audit folded same day; v6.1 (COMPLETE)
 
 **Date:** 2026-07-20

@@ -21,7 +21,10 @@
 - Write the audit to: `docs/reviews/tvb15-codex-audit.md` (copy
   `docs/reviews/_TEMPLATE.md`)
 - NOTE: tvb8/tvb9 requests remain unreturned (standing note). tvb14 was
-  returned AND addressed same day (see the TVB-14 HANDOFF block).
+  returned AND addressed same day (see the TVB-14 HANDOFF block). TVB-16
+  (2026-07-22) was a light session -- ride-along refresh + a read-only
+  ablation tool + docs notes -- and was intentionally NOT submitted for
+  review (user decision); TVB-15 remains the current outstanding request.
 
 ## Commits to review
 
