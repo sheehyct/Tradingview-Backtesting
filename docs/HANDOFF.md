@@ -5,6 +5,126 @@
 
 ---
 
+## Session TVB-17: Context-engineering audit of standing context (COMPLETE)
+
+**Date:** 2026-07-27
+**Status:** COMPLETE -- a workspace/context session, NOT the seeded TVB-17 paper
+work. The seeded priorities (ride-along refresh, week-end pass) were NOT
+executed and carry forward to TVB-18 unchanged. The user ran this audit across
+three repos simultaneously and stalled on the volume of findings; scope was
+deliberately cut to the lighter set on their instruction.
+
+### What was accomplished
+
+- AUDITED all standing context: spine CLAUDE.md, repo CLAUDE.md, `.claude/`
+  settings + commands, `.mcp.json`, user-global settings, and the auto-memory
+  index. Always-on repo-controlled load measured at 28,323 bytes (~7.5K tokens)
+  across three files; everything else is load-on-demand.
+- **CLAUDE.md 9252 -> 5203 bytes (-43.8%).** Deleted Section 10 (a verbatim
+  restatement of Sections 2-9), the spine duplications (ASCII / conventional-
+  commits / ambiguity-policy), and session-protocol prose that `/session-start`
+  already performs. Every epistemic-stance and mechanics rule was KEPT --
+  classified as domain invariants a capable model would get wrong by default.
+  Landed above the 3-4KB target on purpose: further cuts would have removed
+  invariants, not redundancy.
+- **PROMOTED six gotchas out of auto-memory into the always-on file:** the
+  `pine_new`/`pine_open` tab-binding overwrite trap (destroyed BF-1 2026-07-10),
+  `uv sync` strips VBT Pro, `closedtrades.profit()` is gross of commission,
+  `tv_launch` fails on the Store app, autonomous commit/push overriding the
+  harness default, and the plain-language results rule. The audit's framing:
+  obvious structure was in CLAUDE.md while the real traps were buried in memory.
+- **EXECUTED the TVB-11 audit finding F7** (agreed, queued as remediation item
+  3, never done). The `request.security` trap is UN-OFFSET `lookahead_on`, not
+  `lookahead_on` as such; the documented `expr[1]` + `lookahead_on` non-
+  repainting idiom is used deliberately in 5 scripts (count has grown from the
+  4 F7 recorded). The blanket `lookahead_off` rule contradicted accepted code
+  and would have flagged all 5 as failures -- or pushed a future session to
+  "fix" correct non-repainting code into repainting code. Amended in CLAUDE.md
+  and `pine/README.md` rule 3. **`.claude/commands/pre-commit.md` Check 2 still
+  carries the OLD rule** -- the permission classifier blocked that edit; until
+  it is fixed `/pre-commit` will report a false FAIL on the 5 files.
+- **FIXED the dead Stop test gate (the audit's highest-value finding).**
+  `stop_test_gate.sh` had no `tradingview-backtesting` case: the hook was
+  registered with a 300s timeout, printed "unknown project directory, skipping",
+  and returned 0. **No test has ever been gated in this workspace.** Added the
+  case; verified it now runs (97 passed, 2 skipped, ~2.3s) and that all five
+  existing projects still route unchanged. The suite was healthy the whole time
+   -- the gate was the only thing broken.
+- README: warned that `uv sync` strips VBT Pro, directly contradicting the
+  getting-started block above it.
+- Spine `CLAUDE.md`: removed the "Schwab Level 1 Options" account constraint --
+  user confirmed no such account exists and could not place its origin.
+
+### Drift found and NOT fixed (deliberate, lighter-scope call)
+
+- `safety_guard.py`: `RE_DOCKER_PROD` is compiled and never called (dead code),
+  so "NEVER docker compose prod" is unenforced prose. Same for the SSH/SCP and
+  VPS-IP rules -- no patterns exist, and global settings explicitly allow
+  `Bash(ssh:*)` / `Bash(scp:*)`. NOT fixed: adding a new hard block to a shared
+  safety file was judged too risky to do unsupervised.
+- `PROJECT_ROOTS` in `safety_guard.py` omits `tradingview-backtesting` and all
+  `hip3-*` repos, so `rm -rf` protection does not cover them.
+- `checkpoint_review_prompt.py` exists (with a compiled `.pyc`) but is wired in
+  no settings file -- orphaned.
+- `post_edit_lint.py` returns early on any non-`.py` path, so the repo's primary
+  artifact (`.pine`) has no automated check of any kind.
+- Spine hook table omits `session_orchestration_prompt.py`.
+- Dead references: `mcp__tradingview__ui_evaluate` (tool no longer exists in the
+  jackson server; deny rule harmless, but `README.md:38` documents it as live),
+  seven `mcp__playwright__*` permissions (server not enabled in this project),
+  and `Read(//c/Users/sheeh/Downloads/**)` (wrong user profile).
+- OUT OF BAND: a live `OPENAI_API_KEY` sits in plaintext in
+  `~/.claude/settings.json`. Not in this repo, not exposed by the public push;
+  flagged to the user for rotation.
+
+### Proposed gates NOT built
+
+G2 (a pytest asserting every `request.security` either uses `lookahead_off` or
+pairs `lookahead_on` with an explicit offset) and G3 (an ASCII/emoji check --
+the rule is stated in two files, enforced nowhere, and already violated by 266
+non-ASCII chars in the charter and 4 in `tfc_companion.pine`). Both were judged
+new maintenance surface the user did not have capacity for. G1 (the test gate)
+was built.
+
+### Context for next session
+
+- **The seeded TVB-17 paper priorities did not happen and are now TVB-18's.**
+  Paper week 1 CLOSED 2026-07-27 00:00 UTC. The record is still current only
+  through 07-22 02:05Z (~5 days stale). **No data has been lost:** the HL
+  candleSnapshot floor is ~5000 candles (~17 days at 5m), so the 07-20 window
+  start does not slide off until roughly 2026-08-06. There is headroom, but it
+  is finite -- archive before then.
+- The week's HEADLINE finding is unchanged and still awaits a design session:
+  the config-invariant adverse-runner exit gap (three shorts rode ~49h with no
+  exit; identical across the 12h/arm ablation).
+- TVB-15 external review is STILL PENDING; `docs/reviews/REVIEW_REQUEST.md` was
+  deliberately NOT rewritten this session so that request stays live.
+- CLAUDE.md is now materially shorter. If something feels missing, the deleted
+  material was either restating the spine, restating itself, or describing what
+  `/session-start` already does -- check git history at `7ebc955` before
+  re-adding.
+
+### Files created/modified
+
+- `CLAUDE.md` (rewritten), `README.md`, `pine/README.md`, `docs/HANDOFF.md`,
+  `.session_startup_prompt.md`
+- Outside git (spine is not a repo -- no revert point): 
+  `C:\Strat_Trading_Bot\.claude\hooks\stop_test_gate.sh`,
+  `C:\Strat_Trading_Bot\CLAUDE.md`
+
+### External Review (for Codex / cloud review agents)
+
+- Review status: SKIPPED -- context/docs session, no strategy or engine change.
+  The one item a reviewer might want to confirm is the F7 execution (that
+  `expr[1]` + `lookahead_on` is genuinely the non-repainting idiom and the
+  amended rule is correct); that finding was itself externally reviewed and
+  agreed in TVB-11.
+- Commits to review: `7ebc955^..HEAD` on `main` if reviewed later.
+- Focus areas: the amended `request.security` rule; whether anything cut from
+  CLAUDE.md was load-bearing.
+
+---
+
 ## Session TVB-16: Ride-along refresh + config ablation + mid-week check-in (COMPLETE)
 
 **Date:** 2026-07-22
