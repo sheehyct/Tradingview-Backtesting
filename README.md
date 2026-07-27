@@ -42,9 +42,13 @@ tests/         pytest for the analysis layer
 ## Getting started
 
 ```bash
-uv sync                       # create the analysis venv
+uv sync                       # create the analysis venv -- SEE WARNING BELOW
 uv run pytest tests/ -q       # smoke test
 ```
+
+**`uv sync` strips VectorBT Pro.** VBT Pro is installed in `.venv` but is deliberately NOT in
+`pyproject.toml` (licensed, unpublishable), so `uv sync` removes it. If you run it, reinstall
+from the cached wheel afterwards.
 
 The TradingView MCP needs TradingView Desktop running with CDP on port 9222 -- see
 `docs/guides/TRADINGVIEW_MCP_SETUP.md`.

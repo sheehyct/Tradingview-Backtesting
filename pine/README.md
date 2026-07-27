@@ -24,8 +24,12 @@ workspace (charter Section 4). The Strategy Tester output + webhook alerts come 
    the stored prior-bar level being crossed -- NOT an indicator's painted bar-shape series.
 2. **Evaluate once-per-bar, not once-per-bar-close.** `calc_on_every_tick` / alert frequency
    must not reintroduce close-lag on the intrabar break.
-3. **Every `request.security` call uses `lookahead_off`** and confirm-on-close offsets. This is
-   THE trap that makes the whole backtest fiction -- audit it in code review every time.
+3. **No un-offset `lookahead_on` in any `request.security` call.** THAT is the trap that makes
+   the whole backtest fiction (TVB-1's original TFO finding) -- audit it in code review every
+   time. Two forms are accepted: `lookahead_off`, or the documented non-repainting idiom
+   `expr[1]` + `lookahead_on` (confirmed HTF values, one-HTF-bar latency). The offset idiom is
+   used deliberately in the BF engine; a blanket `lookahead_off` rule would break it.
+   (Amended TVB-17 per the TVB-11 audit finding F7, which this repo agreed to and queued.)
 4. **Enable the bar-magnifier / lower-timeframe data** in the Strategy Tester, or the intrabar
    level-break entry reads optimistic.
 
