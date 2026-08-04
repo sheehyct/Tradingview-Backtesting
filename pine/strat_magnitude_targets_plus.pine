@@ -1,0 +1,868 @@
+//@version=6
+indicator('TheStrat Magnitude + Targets (MTF) [Custom]', shorttitle = 'Strat Targets+', overlay = true, max_lines_count = 60, max_labels_count = 60)
+
+// ============================================================
+// CONCEPT
+// When a signal goes in-force it projects a ladder of levels:
+//   TRIGGER  = the level the signal bar broke (e.g. 2d high for x-2d-2u)
+//   TARGET 1 = the reclaim level (x high / x low)
+//   TARGET 2,3,4..= the next prior-bar highs/lows NOT yet taken out
+// The MOST RECENT signal's levels stay on the chart (extending right)
+// until a new signal goes live and replaces them. Distances update
+// live off current price. Works on the chart tf or any higher tf.
+// ============================================================
+// CUSTOM BUILD -- logic-identical fork of 'TheStrat Magnitude + Targets (MTF)'.
+// Detection, triggers, targets, chop and status logic are byte-identical to the
+// original (plus the v6 warm-up guards in CLASSIFY). This fork only adds display
+// customization: every color / width / style / text size / position is an input,
+// inputs grey out when their parent toggle is off (v6 'active'), optional bold
+// table headers (v6 text_formatting), an optional Magnitude table row, and
+// tooltips on every input. Defaults render identically to the original.
+// NOT backtested; draws levels and labels only; places no orders.
+// Timeframe handling: aggregates chart bars into the Signal TF locally --
+// no request.security() calls, so no lookahead / repaint surface from requests.
+// The developing signal-TF bar updates live, so its signal can change intrabar
+// until that bar closes (by design -- live in-force detection; see README).
+// ============================================================
+
+// ---------------- Inputs ----------------
+sigTF = input.timeframe('', 'Signal timeframe (chart or higher)', tooltip = 'Blank = chart timeframe. Set higher (e.g. D, W) to project HTF levels onto your chart.', group = 'Timeframe')
+
+useMintick = input.bool(true, 'Reclaim / break = 1 symbol tick', tooltip = 'On = a level counts as broken or reclaimed one symbol tick beyond it (strict break, no ties). Off = use the fixed dollar amount below instead. Leave on unless the symbol\'s tick size is too coarse or too fine for how you read breaks.', group = 'Logic')
+reclaimValue = input.float(0.01, 'Break amount ($) if not tick', minval = 0.0, step = 0.01, tooltip = 'Fixed break / reclaim distance in price units, used only while the tick toggle above is OFF. Larger = breaks must be more decisive (fewer, later signals); smaller = earlier signals but more noise.', group = 'Logic')
+extTargets = input.int(5, 'Extended targets (beyond Target 1)', minval = 0, maxval = 40, tooltip = 'How many ladder levels to project past Target 1 (prior highs / lows not yet taken out). 0 = Target 1 only. Higher reaches further back into history and adds chart clutter; 5 is a balanced default.', group = 'Logic')
+invalidate = input.bool(true, 'Remove held targets when forming bar negates the signal', tooltip = 'A held bullish set is removed if the live bar is red and not making a clean higher high (inside-red, 2d-red), or trades back through the trigger. Mirror for shorts.', group = 'Logic')
+
+lblOff = input.int(3, 'Label offset (bars right of price)', minval = 0, tooltip = 'Horizontal gap, in bars, between the last bar and the target / status labels. Raise it if labels crowd price; lower it to keep labels tight on narrow (phone) charts.', group = 'Display')
+showTrig = input.bool(true, 'Show trigger level', tooltip = 'Draws the dashed line at the level the signal broke -- the in-force / entry level -- plus its label. High-priority patterns (Shot-Gun, Randy Jackson, Rev-Strats, 3-2 Boom) use the heavier star-trigger styling from the Lines group.', group = 'Display')
+trigLblOff = input.int(8, 'Trigger label extra offset (bars)', minval = 0, tooltip = 'Shifts the trigger / 3-trigger labels further right of the target labels so they do not overlap when a trigger and a target sit at the same price.', group = 'Display', active = showTrig)
+showTFonTrig = input.bool(false, 'Show timeframe on trigger label', tooltip = 'Prefixes the trigger label with the signal timeframe (e.g. "15 ★ TRIGGER ...") so multiple instances on different timeframes can be told apart.', group = 'Display', active = showTrig)
+lblTextColor = input.color(color.white, 'Label text', inline = 'ltx', tooltip = 'Text color for every on-chart label this script draws (trigger, targets, continuity, 3-trigger, status). White reads on dark charts; switch to a dark color on light charts.', group = 'Display')
+lblSizeIn = input.string('Small', 'Size', options = ['Tiny', 'Small', 'Normal', 'Large', 'Huge'], inline = 'ltx', tooltip = 'Text size for every on-chart label. Small matches the original; Normal or Large reads better on phones at the cost of chart space.', group = 'Display')
+showTable = input.bool(true, 'Show signal table', tooltip = 'Master toggle for the signal summary table (pattern, direction, trigger, targets, status). The row toggles below and the whole Table Style group only apply while this is on.', group = 'Display')
+showToGoRow = input.bool(true, 'Table: To-Go (T1) row', tooltip = 'Row showing the live distance from current price to Target 1. Turn off to shorten the table.', group = 'Display', active = showTable)
+showProfitRow = input.bool(true, 'Table: Profit row', tooltip = 'Row showing the open run from the trigger to current price (signed by direction, with percent). Green when the trade side is ahead, red when behind. Turn off to shorten the table.', group = 'Display', active = showTable)
+showNumTargets = input.bool(true, 'Table: # Targets row', tooltip = 'Row showing how many ladder levels the active signal projected. Turn off to shorten the table.', group = 'Display', active = showTable)
+showMagRow = input.bool(false, 'Table: Magnitude row', tooltip = 'Optional row showing the trigger-to-Target-1 distance -- the magnitude the signal projects. Off by default to match the original table layout.', group = 'Display', active = showTable)
+showRevsRow = input.bool(true, 'Table: Revs / Chop row', tooltip = 'Row showing the count of back-to-back reversals since the last Target-1 hit -- the same counter that feeds the chop warning. Turn off to shorten the table.', group = 'Display', active = showTable)
+showChop = input.bool(true, 'Chop warning (back-to-back reversals missing target)', tooltip = 'Master toggle for chop detection: counts direction flips since the last Target-1 hit and warns at the threshold below. Turning this off also silences the chop alert condition.', group = 'Chop')
+chopThr = input.int(2, 'Reversals without a target hit to warn', minval = 2, tooltip = 'How many consecutive direction flips (with no Target 1 reached in between) trip the warning. 2 warns quickly; higher tolerates more whipsaw before flagging chop.', group = 'Chop', active = showChop)
+showChopBanner = input.bool(true, 'Show chop banner', tooltip = 'The standalone warning strip shown while chop is active. Independent of the table\'s Revs / Chop row, which has its own toggle in Display.', group = 'Chop', active = showChop)
+chopBannerPos = input.string('Top Center', 'Banner position', options = ['Top Left', 'Top Center', 'Top Right', 'Middle Left', 'Middle Center', 'Middle Right', 'Bottom Left', 'Bottom Center', 'Bottom Right'], tooltip = 'Where the warning strip docks on the chart. Move it if it overlaps the signal table or another indicator\'s panel.', group = 'Chop', active = showChopBanner)
+chopBannerSize = input.string('Normal', 'Banner text size', options = ['Tiny', 'Small', 'Normal', 'Large', 'Huge'], tooltip = 'Text size of the warning strip. Normal matches the original.', group = 'Chop', active = showChopBanner)
+chopColor = input.color(color.orange, 'Chop color', inline = 'chc', tooltip = 'Color of the banner background and of the Revs / Chop row while the warning is active. Means "the signal engine is whipsawing -- targets are not being reached". Pick something loud.', group = 'Chop', active = showChop)
+chopTextColor = input.color(color.white, 'Text', inline = 'chc', tooltip = 'Text color inside the warning banner.', group = 'Chop', active = showChopBanner)
+
+upColor = input.color(#22C55E, 'Up', inline = 'uds', tooltip = 'Bullish signal color: long trigger / target lines and labels, LONG table text, positive profit. Means "the held signal is long".', group = 'Style')
+downColor = input.color(#EF4444, 'Down', inline = 'uds', tooltip = 'Bearish signal color: short trigger / target lines and labels, SHORT table text, negative profit. Means "the held signal is short".', group = 'Style')
+neutralColor = input.color(color.gray, 'Neutral', inline = 'uds', tooltip = 'Used when nothing is held: the table\'s "no signal" text and placeholder dashes. Means "no active signal".', group = 'Style')
+tblPosIn = input.string('Top Right', 'Table position', options = ['Top Left', 'Top Center', 'Top Right', 'Middle Left', 'Middle Center', 'Middle Right', 'Bottom Left', 'Bottom Center', 'Bottom Right'], tooltip = 'Where the signal table docks on the chart -- full nine-position grid (the original offered five; the default corner is unchanged). Move it away from your platform\'s legend or other panels.', group = 'Style', active = showTable)
+
+tblTextSize = input.string('Small', 'Table text size', options = ['Tiny', 'Small', 'Normal', 'Large', 'Huge'], tooltip = 'Text size for every table cell. Small matches the original; Normal or Large reads better on phones but widens the table.', group = 'Table Style', active = showTable)
+tblTextColor = input.color(color.white, 'Row label text', inline = 'tbh', tooltip = 'Text color of the left-hand row labels (DIR, TRIGGER, ...) and the header rows. The right-hand values keep their meaning colors: Up / Down / Neutral / status.', group = 'Table Style', active = showTable)
+tblHeaderBgColor = input.color(color.black, 'Header bg', inline = 'tbh', tooltip = 'Background of the two emphasized rows (TF / PATTERN and STATUS). Other rows keep the default transparent background.', group = 'Table Style', active = showTable)
+tblHeaderBold = input.bool(false, 'Bold header rows', tooltip = 'Renders the TF / PATTERN and STATUS rows in bold (Pine v6 text formatting). Off matches the original look.', group = 'Table Style', active = showTable)
+tblFrameColor = input.color(color.gray, 'Frame', inline = 'tbf', tooltip = 'Color of the table\'s outer frame and cell borders.', group = 'Table Style', active = showTable)
+tblFrameTransp = input.int(40, 'Transp', minval = 0, maxval = 100, inline = 'tbf', tooltip = 'Frame / border transparency. 0 = solid, 100 = invisible. 40 matches the original.', group = 'Table Style', active = showTable)
+
+trigNormColor = input.color(color.gray, 'Trigger', inline = 'tg1', tooltip = 'Line and label color of a normal trigger. Means "the level the signal broke -- the in-force line".', group = 'Lines', active = showTrig)
+trigNormTransp = input.int(10, 'Transp', minval = 0, maxval = 100, inline = 'tg1', tooltip = 'Transparency of the normal trigger line and label. 10 matches the original.', group = 'Lines', active = showTrig)
+trigNormWidth = input.int(1, 'Width', minval = 1, maxval = 10, inline = 'tg1', tooltip = 'Width of the normal trigger line.', group = 'Lines', active = showTrig)
+trigStarColor = input.color(color.fuchsia, 'Star trigger', inline = 'tg2', tooltip = 'Color of the highlighted trigger used by the emphasized patterns (Shot-Gun, Randy Jackson, Rev-Strats, 3-2 Boom). Means "high-priority setup in force".', group = 'Lines', active = showTrig)
+trigStarWidth = input.int(3, 'Width', minval = 1, maxval = 10, inline = 'tg2', tooltip = 'Width of the star trigger line. 3 matches the original -- deliberately heavier than a normal trigger.', group = 'Lines', active = showTrig)
+trigStyleIn = input.string('Dashed', 'Trigger line style', options = ['Dotted', 'Dashed', 'Solid'], tooltip = 'Style of both trigger variants. Dashed matches the original and keeps triggers distinct from the solid target levels.', group = 'Lines', active = showTrig)
+t1Width = input.int(2, 'Target 1 width', minval = 1, maxval = 10, inline = 'lw', tooltip = 'Width of the Target 1 (reclaim) line. Heavier than the extended targets in the original: 2 vs 1.', group = 'Lines')
+extWidth = input.int(1, 'Extended', minval = 1, maxval = 10, inline = 'lw', tooltip = 'Width of the Target 2+ lines.', group = 'Lines')
+lvlStyleIn = input.string('Solid', 'Active target style', options = ['Dotted', 'Dashed', 'Solid'], tooltip = 'Line style of live (not yet taken-out) targets. Taken-out and reclaimed levels use the Taken-out group\'s style instead.', group = 'Lines')
+
+dimTaken = input.bool(true, 'Grey out targets already taken out (keep on chart)', tooltip = 'When price has traded through a target (by wick), keep the level on the chart but demote it with the styling below and a check mark, instead of deleting it. Off = taken-out levels keep the live style.', group = 'Taken-out targets')
+takenColorIn = input.color(#8A8D98, 'Taken-out color', inline = 'tk1', tooltip = 'Color of a level price has already traded through. Means "this magnitude is spent".', group = 'Taken-out targets', active = dimTaken)
+takenTransp = input.int(70, 'Transp', minval = 0, maxval = 100, inline = 'tk1', tooltip = 'Transparency of taken-out lines and labels. 70 (the original) keeps them visible but clearly demoted.', group = 'Taken-out targets', active = dimTaken)
+takenWidth = input.int(1, 'Width', minval = 1, maxval = 10, inline = 'tk1', tooltip = 'Width of taken-out lines.', group = 'Taken-out targets', active = dimTaken)
+takenStyleIn = input.string('Dotted', 'Taken-out line style', options = ['Dotted', 'Dashed', 'Solid'], tooltip = 'Line style for taken-out AND reclaimed levels. Dotted separates them from the live solid targets at a glance.', group = 'Taken-out targets', active = dimTaken)
+highlightReclaim = input.bool(true, 'Highlight reclaimed levels (taken out, then price returned)', tooltip = 'A level whose close-extreme passed it but that price has come back across gets re-emphasized with the styling below and a return arrow -- it is acting as support / resistance again. Off = reclaimed levels render as plain taken-out.', group = 'Taken-out targets')
+reclaimColor = input.color(#E6B84D, 'Reclaimed level color', inline = 'rc1', tooltip = 'Color of a reclaimed level. Means "price took this out, then returned across it".', group = 'Taken-out targets', active = highlightReclaim)
+reclaimTransp = input.int(0, 'Transp', minval = 0, maxval = 100, inline = 'rc1', tooltip = 'Transparency of reclaimed lines and labels. 0 (the original) keeps reclaims fully opaque -- they are meant to stand out.', group = 'Taken-out targets', active = highlightReclaim)
+reclaimWidth = input.int(2, 'Width', minval = 1, maxval = 10, inline = 'rc1', tooltip = 'Width of reclaimed lines.', group = 'Taken-out targets', active = highlightReclaim)
+
+retraceColor = input.color(#CDA349, 'Retracement (winning pullback)', tooltip = 'Status color when the held signal is being pulled back against by an inside bar -- pausing, not broken. Means "normal pullback, signal intact".', group = 'Position status')
+p3Color = input.color(#F97316, 'Potential 3 (at risk)', tooltip = 'Status color when the live bar has taken the against-side level, or a with-side break is closing against the signal -- the bar could be going outside (3) against you. Means "at risk right now". Also colors the 3-trigger line.', group = 'Position status')
+showStatusLabel = input.bool(true, 'Show status label on chart', tooltip = 'Floats RETRACEMENT / POTENTIAL 3 above the live bar for longs (below for shorts) while the held signal is under pressure. Stays hidden while the signal is healthy.', group = 'Position status')
+showP3Trigger = input.bool(true, 'Potential 3: show 3-trigger level', tooltip = 'While at risk, draws the level that would complete an outside bar against the signal (prior low for longs, prior high for shorts) -- the "it just went 3" line.', group = 'Position status')
+p3TrigWidth = input.int(2, '3-trigger line width', minval = 1, maxval = 10, tooltip = 'Width of the 3-trigger line. 2 matches the original.', group = 'Position status', active = showP3Trigger)
+showP3Continuity = input.bool(true, 'Potential 3: show continuity (open) level', tooltip = 'While at risk, draws the live signal-TF open. Price above it keeps bullish continuity, below keeps bearish -- the tug-of-war line while a potential 3 builds.', group = 'Position status')
+contColor = input.color(#38BDF8, 'Continuity (live open) level', inline = 'ct1', tooltip = 'Color of the continuity line and label. Means "the developing bar\'s open -- the continuity pivot".', group = 'Position status', active = showP3Continuity)
+contTransp = input.int(15, 'Transp', minval = 0, maxval = 100, inline = 'ct1', tooltip = 'Transparency of the continuity line and label. 15 matches the original.', group = 'Position status', active = showP3Continuity)
+contWidth = input.int(1, 'Width', minval = 1, maxval = 10, inline = 'ct1', tooltip = 'Width of the continuity line.', group = 'Position status', active = showP3Continuity)
+
+// ---------------- Setup Dictionary (toggle the setups you trade) ----------------
+useShort = input.bool(false, 'Use short (zipcode) names', tooltip = 'Off = long names (e.g. \'Bullish Shot-Gun\'). On = numeric zipcodes (e.g. \'2-2-2u\'). Both name the same setup.', group = 'Setup Dictionary')
+en2Bar = input.bool(true, '2-Bar Rev-Strat (1-2-2)', tooltip = 'MUST follow an inside bar: 1-2d-2u (long) / 1-2u-2d (short). The inside bar (1), a directional bar, then the opposite directional bar completing the reversal over two bars. Trigger = prior bar hi/lo. A bare 2-2 with no leading inside is NOT a rev-strat.', group = 'Setup Dictionary')
+en2_2 = input.bool(true, '2-2 Reversal (bare, no inside bar)', tooltip = 'A plain two-bar reversal with NO leading inside bar: 2d-2u (long) / 2u-2d (short). Not a rev-strat -- those require an inside bar -- just a 2-2.', group = 'Setup Dictionary')
+en1_3 = input.bool(true, '1-Bar Rev-Strat (1-3u / 1-3d)', tooltip = 'Inside bar, then a single outside (3) bar that breaks both sides and closes directional. The reversal completes in ONE bar. In-force at the inside bar\'s broken hi (long, 1-3u) / lo (short, 1-3d).', group = 'Setup Dictionary')
+en1_3_2 = input.bool(true, '2-Bar Rev-Strat (1-3-2, Hammer / Shooter)', tooltip = 'Inside, then an outside bar (ideally a hammer for longs / shooter for shorts), then a 2 in the reversal direction. A two-bar rev-strat. Signal = the outside bar\'s hi (long) / lo (short).', group = 'Setup Dictionary')
+en3_2 = input.bool(true, '3-2 (Boom on hammer / shooter)', tooltip = 'A plain outside bar (3) followed by a confirming directional 2: 3-2u (long) / 3-2d (short). Trigger = the outside bar\'s hi / lo. When the outside bar is a hammer (long) or shooter (short) -- a reversal signal on its own -- it is a \'3-2 Boom\' and the trigger line is highlighted.', group = 'Setup Dictionary')
+enShotgun = input.bool(true, 'Shot-Gun (2-2-2)', tooltip = 'Three alternating directional bars: 2u-2d-2u (long) or 2d-2u-2d (short). Trigger = break of the middle bar\'s hi (long) / lo (short). Trigger line is highlighted.', group = 'Setup Dictionary')
+enRandy = input.bool(true, 'Randy Jackson (1-2-2-2)', tooltip = 'A Shot-Gun preceded by an inside bar: 1-2u-2d-2u (long) / 1-2d-2u-2d (short). Technically a 3-bar Rev-Strat. Same trigger rules as Shot-Gun. Trigger line is highlighted.', group = 'Setup Dictionary')
+en3_2_2 = input.bool(true, '3-2-2 (Fun to Say, Fun to Do)', tooltip = 'Outside (3) bar then a 2-2 reversal: 3-2d-2u (long) / 3-2u-2d (short). Trigger = break of the middle bar\'s hi/lo.', group = 'Setup Dictionary')
+en3_1_2 = input.bool(true, '3-1-2 Chicago (Reversal / Continuation)', tooltip = 'Outside, inside, then a 2. Reversal when the 3 closed against the eventual break (3[red]-1-2u / 3[green]-1-2d); continuation when the 3 closed with it. Labeled Reversal or Continuation.', group = 'Setup Dictionary')
+en2_1_2rev = input.bool(true, '2-1-2 Reversal', tooltip = 'Directional bar, inside bar, then the opposite directional bar: 2d-1-2u (long) / 2u-1-2d (short). Trigger = inside bar hi/lo.', group = 'Setup Dictionary')
+en2_1_2momo = input.bool(true, '2-1-2 Momentum (continuation)', tooltip = 'Same-direction 2-1-2 where the inside bar sits in the top 50% of the prior 2u range (long) / bottom 50% of the 2d range (short). A continuation, not a reversal.', group = 'Setup Dictionary')
+en1_3_1_2 = input.bool(true, '1-3-1-2 (Contract-Expand-Contract-Expand)', tooltip = 'Inside, outside, inside, then a 2. Trigger = the last inside bar\'s hi/lo.', group = 'Setup Dictionary')
+enGap = input.bool(true, 'Gap-Up Sell / Gap-Down Buy', tooltip = 'Bar opens beyond the prior bar\'s range and closes against the gap: gap up + red close = sell; gap down + green close = buy.', group = 'Setup Dictionary')
+enInsideBO = input.bool(true, 'Inside-Bar Breakout (1-2 continuation)', tooltip = 'Inside bar then a confirming directional close: 1-2u green (long) / 1-2d red (short). A continuation breakout, not a reversal.', group = 'Setup Dictionary')
+enOut3 = input.bool(true, 'Outside-Bar Continuation (3u / 3d)', tooltip = 'A standalone outside bar taking out both sides of the prior bar and closing directional.', group = 'Setup Dictionary')
+enGoing3 = input.bool(true, 'Going-3 single / Potential 1-Bar Rev-Strat', tooltip = 'A 2u that closes red (or 2d that closes green) is on its way to becoming a 3. After an inside bar it is a potential 1-bar Rev-Strat. Weak / unconfirmed until it completes.', group = 'Setup Dictionary')
+enPMG = input.bool(true, 'PMG context (flag \'PMG + reversal\')', tooltip = 'Pivot Machine Gun: a run of successive lower highs (bullish PMG) or higher lows (bearish PMG). When a reversal fires into a matching PMG, the name is prefixed \'PMG +\'.', group = 'Setup Dictionary')
+pmgBars = input.int(5, 'PMG: successive bars required', minval = 3, tooltip = 'Run length of successive lower highs (bullish PMG) / higher lows (bearish PMG) needed before a reversal earns the PMG + prefix. 5 is the classic convention; lower catches shorter runs, higher demands a longer machine-gun.', group = 'Setup Dictionary', active = enPMG)
+
+thr = useMintick ? syminfo.mintick : reclaimValue
+maxLevels = extTargets + 1
+tf = sigTF == '' ? timeframe.period : sigTF
+takenStyle = takenStyleIn == 'Dashed' ? line.style_dashed : takenStyleIn == 'Solid' ? line.style_solid : line.style_dotted
+
+// ---------------- Display helpers (map option strings to Pine constants) ----------------
+lineStyleOf(s) => s == 'Dashed' ? line.style_dashed : s == 'Solid' ? line.style_solid : line.style_dotted
+textSizeOf(s) => s == 'Tiny' ? size.tiny : s == 'Small' ? size.small : s == 'Normal' ? size.normal : s == 'Large' ? size.large : size.huge
+posOf(s) => s == 'Top Left' ? position.top_left : s == 'Top Center' ? position.top_center : s == 'Top Right' ? position.top_right : s == 'Middle Left' ? position.middle_left : s == 'Middle Center' ? position.middle_center : s == 'Middle Right' ? position.middle_right : s == 'Bottom Left' ? position.bottom_left : s == 'Bottom Center' ? position.bottom_center : position.bottom_right
+trigStyle = lineStyleOf(trigStyleIn)
+lvlStyle = lineStyleOf(lvlStyleIn)
+lblSize = textSizeOf(lblSizeIn)
+tblSize = textSizeOf(tblTextSize)
+chopSize = textSizeOf(chopBannerSize)
+hdrFmt = tblHeaderBold ? text.format_bold : text.format_none
+
+// ============================================================
+// TIMEFRAME AGGREGATION (developing bar + completed-bar history)
+// ============================================================
+var arrH = array.new<float>()
+var arrL = array.new<float>()
+var arrO = array.new<float>()
+var arrC = array.new<float>()
+var curH = float(na)
+var curL = float(na)
+var curO = float(na)
+var curC = float(na)
+
+isNew = timeframe.change(tf) or na(curH)
+if isNew
+    if not na(curH)
+        array.push(arrH, curH)
+        array.push(arrL, curL)
+        array.push(arrO, curO)
+        array.push(arrC, curC)
+        if array.size(arrH) > 250
+            array.shift(arrH)
+            array.shift(arrL)
+            array.shift(arrO)
+            array.shift(arrC)
+    curH := high
+    curL := low
+    curO := open
+    curC := close
+    curC
+else
+    curH := math.max(curH, high)
+    curL := math.min(curL, low)
+    curC := close
+    curC
+
+n = array.size(arrH)
+H1 = n >= 1 ? array.get(arrH, n - 1) : na
+L1 = n >= 1 ? array.get(arrL, n - 1) : na
+H2 = n >= 2 ? array.get(arrH, n - 2) : na
+L2 = n >= 2 ? array.get(arrL, n - 2) : na
+H3 = n >= 3 ? array.get(arrH, n - 3) : na
+L3 = n >= 3 ? array.get(arrL, n - 3) : na
+
+// ---------------- Hammer / Shooter helpers ----------------
+isHammer(o, h, l, c) =>
+    h - l > 0 and math.min(o, c) - l >= 0.5 * (h - l) and math.abs(c - o) <= 0.4 * (h - l)
+isShooter(o, h, l, c) =>
+    h - l > 0 and h - math.max(o, c) >= 0.5 * (h - l) and math.abs(c - o) <= 0.4 * (h - l)
+
+// ============================================================
+// CLASSIFY (bar0 = developing tf bar, bar1..3 = completed)
+// ============================================================
+// v6 note: break/inside flags are history-guarded. In v5 a comparison against a
+// missing bar (e.g. H2 = na on early bars) returned bool `na`, which is falsy.
+// v6 bools cannot be `na`, so the bare comparison returns `false` -- which would
+// flip in0/in1/in2 to `true` during warm-up (inside-ness = absence of a break).
+// Guards reproduce the v5 behavior exactly; same shape as the bh3/bl3/in3 lines.
+bh0 = not na(H1) and curH - H1 >= thr
+bl0 = not na(L1) and L1 - curL >= thr
+bh1 = not na(H2) and H1 - H2 >= thr
+bl1 = not na(L2) and L2 - L1 >= thr
+in1 = n >= 2 and not bh1 and not bl1
+u1 = bh1 and not bl1
+d1 = bl1 and not bh1
+out1 = bh1 and bl1
+bh2 = not na(H3) and H2 - H3 >= thr
+bl2 = not na(L3) and L3 - L2 >= thr
+in2 = n >= 3 and not bh2 and not bl2
+u0 = bh0 and not bl0
+d0 = bl0 and not bh0
+in0 = n >= 1 and not bh0 and not bl0
+out0 = bh0 and bl0
+g0 = curC > curO
+r0 = curC < curO
+// extended bars for the setup dictionary
+H4 = n >= 4 ? array.get(arrH, n - 4) : na
+L4 = n >= 4 ? array.get(arrL, n - 4) : na
+O1 = n >= 1 ? array.get(arrO, n - 1) : na
+C1 = n >= 1 ? array.get(arrC, n - 1) : na
+O2 = n >= 2 ? array.get(arrO, n - 2) : na
+C2 = n >= 2 ? array.get(arrC, n - 2) : na
+u2 = bh2 and not bl2
+d2 = bl2 and not bh2
+out2 = bh2 and bl2
+bh3 = not na(H4) and H3 - H4 >= thr
+bl3 = not na(L4) and L4 - L3 >= thr
+in3 = n >= 4 and not bh3 and not bl3
+g1 = not na(C1) and not na(O1) and C1 > O1
+r1 = not na(C1) and not na(O1) and C1 < O1
+g2 = not na(C2) and not na(O2) and C2 > O2
+r2 = not na(C2) and not na(O2) and C2 < O2
+ham1 = not na(O1) and isHammer(O1, H1, L1, C1)
+sho1 = not na(O1) and isShooter(O1, H1, L1, C1)
+// PMG streaks (consecutive lower-highs = bullish, higher-lows = bearish)
+lhRun = 0
+contLH = true
+prevHpmg = curH
+iLH = n - 1
+while iLH >= 0
+    hh = array.get(arrH, iLH)
+    if contLH and hh > prevHpmg + thr
+        lhRun := lhRun + 1
+        prevHpmg := hh
+        prevHpmg
+    else
+        contLH := false
+        contLH
+    iLH := iLH - 1
+    iLH
+hlRun = 0
+contHL = true
+prevLpmg = curL
+iHL = n - 1
+while iHL >= 0
+    ll = array.get(arrL, iHL)
+    if contHL and ll < prevLpmg - thr
+        hlRun := hlRun + 1
+        prevLpmg := ll
+        prevLpmg
+    else
+        contHL := false
+        contHL
+    iHL := iHL - 1
+    iHL
+bullPMG = enPMG and lhRun >= pmgBars
+bearPMG = enPMG and hlRun >= pmgBars
+gapUp = not na(H1) and curO > H1 + thr
+gapDn = not na(L1) and curO < L1 - thr
+
+// ============================================================
+// SIGNAL DETECTION (live, on the developing bar)
+// ============================================================
+priorTag = d1 ? '2d' : u1 ? '2u' : in1 ? '1' : 'x'
+sigDir = 0
+trig = float(na)
+anchor = float(na)
+anchor2 = float(na)
+weakSig = false
+fragile = false
+isRev = false
+pizazz = false
+nameL = '—'
+nameS = '—'
+
+if enGap and gapUp and r0
+    sigDir := -1
+    trig := curO
+    anchor := H1
+    isRev := true
+    fragile := true
+    nameL := 'Gap-Up Sell'
+    nameS := 'GAP-Sell'
+    nameS
+else if enGap and gapDn and g0
+    sigDir := 1
+    trig := curO
+    anchor := L1
+    isRev := true
+    fragile := true
+    nameL := 'Gap-Down Buy'
+    nameS := 'GAP-Buy'
+    nameS
+else if en1_3_1_2 and in3 and out2 and in1 and u0 and g0
+    sigDir := 1
+    trig := H1
+    anchor := H2
+    isRev := true
+    nameL := '1-3-1-2 Contract→Expand→Contract→Expand'
+    nameS := '1-3-1-2u'
+    nameS
+else if en1_3_1_2 and in3 and out2 and in1 and d0 and r0
+    sigDir := -1
+    trig := L1
+    anchor := L2
+    isRev := true
+    nameL := '1-3-1-2 Contract→Expand→Contract→Expand'
+    nameS := '1-3-1-2d'
+    nameS
+else if enRandy and in3 and u2 and d1 and u0 and g0
+    sigDir := 1
+    trig := H1
+    anchor := H2
+    isRev := true
+    pizazz := true
+    nameL := 'Bullish Randy Jackson (3-Bar Rev-Strat)'
+    nameS := '1-2-2-2u'
+    nameS
+else if enRandy and in3 and d2 and u1 and d0 and r0
+    sigDir := -1
+    trig := L1
+    anchor := L2
+    isRev := true
+    pizazz := true
+    nameL := 'Bearish Randy Jackson (3-Bar Rev-Strat)'
+    nameS := '1-2-2-2d'
+    nameS
+else if en1_3_2 and in2 and out1 and u0 and g0
+    sigDir := 1
+    trig := H1
+    anchor := H3
+    isRev := true
+    pizazz := true
+    nameL := ham1 ? 'Bullish 2-Bar Rev-Strat (1-3 Hammer)' : 'Bullish 2-Bar Rev-Strat (1-3-2)'
+    nameS := '1-3-2u'
+    nameS
+else if en1_3_2 and in2 and out1 and d0 and r0
+    sigDir := -1
+    trig := L1
+    anchor := L3
+    isRev := true
+    pizazz := true
+    nameL := sho1 ? 'Bearish 2-Bar Rev-Strat (1-3 Shooter)' : 'Bearish 2-Bar Rev-Strat (1-3-2)'
+    nameS := '1-3-2d'
+    nameS
+else if en3_2 and out1 and u0 and g0
+    sigDir := 1
+    trig := H1
+    isRev := true
+    pizazz := ham1
+    nameL := ham1 ? 'Bullish 3-2 Boom (Hammer)' : 'Bullish 3-2'
+    nameS := '3-2u'
+    nameS
+else if en3_2 and out1 and d0 and r0
+    sigDir := -1
+    trig := L1
+    isRev := true
+    pizazz := sho1
+    nameL := sho1 ? 'Bearish 3-2 Boom (Shooter)' : 'Bearish 3-2'
+    nameS := '3-2d'
+    nameS
+else if enShotgun and u2 and d1 and u0 and g0
+    sigDir := 1
+    trig := H1
+    anchor := H2
+    isRev := true
+    pizazz := true
+    nameL := 'Bullish Shot-Gun (2u-2d-2u)'
+    nameS := '2-2-2u'
+    nameS
+else if enShotgun and d2 and u1 and d0 and r0
+    sigDir := -1
+    trig := L1
+    anchor := L2
+    isRev := true
+    pizazz := true
+    nameL := 'Bearish Shot-Gun (2d-2u-2d)'
+    nameS := '2-2-2d'
+    nameS
+else if en3_2_2 and out2 and d1 and u0 and g0
+    sigDir := 1
+    trig := H1
+    anchor := H2
+    isRev := true
+    nameL := '3-2-2 Fun to Say, Fun to Do'
+    nameS := '3-2-2u'
+    nameS
+else if en3_2_2 and out2 and u1 and d0 and r0
+    sigDir := -1
+    trig := L1
+    anchor := L2
+    isRev := true
+    nameL := '3-2-2 Fun to Say, Fun to Do'
+    nameS := '3-2-2d'
+    nameS
+else if en3_1_2 and out2 and in1 and u0 and g0
+    sigDir := 1
+    trig := H1
+    anchor := H2
+    isRev := r2
+    nameL := r2 ? '3-1-2 Chicago Reversal' : '3-1-2 Chicago Continuation'
+    nameS := '3-1-2u'
+    nameS
+else if en3_1_2 and out2 and in1 and d0 and r0
+    sigDir := -1
+    trig := L1
+    anchor := L2
+    isRev := g2
+    nameL := g2 ? '3-1-2 Chicago Reversal' : '3-1-2 Chicago Continuation'
+    nameS := '3-1-2d'
+    nameS
+else if en2_1_2rev and d2 and in1 and u0 and g0
+    sigDir := 1
+    trig := H1
+    anchor := H2
+    isRev := true
+    nameL := '2-1-2 Reversal'
+    nameS := '2-1-2u'
+    nameS
+else if en2_1_2rev and u2 and in1 and d0 and r0
+    sigDir := -1
+    trig := L1
+    anchor := L2
+    isRev := true
+    nameL := '2-1-2 Reversal'
+    nameS := '2-1-2d'
+    nameS
+else if en2_1_2momo and u2 and in1 and u0 and g0 and (H1 + L1) / 2 >= (H2 + L2) / 2
+    sigDir := 1
+    trig := H1
+    isRev := false
+    nameL := '2-1-2 Momentum (continuation)'
+    nameS := '2-1-2u'
+    nameS
+else if en2_1_2momo and d2 and in1 and d0 and r0 and (H1 + L1) / 2 <= (H2 + L2) / 2
+    sigDir := -1
+    trig := L1
+    isRev := false
+    nameL := '2-1-2 Momentum (continuation)'
+    nameS := '2-1-2d'
+    nameS
+else if en1_3 and in1 and out0 and g0
+    sigDir := 1
+    trig := H1
+    anchor := H2
+    isRev := true
+    pizazz := true
+    nameL := 'Bullish 1-Bar Rev-Strat'
+    nameS := '1-3u'
+    nameS
+else if en1_3 and in1 and out0 and r0
+    sigDir := -1
+    trig := L1
+    anchor := L2
+    isRev := true
+    pizazz := true
+    nameL := 'Bearish 1-Bar Rev-Strat'
+    nameS := '1-3d'
+    nameS
+else if en2Bar and in2 and d1 and u0 and g0
+    sigDir := 1
+    trig := H1
+    anchor := H2
+    anchor2 := not na(H3) and L1 < L3 - thr ? H3 : float(na)
+    isRev := true
+    pizazz := true
+    nameL := 'Bullish 2-Bar Rev-Strat'
+    nameS := '1-2d-2u'
+    nameS
+else if en2Bar and in2 and u1 and d0 and r0
+    sigDir := -1
+    trig := L1
+    anchor := L2
+    anchor2 := not na(L3) and H1 > H3 + thr ? L3 : float(na)
+    isRev := true
+    pizazz := true
+    nameL := 'Bearish 2-Bar Rev-Strat'
+    nameS := '1-2u-2d'
+    nameS
+else if en2_2 and d1 and u0 and g0
+    sigDir := 1
+    trig := H1
+    anchor := H2
+    isRev := true
+    nameL := 'Bullish 2-2 Reversal'
+    nameS := '2-2u'
+    nameS
+else if en2_2 and u1 and d0 and r0
+    sigDir := -1
+    trig := L1
+    anchor := L2
+    isRev := true
+    nameL := 'Bearish 2-2 Reversal'
+    nameS := '2-2d'
+    nameS
+else if enInsideBO and in1 and u0 and g0
+    sigDir := 1
+    trig := H1
+    anchor := H2
+    isRev := false
+    nameL := 'Inside-Bar Breakout (1-2u)'
+    nameS := '1-2u'
+    nameS
+else if enInsideBO and in1 and d0 and r0
+    sigDir := -1
+    trig := L1
+    anchor := L2
+    isRev := false
+    nameL := 'Inside-Bar Breakout (1-2d)'
+    nameS := '1-2d'
+    nameS
+else if enOut3 and out0 and g0
+    sigDir := 1
+    trig := H1
+    isRev := false
+    nameL := '3u Outside Continuation'
+    nameS := priorTag + '-3u'
+    nameS
+else if enOut3 and out0 and r0
+    sigDir := -1
+    trig := L1
+    isRev := false
+    nameL := '3d Outside Continuation'
+    nameS := priorTag + '-3d'
+    nameS
+else if enGoing3 and u0 and r0
+    sigDir := -1
+    trig := H1
+    anchor := L1
+    weakSig := true
+    isRev := true
+    nameL := in1 ? 'Potential 1-Bar Rev-Strat' : '2u→3 (going 3)'
+    nameS := in1 ? '1-2u(r)' : '2u›3'
+    nameS
+else if enGoing3 and d0 and g0
+    sigDir := 1
+    trig := L1
+    anchor := H1
+    weakSig := true
+    isRev := true
+    nameL := in1 ? 'Potential 1-Bar Rev-Strat' : '2d→3 (going 3)'
+    nameS := in1 ? '1-2d(g)' : '2d›3'
+    nameS
+
+pmgHit = isRev and (sigDir == 1 and bullPMG or sigDir == -1 and bearPMG)
+if pmgHit
+    nameL := 'PMG + ' + nameL
+    nameS := 'PMG+' + nameS
+    nameS
+// ============================================================
+// LADDER: prior extremes not yet taken out (nearest first)
+// ============================================================
+ladderUp = array.new<float>()
+ladderDn = array.new<float>()
+if not na(anchor) and sigDir == 1
+    array.push(ladderUp, anchor)
+if not na(anchor2) and sigDir == 1
+    array.push(ladderUp, anchor2)
+if not na(anchor) and sigDir == -1
+    array.push(ladderDn, anchor)
+if not na(anchor2) and sigDir == -1
+    array.push(ladderDn, anchor2)
+runMax = not na(anchor2) and sigDir == 1 ? anchor2 : not na(anchor) and sigDir == 1 ? anchor : not na(trig) and not weakSig ? trig : curH
+j = n - 1
+while j >= 0 and array.size(ladderUp) < maxLevels
+    hv = array.get(arrH, j)
+    if hv > runMax + thr
+        array.push(ladderUp, hv)
+        runMax := hv
+        runMax
+    j := j - 1
+    j
+runMin = not na(anchor2) and sigDir == -1 ? anchor2 : not na(anchor) and sigDir == -1 ? anchor : not na(trig) and not weakSig ? trig : curL
+k = n - 1
+while k >= 0 and array.size(ladderDn) < maxLevels
+    lv = array.get(arrL, k)
+    if lv < runMin - thr
+        array.push(ladderDn, lv)
+        runMin := lv
+        runMin
+    k := k - 1
+    k
+
+lad = sigDir == 1 ? ladderUp : ladderDn
+
+// ============================================================
+// REMEMBER MOST RECENT SIGNAL (persists until a new one fires)
+// ============================================================
+var mrDir = 0
+var mrTrig = float(na)
+var mrPatt = '—'
+var mrNameS = '—'
+var mrPizazz = false
+var mrBar = 0
+var mrMaxH = float(na)
+var mrMinL = float(na)
+var mrMaxC = float(na)
+var mrMinC = float(na)
+var mrWeak = false
+var mrFragile = false
+var mrLevels = array.new<float>()
+
+negated = false
+if mrDir == 1
+    negated := (mrWeak or mrFragile) and r0 and not u0
+    negated
+else if mrDir == -1
+    negated := (mrWeak or mrFragile) and g0 and not d0
+    negated
+
+// A lone going-3 single (2d green / 2u red) is NOT a full 2-2 reversal,
+// so it does not override a still-good opposite entry: hold the prior one.
+isWeak = weakSig
+opposesHeld = mrDir != 0 and sigDir != 0 and sigDir != mrDir
+keepHeld = isWeak and opposesHeld and not negated
+// same-bar morph: the bar that established the held signal has changed shape
+// (e.g. a clean 2u that triggered Randy / Shot-Gun expands into a 3). The old
+// pattern no longer exists, so re-classify the bar rather than leaving a stale
+// label (a Randy sitting on what is now a 2d-3u). Relabel if a setup still
+// matches, clear if none does.
+sameBar = mrDir != 0 and mrBar == bar_index
+relabel = sameBar and sigDir != 0 and nameL != mrPatt
+adopt = sigDir != 0 and not keepHeld and (mrDir == 0 or sigDir != mrDir or relabel or isRev and not weakSig and mrBar != bar_index)
+
+if adopt
+    mrDir := sigDir
+    mrTrig := trig
+    mrPatt := nameL
+    mrNameS := nameS
+    mrPizazz := pizazz
+    mrBar := bar_index
+    mrMaxH := curH
+    mrMinL := curL
+    mrMaxC := curC
+    mrMinC := curC
+    mrWeak := isWeak
+    mrFragile := fragile
+    array.clear(mrLevels)
+    z = 0
+    while z < array.size(lad)
+        array.push(mrLevels, array.get(lad, z))
+        z := z + 1
+        z
+else if sameBar and out0 and sigDir == 0
+    mrDir := 0
+    mrTrig := na
+    mrPatt := '—'
+    mrNameS := '—'
+    mrPizazz := false
+    mrFragile := false
+    array.clear(mrLevels)
+else if sigDir == 0 and invalidate and negated
+    mrDir := 0
+    mrTrig := na
+    mrPatt := '—'
+    mrNameS := '—'
+    mrPizazz := false
+    mrFragile := false
+    array.clear(mrLevels)
+
+// running extreme since the active signal adopted (for taken-out detection)
+if mrDir != 0
+    mrMaxH := na(mrMaxH) ? curH : math.max(mrMaxH, curH)
+    mrMinL := na(mrMinL) ? curL : math.min(mrMinL, curL)
+    mrMaxC := na(mrMaxC) ? curC : math.max(mrMaxC, curC)
+    mrMinC := na(mrMinC) ? curC : math.min(mrMinC, curC)
+    mrMinC
+
+// ============================================================
+// CHOP TRACKING (counts reversals since last target hit)
+// ============================================================
+var curSigDir = 0
+var mrHit = false
+var revSinceHit = 0
+t1c = array.size(mrLevels) > 0 ? array.get(mrLevels, 0) : na
+if barstate.isconfirmed
+    if adopt and sigDir != curSigDir
+        revSinceHit := revSinceHit + 1
+        curSigDir := sigDir
+        mrHit := false
+        mrHit
+    if mrDir == 0
+        curSigDir := 0
+        curSigDir
+    if mrDir != 0 and not na(t1c) and not mrHit and (mrDir == 1 and curH >= t1c or mrDir == -1 and curL <= t1c)
+        mrHit := true
+        revSinceHit := 0
+        revSinceHit
+chopActive = showChop and revSinceHit >= chopThr
+
+// position health while held
+counterInside = mrDir == 1 ? in0 and r0 : mrDir == -1 ? in0 and g0 : false
+// At risk (POTENTIAL 3) when the AGAINST-side level is taken out -- the reversal
+// trigger / stop side -- OR the with-side break closes against (colour caution):
+//   long  at risk: d0 (prior low taken, incl. an outside-bar 3) OR a 2u-red failed push
+//   short at risk: u0 (prior high taken, incl. an outside-bar 3) OR a 2d-green failed push
+// A clean 2d-red while short (only the low taken) stays IN-FORCE; but a 3/outside bar
+// takes the high too, so it is POTENTIAL 3 even when it closes red. Per-bar, no latch.
+atRisk = mrDir != 0 and (mrDir == 1 ? d0 or u0 and r0 : u0 or d0 and g0)
+posStat = '—'
+if mrDir != 0
+    if atRisk
+        posStat := 'POTENTIAL 3'
+        posStat
+    else if sigDir != 0 and sigDir == mrDir
+        posStat := mrWeak ? 'POTENTIAL 3' : 'IN-FORCE'
+        posStat
+    else if counterInside
+        posStat := 'RETRACEMENT'
+        posStat
+    else
+        posStat := 'STILL GOOD'
+        posStat
+posCol = posStat == 'POTENTIAL 3' ? p3Color : posStat == 'RETRACEMENT' ? retraceColor : mrDir == 1 ? upColor : mrDir == -1 ? downColor : neutralColor
+
+// ============================================================
+// DRAW (most recent signal's levels, refreshed on last bar)
+// ============================================================
+var levLines = array.new<line>()
+var levLabels = array.new<label>()
+
+if barstate.islast
+    while array.size(levLines) > 0
+        line.delete(array.shift(levLines))
+    while array.size(levLabels) > 0
+        label.delete(array.shift(levLabels))
+if barstate.islast and mrDir != 0
+    col = mrDir == 1 ? upColor : downColor
+    dispNm = useShort ? mrNameS : mrPatt
+    lx = bar_index + lblOff
+    lxt = bar_index + lblOff + trigLblOff
+    if showTrig and not na(mrTrig)
+        trigCol = mrPizazz ? color.new(trigStarColor, 0) : color.new(trigNormColor, trigNormTransp)
+        trigW = mrPizazz ? trigStarWidth : trigNormWidth
+        trigPre = mrPizazz ? '★ TRIGGER  ' : 'Trigger  '
+        tl = line.new(mrBar, mrTrig, mrBar + 1, mrTrig, xloc = xloc.bar_index, extend = extend.right, color = trigCol, width = trigW, style = trigStyle)
+        array.push(levLines, tl)
+        tlb = label.new(lxt, mrTrig, (showTFonTrig ? tf + '  ' : '') + trigPre + dispNm + '  ' + str.tostring(mrTrig, format.mintick), xloc = xloc.bar_index, style = label.style_label_left, color = trigCol, textcolor = lblTextColor, size = lblSize)
+        array.push(levLabels, tlb)
+    m = 0
+    while m < array.size(mrLevels)
+        lvl = array.get(mrLevels, m)
+        dist = mrDir == 1 ? lvl - curC : curC - lvl
+        pct = dist / curC * 100
+        reachedW = mrDir == 1 ? not na(mrMaxH) and mrMaxH >= lvl : not na(mrMinL) and mrMinL <= lvl
+        reachedC = mrDir == 1 ? not na(mrMaxC) and mrMaxC >= lvl : not na(mrMinC) and mrMinC <= lvl
+        nearSide = mrDir == 1 ? curC < lvl : curC > lvl
+        reclaimed = highlightReclaim and reachedC and nearSide
+        taken = dimTaken and reachedW and not reclaimed
+        lcol = reclaimed ? color.new(reclaimColor, reclaimTransp) : taken ? color.new(takenColorIn, takenTransp) : col
+        lstyle = reclaimed or taken ? takenStyle : lvlStyle
+        w = reclaimed ? reclaimWidth : taken ? takenWidth : m == 0 ? t1Width : extWidth
+        ln = line.new(mrBar, lvl, mrBar + 1, lvl, xloc = xloc.bar_index, extend = extend.right, color = lcol, width = w, style = lstyle)
+        array.push(levLines, ln)
+        mark = reclaimed ? ' ↩' : taken ? ' ✓' : ''
+        tag = 'T' + str.tostring(m + 1) + (m == 0 ? ' (reclaim)' : '') + mark + '  ' + str.tostring(lvl, format.mintick) + '   ' + str.tostring(dist, format.mintick) + ' (' + str.tostring(pct, '#.##') + '%)'
+        lblBg = reclaimed ? color.new(reclaimColor, reclaimTransp) : taken ? color.new(takenColorIn, takenTransp) : col
+        lblTx = reclaimed ? lblTextColor : taken ? color.new(takenColorIn, 0) : lblTextColor
+        lb2 = label.new(lx, lvl, tag, xloc = xloc.bar_index, style = label.style_label_left, color = lblBg, textcolor = lblTx, size = lblSize)
+        array.push(levLabels, lb2)
+        m := m + 1
+        m
+    if posStat == 'POTENTIAL 3'
+        if showP3Continuity
+            cl = line.new(bar_index, curO, bar_index + 1, curO, xloc = xloc.bar_index, extend = extend.right, color = color.new(contColor, contTransp), width = contWidth, style = line.style_dashed)
+            array.push(levLines, cl)
+            clb = label.new(lx, curO, 'Continuity (open)  ' + str.tostring(curO, format.mintick), xloc = xloc.bar_index, style = label.style_label_left, color = color.new(contColor, contTransp), textcolor = lblTextColor, size = lblSize)
+            array.push(levLabels, clb)
+        if showP3Trigger
+            threeTrig = mrDir == 1 ? L1 : H1
+            if not na(threeTrig)
+                t3 = line.new(bar_index, threeTrig, bar_index + 1, threeTrig, xloc = xloc.bar_index, extend = extend.right, color = color.new(p3Color, 0), width = p3TrigWidth, style = line.style_dashed)
+                array.push(levLines, t3)
+                t3lb = label.new(lxt, threeTrig, (showTFonTrig ? tf + '  ' : '') + '3 Trigger  ' + str.tostring(threeTrig, format.mintick), xloc = xloc.bar_index, style = label.style_label_left, color = color.new(p3Color, 0), textcolor = lblTextColor, size = lblSize)
+                array.push(levLabels, t3lb)
+
+// ============================================================
+// POSITION STATUS LABEL (on chart)
+// ============================================================
+var statLbl = label.new(bar_index, close, '', xloc = xloc.bar_index, style = label.style_label_down, color = color.new(color.gray, 100), textcolor = color.new(color.white, 100), size = lblSize)
+if barstate.islast
+    riskState = mrDir != 0 and (posStat == 'RETRACEMENT' or posStat == 'POTENTIAL 3')
+    if showStatusLabel and riskState
+        label.set_xy(statLbl, bar_index, mrDir == 1 ? high : low)
+        label.set_text(statLbl, posStat)
+        label.set_color(statLbl, posCol)
+        label.set_textcolor(statLbl, lblTextColor)
+        label.set_style(statLbl, mrDir == 1 ? label.style_label_down : label.style_label_up)
+    else
+        label.set_text(statLbl, '')
+        label.set_color(statLbl, color.new(color.gray, 100))
+        label.set_textcolor(statLbl, color.new(color.white, 100))
+
+// ============================================================
+// SIGNAL TABLE
+// ============================================================
+txt = tblSize
+pos = posOf(tblPosIn)
+var tbl = table.new(pos, 2, 10, border_width = 1, frame_width = 1, frame_color = color.new(tblFrameColor, tblFrameTransp))
+
+if barstate.islast and showTable
+    sc = mrDir == 1 ? upColor : mrDir == -1 ? downColor : neutralColor
+    dirTxt = mrDir == 1 ? '▲ LONG' : mrDir == -1 ? '▼ SHORT' : '—'
+    statTxt = mrDir != 0 ? posStat : 'no signal'
+    t1 = array.size(mrLevels) > 0 ? array.get(mrLevels, 0) : na
+    mag1 = na(t1) or na(mrTrig) ? na : math.abs(t1 - mrTrig)
+    toGo = na(t1) ? na : math.abs(t1 - curC)
+    tfTxt = sigTF == '' ? timeframe.period : sigTF
+    dispName = useShort ? mrNameS : mrPatt
+    profit = mrDir == 0 or na(mrTrig) ? float(na) : mrDir == 1 ? curC - mrTrig : mrTrig - curC
+    profitPct = na(profit) or mrTrig == 0 ? float(na) : profit / mrTrig * 100
+    profitTxt = na(profit) ? '—' : str.tostring(profit, format.mintick) + '  (' + str.tostring(profitPct, '#.##') + '%)'
+    profitCol = na(profit) ? sc : profit >= 0 ? upColor : downColor
+    r = 0
+    table.cell(tbl, 0, r, 'TF / PATTERN', text_color = tblTextColor, bgcolor = color.new(tblHeaderBgColor, 0), text_size = txt, text_formatting = hdrFmt)
+    table.cell(tbl, 1, r, tfTxt + '  ' + dispName, text_color = sc, bgcolor = color.new(tblHeaderBgColor, 0), text_size = txt, text_formatting = hdrFmt)
+    r := r + 1
+    table.cell(tbl, 0, r, 'DIR', text_color = tblTextColor, text_size = txt)
+    table.cell(tbl, 1, r, dirTxt, text_color = sc, text_size = txt)
+    r := r + 1
+    table.cell(tbl, 0, r, 'TRIGGER', text_color = tblTextColor, text_size = txt)
+    table.cell(tbl, 1, r, na(mrTrig) ? '—' : str.tostring(mrTrig, format.mintick), text_color = sc, text_size = txt)
+    r := r + 1
+    table.cell(tbl, 0, r, 'TARGET 1', text_color = tblTextColor, text_size = txt)
+    table.cell(tbl, 1, r, na(t1) ? '—' : str.tostring(t1, format.mintick), text_color = sc, text_size = txt)
+    r := r + 1
+    if showMagRow
+        table.cell(tbl, 0, r, 'MAGNITUDE', text_color = tblTextColor, text_size = txt)
+        table.cell(tbl, 1, r, na(mag1) ? '—' : str.tostring(mag1, format.mintick), text_color = sc, text_size = txt)
+        r := r + 1
+        r
+    if showToGoRow
+        table.cell(tbl, 0, r, 'TO GO (T1)', text_color = tblTextColor, text_size = txt)
+        table.cell(tbl, 1, r, na(toGo) ? '—' : str.tostring(toGo, format.mintick), text_color = sc, text_size = txt)
+        r := r + 1
+        r
+    if showProfitRow
+        table.cell(tbl, 0, r, 'PROFIT', text_color = tblTextColor, text_size = txt)
+        table.cell(tbl, 1, r, profitTxt, text_color = profitCol, text_size = txt)
+        r := r + 1
+        r
+    if showNumTargets
+        table.cell(tbl, 0, r, '# TARGETS', text_color = tblTextColor, text_size = txt)
+        table.cell(tbl, 1, r, mrDir != 0 ? str.tostring(array.size(mrLevels)) : '—', text_color = sc, text_size = txt)
+        r := r + 1
+        r
+    table.cell(tbl, 0, r, 'STATUS', text_color = tblTextColor, bgcolor = color.new(tblHeaderBgColor, 0), text_size = txt, text_formatting = hdrFmt)
+    table.cell(tbl, 1, r, statTxt, text_color = posCol, bgcolor = color.new(tblHeaderBgColor, 0), text_size = txt, text_formatting = hdrFmt)
+    r := r + 1
+    if showRevsRow
+        table.cell(tbl, 0, r, 'REVS / CHOP', text_color = tblTextColor, text_size = txt)
+        table.cell(tbl, 1, r, str.tostring(revSinceHit) + (chopActive ? '  ⚠' : ''), text_color = chopActive ? chopColor : sc, text_size = txt)
+        r := r + 1
+        r
+
+
+// ============================================================
+// CHOP WARNING BANNER + ALERT
+// ============================================================
+var chopTbl = table.new(posOf(chopBannerPos), 1, 1)
+if barstate.islast
+    bannerOn = chopActive and showChopBanner
+    table.cell(chopTbl, 0, 0, bannerOn ? '⚠ CHOP WARNING' : '', text_color = chopTextColor, bgcolor = bannerOn ? color.new(chopColor, 0) : color.new(color.gray, 100), text_size = chopSize)
+
+alertcondition(chopActive and not chopActive[1], title = 'Chop Warning', message = 'Chop Warning: back-to-back reversals missing target')
