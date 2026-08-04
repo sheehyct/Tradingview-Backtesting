@@ -10,7 +10,13 @@
 
 ## Status
 
-- Status: REQUESTED  <!-- REQUESTED | RETURNED (audit file written) -->
+- Status: RETURNED  <!-- REQUESTED | RETURNED (audit file written) -->
+- Returned: 2026-08-04 -- docs/reviews/tvb15-codex-audit.md (Codex CLI,
+  NEEDS-CHANGES; 1 HIGH + 3 MEDIUM; all four independently reproduced by
+  TVB-18 the same day). Synthesis: TVB-18 HANDOFF entry + the fold-in
+  section of docs/experiments/tvb15_paper_week1_protocol.md. NOTE: this
+  file's "evict-alive 14 vs 13+1" focus-area line is the wrong claim that
+  audit F4 corrected (actual day-one twin counter: 15).
 - Session under review: TVB-15 -- the paper-trading twin layer (Python port
   of the live v6/v6.1 Pine + scanner-fed roster + HL archive +
   deterministic replay + fixture-parity goldens), the week-1 frozen

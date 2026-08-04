@@ -273,7 +273,12 @@ exit-class numbers.
   saved 16:04Z, on-chart ~16:08Z; binding verified, version bump
   verified; deploy restored two v6-only header bullets the repo had
   dropped). POST-FIX PARITY: chart and twin alive counts EXACT
-  (13/11/2/0); on-chart evict-alive 14 vs twin census 13+1=14; next-line
+  (13/11/2/0); on-chart evict-alive 14 vs twin census 13+1=14 [WRONG --
+  TVB-15 audit F4, annotated by the TVB-18 fold-in 2026-08-04: this line
+  reused the fixed-regression census; the actual day-one twin counter was
+  15 (14 12h + 1 D), as the protocol doc correctly recorded ("14 vs 15,
+  history-depth class"). The counter counts fallback formation evictions,
+  not alive sides removed]; next-line
   values agree once slopes are projected across the 1.6h read gap.
   WEEK-LOG CONTINUITY: v6.1 re-replay = the IDENTICAL 18 events (no
   affected line had been touched); TVB15-D1 (day-1 stale-line divergence)
@@ -348,7 +353,10 @@ hip3-scanner workspace; TVB may consume tf.{1d,1w,1M}.formingDir any time.
 > (range below) and write a verbatim assessment to
 > docs/reviews/tvb15-codex-audit.md. See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: REQUESTED
+- Review status: RETURNED 2026-08-04 (NEEDS-CHANGES) -- folded in same day
+  by TVB-18; all four findings independently reproduced before adjudication.
+  Synthesis: TVB-18 HANDOFF entry + the fold-in section of
+  docs/experiments/tvb15_paper_week1_protocol.md.
 - Commits to review: `75eba90^..b9b93cb` on `main` (5 commits; the pin
   commit follows outside the range, per precedent). RANGE-PIN RULE: caret
   included; sanity-check `git diff --name-status 75eba90^ b9b93cb`.
@@ -370,8 +378,20 @@ hip3-scanner workspace; TVB may consume tf.{1d,1w,1M}.formingDir any time.
   fold-in's own verification claims (census reproductions, roster
   live-impact sweep method -- uncapped-as-truth caveat); (7) deploy
   verification claims (version bump, table parity numbers).
-- Reviewed by: pending
-- Findings: (blank until docs/reviews/tvb15-codex-audit.md exists)
+- Reviewed by: Codex CLI (user-run), 2026-08-04
+- Findings: NEEDS-CHANGES, 1 HIGH + 3 MEDIUM, all four CONFIRMED by
+  TVB-18 reproduction. F1 HIGH: all 18 day-one events predate the 14:31
+  roster freeze (selection lookahead); on the final 81-event record, 12/37
+  closed trades entered pre-freeze incl. both catastrophic adverse-breaks;
+  realized flips -27.60pp -> +14.37pp in the post-freeze-entry slice
+  (analysis/paper/freeze_slice.py); the adverse-runner gap SURVIVES (the
+  window-end open runners all entered post-freeze). F2: the actual freeze
+  source was never preserved (committed snapshot = 13:26:36Z, 65 min
+  early); roster.py fails open. F3: coarse 1h/1d warm-up changes lifecycle
+  state, not just anchor precision (TSLA 07-16 N=1 lower alive-vs-consumed
+  reproduced); delta 1 amended. F4: evict-alive counts fallback formation
+  evictions, not alive sides; the "14 vs 13+1=14" parity line above was
+  wrong (annotated in place; true day-one twin counter 15).
 
 ---
 

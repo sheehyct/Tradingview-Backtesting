@@ -83,7 +83,13 @@ Notes recorded at freeze:
 1. **Warm-history anchor resolution.** Pool anchors warmed at 1h/1d
    resolution vs the chart's 5m stamps; line values differ at the cents
    level on operative rungs and can flip touch outcomes on old lines over
-   weeks.
+   weeks. [AMENDED 2026-08-04 by audit F3: the coarse warm-up also changes
+   LIFECYCLE state, not only anchor values -- warm_pool() runs the full
+   containment/cross scan once per 1h/1d row where the chart evaluates
+   every 5m bar, leaving stale alive sides (reproduced: TSLA 12h N=1 born
+   07-16, lower ALIVE at 1h warm vs CONSUMED 07-17 13:40 at 5m). Treat
+   warm-lifecycle drift as its own delta class; see the audit fold-in
+   section.]
 2. **TVB15-D1 (day-1 parity snapshot, DRAM 14:30Z):** twin vs live table --
    position SHORT = SHORT; gate grey = grey; next line down 48.358 vs
    48.360 (the weekly N=4 rung, delta 0.002); D-pool structural upper
@@ -224,6 +230,13 @@ week-1 record.
 The window closed 2026-07-27 00:00 UTC; this pass closed out the record six
 days later (archive floor allowed it -- the 07-20 window start survived).
 
+[2026-08-04: the TVB-15 external audit RETURNED after this pass was
+written. Its F1 (HIGH) applies to every aggregate below: 12 of the 37
+closed trades -- including the NBIS/MRVL adverse-breaks -- entered before
+the 14:31 roster freeze and are selection-contaminated. See the audit
+fold-in section below for the freeze-slice restatement; the numbers here
+stand as the full-record view.]
+
 ### Close-out mechanics
 
 Archive advanced all 11 symbols through 08-04 00:45Z (5m/1h/1d; merged
@@ -313,6 +326,79 @@ short that is the difference between harvesting at -5% adverse and riding
 to -18%. Loaded chart history is load-bearing state for this design; any
 live deployment needs either persistent chart sessions or server-side line
 state.
+
+## TVB-15 external audit fold-in (RETURNED 2026-08-04, during TVB-18)
+
+Audit: `docs/reviews/tvb15-codex-audit.md` (Codex CLI, NEEDS-CHANGES;
+1 HIGH + 3 MEDIUM). All four findings were independently reproduced by
+TVB-18 before adjudication. The synthesis lives in the TVB-18 HANDOFF
+entry; the record-facing consequences live here.
+
+### F1 (HIGH, CONFIRMED): pre-freeze events are selection-contaminated
+
+The window opens 07-20 00:00 UTC; the roster froze at 14:31:21 UTC. Every
+event before the freeze grades instruments chosen with information that
+did not exist when the event occurred -- and the selector is momentum-heavy
+and rotated hard that same morning (recorded above at the freeze).
+Quantified on the final record (`analysis/paper/freeze_slice.py`):
+
+- 18 of 81 events (13 entries, 5 exits) predate the freeze. 12 of 37
+  closed trades ENTERED pre-freeze -- including both catastrophic
+  adverse-breaks (NBIS -26.82% entered 01:00, MRVL -14.32% entered 00:50).
+- Realized flips sign: full record -27.60pp vs post-freeze-entry slice
+  +14.37pp (20 bf @ +1.95 avg / 3 brk @ -4.80 / 2 flip @ -5.15).
+- Open MTM (-40.65pp) is unaffected: 6 of 7 window-end opens entered
+  post-freeze (the 7th is DRAM, the parity instrument, excluded from
+  aggregates anyway). Combined: -68.25pp full vs -26.28pp clean-entry.
+- SURVIVES the correction: the adverse-runner exit gap. The window-end
+  open runners (GOOGL -15.8%, AMZN -19.5%, SKHY -12.1%) all entered
+  post-freeze from genuine signals. The design gap is real; only its
+  worst REALIZED examples sit in the contaminated cohort (which is also
+  the flat-seed cohort -- the two declared mechanisms overlap on the same
+  first-hours trades).
+- The clean slice is NOT a clean week: the roster itself was selected on
+  the pre-freeze move, so post-freeze trades stay heat-conditioned via
+  symbol choice. The slice removes the direct fiction (trading a roster
+  that did not exist yet), nothing more.
+- The frozen artifacts stay as-committed (`events_week1.jsonl`,
+  `scoreboard_week1.md`); `freeze_slice.py` is the graded view. ADOPTION
+  DECISION (user, queued with the week-2 protocol): which slice week-1
+  grades quote, and whether replay gains a freeze-boundary invariant.
+
+### F2 (MEDIUM, CONFIRMED): the freeze source was not preserved
+
+The committed reference snapshot decodes to 13:26:36Z -- 65 minutes before
+the freeze -- so the actual 14:31 `/api/state` document is unrecoverable
+and the committed tails cannot be re-derived from preserved evidence. The
+live selector also fails open (no raise_for_status / loaded / staleness /
+candidate-count guards). No retroactive fix exists. QUEUED for any future
+freeze: preserve the normalized source + content hash transactionally,
+fail closed on every guard, and add a frozen-source -> tails
+byte-reproduction test.
+
+### F3 (MEDIUM, CONFIRMED): coarse warm-up changes lifecycle, not just anchors
+
+Reproduced the reviewer's instance exactly (TSLA 12h, N=1 born 07-16:
+lower side ALIVE after 1h-resolution warm-up, CONSUMED 07-17 13:40 at 5m
+resolution), plus same-class consumption-time shifts on two more
+formations. Declared delta 1 is amended above. Fix options QUEUED with the
+deferred audit items: run lifecycle warming on 5m bars (coarse bars only
+for base-candle construction), or regression-test the per-symbol
+common-window state diff.
+
+### F4 (MEDIUM, CONFIRMED): evict-alive counts formations; one parity claim was wrong
+
+Code-verified on both sides: Pine increments `ev_alive` once per fallback
+eviction and then removes BOTH side records (`pine/tfc_bf_watch.pine:
+296-325`); the engine mirrors it (`analysis/paper/engine.py:197-212`). The
+counter is a fallback-eviction event count, not an alive-sides count (a
+two-alive-side eviction counts 1 and discards 2). The HANDOFF TVB-15 /
+REVIEW_REQUEST "evict-alive 14 vs twin 13+1=14" line was WRONG -- it
+reused the fixed-regression census; the actual day-one twin counter was 15
+(14 12h + 1 D), exactly as this document recorded ("14 vs 15,
+history-depth class"). HANDOFF annotated in place. QUEUED (touches the
+deployed Pine -- design-session batch): split event vs side telemetry and
+add a two-alive-side regression.
 
 ## Out of scope this week
 
