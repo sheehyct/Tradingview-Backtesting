@@ -17,14 +17,17 @@ Status: {X files changed}
 
 ## Check 2: request.security lookahead audit (DOMAIN-CRITICAL)
 
-For every changed `*.pine` file, grep for `request.security`. Each call MUST use
-`lookahead_off` (and confirm-on-close offsets). A lookahead-on call makes the whole backtest
-fiction -- this is the cardinal trap (charter Section 7.1).
+For every changed `*.pine` file, grep for `request.security`. The trap is UN-OFFSET
+`lookahead_on`: every call must either use `lookahead_off` or pair `lookahead_on` with an
+explicit history offset on the expression (`expr[1]` -- the approved non-repainting idiom:
+confirmed values, one-HTF-bar latency, used deliberately in 5 scripts). An un-offset
+lookahead-on call makes the whole backtest fiction -- this is the cardinal trap (charter
+Section 7.1; rule amended TVB-17 per TVB-11 finding F7).
 
 ```bash
 grep -rn "request.security" "C:/Strat_Trading_Bot/tradingview-backtesting/pine" || echo "no pine request.security calls"
 ```
-Status: PASS / NEEDS ATTENTION (list any call missing lookahead_off)
+Status: PASS / NEEDS ATTENTION (list any UN-OFFSET lookahead_on call; expr[1]+lookahead_on is correct)
 
 ## Check 3: Pine trigger-timing sanity
 

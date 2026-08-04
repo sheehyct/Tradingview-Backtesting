@@ -9,25 +9,25 @@ records CLOSED 5m bars only and starts FLAT at the week boundary.
 
 | symbol | tail | data through | trades | bf | brk | flip | wins | sum pnl% | med pnl% | avg MFE% | avg gb pp | open |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| xyz:MRVL | long | 07-22 02:05 | 0 | 0 | 0 | 0 | 0 | -- | -- | -- | -- | short @189.6 since 07-20 00:50 |
-| xyz:GOOGL | long | 07-22 02:05 | 2 | 0 | 0 | 2 | 0 | -3.27 | -1.63 | 1.40 | 3.03 | short @348.9 since 07-21 14:35 |
-| xyz:AMZN | long | 07-22 02:05 | 1 | 0 | 1 | 0 | 0 | -0.45 | -0.45 | 2.10 | 2.55 | -- |
-| xyz:MSFT | long | 07-22 02:05 | 0 | 0 | 0 | 0 | 0 | -- | -- | -- | -- | long @397 since 07-20 15:15 |
-| xyz:GOLD | long | 07-22 02:05 | 5 | 4 | 0 | 1 | 4 | 2.52 | 0.67 | 0.66 | 0.15 | long @4123 since 07-22 01:40 |
-| xyz:AAPL | short | 07-22 02:05 | 1 | 0 | 1 | 0 | 0 | -1.06 | -1.06 | 0.09 | 1.15 | -- |
-| xyz:SKHX | short | 07-22 02:05 | 0 | 0 | 0 | 0 | 0 | -- | -- | -- | -- | -- |
-| xyz:SKHY | short | 07-22 02:05 | 4 | 2 | 0 | 2 | 2 | 3.51 | -0.27 | 4.47 | 3.59 | long @175.2 since 07-22 00:20 |
-| xyz:NBIS | short | 07-22 02:05 | 0 | 0 | 0 | 0 | 0 | -- | -- | -- | -- | short @179.8 since 07-20 01:00 |
-| xyz:TSLA | short | 07-22 02:05 | 2 | 2 | 0 | 0 | 2 | 1.34 | 0.67 | 1.07 | 0.40 | short @375.6 since 07-20 14:00 |
-| xyz:DRAM | parity | 07-22 02:10 | 0 | 0 | 0 | 0 | 0 | -- | -- | -- | -- | short @52.56 since 07-20 02:25 |
+| xyz:MRVL | long | 07-27 00:00 | 1 | 0 | 1 | 0 | 0 | -14.32 | -14.32 | 1.31 | 15.63 | -- |
+| xyz:GOOGL | long | 07-27 00:00 | 6 | 4 | 0 | 2 | 4 | 5.15 | 0.84 | 2.15 | 1.29 | short @321.5 since 07-23 13:30 |
+| xyz:AMZN | long | 07-27 00:00 | 5 | 3 | 2 | 0 | 3 | 0.55 | 0.07 | 0.93 | 0.82 | short @235.3 since 07-23 14:00 |
+| xyz:MSFT | long | 07-27 00:00 | 1 | 0 | 1 | 0 | 0 | -3.18 | -3.18 | 1.57 | 4.75 | -- |
+| xyz:GOLD | long | 07-27 00:00 | 7 | 6 | 0 | 1 | 6 | 3.44 | 0.65 | 0.63 | 0.13 | long @4158 since 07-22 14:05 |
+| xyz:AAPL | short | 07-27 00:00 | 1 | 0 | 1 | 0 | 0 | -1.06 | -1.06 | 0.09 | 1.15 | -- |
+| xyz:SKHX | short | 07-27 00:00 | 0 | 0 | 0 | 0 | 0 | -- | -- | -- | -- | short @1169 since 07-24 18:30 |
+| xyz:SKHY | short | 07-27 00:00 | 7 | 3 | 1 | 3 | 3 | -10.36 | -1.19 | 2.90 | 4.38 | long @161.1 since 07-26 03:30 |
+| xyz:NBIS | short | 07-27 00:00 | 1 | 0 | 1 | 0 | 0 | -26.82 | -26.82 | 1.28 | 28.10 | -- |
+| xyz:TSLA | short | 07-27 00:00 | 8 | 8 | 0 | 0 | 8 | 18.99 | 1.80 | 2.77 | 0.39 | short @322.9 since 07-23 14:50 |
+| xyz:DRAM | parity | 07-27 00:00 | 0 | 0 | 0 | 0 | 0 | -- | -- | -- | -- | short @52.56 since 07-20 02:25 |
 
 ## By exit class (closed trades, all symbols)
 
 | exit class | n | win rate | avg pnl% | med pnl% | avg give-back pp |
 |---|---|---|---|---|---|
-| BF S/L Exit (harvest touch) | 8 | 100% | 1.82 | 0.69 | 0.14 |
-| BF Break L/S Exit (adverse close-through) | 2 | 0% | -0.75 | -0.75 | 1.85 |
-| Flip S/L Exit (full-gate backstop) | 5 | 0% | -2.10 | -1.19 | 4.18 |
+| BF S/L Exit (harvest touch) | 24 | 100% | 1.86 | 0.98 | 0.24 |
+| BF Break L/S Exit (adverse close-through) | 7 | 0% | -8.15 | -3.18 | 9.19 |
+| Flip S/L Exit (full-gate backstop) | 6 | 0% | -2.54 | -1.87 | 4.38 |
 
 Notes: the scanner score SELECTED the roster; the twin's D/W/M gate decides
 entries -- different TFC measurements, so zero-entry symbols are the gate

@@ -219,6 +219,101 @@ knobs. Caveat: 2 days, one rally regime, 9-15 trades -- a measurement to
 populate over more regimes, not a verdict. The frozen control remains the
 week-1 record.
 
+## TVB-18 week-end pass (2026-08-03)
+
+The window closed 2026-07-27 00:00 UTC; this pass closed out the record six
+days later (archive floor allowed it -- the 07-20 window start survived).
+
+### Close-out mechanics
+
+Archive advanced all 11 symbols through 08-04 00:45Z (5m/1h/1d; merged
+series span 07-03 -> 08-04). Replay regenerated the week window
+deterministically: the 38 committed events reproduced BYTE-IDENTICALLY and
+43 appended (38 -> 81; 44 entries / 37 exits). Full suite green (97 passed,
+2 skipped) including the 24 paper goldens.
+
+### Week-1 final (frozen control, gross, 1x; roster aggregates excl DRAM)
+
+- Realized: 37 closed trades, -27.61pp. Open MTM at window end: -40.65pp
+  across 7 opens. Combined: -68.25pp.
+- Exit classes: BF harvest 24 @ +1.86% avg, gb 0.24pp (100% win BY
+  CONSTRUCTION -- the exit IS a profitable line touch); BF adverse-break 7
+  @ -8.15% avg, gb 9.19pp (worst NBIS -26.82%, MRVL -14.32%); flip
+  backstop 6 @ -2.54% avg, gb 4.38pp.
+- The mid-week stuck shorts REALIZED their damage: NBIS -26.82% and MRVL
+  -14.32% finally exited via adverse-break (give-back 28.10pp and 15.63pp
+  from positive MFE). DRAM's parity short (07-20 02:25) never exited all
+  week: -13% trough, +4.7% at the window end -- a full adverse round-trip
+  ridden with no line in the path, in both directions.
+- NEW adverse runners formed from genuine MID-WEEK signals: GOOGL short
+  (07-23 13:30) -15.8% and AMZN short (07-23 14:00) -19.5% open at window
+  end. The exit gap is therefore NOT a flat-seed artifact; the flat-seed
+  delta only inflated the first-2.5h cohort's severity.
+- Counterexample: TSLA 8/8 harvests, +18.99pp, gb 0.39pp -- the harvest
+  engine performs when rungs keep appearing in the price path. One
+  adverse-break erases roughly 4-14 average harvests; that asymmetry is
+  the week's design question (carried to the adverse-runner design
+  session).
+
+Heat-conditioning (stated per contract): the roster is scanner-score
+extreme-selected at freeze, graded across ONE regime (a broad rally against
+the short tail). This characterizes EXIT CLASSES on heat-selected names;
+it is not a strategy-edge estimate.
+
+### Full-week ablation (control vs user live variant)
+
+compare_config over the closed week: control -27.60 realized / -40.65 open
+/ -68.25 combined; variant (1H arm, 12h off) -15.44 / -47.69 / -63.13.
+Confirms the TVB-16 mid-week reading at full-week scale: the two knobs
+RE-TIME the same book rather than change its edge -- the variant converts
+realized damage into still-open damage (MRVL realized -14.32 vs still-short
+-2.8; AAPL realized -1.06 vs open long -9.0), harvests get fewer but bigger
+(24 @ +1.86 -> 14 @ +3.23), and the adverse-runner class is config-invariant
+in scale and membership.
+
+### Parity pass (DRAM + TSLA + GOOGL, read 2026-08-04 ~01:00Z)
+
+Context that changed the instrument: the deployed accumulated-history v6.1
+chart instances were REMOVED from all saved layouts during the user's
+post-week pivot (the "DRAM" front layout now shows NASDAQ:SNDK with a
+community "Strat Assistant" study; layout "5x" holds bare DRAMUSDC.P).
+Strong-form census parity (TVB-15's exact 13/11/2/0) is no longer
+reproducible by anyone. These reads are FRESH MOUNTS of USER;7c28fa0b v7.0
+(table title v6.1) at source defaults on a scratch layout (TVB18-parity),
+which compute only over TV's initial ~3-week 5m load. Twin side:
+`analysis/paper/parity_state.py` (control config), replayed week-start ->
+archive tip 08-04 00:45Z.
+
+| surface | twin @ tip | chart (fresh mount) | verdict |
+|---|---|---|---|
+| DRAM position | SHORT @48.231 since 07-28 13:40 | SHORT | MATCH |
+| DRAM gate | D dn, W dn, M up (tip close 50.08 > M open 49.804) | DOWN | MATCH -- read-gap: last 49.791 < 49.804 at read time; M is knife-edge on the monthly open, verified numerically |
+| DRAM next dn / up | 41.0232 (W N1 lo) / 71.9622 (D N4 up) | 41.03705 / 71.99174 | same rungs, 0.03-0.04% |
+| TSLA position | LONG @314.891 since 08-03 04:00 | LONG | MATCH |
+| TSLA gate | D dn, W up, M up | grey | MATCH exact |
+| TSLA next dn / up | 265.948 (D N1 lo) / 326.515 (D N3 up) | 265.876 / 326.529 | same rungs, 0.004-0.03% |
+| GOOGL position | LONG @365.571 since 08-03 13:35 | LONG | MATCH |
+| GOOGL gate | D up, W up, M up | UP | MATCH exact |
+| GOOGL next dn / up | 306.89 (W N3 lo) / 393.687 (W N1 up) | 306.869 / 393.717 | same rungs, 0.007-0.008% |
+| alive census | DRAM 14/11/2/0, TSLA 13/11/3/2, GOOGL 11/8/7/4 | DRAM 0/8/1/0, TSLA 0/10/1/0, GOOGL 0/6/3/0 | NOT comparable -- fresh-mount loaded depth (delta class 1, amplified): deep pools, esp. 12h formations with May-era preserved-alive sides, cannot rebuild from the initial window |
+
+No divergence escalates outside the declared delta classes: positions and
+gate composites match exactly (the one gate difference resolves numerically
+to 13 cents of price movement through the monthly open across the 15-minute
+read gap), and every operative rung corresponds at 0.004-0.04% (anchor
+resolution + line slope over the read gap).
+
+OPERATIONAL FINDING (new, live-relevant): remounting the indicator -- or any
+chart reload that shrinks the loaded window -- silently thins the harvest
+ladder. v6.1's retired-first eviction deliberately preserves old alive
+lines (DRAM's May-era 12h uppers at 74.78/87.27), but a fresh mount can
+never rebuild them: the fresh DRAM mount's nearest lower exit sits at 41.04
+where the full-history twin holds a 12h rung at 47.39. For the standing
+short that is the difference between harvesting at -5% adverse and riding
+to -18%. Loaded chart history is load-bearing state for this design; any
+live deployment needs either persistent chart sessions or server-side line
+state.
+
 ## Out of scope this week
 
 Tier-2 STRAT targets (present in `/api/state` per-TF blocks incl. 1w/1M;
