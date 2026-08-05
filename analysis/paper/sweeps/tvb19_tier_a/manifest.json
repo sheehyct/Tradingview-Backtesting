@@ -1,0 +1,83 @@
+{
+ "prereg": "docs/experiments/tvb19_tier_a_prereg.md",
+ "label": "DELIBERATE OVERFIT / in-sample ceiling / secondary control",
+ "git_head": "48d3aef547ae7c5803d87bcf944f766f95985857",
+ "window": {
+  "start": "2026-07-06",
+  "end": "2026-08-03"
+ },
+ "n_cells": 864,
+ "n_symbols": 11,
+ "grid": {
+  "arm_tf_s": [
+   300,
+   900,
+   1800,
+   3600
+  ],
+  "pool_12h": [
+   true,
+   false
+  ],
+  "n_max": [
+   3,
+   6,
+   9
+  ],
+  "min_sep": [
+   0.5,
+   1.0,
+   2.0
+  ],
+  "pool_cap": [
+   6,
+   12,
+   null
+  ],
+  "brk_exit": [
+   true,
+   false
+  ],
+  "flip_backstop": [
+   true,
+   false
+  ]
+ },
+ "bar_hashes": {
+  "xyz_MRVL_5m.json": "c5ad8359993e0afd",
+  "xyz_MRVL_1h.json": "f1af88118977e9bd",
+  "xyz_MRVL_1d.json": "064edaf0a653bcf6",
+  "xyz_GOOGL_5m.json": "ec1e20c9c26b2a10",
+  "xyz_GOOGL_1h.json": "29e94d88c7bcb3e0",
+  "xyz_GOOGL_1d.json": "9e89fffeba7a23f0",
+  "xyz_AMZN_5m.json": "ae4f06dd8dfb9b94",
+  "xyz_AMZN_1h.json": "7b80cd42ffb3b1d4",
+  "xyz_AMZN_1d.json": "ac8561f67a374fc2",
+  "xyz_MSFT_5m.json": "1c561c65461b2429",
+  "xyz_MSFT_1h.json": "1edfafad5911de54",
+  "xyz_MSFT_1d.json": "53a412b9868c9702",
+  "xyz_GOLD_5m.json": "a5e0a7242aa55f73",
+  "xyz_GOLD_1h.json": "49e7f5f90787211e",
+  "xyz_GOLD_1d.json": "54f5207693636c6d",
+  "xyz_AAPL_5m.json": "0ef2d8440defcfe4",
+  "xyz_AAPL_1h.json": "7a52ea16920fd9ed",
+  "xyz_AAPL_1d.json": "35c8fb4fd57eed43",
+  "xyz_SKHX_5m.json": "457be491a3762f11",
+  "xyz_SKHX_1h.json": "da6fa9df75064c45",
+  "xyz_SKHX_1d.json": "3b1f27a8530e32f1",
+  "xyz_SKHY_5m.json": "4f979c21bb9e15f4",
+  "xyz_SKHY_1h.json": "7c368abbdf62f29a",
+  "xyz_SKHY_1d.json": "bfd3b4219b51c628",
+  "xyz_NBIS_5m.json": "ae8d932727bf386e",
+  "xyz_NBIS_1h.json": "a34f4134e5653ddb",
+  "xyz_NBIS_1d.json": "263a42199b04b738",
+  "xyz_TSLA_5m.json": "ff6630cc737459b3",
+  "xyz_TSLA_1h.json": "3761904d08c6deeb",
+  "xyz_TSLA_1d.json": "bb5afdc794032d86",
+  "xyz_DRAM_5m.json": "bfd57a76018ae375",
+  "xyz_DRAM_1h.json": "3bab1182ec48d15f",
+  "xyz_DRAM_1d.json": "86e3d3377788e1e9"
+ },
+ "run_start_utc": "2026-08-05T03:51:10+00:00",
+ "run_end_utc": "2026-08-05T03:55:02+00:00"
+}
