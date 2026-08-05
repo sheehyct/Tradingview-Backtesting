@@ -400,6 +400,49 @@ history-depth class"). HANDOFF annotated in place. QUEUED (touches the
 deployed Pine -- design-session batch): split event vs side telemetry and
 add a two-alive-side regression.
 
+## Week-1 adjudication (user decisions, 2026-08-04)
+
+Recorded from the TVB-18 fold-in discussion, so multi-day gaps cannot
+erase them:
+
+- OFFICIAL RESULT: NONE. The run was performed wrong (audit F1 selection
+  lookahead); week 1 stands as a PROCESS TEST RUN -- the log of what
+  happened, the gotchas, why trades went good and bad -- not as
+  performance evidence. Neither the full record (-27.60pp realized) nor
+  the post-freeze slice (+14.37pp) is quoted as "the week-1 number." Both
+  stay committed as documentation (scoreboard = full record;
+  freeze_slice.py = clean-entry sensitivity view). Future runs will
+  differ as features land (e.g. target levels); expected and accepted.
+- REPAIRS: F2 (roster receipts + fail-closed), F3 (5m lifecycle warm),
+  F4 (telemetry split) are ALL greenlit -- not choose-one -- plus the
+  freeze-boundary invariant for FUTURE rosters (week-1 files stay
+  frozen). They land before any future graded run. F4's Pine side
+  deploys with the next design bundle (no live chart currently mounts
+  the indicator, so repo-first carries no live drift).
+- NO WEEK-2 RERUN NOW. The next build focus is the exit-design step, not
+  another graded week of the same config. The next graded run happens
+  only after the design exists and the repairs are in -- the first
+  candidate for a run "performed correctly."
+- EXIT DESIGN DIRECTION (design session pending, STOP-and-ASK): the
+  Magnitude+Targets [Custom] indicator was built to help solve the
+  adverse-runner gap (the where-to-take-profit half). Dropping the month
+  from the flip backstop is agreed AS A START, with a load-bearing
+  caveat: FLIP COUPLING AT PERIOD BOUNDARIES. Every new week opens a new
+  daily candle at the same tick (D and W period opens coincide; on the
+  week's first day a close-vs-open gate flip is perfectly coupled), and
+  in level terms the domino runs upward -- price cannot take last week's
+  low without first taking a prior-day low, so "the day triggers the
+  week," and stacked structural levels can all break on one tick (an
+  awful-loss shape if positioned wrong). The month couples with the day
+  ALWAYS but with the week only when the month starts on the week's
+  first day (a month can open mid-week). Design must also resolve which
+  "flip" the backstop means: the deployed v6 gate is close-vs-period-
+  OPEN, while STRAT scenario flips are trades through prior-period
+  EXTREMES -- two different coupling mechanisms. The user is adding a
+  STRAT database to this workspace to grep for this design while the
+  strat-methodology skill is mid-rebuild (Ambiguity Policy strict: no
+  flip-semantics code before the design session).
+
 ## Out of scope this week
 
 Tier-2 STRAT targets (present in `/api/state` per-TF blocks incl. 1w/1M;
