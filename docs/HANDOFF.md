@@ -136,9 +136,13 @@ exit-design session, now fully staged with user decisions recorded.
 > docs/reviews/tvb18-codex-audit.md. See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: `a1a886f^..{pinned after push}` on `main`. RANGE-PIN
-  RULE: caret included; sanity-check `git diff --name-status` lists every
-  file the session touched.
+- Commits to review: `a1a886f^..57417e2` on `main` (6 commits: a1a886f
+  week-1 close-out; c954c22 indicator pair; 0789d2c audit fold-in;
+  c93dcaf adjudication; 3200e3b corpus gitignore; 57417e2 session-end
+  docs; the pin commit follows outside the range, per precedent).
+  RANGE-PIN RULE: caret included; sanity-check
+  `git diff --name-status a1a886f^ 57417e2` lists every file the session
+  touched.
 - Scope / what changed: week-1 archive/replay close-out + week-end pass +
   fresh-mount parity; TVB-15 audit fold-in (freeze_slice + doc
   corrections + status flips); the Magnitude+Targets [Custom] indicator

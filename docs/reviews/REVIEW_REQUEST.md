@@ -30,7 +30,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `a1a886f^..{pending push -- pinned by the session-end follow-up commit}` (week-1 close-out; indicator pair; audit fold-in; adjudication; corpus gitignore; session-end docs. Sanity-check with `git diff --name-status a1a886f^ HEAD`) |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `a1a886f^..57417e2` (6 commits: a1a886f week-1 close-out; c954c22 indicator pair; 0789d2c audit fold-in; c93dcaf adjudication; 3200e3b corpus gitignore; 57417e2 session-end docs; sanity-check with `git diff --name-status a1a886f^ 57417e2`) |
 
 Context only, NOT in the range: `docs/thestrat_ai/` is a gitignored
 LOCAL-ONLY corpus (scraped stratalerts.ai curriculum mirror; public repo,
