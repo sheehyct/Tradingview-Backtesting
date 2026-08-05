@@ -5,6 +5,161 @@
 
 ---
 
+## Session TVB-18: Week-1 close-out + TVB-15 audit fold-in + design direction (COMPLETE)
+
+**Date:** 2026-08-03/04
+**Status:** COMPLETE -- the overdue paper close-out plus a same-session
+external-review round trip. First session run over remote control. Every
+mechanical standing item cleared; the one remaining open arc is the
+exit-design session, now fully staged with user decisions recorded.
+
+### What was accomplished
+
+- ARCHIVE CATCH-UP + WEEK CLOSE-OUT: all 11 roster symbols pulled through
+  08-04 00:45Z (5m/1h/1d; merged spans 07-03 -> 08-04) -- the 07-20 window
+  start secured ~3 days before the HL floor slide-off. Replay closed the
+  07-20..07-27 window deterministically: 38 committed events reproduced
+  BYTE-IDENTICALLY, 43 appended (81 total; 44 entries / 37 exits). Suite
+  green (97 passed, 2 skipped) incl. 24 paper goldens. Commit a1a886f.
+- WEEK-END PASS (protocol doc): full-record realized -27.61pp over 37
+  closed / open MTM -40.65pp / combined -68.25pp (gross, 1x, roster excl
+  DRAM). Exit classes: 24 BF harvests +1.86% avg (win-by-construction),
+  7 adverse-breaks -8.15% avg (worst NBIS -26.82, MRVL -14.32), 6 flips
+  -2.54% avg. TSLA the counterexample: 8/8 harvests +18.99pp. Full-week
+  ablation (control vs user live variant): knobs RE-TIME the same book
+  (combined -68.25 vs -63.13), adverse-runner class config-invariant.
+- PARITY PASS (DRAM/TSLA/GOOGL, fresh mounts on scratch layout
+  TVB18-parity; the deployed accumulated-history instances were removed
+  from all layouts during the user's SNDK-focus period): positions and
+  gate composites match EXACTLY (DRAM's one apparent gate mismatch
+  resolved numerically -- 13 cents through the monthly open across a
+  15-min read gap); every operative rung is the same structural line
+  within 0.004-0.04%. Census NOT comparable from fresh mounts.
+  NEW OPERATIONAL FINDING: loaded chart history is load-bearing state --
+  a remount silently thins the harvest ladder (fresh DRAM nearest exit
+  41.04 vs full-history twin 12h rung 47.39; -5% harvest vs -18% ride).
+  Twin side: analysis/paper/parity_state.py (committed).
+- TVB-15 EXTERNAL REVIEW ROUND TRIP, same session: paste-ready prompt
+  delivered (range-pinned, post-range guardrails, known-open list); user
+  ran Codex CLI; audit RETURNED NEEDS-CHANGES (1 HIGH + 3 MEDIUM) and was
+  folded in the same day -- ALL FOUR findings independently reproduced
+  before adjudication (TVB-14 precedent). Commit 0789d2c.
+  - F1 HIGH: window opens 00:00, roster froze 14:31:21 -- 18/81 events and
+    12/37 closed trades (incl. BOTH catastrophic adverse-breaks) entered
+    pre-freeze. Realized flips -27.60 -> +14.37pp in the post-freeze-entry
+    slice (analysis/paper/freeze_slice.py, committed). The adverse-runner
+    gap SURVIVES: window-end open runners (GOOGL -15.8 / AMZN -19.5 /
+    SKHY -12.1) all entered post-freeze.
+  - F2: committed snapshot = 13:26:36Z (65 min early); freeze source
+    unrecoverable; roster.py fails open.
+  - F3: coarse 1h/1d warm-up changes LIFECYCLE state, not just anchors --
+    reviewer's TSLA instance reproduced exactly; delta 1 amended.
+  - F4: evict-alive counts fallback formation evictions, not alive sides;
+    the TVB-15 "14 vs 13+1=14" parity line was WRONG (annotated in place;
+    actual day-one twin counter 15, as the protocol doc recorded).
+- WEEK-1 ADJUDICATED BY THE USER (recorded in the protocol doc, c93dcaf):
+  NO official number -- performed wrong, stands as a process test run
+  (gotchas + why-trades-went-good/bad); both views stay as documentation.
+  REPAIRS ALL GREENLIT (F2 + F3 + F4 + freeze-boundary invariant for
+  future rosters; week-1 files stay frozen). NO week-2 rerun now; next
+  build focus = the exit-design step.
+- DESIGN DIRECTION RECORDED (user, verbatim intent): the Magnitude+Targets
+  [Custom] indicator (committed as pine/strat_magnitude_targets_plus.pine
+  + README, c954c22 -- logic-identical fork of the partner original,
+  display/UX layer only, zero request.security) is the where-to-take-
+  profit half; target ladder = harvest path (5-6 rungs, count TBD); BF =
+  exhaustion overlay at extended rungs; kill-signal there = continuity
+  turning against the position while extended. Drop-the-month agreed AS A
+  START with the COUPLING caveat -- at period boundaries flips are not
+  independent votes (new week = D+W open on the same print; month couples
+  with day always, with week only on Monday month-starts; stacked levels
+  can break on one tick = domino). Design must resolve gate-flip
+  (close-vs-open, deployed) vs scenario-flip (prior-extreme break, STRAT)
+  semantics. NO flip code before the design session (skill mid-rebuild,
+  Ambiguity Policy strict).
+- THESTRAT.AI CORPUS LANDED + ASSESSED + PROTECTED: docs/thestrat_ai/
+  (417 files, 48.7 MB; 70 articles, 121 SVG figures with OBSERVED/DERIVED
+  separation and a 164:2 label-agreement ledger; grep-first discipline by
+  its own README; term-index.csv). It answered the coupling question BY
+  NAME: UNCOUPLING (03/07) -- "until the opens separate, some of your
+  four facts are the same fact" + separation schedule + month-start
+  rules (RTH arithmetic; translate to 24/7 UTC rolls per charter S2).
+  Vocabulary trap: corpus "flip" = new 60-minute open (03/06). GITIGNORED
+  (3200e3b): public remote, scraped curriculum mirror, not ours to
+  republish (VBT protective class); stays fully greppable locally.
+- NEW QUESTION SEEDED (user, from live-trading experience): the RTH-clock
+  test -- what changes in backtest numbers for the SAME perp when
+  uncoupling/flip rules apply only during RTH? These are oracle-priced
+  equity perps under TWO clocks (venue 00:00 UTC vs underlying 9:30 ET).
+  Cheap first step = read-only census of UTC-clock vs RTH-clock signal
+  disagreement per symbol per hour; full pre-registered arms only if
+  disagreement is material. The anchor clock is a tested variable, not an
+  assumption.
+- HOUSEKEEPING: /pre-commit Check 2 amended to the corrected lookahead
+  rule (TVB-17 blocker cleared -- the permission classifier allowed the
+  edit this time); TVB-15 statuses flipped RETURNED in REVIEW_REQUEST.md
+  + the TVB-15 HANDOFF block (wrong parity line annotated in place).
+
+### Context for next session
+
+- The design session is THE next move (plan mode ON, STOP-and-ASK
+  throughout). Its brief, inputs, and the user's recorded decisions are
+  consolidated in the protocol doc ("Week-1 adjudication" + design bullet)
+  and .session_startup_prompt.md.
+- The greenlit repairs (F2/F3/F4 + invariant) land before any future
+  graded run; F4's Pine side deploys with the design bundle (no live chart
+  mounts the indicator -- zero drift meanwhile).
+- TradingView state: scratch layout TVB18-parity exists (fresh-mount
+  TFC-BF for parity reads; harmless, delete or keep); the user's live
+  layouts are SNDK-focused with a community "Strat Assistant" study; new
+  user scripts since TVB-17: the Magnitude+Targets pair (07-30) and
+  "Memory/Storage Complex Composite (HIP-3)" (08-03).
+- The HL 5m floor keeps rolling: post-week bars through 08-04 are
+  archived; nothing time-critical is pending.
+
+### Files created/modified
+
+- Created: analysis/paper/parity_state.py, analysis/paper/freeze_slice.py,
+  pine/strat_magnitude_targets_plus.pine + .README.md,
+  docs/reviews/tvb15-codex-audit.md (reviewer-written, committed here)
+- Modified: analysis/paper/bars/* (33 files), events_week1.jsonl,
+  scoreboard_week1.md, docs/experiments/tvb15_paper_week1_protocol.md
+  (week-end pass + audit fold-in + adjudication + corpus pointer),
+  docs/HANDOFF.md (TVB-15 annotation + this entry), REVIEW_REQUEST.md,
+  .claude/commands/pre-commit.md, .gitignore, .session_startup_prompt.md
+- Local-only: docs/thestrat_ai/ (gitignored corpus)
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work
+> (range below) and write a verbatim assessment to
+> docs/reviews/tvb18-codex-audit.md. See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: `a1a886f^..{pinned after push}` on `main`. RANGE-PIN
+  RULE: caret included; sanity-check `git diff --name-status` lists every
+  file the session touched.
+- Scope / what changed: week-1 archive/replay close-out + week-end pass +
+  fresh-mount parity; TVB-15 audit fold-in (freeze_slice + doc
+  corrections + status flips); the Magnitude+Targets [Custom] indicator
+  pair; week-1 adjudication + design-direction records; corpus gitignore.
+- Focus areas (scrutinize these): (1) freeze_slice.py correctness (slice
+  boundary semantics: entry_ts vs event ts, parity exclusion, open-MTM
+  attribution) and whether the +14.37pp clean-slice framing carries any
+  hidden performance claim the adjudication forbids; (2) parity_state.py
+  fidelity to replay.py conventions (warm-up, seed windows, last-bar
+  drop) and the parity pass's honesty about fresh-mount limits; (3) the
+  fold-in adjudications vs the audit text -- did TVB-18 reproduce F1-F4
+  faithfully and act proportionately; (4) the amended pre-commit Check 2
+  wording vs pine/README.md rule 3; (5) the new pine pair: zero
+  request.security claim, defaults-render-identical claim vs the
+  tv_indicators canonical copy (byte-identical check); (6) gitignore
+  protection completeness for docs/thestrat_ai/ on the PUBLIC remote.
+- Reviewed by: pending
+- Findings: (blank until docs/reviews/tvb18-codex-audit.md exists)
+
+---
+
 ## Session TVB-17: Context-engineering audit of standing context (COMPLETE)
 
 **Date:** 2026-07-27

@@ -10,83 +10,81 @@
 
 ## Status
 
-- Status: RETURNED  <!-- REQUESTED | RETURNED (audit file written) -->
-- Returned: 2026-08-04 -- docs/reviews/tvb15-codex-audit.md (Codex CLI,
-  NEEDS-CHANGES; 1 HIGH + 3 MEDIUM; all four independently reproduced by
-  TVB-18 the same day). Synthesis: TVB-18 HANDOFF entry + the fold-in
-  section of docs/experiments/tvb15_paper_week1_protocol.md. NOTE: this
-  file's "evict-alive 14 vs 13+1" focus-area line is the wrong claim that
-  audit F4 corrected (actual day-one twin counter: 15).
-- Session under review: TVB-15 -- the paper-trading twin layer (Python port
-  of the live v6/v6.1 Pine + scanner-fed roster + HL archive +
-  deterministic replay + fixture-parity goldens), the week-1 frozen
-  artifacts, and the same-day TVB-14 audit fold-in (both HIGH findings
-  reproduced, fixed as v6.1, deployed, parity-verified live).
+- Status: REQUESTED  <!-- REQUESTED | RETURNED (audit file written) -->
+- Session under review: TVB-18 -- week-1 close-out (archive/replay,
+  week-end pass, fresh-mount parity), the TVB-15 audit fold-in (all four
+  findings independently reproduced; freeze_slice tool; doc corrections +
+  status flips), the Magnitude+Targets [Custom] indicator pair, the
+  week-1 adjudication + design-direction records, and the thestrat_ai
+  corpus gitignore protection.
 - SCOPE: standard.
-- Requested: 2026-07-20
-- Write the audit to: `docs/reviews/tvb15-codex-audit.md` (copy
+- Requested: 2026-08-04
+- Write the audit to: `docs/reviews/tvb18-codex-audit.md` (copy
   `docs/reviews/_TEMPLATE.md`)
-- NOTE: tvb8/tvb9 requests remain unreturned (standing note). tvb14 was
-  returned AND addressed same day (see the TVB-14 HANDOFF block). TVB-16
-  (2026-07-22) was a light session -- ride-along refresh + a read-only
-  ablation tool + docs notes -- and was intentionally NOT submitted for
-  review (user decision); TVB-15 remains the current outstanding request.
+- NOTE: TVB-15 RETURNED 2026-08-04 (docs/reviews/tvb15-codex-audit.md,
+  NEEDS-CHANGES) and was folded in the same day -- its adjudication lives
+  in the TVB-18 HANDOFF entry and the protocol doc fold-in section.
+  tvb8/tvb9 requests remain unreturned (standing note).
 
 ## Commits to review
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `75eba90^..b9b93cb` (5 commits: 75eba90 = paper twin tooling; 416c84e = week-1 freeze; 73670ff = v6.1 fix; 142dfe6 = audit RETURNED docs; b9b93cb = session-end docs; sanity-check with `git diff --name-status 75eba90^ b9b93cb`) |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `a1a886f^..{pending push -- pinned by the session-end follow-up commit}` (week-1 close-out; indicator pair; audit fold-in; adjudication; corpus gitignore; session-end docs. Sanity-check with `git diff --name-status a1a886f^ HEAD`) |
 
-Sibling-workspace delivery (context only, NOT part of this repo's range):
-`C:\Strat_Trading_Bot\hip3-scanner\docs\SCORE_METHODOLOGY_DUAL_REVIEW_2026-07-20.md`
-(uncommitted there; local transport only).
+Context only, NOT in the range: `docs/thestrat_ai/` is a gitignored
+LOCAL-ONLY corpus (scraped stratalerts.ai curriculum mirror; public repo,
+not ours to republish). A local-transport reviewer may read it; a cloud
+reviewer will not see it -- that asymmetry is deliberate.
 
 ## Read first (in this order)
 
 1. `CLAUDE.md`; charter Section 0.
-2. `docs/HANDOFF.md` -- the TVB-15 entry at top (four arcs; the External
-   Review block there mirrors this request).
-3. `docs/experiments/tvb15_paper_week1_protocol.md` (the week's a-priori
-   contract + fix-forward record -- part of the reviewed claim set).
-4. `docs/reviews/tvb14-codex-audit.md` (the prior audit this session
-   folded in; its findings are load-bearing context for v6.1).
+2. `docs/HANDOFF.md` -- the TVB-18 entry at top (the External Review
+   block there mirrors this request), then the TVB-15 entry's RETURNED
+   block + in-place F4 annotation.
+3. `docs/experiments/tvb15_paper_week1_protocol.md` -- the TVB-18
+   week-end pass, the audit fold-in section, and the week-1 adjudication
+   (user decisions; part of the reviewed claim set).
+4. `docs/reviews/tvb15-codex-audit.md` (the audit TVB-18 folded in; its
+   findings are load-bearing context for everything this session did).
 5. `docs/EXTERNAL_REVIEW_PROTOCOL.md`.
 
 ## Focus areas (scrutinize these)
 
-1. Engine-vs-Pine port fidelity (analysis/paper/engine.py vs
-   pine/tfc_bf_watch.pine): per-bar processing order (sweep -> accumulate
-   -> collect-before-transition scan -> exit race bf>brk>flip -> entry ->
-   arm roll LAST), direction-relative eligibility, float trigger
-   arithmetic, the v6.0/v6.1 behavior flags.
-2. Golden methodology: byte-for-byte parity vs fixture-generated text
-   (tests/golden/) with the two FIXTURE_SUPERSEDE_SHADOWS exceptions --
-   attack the soundness of pinning the engine's formatter against the
-   fixture's output, and the exception invariant test.
-3. v6.1 fix edges: per-side supersede vs the dup-ghost scan ordering;
-   retired-first eviction under sustained all-alive pressure (residual
-   evict-alive counting); the Pine 13-array array.remove lockstep.
-4. Replay conventions honesty: fill prices (bf at line value, brk/flip at
-   close), last-bar drop, warm-up boundary + flat start, 5m confirmed
-   semantics, seeded arm window; declared-deltas completeness.
-5. Roster selector (analysis/paper/roster.py) vs its a-priori claims;
-   archive merge newest-wins semantics; provisional-vs-TV mintick
-   provenance handling (SKHX hl_inferred path).
-6. The session's own verification claims: the audit census reproductions
-   (12h 54/42/22, D 27/15/6), the roster live-impact sweep (note its
-   uncapped-as-truth caveat), post-fix parity numbers (13/11/2/0;
-   evict-alive 14 vs 13+1), and the identical-18-events continuity claim.
-7. Deploy verification (version 6.0 -> 7.0 on USER;7c28fa0b, table title
-   v6.1) and the restored header bullets (repo-vs-deployed drift).
+1. `analysis/paper/freeze_slice.py` correctness: the slice boundary
+   semantics (closed trades split by entry_ts vs the freeze, events
+   counted by ts; parity-symbol exclusion; open-at-window-end
+   attribution) -- and whether the +14.37pp clean-slice number is framed
+   anywhere as performance evidence, which the user's adjudication
+   explicitly forbids (week 1 = process test run, NO official number).
+2. `analysis/paper/parity_state.py` fidelity to replay.py conventions
+   (warm-up boundary, seed windows, last-bar drop via load_rows, arm
+   seeding) and whether the TVB-18 parity claims honestly bound what a
+   FRESH-MOUNT comparison can and cannot show (census not comparable;
+   operative-rung deltas 0.004-0.04%; the DRAM gate read-gap resolution).
+3. The fold-in adjudications vs the audit text: were F1-F4 reproduced
+   faithfully (18/81 + 12/37 counts, the 13:26:36Z snapshot decode, the
+   TSLA 07-16 lifecycle repro, the Pine ev_alive semantics) and were the
+   actions proportionate (docs corrected now, code repairs greenlit but
+   deferred to the design bundle)?
+4. The pre-commit Check 2 amendment vs pine/README.md rule 3 (same rule,
+   no drift), and the TVB-17-era claim that /pre-commit false-FAILed 5
+   files now being cleared.
+5. The new indicator pair (pine/strat_magnitude_targets_plus.pine +
+   README): the zero-request.security claim, the defaults-render-
+   identical-to-original claim, and byte-identity vs the canonical
+   tv_indicators copy (local transport only).
+6. Repo hygiene of the corpus protection: .gitignore entry placement and
+   whether anything from docs/thestrat_ai/ leaked into tracked content.
 
-Standing priorities apply (request.security lookahead -- the Pine still
-claims zero; model fidelity; overfitting language -- min_sep is now labeled
-provisional example-derived, check the relabel landed everywhere it should).
+Standing priorities apply (request.security lookahead; model fidelity;
+overfitting language -- the week-1 adjudication language should nowhere
+morph into a performance claim).
 
 ## Output contract
 
-- Verbatim audit -> `docs/reviews/tvb15-codex-audit.md` (template:
+- Verbatim audit -> `docs/reviews/tvb18-codex-audit.md` (template:
   `docs/reviews/_TEMPLATE.md`, skeptic preamble included).
 - Be concrete; cite `file:line`. Never paste a secret/IP/account value.
 - The critical synthesis is written by the NEXT session into `docs/HANDOFF.md`.
