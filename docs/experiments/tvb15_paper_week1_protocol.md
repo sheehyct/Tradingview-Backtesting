@@ -442,6 +442,14 @@ erase them:
   STRAT database to this workspace to grep for this design while the
   strat-methodology skill is mid-rebuild (Ambiguity Policy strict: no
   flip-semantics code before the design session).
+  [LANDED 2026-08-04: docs/thestrat_ai/ (gitignored -- scraped
+  stratalerts.ai curriculum mirror, public-repo protection; grep-first
+  per its README). The coupling nuance has a curriculum name:
+  UNCOUPLING (03/07) -- "until the opens separate, some of your four
+  facts are the same fact"; separation schedule + month-start rules
+  documented there (RTH arithmetic; translate to 24/7 UTC rolls per
+  charter S2). Vocabulary trap for grepping: the curriculum's "flip" =
+  the new 60-minute open (03/06), NOT our flip backstop.]
 
 ## Out of scope this week
 

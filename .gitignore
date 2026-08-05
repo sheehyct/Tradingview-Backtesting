@@ -80,6 +80,14 @@ vbt_pro_docs/
 *.whl
 
 # ============================================
+# THESTRAT.AI CORPUS -- local reference only, NEVER COMMIT (remote is
+# PUBLIC; this is a scraped mirror of stratalerts.ai/docs curriculum --
+# not ours to republish; same protective class as the VBT block above).
+# Stays fully greppable locally; regenerate via strat-training ingest.
+# ============================================
+docs/thestrat_ai/
+
+# ============================================
 # INTENTIONALLY TRACKED (note vs vbt-workspace)
 # ============================================
 # .mcp.json is TRACKED here on purpose: the tradingview + openmemory blocks
