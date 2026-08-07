@@ -12,6 +12,10 @@ entries come from the D/W/M gate + arm break, so dropping it is a surgical
 exit-side change. Both configs share the identical engine and bars, so any
 delta is attributable to the two knobs (arm TF + the 12h pool) alone.
 
+Open positions are marked at the last 5m close INSIDE the window, never the
+archive tip: appending post-window bars to the committed record must not
+change a closed-window report (tests/test_compare_config.py pins this).
+
     uv run python -m analysis.paper.compare_config --roster analysis/paper/roster_week1.json
 """
 
@@ -59,6 +63,8 @@ def replay_cfg(entry, week_start, week_end, bars_dir, arm_s, drop_12h):
         twin.seed_arm(max(r[2] for r in seed_win), min(r[3] for r in seed_win))
     events: list[dict] = []
     week_rows = [r for r in rows_5m if week_start <= r[0] < week_end]
+    if not week_rows:
+        raise ValueError(f"{coin}: no 5m bars inside the analysis window")
     for r in week_rows:
         events.extend(twin.replay_bar(int(r[0]), r[1], r[2], r[3], r[4], bar_s=300))
     open_pos = None
@@ -77,10 +83,11 @@ def summarize(roster, week_start, week_end, bars_dir, arm_s, drop_12h):
     kind_gb: dict[str, list[float]] = {"bf": [], "brk": [], "flip": []}
     realized_sum = 0.0
     open_mtm_sum = 0.0
+    mark_ts: set[int] = set()
     per_symbol: dict[str, dict] = {}
     for entry in roster["symbols"]:
         coin = entry["name"]
-        events, open_pos, _week_rows, rows_5m = replay_cfg(
+        events, open_pos, week_rows, rows_5m = replay_cfg(
             entry, week_start, week_end, bars_dir, arm_s, drop_12h
         )
         exits = [e for e in events if e["action"] == "exit"]
@@ -94,7 +101,8 @@ def summarize(roster, week_start, week_end, bars_dir, arm_s, drop_12h):
             sym_real += e["pnl_pct"]
         unreal = None
         if open_pos:
-            last_c = rows_5m[-1][4]
+            last_c = week_rows[-1][4]
+            mark_ts.add(int(week_rows[-1][0]))
             sign = 1.0 if open_pos["dir"] == "long" else -1.0
             unreal = sign * (last_c - open_pos["entry_px"]) / open_pos["entry_px"] * 100.0
             if coin != "xyz:DRAM":
@@ -112,6 +120,7 @@ def summarize(roster, week_start, week_end, bars_dir, arm_s, drop_12h):
         "kind_gb": kind_gb,
         "realized_sum": realized_sum,
         "open_mtm_sum": open_mtm_sum,
+        "mark_ts": sorted(mark_ts),
         "per_symbol": per_symbol,
     }
 
@@ -160,8 +169,12 @@ def main() -> None:
         print(
             f"\nclosed={n_closed}  realized sum={r['realized_sum']:+.2f}pp  "
             f"open MTM sum={r['open_mtm_sum']:+.2f}pp  "
-            f"combined={r['realized_sum'] + r['open_mtm_sum']:+.2f}pp  (roster only, DRAM excl)\n"
+            f"combined={r['realized_sum'] + r['open_mtm_sum']:+.2f}pp  (roster only, DRAM excl)"
         )
+        marks = ", ".join(
+            datetime.fromtimestamp(t, tz=timezone.utc).strftime("%m-%d %H:%M") for t in r["mark_ts"]
+        )
+        print(f"open MTM marked at last in-window 5m close: {marks or 'none'} UTC\n")
 
     print("### Per-symbol (control -> variant)")
     print("| symbol | ctrl trades | ctrl real | ctrl open | var trades | var real | var open |")

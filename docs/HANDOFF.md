@@ -155,18 +155,26 @@ exit-design session, now fully staged with user decisions recorded.
   green (97 passed, 2 skipped) incl. 24 paper goldens. Commit a1a886f.
 - WEEK-END PASS (protocol doc): full-record realized -27.61pp over 37
   closed / open MTM -40.65pp / combined -68.25pp (gross, 1x, roster excl
-  DRAM). Exit classes: 24 BF harvests +1.86% avg (win-by-construction),
-  7 adverse-breaks -8.15% avg (worst NBIS -26.82, MRVL -14.32), 6 flips
-  -2.54% avg. TSLA the counterexample: 8/8 harvests +18.99pp. Full-week
-  ablation (control vs user live variant): knobs RE-TIME the same book
-  (combined -68.25 vs -63.13), adverse-runner class config-invariant.
+  DRAM). [TVB-18 audit F1, 2026-08-07: open/combined were ARCHIVE-TIP
+  (08-04) marks, not window-end; corrected window-end control -5.58pp
+  open / -33.18pp combined, variant -6.94 / -22.38. Realized and exit
+  classes unaffected. See protocol doc.] Exit classes: 24 BF harvests
+  +1.86% avg (win-by-construction), 7 adverse-breaks -8.15% avg (worst
+  NBIS -26.82, MRVL -14.32), 6 flips -2.54% avg. TSLA the
+  counterexample: 8/8 harvests +18.99pp. Full-week ablation (control vs
+  user live variant): knobs RE-TIME the same book (combined -68.25 vs
+  -63.13 tip-marked; -33.18 vs -22.38 window-end), adverse-runner class
+  config-invariant.
 - PARITY PASS (DRAM/TSLA/GOOGL, fresh mounts on scratch layout
   TVB18-parity; the deployed accumulated-history instances were removed
   from all layouts during the user's SNDK-focus period): positions and
   gate composites match EXACTLY (DRAM's one apparent gate mismatch
-  resolved numerically -- 13 cents through the monthly open across a
-  15-min read gap); every operative rung is the same structural line
-  within 0.004-0.04%. Census NOT comparable from fresh mounts.
+  resolved numerically -- 1.3 cents [audit F2 correction; was "13
+  cents"] through the monthly open across a 15-min read gap); every
+  SHARED rung is the same structural line within 0.004-0.04% [audit F2,
+  2026-08-07: the "next" cells quoted shared rungs, NOT the twin's
+  nearest operative lines -- nearest-line parity was not established;
+  see protocol doc]. Census NOT comparable from fresh mounts.
   NEW OPERATIONAL FINDING: loaded chart history is load-bearing state --
   a remount silently thins the harvest ladder (fresh DRAM nearest exit
   41.04 vs full-history twin 12h rung 47.39; -5% harvest vs -18% ride).
@@ -180,8 +188,10 @@ exit-design session, now fully staged with user decisions recorded.
     12/37 closed trades (incl. BOTH catastrophic adverse-breaks) entered
     pre-freeze. Realized flips -27.60 -> +14.37pp in the post-freeze-entry
     slice (analysis/paper/freeze_slice.py, committed). The adverse-runner
-    gap SURVIVES: window-end open runners (GOOGL -15.8 / AMZN -19.5 /
-    SKHY -12.1) all entered post-freeze.
+    gap SURVIVES: the open runners (GOOGL / AMZN / SKHY) all entered
+    post-freeze [TVB-18 audit F1: their -15.8 / -19.5 / -12.1 depths
+    are archive-tip marks accrued post-window; window-end -0.97 /
+    +0.39 / +1.56].
   - F2: committed snapshot = 13:26:36Z (65 min early); freeze source
     unrecoverable; roster.py fails open.
   - F3: coarse 1h/1d warm-up changes LIFECYCLE state, not just anchors --
@@ -267,7 +277,9 @@ exit-design session, now fully staged with user decisions recorded.
 > (range below) and write a verbatim assessment to
 > docs/reviews/tvb18-codex-audit.md. See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: REQUESTED
+- Review status: ADDRESSED (returned 2026-08-07, NEEDS-CHANGES; all
+  three findings independently reproduced by TVB-20 before adjudication;
+  fixes landed same day)
 - Commits to review: `a1a886f^..57417e2` on `main` (6 commits: a1a886f
   week-1 close-out; c954c22 indicator pair; 0789d2c audit fold-in;
   c93dcaf adjudication; 3200e3b corpus gitignore; 57417e2 session-end
@@ -291,8 +303,38 @@ exit-design session, now fully staged with user decisions recorded.
   request.security claim, defaults-render-identical claim vs the
   tv_indicators canonical copy (byte-identical check); (6) gitignore
   protection completeness for docs/thestrat_ai/ on the PUBLIC remote.
-- Reviewed by: pending
-- Findings: (blank until docs/reviews/tvb18-codex-audit.md exists)
+- Reviewed by: local Codex CLI (GPT-5.4), 2026-08-07, via standalone
+  paste prompt (REVIEW_REQUEST.md had been rewritten to TVB-19 -- the
+  request survived only in this block)
+- Findings (all CONFIRMED by TVB-20 reproduction before adjudication):
+  - F1 HIGH: compare_config.py marked open positions at rows_5m[-1]
+    (archive tip, 08-04) instead of the last in-window close (07-26
+    23:55Z) -- every open-MTM/combined figure in the week-end pass was
+    tip-marked. Reproduced to the digit (control -5.58 open / -33.18
+    combined window-end vs -40.65 / -68.25 tip; variant -6.94 / -22.38
+    vs -47.69 / -63.13; GOOGL/AMZN/SKHY window-end -0.97 / +0.39 /
+    +1.56 vs tip -15.8 / -19.5 / -12.1). FIXED: mark from week_rows +
+    empty-window guard + mark-ts printed; regression
+    tests/test_compare_config.py pins append-invariance. Docs annotated
+    in place. REFRAME: the deep runner marks are post-window
+    continuation evidence (the no-exit ride is real and still open
+    8-12 days after entry) -- stronger for the exit-design question,
+    but not week-1 window-end MTM. sweep_tier_a.py checked: marks at
+    rows_5m[wj-1] INSIDE its window -- TVB-19 sweep numbers unaffected.
+  - F2 MEDIUM (and WIDER than flagged): the parity table's "next dn/up"
+    cells quoted rungs shared with the fresh mount, not the twin's
+    nearest operative lines. Audit flagged DRAM (nearest 47.3904 12h lo
+    / 53.3896 12h up vs quoted 41.0232 W / 71.9622 D); reproduction
+    found the same substitution on TSLA dn (nearest 291.418 M N3 vs
+    quoted 265.948 D N1) and GOOGL dn (nearest 316.766 12h N1 vs quoted
+    306.89 W N3) -- engine.py exit scan treats ALL alive pool lines as
+    operative. Also "13 cents" -> 1.3 cents. Docs corrected/narrowed:
+    shared-rung parity established, nearest-line parity NOT.
+  - F3 LOW: freeze_slice.py CLI printed "clean-entry slice" with no
+    caveat. FIXED: relabeled "sensitivity slice" + prints
+    heat-conditioning / not-official-number lines.
+  - Adjudication unchanged: week 1 still has NO official number; frozen
+    artifacts untouched (code + docs only).
 
 ---
 

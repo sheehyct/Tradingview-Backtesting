@@ -237,6 +237,25 @@ the 14:31 roster freeze and are selection-contaminated. See the audit
 fold-in section below for the freeze-slice restatement; the numbers here
 stand as the full-record view.]
 
+[2026-08-07: the TVB-18 external audit RETURNED
+(docs/reviews/tvb18-codex-audit.md). Its F1 (HIGH) applies to every
+OPEN-MTM and combined figure below: compare_config marked open positions
+at the ARCHIVE TIP (08-04 00:45Z) -- eight days past the declared window
+-- instead of the last in-window 5m close (07-26 23:55Z). Corrected
+window-end figures: control open MTM -5.58pp / combined -33.18pp (not
+-40.65 / -68.25); variant open MTM -6.94pp / combined -22.38pp (not
+-47.69 / -63.13). The deep GOOGL -15.8% / AMZN -19.5% / SKHY -12.1%
+marks are POST-WINDOW continuation observations (window-end marks:
+-0.97% / +0.39% / +1.56%); the notable adverse opens AT the boundary
+were SKHX -6.77% and DRAM -7.06% (parity). The no-exit rides themselves
+are real -- those positions were still open and that deep 8-12 days
+after entry -- but they are post-window evidence for the exit-design
+question, not week-1 window-end MTM. Realized sums and exit-class
+tables are unaffected (episode metrics are exit-bounded). The tool now
+marks inside the window and tests/test_compare_config.py pins the
+invariance. Figures below stand as written; read them against this
+correction.]
+
 ### Close-out mechanics
 
 Archive advanced all 11 symbols through 08-04 00:45Z (5m/1h/1d; merged
@@ -247,8 +266,9 @@ deterministically: the 38 committed events reproduced BYTE-IDENTICALLY and
 
 ### Week-1 final (frozen control, gross, 1x; roster aggregates excl DRAM)
 
-- Realized: 37 closed trades, -27.61pp. Open MTM at window end: -40.65pp
-  across 7 opens. Combined: -68.25pp.
+- Realized: 37 closed trades, -27.61pp. Open MTM: -40.65pp across 7
+  opens [audit TVB-18 F1: archive-tip mark; true window-end -5.58pp].
+  Combined: -68.25pp [window-end -33.18pp].
 - Exit classes: BF harvest 24 @ +1.86% avg, gb 0.24pp (100% win BY
   CONSTRUCTION -- the exit IS a profitable line touch); BF adverse-break 7
   @ -8.15% avg, gb 9.19pp (worst NBIS -26.82%, MRVL -14.32%); flip
@@ -256,12 +276,15 @@ deterministically: the 38 committed events reproduced BYTE-IDENTICALLY and
 - The mid-week stuck shorts REALIZED their damage: NBIS -26.82% and MRVL
   -14.32% finally exited via adverse-break (give-back 28.10pp and 15.63pp
   from positive MFE). DRAM's parity short (07-20 02:25) never exited all
-  week: -13% trough, +4.7% at the window end -- a full adverse round-trip
-  ridden with no line in the path, in both directions.
+  week: -13% trough, +4.7% at the archive tip [audit TVB-18 F1:
+  window-end mark -7.06%] -- a full adverse round-trip ridden with no
+  line in the path, in both directions.
 - NEW adverse runners formed from genuine MID-WEEK signals: GOOGL short
-  (07-23 13:30) -15.8% and AMZN short (07-23 14:00) -19.5% open at window
-  end. The exit gap is therefore NOT a flat-seed artifact; the flat-seed
-  delta only inflated the first-2.5h cohort's severity.
+  (07-23 13:30) and AMZN short (07-23 14:00), still open at window end
+  [audit TVB-18 F1: their -15.8% / -19.5% depths are archive-tip marks
+  accrued POST-WINDOW; window-end marks -0.97% / +0.39%]. The exit gap
+  is therefore NOT a flat-seed artifact; the flat-seed delta only
+  inflated the first-2.5h cohort's severity.
 - Counterexample: TSLA 8/8 harvests, +18.99pp, gb 0.39pp -- the harvest
   engine performs when rungs keep appearing in the price path. One
   adverse-break erases roughly 4-14 average harvests; that asymmetry is
@@ -276,13 +299,15 @@ it is not a strategy-edge estimate.
 ### Full-week ablation (control vs user live variant)
 
 compare_config over the closed week: control -27.60 realized / -40.65 open
-/ -68.25 combined; variant (1H arm, 12h off) -15.44 / -47.69 / -63.13.
+/ -68.25 combined; variant (1H arm, 12h off) -15.44 / -47.69 / -63.13
+[audit TVB-18 F1: open/combined are archive-tip marks; window-end figures
+are control -5.58 open / -33.18 combined, variant -6.94 / -22.38].
 Confirms the TVB-16 mid-week reading at full-week scale: the two knobs
 RE-TIME the same book rather than change its edge -- the variant converts
 realized damage into still-open damage (MRVL realized -14.32 vs still-short
--2.8; AAPL realized -1.06 vs open long -9.0), harvests get fewer but bigger
-(24 @ +1.86 -> 14 @ +3.23), and the adverse-runner class is config-invariant
-in scale and membership.
+-2.8; AAPL realized -1.06 vs open long -9.0 [tip marks; window-end -5.57
+and -0.24]), harvests get fewer but bigger (24 @ +1.86 -> 14 @ +3.23), and
+the adverse-runner class is config-invariant in scale and membership.
 
 ### Parity pass (DRAM + TSLA + GOOGL, read 2026-08-04 ~01:00Z)
 
@@ -301,27 +326,35 @@ archive tip 08-04 00:45Z.
 |---|---|---|---|
 | DRAM position | SHORT @48.231 since 07-28 13:40 | SHORT | MATCH |
 | DRAM gate | D dn, W dn, M up (tip close 50.08 > M open 49.804) | DOWN | MATCH -- read-gap: last 49.791 < 49.804 at read time; M is knife-edge on the monthly open, verified numerically |
-| DRAM next dn / up | 41.0232 (W N1 lo) / 71.9622 (D N4 up) | 41.03705 / 71.99174 | same rungs, 0.03-0.04% |
+| DRAM next dn / up | shared rungs 41.0232 (W N1 lo) / 71.9622 (D N4 up); twin NEAREST 47.3904 (12h N3 lo) / 53.3896 (12h N2 up) [audit F2] | 41.03705 / 71.99174 | shared rungs match 0.03-0.04%; twin's nearest operative lines on BOTH sides are 12h state the fresh mount lacks |
 | TSLA position | LONG @314.891 since 08-03 04:00 | LONG | MATCH |
 | TSLA gate | D dn, W up, M up | grey | MATCH exact |
-| TSLA next dn / up | 265.948 (D N1 lo) / 326.515 (D N3 up) | 265.876 / 326.529 | same rungs, 0.004-0.03% |
+| TSLA next dn / up | shared rungs 265.948 (D N1 lo) / 326.515 (D N3 up, = twin nearest up); twin nearest dn 291.418 (M N3 lo) [audit F2 extension] | 265.876 / 326.529 | shared rungs match 0.004-0.03%; twin's nearest dn is M state the fresh mount lacks |
 | GOOGL position | LONG @365.571 since 08-03 13:35 | LONG | MATCH |
 | GOOGL gate | D up, W up, M up | UP | MATCH exact |
-| GOOGL next dn / up | 306.89 (W N3 lo) / 393.687 (W N1 up) | 306.869 / 393.717 | same rungs, 0.007-0.008% |
+| GOOGL next dn / up | shared rungs 306.89 (W N3 lo) / 393.687 (W N1 up, = twin nearest up); twin nearest dn 316.766 (12h N1 lo) [audit F2 extension] | 306.869 / 393.717 | shared rungs match 0.007-0.008%; twin's nearest dn is 12h state the fresh mount lacks |
 | alive census | DRAM 14/11/2/0, TSLA 13/11/3/2, GOOGL 11/8/7/4 | DRAM 0/8/1/0, TSLA 0/10/1/0, GOOGL 0/6/3/0 | NOT comparable -- fresh-mount loaded depth (delta class 1, amplified): deep pools, esp. 12h formations with May-era preserved-alive sides, cannot rebuild from the initial window |
 
 No divergence escalates outside the declared delta classes: positions and
 gate composites match exactly (the one gate difference resolves numerically
-to 13 cents of price movement through the monthly open across the 15-minute
-read gap), and every operative rung corresponds at 0.004-0.04% (anchor
-resolution + line slope over the read gap).
+to 1.3 cents [corrected 2026-08-07, audit F2; previously "13 cents"] of
+price movement through the monthly open across the 15-minute read gap).
+[Narrowed 2026-08-07, audit F2:] every rung present in BOTH states
+corresponds at 0.004-0.04% (anchor resolution + line slope over the read
+gap) -- but the "next dn / up" cells above quoted those SHARED rungs, not
+the twin's nearest operative lines. The full-history twin holds nearer
+alive 12h/M state the fresh mounts lack (DRAM on both sides; TSLA and
+GOOGL on the downside). Shared-rung parity was established;
+nearest-line parity was NOT.
 
 OPERATIONAL FINDING (new, live-relevant): remounting the indicator -- or any
 chart reload that shrinks the loaded window -- silently thins the harvest
 ladder. v6.1's retired-first eviction deliberately preserves old alive
 lines (DRAM's May-era 12h uppers at 74.78/87.27), but a fresh mount can
 never rebuild them: the fresh DRAM mount's nearest lower exit sits at 41.04
-where the full-history twin holds a 12h rung at 47.39. For the standing
+where the full-history twin holds a 12h rung at 47.39 (and above price the
+same class applies: the twin's nearest upper line is a 12h rung at 53.39
+vs the fresh mount's 71.99). For the standing
 short that is the difference between harvesting at -5% adverse and riding
 to -18%. Loaded chart history is load-bearing state for this design; any
 live deployment needs either persistent chart sessions or server-side line
@@ -347,12 +380,17 @@ Quantified on the final record (`analysis/paper/freeze_slice.py`):
   adverse-breaks (NBIS -26.82% entered 01:00, MRVL -14.32% entered 00:50).
 - Realized flips sign: full record -27.60pp vs post-freeze-entry slice
   +14.37pp (20 bf @ +1.95 avg / 3 brk @ -4.80 / 2 flip @ -5.15).
-- Open MTM (-40.65pp) is unaffected: 6 of 7 window-end opens entered
+- Open MTM is slice-unaffected: 6 of 7 window-end opens entered
   post-freeze (the 7th is DRAM, the parity instrument, excluded from
-  aggregates anyway). Combined: -68.25pp full vs -26.28pp clean-entry.
-- SURVIVES the correction: the adverse-runner exit gap. The window-end
-  open runners (GOOGL -15.8%, AMZN -19.5%, SKHY -12.1%) all entered
-  post-freeze from genuine signals. The design gap is real; only its
+  aggregates anyway). [Audit TVB-18 F1: the -40.65pp open figure was
+  the archive-tip mark; window-end -5.58pp. Combined: -68.25pp full vs
+  -26.28pp clean-entry at the tip; -33.18pp vs +8.79pp window-end.]
+- SURVIVES the correction: the adverse-runner exit gap. The open runners
+  (GOOGL, AMZN, SKHY) all entered post-freeze from genuine signals
+  [audit TVB-18 F1: their -15.8% / -19.5% / -12.1% depths are
+  archive-tip marks accrued post-window; window-end -0.97% / +0.39% /
+  +1.56% -- the gap's evidence is the UNBOUNDED no-exit ride, not
+  week-1 window-end MTM]. The design gap is real; only its
   worst REALIZED examples sit in the contaminated cohort (which is also
   the flat-seed cohort -- the two declared mechanisms overlap on the same
   first-hours trades).

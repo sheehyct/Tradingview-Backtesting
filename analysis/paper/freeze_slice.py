@@ -74,9 +74,12 @@ def main() -> None:
             f"exit {fmt(e['ts'])} {e['kind']:4} {e['pnl_pct']:+.2f}%"
         )
     print(
-        f"\nPOST-FREEZE-ENTRY (clean-entry slice): n={len(post)} "
+        f"\nPOST-FREEZE-ENTRY sensitivity slice: n={len(post)} "
         f"realized={sum(e['pnl_pct'] for e in post):+.2f}pp"
     )
+    print("  (roster itself was selected on the pre-freeze move, so this cohort")
+    print("   stays heat-conditioned; NOT an official week-1 number -- see the")
+    print("   adjudication in docs/experiments/tvb15_paper_week1_protocol.md)")
     class_table(post)
     opens: dict[str, dict] = {}
     for e in evs:

@@ -21,10 +21,10 @@
 - Requested: 2026-08-05
 - Write the audit to: `docs/reviews/tvb19-codex-audit.md` (copy
   `docs/reviews/_TEMPLATE.md`)
-- NOTE: TVB-18 (`docs/reviews/tvb18-codex-audit.md`) was still
-  UNRETURNED when TVB-19 closed -- that request remains open alongside
-  this one (its range is pinned in the TVB-18 HANDOFF block).
-  tvb8/tvb9 also remain unreturned (standing note).
+- NOTE: TVB-18 RETURNED 2026-08-07 (NEEDS-CHANGES, via standalone paste
+  prompt after this file had been rewritten to TVB-19) and ADDRESSED the
+  same day -- see `docs/reviews/tvb18-codex-audit.md` + the TVB-18
+  HANDOFF block. tvb8/tvb9 remain unreturned (standing note).
 
 ## Commits to review
 
