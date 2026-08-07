@@ -19,6 +19,12 @@ results_rollup.jsonl, manifest.json (grid + window + git HEAD + bar hashes +
 wall timestamps). Per-cell event logs are deliberately not stored; every cell
 reproduces deterministically from this runner + the committed bars.
 
+Estimators: every "med" field is the sample median (statistics.median: mean
+of the middle pair on even n); p90 is the nearest-rank observation. Roster
+rollups carry the full pre-registered metric set (trade median/win rate and
+episode MFE/give-back summaries), computed from the raw per-trade and
+per-episode values, not from per-symbol aggregates.
+
 Run:
     uv run python -m analysis.paper.sweep_tier_a          # full 864-cell grid
     uv run python -m analysis.paper.sweep_tier_a --limit-cells 2 --symbols xyz:DRAM
@@ -31,6 +37,7 @@ import hashlib
 import itertools
 import json
 import os
+import statistics
 import subprocess
 import time
 from bisect import bisect_left, bisect_right
@@ -128,10 +135,16 @@ def _warm_symbol(entry: dict, wk: tuple, ws: int, bars_dir: str):
 
 
 def _pct(vals: list[float], q: float):
+    """Nearest-rank quantile (single observed element). NOT for medians."""
     if not vals:
         return None
     s = sorted(vals)
     return s[max(0, min(len(s) - 1, int(round(q * (len(s) - 1)))))]
+
+
+def _med(vals: list[float]):
+    """Sample median: mean of the middle pair on even n."""
+    return statistics.median(vals) if vals else None
 
 
 def _replay_cell(entry: dict, cell: dict, warm: dict, ws: int, we: int, bars_dir: str) -> dict:
@@ -215,7 +228,7 @@ def _replay_cell(entry: dict, cell: dict, warm: dict, ws: int, we: int, bars_dir
         "tail": entry["tail"],
         "n_trades": len(exits),
         "sum_pnl_pp": round(sum(pnls), 4),
-        "med_pnl_pct": round(_pct(pnls, 0.5), 4) if pnls else None,
+        "med_pnl_pct": round(_med(pnls), 4) if pnls else None,
         "win_rate": round(sum(1 for p in pnls if p > 0) / len(pnls), 4) if pnls else None,
         "n_bf": len(kinds["bf"]),
         "n_brk": len(kinds["brk"]),
@@ -228,10 +241,10 @@ def _replay_cell(entry: dict, cell: dict, warm: dict, ws: int, we: int, bars_dir
         "combined_pp": round(realized + (open_mtm or 0.0), 4),
         "max_dd_pp": round(dd, 4),
         "mfe_avg_pct": round(sum(mfes) / len(mfes), 4) if mfes else None,
-        "mfe_med_pct": round(_pct(mfes, 0.5), 4) if mfes else None,
+        "mfe_med_pct": round(_med(mfes), 4) if mfes else None,
         "mae_avg_pct": round(sum(maes) / len(maes), 4) if maes else None,
         "gb_avg_pp": round(sum(gbs) / len(gbs), 4) if gbs else None,
-        "gb_med_pp": round(_pct(gbs, 0.5), 4) if gbs else None,
+        "gb_med_pp": round(_med(gbs), 4) if gbs else None,
         "gb_p90_pp": round(_pct(gbs, 0.9), 4) if gbs else None,
         "worst_mae_pct": round(max(maes), 4) if maes else None,
         "weekly": weekly,
@@ -239,7 +252,7 @@ def _replay_cell(entry: dict, cell: dict, warm: dict, ws: int, we: int, bars_dir
         "warmup_1d_bars": warm["warmup_1d_bars"],
         "n_5m_bars": wj - wi,
     }
-    return {"rec": rec, "curve": curve, "episodes": episodes}
+    return {"rec": rec, "curve": curve, "episodes": episodes, "pnls": pnls}
 
 
 def _rollup(cell: dict, sym_results: list[dict]) -> dict:
@@ -262,6 +275,8 @@ def _rollup(cell: dict, sym_results: list[dict]) -> dict:
     eps = [e for r in rs for e in r["episodes"]]
     gbs = [e[2] for e in eps]
     maes = [e[1] for e in eps]
+    mfes = [e[0] for e in eps]
+    all_pnls = [p for r in rs for p in r["pnls"]]
     worst = None
     if recs:
         wr = max(recs, key=lambda r: r["worst_mae_pct"] or 0.0)
@@ -303,7 +318,14 @@ def _rollup(cell: dict, sym_results: list[dict]) -> dict:
         "pnl_brk_pp": round(sum(r["pnl_brk_pp"] for r in recs), 4),
         "pnl_flip_pp": round(sum(r["pnl_flip_pp"] for r in recs), 4),
         "n_open": sum(1 for r in recs if r["open_dir"]),
+        "med_pnl_pct": round(_med(all_pnls), 4) if all_pnls else None,
+        "win_rate": (
+            round(sum(1 for p in all_pnls if p > 0) / len(all_pnls), 4) if all_pnls else None
+        ),
+        "mfe_avg_pct": round(sum(mfes) / len(mfes), 4) if mfes else None,
+        "mfe_med_pct": round(_med(mfes), 4) if mfes else None,
         "gb_avg_pp": round(sum(gbs) / len(gbs), 4) if gbs else None,
+        "gb_med_pp": round(_med(gbs), 4) if gbs else None,
         "gb_p90_pp": round(_pct(gbs, 0.9), 4) if gbs else None,
         "mae_avg_pct": round(sum(maes) / len(maes), 4) if maes else None,
         "worst_runner": worst,

@@ -36,6 +36,16 @@ set the next build: a v6.1 CONTROL strategy() port with a parity gate.
   +47.4pp with -73.5pp open-runner drag (3 deep shorts at window end,
   week-1 class again). Nothing promoted. Tests added (grid shape,
   determinism, accounting identities, parity-symbol exclusion).
+  [TVB-19 audit fold-in 2026-08-07: "med" fields were nearest-rank
+  picks, not true medians (worst two-trade error 9.77pp) and the
+  rollup omitted preregistered metrics -- runner fixed
+  (statistics.median + full roster schema), artifacts REGENERATED with
+  combined/dd/counts verified unchanged; no-backstop median +132.4;
+  min_sep is a real 14.5pp axis (knob-inert wrong for it); worst-MAE
+  spans 29.8-39.6% (372/864 below 37) = severe tail EVERYWHERE, not
+  "37-40 invariant"; top-5 includes one 30m cell. Report corrected in
+  place; headline findings (54-cell no-backstop top, arm monotone,
+  brk/flip costs) all survived independent reproduction.]
 - RTH-vs-UTC CLOCK CENSUS: MATERIAL. analysis/clock_census.py +
   analysis/reference/tvb19_clock_census.json: the deployed D/W/M gate
   disagrees with itself across venue-clock vs RTH-anchored opens on
@@ -53,7 +63,15 @@ set the next build: a v6.1 CONTROL strategy() port with a parity gate.
   CDP (Store-app incantation), TVB18-parity scratch layout only. TV 5m
   depth = uniform floor 2026-05-25 (~10 weeks, ~4x the HL floor,
   TV-side window); 15m to listing or ~20k-bar cap; 60m to listing
-  (deepest GOOGL 2025-11-18). Trap resolved: HL xyz:SKHX = TV
+  (deepest GOOGL 2025-11-18). [TVB-19 audit F2/F3 2026-08-07: the 5m
+  "uniform floor" claim was FALSE -- it is a ~20.2-21.6k-bar cap
+  (AMZN/MSFT/AAPL reach 05-18; NBIS/SKHY listing-bound); every dump
+  ends on a possibly-forming bar (drop on consume); the harvester was
+  fail-open and its default coin list could never regenerate the
+  committed 33/33 (SKHX vs SKHYNIX) -- now fail-closed with an
+  explicit roster->TV mapping and merge-by-key summary; the identity
+  claim is now executable (analysis/verify_skhx_identity.py, 9187
+  overlap / 9183 float-exact reproduced). Committed dumps unchanged.] Trap resolved: HL xyz:SKHX = TV
   HIP3XYZ:SKHYNIXUSDC.P -- TV symbol search does NOT index HIP3XYZ
   (direct chart load only); identity PROVEN (9183/9187 overlapping 5m
   closes float-exact + listing-date match). Side-catch: week-1 roster
@@ -105,7 +123,9 @@ set the next build: a v6.1 CONTROL strategy() port with a parity gate.
 > (range below) and write a verbatim assessment to
 > docs/reviews/tvb19-codex-audit.md. See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: REQUESTED
+- Review status: ADDRESSED (returned 2026-08-07, NEEDS-CHANGES; all
+  four findings independently reproduced by TVB-20 before adjudication;
+  fixes + artifact regeneration landed same day)
 - Commits to review: `2a78ec2^..5289f9b` on `main` (6 commits: 2a78ec2
   pre-registration; 48d3aef sweep runner + tests; 4eb5eea clock census;
   72526c9 sweep results; 2fa892a TV harvest + overnight report; 5289f9b
@@ -132,8 +152,44 @@ set the next build: a v6.1 CONTROL strategy() port with a parity gate.
   verification, the mintick 0.1-vs-0.001 catch, and that no frozen
   week-1 artifact changed; (5) request.security N/A (no Pine changed)
   but confirm.
-- Reviewed by: pending
-- Findings: (blank until docs/reviews/tvb19-codex-audit.md exists)
+- Reviewed by: local Codex CLI (GPT-5), 2026-08-07, via /session-review
+  (this file's pointer described TVB-19 correctly)
+- Findings (all CONFIRMED by TVB-20 reproduction; docs/reviews/
+  tvb19-codex-audit.md):
+  - F1 MEDIUM: sweep "med" fields were nearest-rank picks (round(q*(n-1))
+    with banker's rounding = the LOWER of a pair on n=2; all 398
+    two-trade rows wrong, worst 9.77pp) and _rollup omitted the
+    preregistered roster trade-median/win-rate/MFE/gb-median. FIXED:
+    statistics.median + full schema + even-sample/schema tests;
+    artifacts REGENERATED -- diff-verified: only the 3 med fields
+    changed in by_symbol, only the 5 new fields appear in rollup,
+    every accounting/dd/count field byte-stable. Report medians
+    re-derived: only the no-backstop corner moved (+132.5 -> +132.4).
+  - F2 MEDIUM: the committed 33/33 harvest is not regenerable by the
+    default runner (coin list said SKHX, TV needs SKHYNIX; summary
+    whole-file rewrite on partial reruns). FIXED forward: explicit
+    roster->TV SYMBOL_MAP, merge-by-key summary, run fails unless all
+    datasets land. Identity claim made executable:
+    analysis/verify_skhx_identity.py + skhx_identity_check.json
+    (9187 overlap / 9183 float-exact / 4 mismatches max delta 1.7 --
+    reproduced from committed bars).
+  - F3 MEDIUM: loadHistory declared the floor after ONE unchanged
+    700ms sample and the caller ignored err/capped; every dump ends on
+    a possibly-forming bar; the "uniform 5m floor 2026-05-25" claim is
+    false (05-18 for AMZN/MSFT/AAPL, listing for NBIS/SKHY -- it is a
+    ~20.2-21.6k-bar cap). FIXED forward: 3-stable-round fail-closed
+    detection with recorded termination state; forming-tail + floor
+    caveats declared in README/report; committed dumps unchanged.
+  - F4 LOW: report prose corrected in place -- min_sep is a real
+    14.5pp axis (not "all shape knobs 2-7pp"); worst-MAE spans
+    29.8-39.6% with 372/864 below 37 (severe-tail-everywhere, not
+    "37-40 invariant"); top-5 includes one 30m cell; second-worst
+    cell is 15m/flip-off.
+  - Reviewer independently CONFIRMED: P/L accounting + roster
+    drawdown (131.4984 exact), warm-key soundness (16-variant
+    refutation attempt failed), census headline (30.8418% + all
+    sub-counts), overfit language, frozen artifacts untouched,
+    prereg-before-code. Headline findings all stand.
 
 ---
 

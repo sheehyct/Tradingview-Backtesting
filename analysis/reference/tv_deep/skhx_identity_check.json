@@ -1,0 +1,21 @@
+{
+ "tv_file": "tvb19_tv_xyz_SKHYNIX_5m.json",
+ "hl_file": "xyz_SKHX_5m.json",
+ "tv_pro_symbol": "HIP3XYZ:SKHYNIXUSDC.P",
+ "hl_symbol": "xyz:SKHX",
+ "tv_bars": 20698,
+ "hl_bars": 9187,
+ "tv_span": [
+  "2026-05-25T00:00:00+00:00",
+  "2026-08-05T04:10:00+00:00"
+ ],
+ "hl_span": [
+  "2026-07-03T03:20:00+00:00",
+  "2026-08-04T00:50:00+00:00"
+ ],
+ "overlap_bars": 9187,
+ "float_exact_closes": 9183,
+ "mismatched_closes": 4,
+ "max_abs_close_delta": 1.7000000000000455,
+ "generated_utc": "2026-08-07T11:36:45.591808+00:00"
+}

@@ -14,6 +14,8 @@ from pathlib import Path
 from analysis.paper.sweep_tier_a import (
     WINDOW_END,
     WINDOW_START,
+    _med,
+    _pct,
     _replay_cell,
     _rollup,
     _warm_symbol,
@@ -45,6 +47,37 @@ def test_grid_is_the_preregistered_864():
     assert len(cells) == 864
     assert len({c["tag"] for c in cells}) == 864
     assert len({warm_key(c) for c in cells}) == 54
+
+
+def test_median_is_true_median_on_even_samples():
+    assert _med([10.9755, 30.5233]) == 20.7494
+    assert _med([1.0, 2.0, 3.0, 4.0]) == 2.5
+    assert _med([3.0, 1.0, 2.0]) == 2.0
+    assert _med([]) is None
+    assert _pct([1.0, 2.0], 0.9) == 2.0  # p90 stays nearest-rank
+
+
+def test_rollup_carries_preregistered_metric_schema():
+    required = {
+        "n_trades",
+        "realized_pp",
+        "open_mtm_pp",
+        "combined_pp",
+        "roster_max_dd_pp",
+        "med_pnl_pct",
+        "win_rate",
+        "mfe_avg_pct",
+        "mfe_med_pct",
+        "gb_avg_pp",
+        "gb_med_pp",
+        "gb_p90_pp",
+        "mae_avg_pct",
+        "worst_runner",
+        "weekly",
+    }
+    roll = _rollup(grid()[0], [])
+    missing = required - set(roll)
+    assert not missing, f"rollup missing preregistered fields: {missing}"
 
 
 def test_deployed_cell_replay_deterministic_and_consistent():

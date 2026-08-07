@@ -70,8 +70,10 @@ the ceiling is a ruler, not a target.
 The single most important read: **the entire top of the table is the
 no-backstop corner** -- cells with the adverse-break exit AND the flip
 backstop both OFF, i.e. harvest-touch as the only exit. Those 216 cells
-have median +132.5pp vs +82 overall, and the five best cells (+166 to
-+171pp) are all that shape, slow-armed (1H), riding ~10 open positions
+have median +132.4pp [corrected 2026-08-07, audit F1 estimator] vs +82
+overall, and the five best cells (+166 to
++171pp) are all that shape, slow-armed (four 1H, one 30m [corrected
+2026-08-07, audit F4]), riding ~10 open positions
 into the window end. Treat this as a question, per the charter, and the
 question has a sharp form: this window PAID you for never realizing a
 loss (unrealized holes recovered or ended as open marks), while
@@ -97,8 +99,9 @@ Knob-by-knob (marginal medians across the half-grids), in words:
 - **Arm timeframe is the lever**: 5m arm +23pp median, 15m +70.6, 30m
   +100.7, 1H +111.9 -- monotone. Slower arming = fewer, later, better
   entries in this window. This is the TVB-1 turnover lever wearing a
-  new costume, and the worst five cells in the whole grid are all
-  5m-armed churn with full backstops on.
+  new costume, and four of the worst five cells in the whole grid are
+  5m-armed churn with full backstops on (the second-worst is 15m-armed
+  with brk on / flip off [corrected 2026-08-07, audit F4]).
 - **The backstops cost money in this window**: turning the adverse-break
   exit on costs ~47pp median; the flip backstop on costs ~35pp. That is
   the measured price of insurance in a window where the insured event
@@ -111,18 +114,24 @@ Knob-by-knob (marginal medians across the half-grids), in words:
   the exact deployed point, dropping it gained +9.7pp. Marginals and
   point-contrasts disagree at that point: the knobs interact; nothing
   here is a clean monotone dial.
-- **The shape knobs are near-inert**: compound width (n_max 3/6/9),
-  anchor separation (0.5/1.0/2.0), pool cap (6/12/uncapped) all move
-  medians by only 2-7pp. The BF ladder mechanism itself is
-  knob-robust -- the structural half of the structural-vs-sample split.
-  What moves outcomes is WHEN you enter (arm) and HOW you are allowed
-  to lose (backstops). Both of those are the design session's subjects.
+- **Two shape knobs are near-inert, one is not** [corrected
+  2026-08-07, audit F4: "all 2-7pp" was wrong for min_sep]: compound
+  width (n_max 3/6/9) moves marginal medians 7.4pp and pool cap
+  (6/12/uncapped) 4.5pp; anchor separation is a real axis -- min_sep
+  0.5 -> 2.0 moves the median 14.5pp (tighter spacing better IN THIS
+  WINDOW). The BF ladder mechanism is knob-tolerant rather than
+  knob-inert -- a hypothesis from this one in-sample window, not a
+  demonstrated generalization. What moves outcomes most is still WHEN
+  you enter (arm) and HOW you are allowed to lose (backstops). Both of
+  those are the design session's subjects.
 
-- **The adverse-runner class is config-invariant at grid scale**: the
-  worst single-episode adverse excursion sits at 37-40% (NBIS, SKHY)
-  across broad regions of the grid including the deployed cell. TVB-16
-  showed this on two configs; tonight shows it on 864. No existing knob
-  removes it; only exit design can.
+- **Every cell keeps a severe adverse-runner tail** [corrected
+  2026-08-07, audit F4: previously "37-40% config-invariant at grid
+  scale"]: worst-runner MAE spans 29.8-39.6% across the 864 cells (372
+  cells sit below 37%), with the 37-40% depths (NBIS, SKHY) in broad
+  regions including the deployed cell. TVB-16 showed the class on two
+  configs; tonight bounds it on 864: no existing knob removes the
+  roughly 30-40% tail; only exit design can.
 
 Reading rules honored: no cell is promoted; the per-cell artifacts
 carry config codes, this report carries words; single window, gross,
@@ -142,13 +151,19 @@ All 11 symbols x {5m, 15m, 60m} harvested and committed
 file, inventory in tvb19_harvest_summary.json). What the floors turned
 out to be:
 
-- **5m reaches 2026-05-25 for every symbol** (~10 weeks, ~20k bars) --
-  about 4x the Hyperliquid API's ~17-day 5m floor, and the boundary is
-  identical across symbols, so it is a TV-side depth window, not
-  listing. Practical consequence: future pre-registered 5m replay
-  windows can start ~May 25 instead of being hostage to the rolling HL
-  floor -- with the venue-feed mix declared (TV bars vs HL bars differ
-  at the wick level; TVB-6: 97-99% float-exact).
+- **5m is a ~20.2-21.6k-bar TV-side cap, not a uniform calendar
+  floor** [corrected 2026-08-07, audit F3: "2026-05-25 for every
+  symbol, boundary identical" was false]: starts are 2026-05-18
+  (AMZN/MSFT/AAPL), 2026-05-25 (six symbols), and venue listing for
+  the young ones (NBIS 2026-06-09, SKHY 2026-07-09). Still about 4x
+  the Hyperliquid API's ~17-day 5m floor for the cap-bound symbols.
+  Practical consequence: future pre-registered 5m replay windows can
+  start ~May 18-25 for the nine older symbols (NBIS/SKHY are
+  listing-bound) -- with the venue-feed mix declared (TV bars vs HL
+  bars differ at the wick level; TVB-6: 97-99% float-exact). Every
+  committed dump ends on TV's active bar (drop the final row on
+  consume) and the run predates fail-closed floor detection -- see
+  analysis/reference/tv_deep/README.md caveats.
 - **15m reaches venue listing for young symbols** (Marvell perp
   2026-05-04, SK hynix perp 2026-02-19) and a ~20k-bar cap (~7 months,
   back to Jan 1) for the older majors.

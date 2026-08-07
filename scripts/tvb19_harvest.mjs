@@ -5,16 +5,33 @@
 // the entire main series with tick metadata (tv_bars.mjs mechanism).
 // Provenance: TV bars vs HL archive bars differ at the cents/wick level (TVB-6:
 // 97-99% float-exact); every dump records pro_symbol + minmov/pricescale.
+// The dumped series ends on TV's ACTIVE bar: the last row may still be forming.
+// Consumers must drop or close-gate the final row (declared in tv_deep/README.md).
+// A run FAILS (exit 1) unless every requested dataset lands with a clean floor;
+// the summary merges by (coin, interval) so partial re-harvests never erase rows.
 // Usage: node scripts/tvb19_harvest.mjs [outDir]  (default analysis/reference/tv_deep)
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { evaluate, disconnect } from 'file:///C:/Strat_Trading_Bot/tradingview-mcp-jackson/src/connection.js';
 
-// TVB19_COINS overrides the roster list for partial re-harvests, e.g.
-// TVB19_COINS=SKHYNIX (the TV coin string; xyz:SKHX maps to HIP3XYZ:SKHYNIXUSDC.P --
-// TV search does not index HIP3XYZ, discovered by direct chart load 2026-08-05).
-const COINS = process.env.TVB19_COINS
-  ? process.env.TVB19_COINS.split(',')
-  : ['MRVL', 'GOOGL', 'AMZN', 'MSFT', 'GOLD', 'AAPL', 'SKHX', 'SKHY', 'NBIS', 'TSLA', 'DRAM'];
+// Explicit roster -> TV mapping. The TV coin string can differ from the HL coin:
+// xyz:SKHX trades on TV as HIP3XYZ:SKHYNIXUSDC.P (TV search does not index
+// HIP3XYZ at all -- direct chart load only). Never derive the TV symbol from the
+// roster name alone. TVB19_COINS=<tv_coin,...> still selects a subset for reruns.
+const SYMBOL_MAP = [
+  { roster: 'xyz:MRVL', coin: 'MRVL' },
+  { roster: 'xyz:GOOGL', coin: 'GOOGL' },
+  { roster: 'xyz:AMZN', coin: 'AMZN' },
+  { roster: 'xyz:MSFT', coin: 'MSFT' },
+  { roster: 'xyz:GOLD', coin: 'GOLD' },
+  { roster: 'xyz:AAPL', coin: 'AAPL' },
+  { roster: 'xyz:SKHX', coin: 'SKHYNIX' },
+  { roster: 'xyz:SKHY', coin: 'SKHY' },
+  { roster: 'xyz:NBIS', coin: 'NBIS' },
+  { roster: 'xyz:TSLA', coin: 'TSLA' },
+  { roster: 'xyz:DRAM', coin: 'DRAM' },
+];
+const ONLY = process.env.TVB19_COINS ? new Set(process.env.TVB19_COINS.split(',')) : null;
+const TARGETS = ONLY ? SYMBOL_MAP.filter((s) => ONLY.has(s.coin)) : SYMBOL_MAP;
 const INTERVALS = ['15', '60', '5'];
 const OUT_DIR = process.argv[2] || 'analysis/reference/tv_deep';
 const CHART = 'window.TradingViewApi._activeChartWidgetWV.value()';
@@ -55,19 +72,30 @@ async function setResolution(iv) {
   );
 }
 
+// Floor detection needs REPEATED agreement: one unchanged 700ms sample can be a
+// slow response, not the floor. Require STABLE_ROUNDS consecutive unchanged sizes
+// and report a terminal state the caller must act on: 'floor' | 'err' | 'capped'.
+const STABLE_ROUNDS = 3;
+
 async function loadHistory() {
   let prev = -1;
+  let stable = 0;
   for (let round = 0; round < 400; round++) {
     const r = await evaluate(`(function(){
       try { ${MS}.requestMoreData(500); } catch(e) { return { err: e.message }; }
       return { ok: 1 }; })()`);
-    if (r && r.err) return { rounds: round, err: r.err };
-    await sleep(700);
+    if (r && r.err) return { state: 'err', rounds: round, err: r.err };
+    await sleep(900);
     const size = await evaluate(`${MS}.bars().size()`);
-    if (size === prev) return { rounds: round, size };
+    if (size === prev) {
+      stable += 1;
+      if (stable >= STABLE_ROUNDS) return { state: 'floor', rounds: round, size };
+    } else {
+      stable = 0;
+    }
     prev = size;
   }
-  return { rounds: 400, size: prev, capped: true };
+  return { state: 'capped', rounds: 400, size: prev };
 }
 
 const DUMP = `(function(){
@@ -100,46 +128,74 @@ const DUMP = `(function(){
 try {
   mkdirSync(OUT_DIR, { recursive: true });
   const summary = [];
-  for (const coin of COINS) {
+  let failures = 0;
+  for (const { roster, coin } of TARGETS) {
     const tvSym = `HIP3XYZ:${coin}USDC.P`;
     if (!(await setSymbol(tvSym))) {
-      log({ ev: 'skip_symbol', coin, tvSym });
-      summary.push({ coin, error: 'symbol did not load' });
+      log({ ev: 'skip_symbol', roster, coin, tvSym });
+      for (const iv of INTERVALS) summary.push({ roster, coin, iv, error: 'symbol did not load' });
+      failures += INTERVALS.length;
       continue;
     }
     for (const iv of INTERVALS) {
       if (!(await setResolution(iv))) {
-        log({ ev: 'skip_interval', coin, iv });
-        summary.push({ coin, iv, error: 'resolution did not load' });
+        log({ ev: 'skip_interval', roster, coin, iv });
+        summary.push({ roster, coin, iv, error: 'resolution did not load' });
+        failures += 1;
         continue;
       }
       const hist = await loadHistory();
+      if (hist.state !== 'floor') {
+        log({ ev: 'history_incomplete', roster, coin, iv, ...hist });
+        summary.push({ roster, coin, iv, error: `history ${hist.state}`, history: hist });
+        failures += 1;
+        continue;
+      }
       const dump = await evaluate(DUMP);
       if (!dump || dump.error || !dump.bars || !dump.bars.length) {
-        log({ ev: 'dump_failed', coin, iv, error: dump && dump.error });
-        summary.push({ coin, iv, error: (dump && dump.error) || 'empty dump' });
+        log({ ev: 'dump_failed', roster, coin, iv, error: dump && dump.error });
+        summary.push({ roster, coin, iv, error: (dump && dump.error) || 'empty dump' });
+        failures += 1;
         continue;
       }
       if (dump.pro_symbol !== tvSym || dump.interval !== iv) {
-        log({ ev: 'identity_mismatch', coin, iv, got: dump.pro_symbol, got_iv: dump.interval });
-        summary.push({ coin, iv, error: 'identity mismatch, dump discarded' });
+        log({ ev: 'identity_mismatch', roster, coin, iv, got: dump.pro_symbol, got_iv: dump.interval });
+        summary.push({ roster, coin, iv, error: 'identity mismatch, dump discarded' });
+        failures += 1;
         continue;
       }
+      dump.roster_symbol = roster;
       dump.harvested_utc = new Date().toISOString();
+      dump.last_bar_may_be_forming = true;
+      dump.history_termination = hist;
       dump.provenance = 'TVB-19 deep harvest; TV loaded series to data floor; '
         + 'TV-vs-HL wick-level variance per TVB-6 (97-99% float-exact)';
       dump.firstISO = new Date(dump.bars[0][0] * 1000).toISOString();
       dump.lastISO = new Date(dump.bars[dump.bars.length - 1][0] * 1000).toISOString();
       const out = `${OUT_DIR}/tvb19_tv_xyz_${coin}_${iv}m.json`;
       writeFileSync(out, JSON.stringify(dump));
-      log({ ev: 'dumped', coin, iv, count: dump.count, rounds: hist.rounds,
+      log({ ev: 'dumped', roster, coin, iv, count: dump.count, rounds: hist.rounds,
             first: dump.firstISO, last: dump.lastISO, out });
-      summary.push({ coin, iv, count: dump.count, first: dump.firstISO, last: dump.lastISO });
+      summary.push({ roster, coin, iv, count: dump.count, first: dump.firstISO,
+                     last: dump.lastISO, history: hist });
     }
   }
-  writeFileSync(`${OUT_DIR}/tvb19_harvest_summary.json`,
-    JSON.stringify({ generated_utc: new Date().toISOString(), datasets: summary }, null, 1));
-  log({ ev: 'done', datasets: summary.length });
+  // Merge by (coin, iv) into any existing summary so a partial rerun updates its
+  // own rows without erasing the rest of the inventory.
+  const sumPath = `${OUT_DIR}/tvb19_harvest_summary.json`;
+  let merged = summary;
+  if (existsSync(sumPath)) {
+    const prior = JSON.parse(readFileSync(sumPath, 'utf8')).datasets || [];
+    const key = (r) => `${r.coin}|${r.iv || ''}`;
+    const fresh = new Map(summary.map((r) => [key(r), r]));
+    merged = prior.map((r) => fresh.get(key(r)) || r);
+    for (const r of summary) if (!prior.some((p) => key(p) === key(r))) merged.push(r);
+  }
+  writeFileSync(sumPath, JSON.stringify(
+    { generated_utc: new Date().toISOString(), complete: failures === 0, datasets: merged },
+    null, 1));
+  log({ ev: 'done', datasets: summary.length, failures });
+  if (failures > 0) process.exitCode = 1;
 } finally {
   await disconnect();
 }

@@ -10,7 +10,9 @@
 
 ## Status
 
-- Status: REQUESTED  <!-- REQUESTED | RETURNED (audit file written) -->
+- Status: RETURNED (2026-08-07) -- ADDRESSED same day: all four findings
+  reproduced and fixed by TVB-20; synthesis in the TVB-19 HANDOFF block.
+  <!-- REQUESTED | RETURNED (audit file written) -->
 - Session under review: TVB-19 -- overnight autonomous run: the
   pre-registered 864-cell Tier A deliberate-overfit sweep (runner +
   committed results), the RTH-vs-UTC clock census (MATERIAL: 30.84%

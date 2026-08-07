@@ -1,7 +1,7 @@
 {
  "prereg": "docs/experiments/tvb19_tier_a_prereg.md",
  "label": "DELIBERATE OVERFIT / in-sample ceiling / secondary control",
- "git_head": "48d3aef547ae7c5803d87bcf944f766f95985857",
+ "git_head": "bef6daeb7e76f5a18dc76e0388df777e0a3c65c4",
  "window": {
   "start": "2026-07-06",
   "end": "2026-08-03"
@@ -78,6 +78,6 @@
   "xyz_DRAM_1h.json": "3bab1182ec48d15f",
   "xyz_DRAM_1d.json": "86e3d3377788e1e9"
  },
- "run_start_utc": "2026-08-05T03:51:10+00:00",
- "run_end_utc": "2026-08-05T03:55:02+00:00"
+ "run_start_utc": "2026-08-07T11:34:53+00:00",
+ "run_end_utc": "2026-08-07T11:38:42+00:00"
 }
