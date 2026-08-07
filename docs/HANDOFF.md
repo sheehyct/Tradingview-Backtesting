@@ -5,6 +5,134 @@
 
 ---
 
+## Session TVB-19: Overnight Tier A sweep + clock census + deep TV harvest (COMPLETE)
+
+**Date:** 2026-08-04/05
+**Status:** COMPLETE -- overnight autonomous run under explicit user
+direction (pre-reg -> sweep -> census -> harvest -> morning report; no
+design/flip/ladder code), then a morning visualization discussion that
+set the next build: a v6.1 CONTROL strategy() port with a parity gate.
+
+### What was accomplished
+
+- TIER A PRE-REGISTRATION FIRST (the F1 lesson applied literally):
+  docs/experiments/tvb19_tier_a_prereg.md committed at 2a78ec2 BEFORE
+  the runner existed or any cell ran. Grid = existing TwinConfig knobs
+  only (864 cells), window 07-06 -> 08-03 Monday-to-Monday, metrics,
+  exclusions, DELIBERATE OVERFIT / in-sample-ceiling label.
+- TIER A SWEEP EXECUTED (analysis/paper/sweep_tier_a.py, ~4 min wall,
+  warm-key task grouping 594 warm-ups instead of 9504): 9504
+  per-symbol rows + 864 rollups + manifest (timestamps, bar hashes)
+  committed under analysis/paper/sweeps/tvb19_tier_a/. Reading (full
+  plain-language version: docs/experiments/tvb19_overnight_report.md):
+  spread -13.8..+171.3pp combined, median +82; the ENTIRE top = the
+  no-backstop corner (brk+flip OFF, median +132.5) = "never realize a
+  loss in a kind window" -- the adverse-runner question inverted, a
+  question not a verdict; arm TF monotone (5m +23 -> 1H +112 median);
+  brk costs ~47pp / flip ~35pp median IN-WINDOW; shape knobs
+  (n_max/min_sep/pool_cap) near-inert = the BF ladder mechanism is
+  knob-robust; adverse-runner MAE 37-40% config-invariant at grid
+  scale (extends TVB-16's 2-cell finding to 864); deployed cell
+  +47.4pp with -73.5pp open-runner drag (3 deep shorts at window end,
+  week-1 class again). Nothing promoted. Tests added (grid shape,
+  determinism, accounting identities, parity-symbol exclusion).
+- RTH-vs-UTC CLOCK CENSUS: MATERIAL. analysis/clock_census.py +
+  analysis/reference/tvb19_clock_census.json: the deployed D/W/M gate
+  disagrees with itself across venue-clock vs RTH-anchored opens on
+  30.84% of 87,683 scored 5m bars (23.6-40.6% per symbol); the day leg
+  drives it (structural: different "days" ~13.5h/weekday + all
+  weekend); disagreements cluster 20-22 ET and 05-07 ET; the clocks
+  generate mostly DIFFERENT flip events (2519 UTC vs 1710 RTH, ~220
+  shared; hard up<->down flips rare, 6 vs 7); GOLD demonstrates the
+  monthly-leg mechanism (opens 2.1% apart on Jul 1, price between
+  them 65% of the window). Per the seeded decision rule the
+  pre-registered anchor-clock arms are now justified -- a design
+  input, deliberately NOT run. Calendar tests committed.
+- DEEP TV HARVEST 33/33 (scripts/tvb19_harvest.mjs -> analysis/
+  reference/tv_deep/ + README, ~19MB committed): TV launched fresh on
+  CDP (Store-app incantation), TVB18-parity scratch layout only. TV 5m
+  depth = uniform floor 2026-05-25 (~10 weeks, ~4x the HL floor,
+  TV-side window); 15m to listing or ~20k-bar cap; 60m to listing
+  (deepest GOOGL 2025-11-18). Trap resolved: HL xyz:SKHX = TV
+  HIP3XYZ:SKHYNIXUSDC.P -- TV symbol search does NOT index HIP3XYZ
+  (direct chart load only); identity PROVEN (9183/9187 overlapping 5m
+  closes float-exact + listing-date match). Side-catch: week-1 roster
+  SKHX mintick was hl_inferred 0.1 (tv_symbol null at freeze); TV
+  true tick 0.001. Frozen roster untouched; future-roster backfill
+  item.
+- MORNING DECISION (user, 2026-08-05): the overnight sweep did NOT use
+  the Magnitude+Targets indicator anywhere (confirmed to user --
+  entries/exits = the v6.1 twin only; ladder is Tier B/design-gated).
+  Visualization direction chosen: TradingView-NATIVE, not a custom
+  explorer -- fork the deployed v6.1 watch indicator into a CONTROL
+  strategy(), parity-gate against the twin (declared TV-vs-HL feed
+  deltas), leave the Strategy Tester mounted for browsing; it then
+  becomes the A/B baseline for exit-design variants. Custom HTML
+  explorer dropped; trace-mode twin instrumentation deferred until
+  the design session needs forensics.
+
+### Context for next session
+
+- Priority 1 = the v6.1 control strategy() port + parity gate (see
+  .session_startup_prompt.md for pinned conventions: commission 0,
+  margin 0/0, fill model, deep-load-first, tab-binding trap). Zero
+  semantic change; parity is the proof; STOP-and-ASK on any semantic
+  question (skill still mid-rebuild).
+- The exit-design session follows with sweep-quantified stakes and
+  the anchor clock as a new tested variable. Repairs bundle
+  F2/F3/F4 + invariant still greenlit and pending.
+- TradingView was left RUNNING with CDP on the TVB18-parity scratch
+  layout (user's live layouts untouched all session).
+- Week-1 frozen artifacts untouched; week 1 still has NO official
+  number (adjudication stands).
+
+### Files created/modified
+
+- Created: docs/experiments/tvb19_tier_a_prereg.md,
+  analysis/paper/sweep_tier_a.py, tests/test_sweep_tier_a.py,
+  analysis/paper/sweeps/tvb19_tier_a/ (manifest + 2 JSONL),
+  analysis/clock_census.py, tests/test_clock_census.py,
+  analysis/reference/tvb19_clock_census.json,
+  scripts/tvb19_harvest.mjs, analysis/reference/tv_deep/ (33 dumps +
+  summary + README), docs/experiments/tvb19_overnight_report.md
+- Modified: .session_startup_prompt.md, docs/HANDOFF.md,
+  docs/reviews/REVIEW_REQUEST.md (session-end)
+- Suite: 103 passed, 2 skipped (6 new tests)
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work
+> (range below) and write a verbatim assessment to
+> docs/reviews/tvb19-codex-audit.md. See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: {pending push -- pinned after session-end push}.
+  RANGE-PIN RULE: caret included; sanity-check with
+  `git diff --name-status` listing every file the session touched.
+- Scope / what changed: pre-registered 864-cell deliberate-overfit
+  sweep (runner + committed results), RTH-vs-UTC clock census (code +
+  committed results), deep TV-bar harvest (33 datasets + provenance),
+  overnight report, session-end docs.
+- Focus areas (scrutinize these): (1) pre-reg-vs-execution fidelity --
+  does sweep_tier_a.py implement EXACTLY the declared grid/window/
+  metrics (warm-key grouping correctness, roster equity-curve
+  alignment/forward-fill in _rollup, weekly entry-ts slicing,
+  parity-symbol exclusion); (2) clock_census.py correctness -- RTH
+  roll calendar (holiday table, weekend-to-Friday attribution,
+  first-trading-day week/month), 1h-seeding deltas (declared 30-min
+  RTH lateness), whether the 30.84% headline and per-leg attribution
+  survive scrutiny; (3) overfit-language discipline -- the report and
+  commit messages must nowhere promote a cell or morph the ceiling
+  into a performance claim (week-1 adjudication language intact);
+  (4) harvest identity claims -- SKHYNIX=SKHX float-exact
+  verification, the mintick 0.1-vs-0.001 catch, and that no frozen
+  week-1 artifact changed; (5) request.security N/A (no Pine changed)
+  but confirm.
+- Reviewed by: pending
+- Findings: (blank until docs/reviews/tvb19-codex-audit.md exists)
+
+---
+
 ## Session TVB-18: Week-1 close-out + TVB-15 audit fold-in + design direction (COMPLETE)
 
 **Date:** 2026-08-03/04
