@@ -30,7 +30,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | {pending push -- pinned by the follow-up commit after session-end; will be `2a78ec2^..{session-end sha}`; sanity-check with `git diff --name-status`} |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `2a78ec2^..5289f9b` (6 commits: 2a78ec2 pre-registration; 48d3aef sweep runner + tests; 4eb5eea clock census; 72526c9 sweep results; 2fa892a TV harvest + overnight report; 5289f9b session-end docs; sanity-checked -- `git diff --name-status 2a78ec2^ 5289f9b` lists all 49 files) |
 
 ## Read first (in this order)
 

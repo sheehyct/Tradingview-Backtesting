@@ -106,9 +106,13 @@ set the next build: a v6.1 CONTROL strategy() port with a parity gate.
 > docs/reviews/tvb19-codex-audit.md. See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: {pending push -- pinned after session-end push}.
-  RANGE-PIN RULE: caret included; sanity-check with
-  `git diff --name-status` listing every file the session touched.
+- Commits to review: `2a78ec2^..5289f9b` on `main` (6 commits: 2a78ec2
+  pre-registration; 48d3aef sweep runner + tests; 4eb5eea clock census;
+  72526c9 sweep results; 2fa892a TV harvest + overnight report; 5289f9b
+  session-end docs; the pin commit follows outside the range, per
+  precedent). RANGE-PIN RULE: caret included; sanity-checked --
+  `git diff --name-status 2a78ec2^ 5289f9b` lists all 49 files the
+  session touched.
 - Scope / what changed: pre-registered 864-cell deliberate-overfit
   sweep (runner + committed results), RTH-vs-UTC clock census (code +
   committed results), deep TV-bar harvest (33 datasets + provenance),
