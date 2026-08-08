@@ -29,7 +29,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `{pending push -- pinned by the session-end follow-up commit}` |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `bef6dae^..fffbacb` (5 commits: bef6dae TVB-18 fold-in; 9f11a74 TVB-19 fold-in; bbdb10b layering-arc seed + charter/CLAUDE.md amendments; 2d1f25b CONTROL port + parity gate; fffbacb session-end docs; sanity-checked -- `git diff --name-status bef6dae^..fffbacb` lists all 34 files the session touched) |
 
 ## Read first (in this order)
 

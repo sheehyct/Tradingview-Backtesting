@@ -131,10 +131,10 @@ mounted, and parity-gated PASS (full-span, three symbols, zero mismatches).
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: `bef6dae^..{head}` on `main` -- pinned to concrete shas
-  in docs/reviews/REVIEW_REQUEST.md after the session-end push (RANGE-PIN
-  RULE: the caret keeps bef6dae itself in the diff; sanity-check with
-  `git diff --name-status`).
+- Commits to review: `bef6dae^..fffbacb` on `main` (5 commits: bef6dae,
+  9f11a74, bbdb10b, 2d1f25b, fffbacb; RANGE-PIN RULE: the caret keeps
+  bef6dae itself in the diff; sanity-checked -- `git diff --name-status
+  bef6dae^..fffbacb` lists all 34 files the session touched).
 - Scope / what changed: TVB-18/19 audit fold-ins; layering-arc seed +
   charter/CLAUDE.md amendments; the v6.1 CONTROL strategy() port + full-span
   parity gate (PASS) + the pine_gate_warmup engine flag.
