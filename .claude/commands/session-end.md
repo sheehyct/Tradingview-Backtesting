@@ -61,6 +61,10 @@ Add a new entry at the TOP:
 ### Files created/modified
 {list}
 
+### Open
+
+- [ ] {item still open at close}
+
 ### External Review (for Codex / cloud review agents)
 
 > For Codex / other external review agents: review THIS session's work (range
@@ -81,6 +85,13 @@ Add a new entry at the TOP:
 
 ---
 ```
+
+The `### Open` block is REQUIRED and is identical in every repo. Anything you
+would otherwise write as deferred, blocked, parked, TODO, or "next session"
+goes there as a checkbox - one line, plain English. A later session that closes
+an item ticks it in place (`- [x]`) and names the session that closed it; it
+never deletes the line. If nothing is open, write `- none`, so that a blank
+block is never mistaken for a forgotten one.
 
 If HANDOFF.md exceeds 1500 lines, STOP and ask before archiving to `docs/session_archive/`.
 

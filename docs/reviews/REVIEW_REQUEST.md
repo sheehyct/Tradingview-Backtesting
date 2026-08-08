@@ -10,82 +10,76 @@
 
 ## Status
 
-- Status: RETURNED (2026-08-07) -- ADDRESSED same day: all four findings
-  reproduced and fixed by TVB-20; synthesis in the TVB-19 HANDOFF block.
+- Status: REQUESTED
   <!-- REQUESTED | RETURNED (audit file written) -->
-- Session under review: TVB-19 -- overnight autonomous run: the
-  pre-registered 864-cell Tier A deliberate-overfit sweep (runner +
-  committed results), the RTH-vs-UTC clock census (MATERIAL: 30.84%
-  gate disagreement), the deep TV-bar harvest (33/33 datasets incl.
-  the SKHX/SKHYNIX identity resolution), the overnight report, and
-  session-end docs seeding the v6.1 control strategy() port.
+- Session under review: TVB-20 -- audit fold-ins (TVB-18 + TVB-19, every
+  finding reproduced before adjudication), the layering-arc alignment
+  (design-session seed + charter S3.1/S5 amendments + the CLAUDE.md
+  "Ablation, not tournament" reword), and the v6.1 CONTROL strategy()
+  port: pine/tfc_bf_control_strategy.pine, parity gate PASS (full-span,
+  GOOGL/TSLA/DRAM, zero mismatches, break/flip float-exact), and the
+  TwinConfig.pine_gate_warmup engine flag.
 - SCOPE: standard.
-- Requested: 2026-08-05
-- Write the audit to: `docs/reviews/tvb19-codex-audit.md` (copy
+- Requested: 2026-08-08
+- Write the audit to: `docs/reviews/tvb20-codex-audit.md` (copy
   `docs/reviews/_TEMPLATE.md`)
-- NOTE: TVB-18 RETURNED 2026-08-07 (NEEDS-CHANGES, via standalone paste
-  prompt after this file had been rewritten to TVB-19) and ADDRESSED the
-  same day -- see `docs/reviews/tvb18-codex-audit.md` + the TVB-18
-  HANDOFF block. tvb8/tvb9 remain unreturned (standing note).
+- NOTE: tvb8/tvb9 remain unreturned (standing note).
 
 ## Commits to review
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `2a78ec2^..5289f9b` (6 commits: 2a78ec2 pre-registration; 48d3aef sweep runner + tests; 4eb5eea clock census; 72526c9 sweep results; 2fa892a TV harvest + overnight report; 5289f9b session-end docs; sanity-checked -- `git diff --name-status 2a78ec2^ 5289f9b` lists all 49 files) |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `{pending push -- pinned by the session-end follow-up commit}` |
 
 ## Read first (in this order)
 
-1. `CLAUDE.md`; charter Section 0.
-2. `docs/HANDOFF.md` -- the TVB-19 entry at top (its External Review
-   block mirrors this request).
-3. `docs/experiments/tvb19_tier_a_prereg.md` -- the pre-registration
-   (committed BEFORE the runner existed; part of the reviewed claim
-   set) -- then `docs/experiments/tvb19_overnight_report.md` (the
-   plain-language findings).
-4. `docs/experiments/tvb15_paper_week1_protocol.md` week-1
-   adjudication section (the language discipline the report must not
-   violate).
+1. `CLAUDE.md`; charter Section 0, then the 2026-08-08 S3.1/S5 amendments.
+2. `docs/HANDOFF.md` -- the TVB-20 entry at top (its External Review block
+   mirrors this request); the TVB-18/19 blocks for the fold-in context.
+3. `docs/experiments/tvb20_design_session_seed.md` (the alignment record)
+   and `docs/experiments/tvb20_control_port_parity.md` (conventions +
+   results + the Pine gate warm-up finding).
+4. `docs/reviews/tvb18-codex-audit.md` + `docs/reviews/tvb19-codex-audit.md`
+   (the audits whose fold-ins open this range).
 5. `docs/EXTERNAL_REVIEW_PROTOCOL.md`.
 
 ## Focus areas (scrutinize these)
 
-1. Pre-reg-vs-execution fidelity: does `analysis/paper/sweep_tier_a.py`
-   implement EXACTLY the declared grid (864 cells, axis levels),
-   window (2026-07-06 -> 2026-08-03), warm-up conventions, and
-   metrics? Scrutinize the warm-key task grouping (warm state depends
-   only on pool-shape knobs -- true?), the roster equity-curve
-   alignment/forward-fill in `_rollup` (drawdown correctness), the
-   weekly entry-ts slicing, and the parity-symbol (DRAM) exclusion.
-2. `analysis/clock_census.py` correctness: the RTH roll calendar
-   (declared NYSE holiday table, weekend-bars-belong-to-Friday,
-   first-trading-day week/month rules), the twin-convention open
-   sampling (first bar at/after roll), the declared 1h-seeding delta
-   (RTH opens up to 30 min late pre-archive), and whether the 30.84%
-   pooled disagreement + day-leg attribution + flip-event asymmetry
-   (2519 vs 1710, ~220 shared) survive scrutiny.
-3. Overfit-language discipline: the DELIBERATE OVERFIT / in-sample
-   ceiling label must hold everywhere (report, commit messages,
-   HANDOFF); no cell promoted; the week-1 "NO official number"
-   adjudication language intact; the no-backstop-corner finding framed
-   as a question, not a strategy recommendation.
-4. Harvest identity claims: xyz:SKHX = HIP3XYZ:SKHYNIXUSDC.P proven
-   (9183/9187 float-exact overlapping 5m closes + listing-date match);
-   the roster mintick catch (hl_inferred 0.1 vs TV 0.001) correctly
-   left as a future-roster item with the frozen week-1 roster
-   untouched; provenance (TV-vs-HL feed mix) declared in
-   `analysis/reference/tv_deep/README.md`.
-5. No frozen week-1 artifact modified anywhere in the range
+1. ZERO-SEMANTIC-CHANGE claim: diff `pine/tfc_bf_control_strategy.pine`
+   against `pine/tfc_bf_watch.pine`. The claim is exactly 4 hunks (contract
+   header, strategy() declaration, order-emission block, table title) and
+   that the emission block cannot feed back into decisions
+   (strategy.position_size never read; at most one order action per bar by
+   the machine's same-bar re-entry block).
+2. Parity method validity (`analysis/paper/port_parity.py`): the ts-offset
+   selection (0/+300/-300 scored on entries), beyond_feed handling (dump
+   ends 2026-08-05, trades harvested 2026-08-08), OPEN-trade handling
+   (entry-only), the close-fill cross-check, and whether the
+   full-span-beats-window argument is sound.
+3. `TwinConfig.pine_gate_warmup` isolation: default False must leave
+   compare_config and the committed TVB-19 sweep replays bit-identical --
+   verify no committed artifact changes when re-run; verify the True path
+   matches Pine's ta.valuewhen(timeframe.change) boundary semantics
+   (including the first-chart-bar false convention).
+4. Decision-exact residual accounting: entry/BF close-fill residuals are
+   DECLARED, and no claim anywhere treats TV-reported P&L as twin P&L.
+5. Audit fold-in fidelity: `bef6dae` / `9f11a74` against the two audit
+   files -- every finding addressed or explicitly deferred with reasons;
+   the regenerated sweep artifacts changed ONLY in the declared med fields.
+6. No frozen week-1 artifact modified anywhere in the range
    (events_week1.jsonl, scoreboard_week1.md, roster_week1.json).
-6. request.security lookahead: N/A this session (no .pine changed) --
-   confirm the range contains no Pine edits.
+7. request.security lookahead: the new .pine must add none (it forks v6.1
+   verbatim -- verify no un-offset lookahead_on anywhere in the range).
+8. Charter amendment coherence: the S3.1/S5 annotations + CLAUDE.md reword
+   must not quietly weaken the anti-overfit invariants (per-pattern winner
+   promotion must remain forbidden in every formulation).
 
 Standing priorities apply (model fidelity; overfitting language; the
-sweep is a labeled ceiling, never a deployment claim).
+control is a research instrument, never a deployment claim).
 
 ## Output contract
 
-- Verbatim audit -> `docs/reviews/tvb19-codex-audit.md` (template:
+- Verbatim audit -> `docs/reviews/tvb20-codex-audit.md` (template:
   `docs/reviews/_TEMPLATE.md`, skeptic preamble included).
 - Be concrete; cite `file:line`. Never paste a secret/IP/account value.
 - The critical synthesis is written by the NEXT session into `docs/HANDOFF.md`.

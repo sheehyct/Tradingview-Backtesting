@@ -5,6 +5,155 @@
 
 ---
 
+## Session TVB-20: Audit fold-ins + layering-arc alignment + v6.1 CONTROL strategy() port (COMPLETE)
+
+**Date:** 2026-08-07/08
+**Status:** COMPLETE -- both returned audits folded in (every finding
+reproduced before adjudication), the layering-arc research direction pinned
+with the user in writing, and the v6.1 CONTROL strategy() port built,
+mounted, and parity-gated PASS (full-span, three symbols, zero mismatches).
+
+### What was accomplished
+
+- AUDIT FOLD-INS (start of session): TVB-18 (`bef6dae`, 3 findings: window-end
+  MTM tip-marking, freeze-slice labeling, empty-window fail-loud + the
+  append-invariance regression test) and TVB-19 (`9f11a74`, 4 findings:
+  nearest-rank medians fixed + artifacts regenerated diff-verified, SKHX
+  identity made executable, harvester fail-closed rework, report wording).
+  Both HANDOFF blocks below flipped to ADDRESSED with synthesis in place.
+- LAYERING-ARC ALIGNMENT (user discussion, the session's pivot): the research
+  program is a LAYER STACK tested as ablations -- TFC-only entries (layer 1)
+  -> BF exits (layer 2, v6.1) -> TheStrat Magnitude+Targets (layer 3, the
+  pattern dictionary + target ladder built with the user's collaborator).
+  Sequencing confirmed: control port FIRST, then ONE design session (exit
+  redesign + M+T layering together), then Tier B pre-registration. Captured
+  verbatim-in-substance in `docs/experiments/tvb20_design_session_seed.md`
+  (`bbdb10b`): the pattern-aliasing nuance (a lower-TF 3-1-2 aggregates to a
+  3-2), the pattern frequency-x-performance census (deliberate-overfit
+  ceiling frame), the BF-proximity entry rule confirmed as an EXHAUSTION VETO
+  (~1% placeholder, possibly ATR-scaled; equivalently a minimum-magnitude
+  requirement -- layers 2 and 3 meet in the same object), and the user's
+  preset rule-base ("how complex do we have to make this?": 1H-or-less
+  pattern + TFC + not near exhaustion; T1-always vs 2-3-target arms; ~2%
+  ATR-scaled continuity-flip chop veto; 1D governing BF).
+- CHARTER/CLAUDE.md RECONCILIATION (`bbdb10b`): the "No pattern tournament"
+  invariant reworded to "Ablation, not tournament" (pre-committed blocks
+  chosen a-priori by the user; per-pattern winner promotion stays forbidden;
+  labeled overfit censuses = ceiling-mapping); charter S3.1 thesis promoted
+  from baked-in assumption to HYPOTHESIS UNDER ABLATION via dated annotations
+  at S3.1 and S5 (the S5 ablation frame already anticipated this).
+- v6.1 CONTROL strategy() PORT (`2d1f25b`): `pine/tfc_bf_control_strategy.pine`
+  -- diff vs v6.1 is exactly 4 hunks (contract header, strategy() declaration,
+  order-emission block mirroring the internal position machine, table title).
+  Decision-exact fill model (market orders on the signal bar, close fills via
+  process_orders_on_close), commission 0, slippage 0, margin 0/0, pyramiding
+  0, 100% equity, bar magnifier OFF. TV script "TFC-BF CONTROL [TVB-20]"
+  (id USER;5226f6f46f034f4fbc8ca37af9cdf47a) created via the Make-a-copy UI
+  flow with the full tab-binding verification (new id; all 31 pre-existing
+  scripts' modified stamps byte-identical). Compile clean (one shorttitle
+  length fix). Left MOUNTED with the Strategy Tester open on the
+  TVB18-parity scratch layout.
+- PARITY GATE PASS (docs/experiments/tvb20_control_port_parity.md): twin
+  replayed over the committed TV-bar dumps sliced to each chart's actual
+  first loaded bar (all three floored at 2026-05-25 00:00Z = dump starts);
+  89/67/87 events matched on GOOGL/TSLA/DRAM over the FULL feed span, zero
+  mismatches, break/flip exit prices float-exact (max |dp| = 0), entry/BF
+  residuals declared (median 0.16-0.75 price units, the honest cost of
+  close-fills). Tooling: `scripts/tvb20_deepload.mjs`,
+  `scripts/tvb20_port_harvest.mjs`, `analysis/paper/port_parity.py`;
+  artifacts under `analysis/reference/port_parity/`.
+- THE FINDING -- PINE GATE WARM-UP: v6.1's gate helper
+  (`ta.valuewhen(timeframe.change(tf), open, 0)`) has no value until the feed
+  contains a period BOUNDARY, so a cold-started chart is gate-not-ready until
+  its first MONTHLY roll (TV's first trade was 06-01 00:00Z on all three
+  symbols; the twin's original bootstrap traded from day one). Fixed as
+  `TwinConfig.pine_gate_warmup` (default False -- paper grading and every
+  committed sweep replay bit-unchanged; both behaviors regression-tested in
+  `tests/test_port_parity.py`). LIVE COROLLARY: a freshly mounted v6.1 chart
+  cannot signal until the first month roll inside its loaded history.
+- OPS NOTES: TradingView was running WITHOUT the CDP flag (user-opened) --
+  full kill-first restart with `--remote-debugging-port=9222` required (the
+  TVB-4 re-stage flow; single-instance Electron ignores the flag on join).
+  `layout_switch` via internal API reported success but never landed; the
+  working route is Manage layouts -> Open layout... UI dialog, which opens a
+  NEW in-app tab -- `tab_list` + `tab_switch` to rebind the MCP target.
+
+### Context for next session
+
+- NEXT = the design session, PLAN MODE ON, strat-methodology skill loaded.
+  Inputs: `docs/experiments/tvb20_design_session_seed.md` (the user's
+  rule-base + point-by-point capture), the TVB-18/19 exit-design scope
+  (flip coupling/UNCOUPLING, gate-vs-scenario flip, targets+BF overlay),
+  Tier A's exit-cost findings (brk ~47pp / flip ~35pp median in-window vs
+  the 30-40% MAE tail everywhere), and the week-1 adverse-runner gap.
+- The user will supply the a-priori list of M+T setups they actually trade
+  live (a design-session input, not a blocker).
+- A/B mechanics: variants compare against the mounted CONTROL within TV
+  under the one decision-exact convention, so the entry/bf close-fill
+  residual cancels; cross-engine P&L claims must use twin prices.
+- The tv_deep dumps end 2026-08-05; TV trades harvested past that are
+  beyond_feed by construction. Re-harvest extends the feed if the design
+  session wants fresher parity spans.
+
+### Files created/modified
+
+- `pine/tfc_bf_control_strategy.pine` (NEW -- the port; v6.1 untouched)
+- `scripts/tvb20_deepload.mjs`, `scripts/tvb20_port_harvest.mjs` (NEW)
+- `analysis/paper/port_parity.py` (NEW gate), `analysis/paper/engine.py`
+  (pine_gate_warmup flag), `tests/test_port_parity.py` (NEW, 3 tests)
+- `analysis/reference/port_parity/` (3 trade dumps + parity result)
+- `docs/experiments/tvb20_control_port_parity.md`,
+  `docs/experiments/tvb20_design_session_seed.md` (NEW)
+- `docs/ATLAS_Timeframe_Continuity_Charter.md` (S3.1/S5 amendments),
+  `CLAUDE.md` (invariant reword)
+- Fold-in files per the TVB-18/19 blocks below (`bef6dae`, `9f11a74`)
+- `.claude/commands/session-end.md` (Open-block convention, cross-repo)
+
+### Open
+
+- [ ] Design session (plan mode): exit redesign + Magnitude+Targets layering
+      -- seed is docs/experiments/tvb20_design_session_seed.md
+- [ ] User to supply the a-priori list of live-traded M+T setups
+- [ ] Greenlit repairs bundle (TVB-18): F2 roster receipts + fail-closed, F3
+      5m-lifecycle warm-up regression, F4 eviction telemetry split,
+      freeze-boundary invariant, SKHX tv_symbol/mintick backfill (future
+      rosters only)
+- [ ] Tier B (design-gated, pre-registered)
+- [ ] tvb8/tvb9 external reviews still unreturned (standing)
+- [ ] Optional /session-end protocol fix: carry unreturned review requests
+      forward instead of single-writer overwrite (offered TVB-20, not
+      requested)
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb20-codex-audit.md.
+> See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: `bef6dae^..{head}` on `main` -- pinned to concrete shas
+  in docs/reviews/REVIEW_REQUEST.md after the session-end push (RANGE-PIN
+  RULE: the caret keeps bef6dae itself in the diff; sanity-check with
+  `git diff --name-status`).
+- Scope / what changed: TVB-18/19 audit fold-ins; layering-arc seed +
+  charter/CLAUDE.md amendments; the v6.1 CONTROL strategy() port + full-span
+  parity gate (PASS) + the pine_gate_warmup engine flag.
+- Focus areas (scrutinize these): (1) the fork's ZERO-SEMANTIC-CHANGE claim
+  -- diff pine/tfc_bf_control_strategy.pine vs pine/tfc_bf_watch.pine and
+  verify the 4-hunk claim and that the emission block cannot feed back into
+  decisions; (2) parity method validity in analysis/paper/port_parity.py --
+  the ts-offset selection, beyond_feed and open-trade handling, the
+  close-fill cross-check, full-span-vs-window claim; (3) pine_gate_warmup
+  isolation -- default False must leave compare_config/sweep replays
+  bit-identical (the committed sweep artifacts must NOT change); (4)
+  decision-exact residual accounting -- no hidden P&L claim anywhere; (5)
+  no frozen week-1 artifact modified in the range; (6) request.security:
+  the new .pine must add none (it forks v6.1 verbatim -- verify).
+- Reviewed by: pending
+- Findings: (blank until docs/reviews/tvb20-codex-audit.md exists)
+
+---
+
 ## Session TVB-19: Overnight Tier A sweep + clock census + deep TV harvest (COMPLETE)
 
 **Date:** 2026-08-04/05
