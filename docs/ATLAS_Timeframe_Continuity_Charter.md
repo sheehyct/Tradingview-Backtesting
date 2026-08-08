@@ -61,6 +61,17 @@ The central design decision, reasoned out at length:
 
 The one structural hypothesis worth ablation-testing (see §5): **compression-then-expansion** (a documented volatility-breakout effect generally) — i.e. does a break *preceded by a 1* outperform a bare break, in *our* instruments and timeframes? That's an empirical question, not an assumption to bake in.
 
+> **Amendment 2026-08-08 (TVB-20, user-directed layering arc):** Section 3.1's thesis is
+> promoted from baked-in assumption to HYPOTHESIS UNDER ABLATION. The research program layers
+> the Magnitude+Targets setup dictionary -- a PRE-COMMITTED block of the setups the user
+> actually trades, chosen a-priori, never swept-and-selected -- plus its target ladder and a
+> BF-proximity exhaustion veto onto the continuity-only control, in exactly the Section 5
+> "ablation, not tournament" shape. If the block fails to beat the control, 3.1 stands
+> confirmed; if it wins, 3.1 is revised on evidence. What survives untouched: ranking
+> individual patterns (or timeframes) by sample performance and promoting the winner remains
+> forbidden; labeled deliberate-overfit censuses of the pattern space are ceiling-mapping,
+> never promotion. Seed: `docs/experiments/tvb20_design_session_seed.md`.
+
 ### 3.2 The TFO is the gate; the timeframe set is the most important knob
 
 The TFO indicator **collapses whatever timeframe set you feed it into a single up / down / neutral state.** Consequences:
@@ -132,6 +143,11 @@ This is the procedure. Its purpose is **characterization and bug-finding**, per 
 - Compare expectancy / win rate / drawdown to baseline.
 
 If A/B don't beat baseline → the hypothesis is confirmed, patterns were redundant once continuity is measured directly, **drop them.** If they do → the structure carries real information, **keep that one filter.** Either way the question is answered with **data against a control**, not argument — and it's the "hold strategies loosely" principle applied to the strategy's own components. **Keep at most one thing from the pattern world (compression, possibly the 3); do not reintroduce the menu.**
+
+> **Amendment 2026-08-08 (TVB-20):** the variant list above is extended by the
+> Magnitude+Targets LAYER BLOCK (see the 3.1 amendment) -- one additional pre-committed
+> variant in the same baseline-vs-variant shape, not a reopening of the menu. "Keep at most
+> one thing" is superseded for that block only; the per-pattern menu stays closed.
 
 ---
 

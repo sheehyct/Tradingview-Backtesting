@@ -58,8 +58,12 @@ Mechanics where a reasonable default is wrong:
   prior. Never synthetic or mock OHLCV.
 - Backtesting the OKX proxy while executing on Hyperliquid is a **venue mismatch** -- basis and
   after-hours structure differ.
-- **No pattern tournament.** Keep at most ONE pattern-world feature (compression -- a "1" before
-  the break), binary, and only if ablation beats the continuity-only control.
+- **Ablation, not tournament.** Pattern-world features enter as PRE-COMMITTED blocks chosen
+  a-priori by the user (e.g. the Magnitude+Targets setup dictionary -- the TVB-20 layering arc)
+  and must beat the continuity-only control to earn a place. Ranking individual patterns or
+  timeframes on sample performance and promoting the winner remains the forbidden move; labeled
+  overfit censuses are ceiling-mapping, never promotion. (Reworded from "No pattern tournament"
+  2026-08-08; charter S3.1/S5 annotated same day.)
 - **Timeframe sets are chosen a-priori and NOT tuned on the sample.** Picking "W/D/12h vs M/W/D"
   by performance is overfitting with fewer knobs.
 - Research only -- no broker is attached to TradingView; `replay_trade` is simulation by
