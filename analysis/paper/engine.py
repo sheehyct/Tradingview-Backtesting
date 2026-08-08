@@ -295,6 +295,14 @@ class TwinConfig:
     supersede_per_side: bool = True
     evict_retired_first: bool = True
     arm_tf_s: int = 900
+    # Pine's gate helper (ta.valuewhen(timeframe.change(tf), open, 0)) has NO
+    # value until the feed contains a period BOUNDARY (timeframe.change is
+    # false on the first chart bar), so a cold-started chart is gate-not-ready
+    # until the first D/W/M boundary -- the M leg gates trading until the
+    # first month roll. True reproduces that (TVB-20 control-port parity);
+    # False keeps the twin's original bootstrap (first loaded bar adopted as
+    # every period's open), which all pre-TVB-20 replays and sweeps used.
+    pine_gate_warmup: bool = False
 
 
 @dataclass
@@ -448,7 +456,10 @@ class Twin:
         for name, kf in GATE_TFS:
             k = kf(ts)
             if k != self.gate_key[name]:
-                self.gate_key[name], self.gate_open[name] = k, o
+                first_bar_of_feed = self.gate_key[name] is None
+                self.gate_key[name] = k
+                if not (first_bar_of_feed and self.cfg.pine_gate_warmup):
+                    self.gate_open[name] = o
         go = self.gate_open
         ready = all(v is not None for v in go.values())
         gate_up = ready and c > go["D"] and c > go["W"] and c > go["M"]

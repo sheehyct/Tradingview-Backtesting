@@ -1,0 +1,145 @@
+{
+ "generated_utc": "2026-08-08T22:54:48.856931+00:00",
+ "gate": "TVB-20 control-port parity (decision-exact conventions)",
+ "all_pass": true,
+ "results": [
+  {
+   "coin": "GOOGL",
+   "bars_replayed": 20323,
+   "feed_first_ts": 1779667200,
+   "feed_end_ts": 1785902100,
+   "mintick": 0.001,
+   "ts_offset_applied_s": 0,
+   "ts_offset_scores": {
+    "0": 45,
+    "300": 0,
+    "-300": 0
+   },
+   "twin_events": 89,
+   "tv_events_total": 91,
+   "tv_events_in_feed": 89,
+   "tv_events_beyond_feed": 2,
+   "matched": 89,
+   "twin_only": [],
+   "tv_only": [],
+   "window": {
+    "start": 1783296000,
+    "end": 1785715200,
+    "matched": 58,
+    "twin_only": [],
+    "tv_only": []
+   },
+   "price_exact_layer": {
+    "kinds": [
+     "brk",
+     "flip"
+    ],
+    "max_abs_delta": 0.0,
+    "violations": []
+   },
+   "declared_residual_layer": {
+    "kinds": [
+     "entry",
+     "bf"
+    ],
+    "n": 74,
+    "mean_abs": 1.2525473083453946,
+    "median_abs": 0.5707447698744659,
+    "max_abs": 7.3390000000000555
+   },
+   "pass": true
+  },
+  {
+   "coin": "TSLA",
+   "bars_replayed": 20626,
+   "feed_first_ts": 1779667200,
+   "feed_end_ts": 1785902700,
+   "mintick": 0.001,
+   "ts_offset_applied_s": 0,
+   "ts_offset_scores": {
+    "0": 34,
+    "300": 0,
+    "-300": 0
+   },
+   "twin_events": 67,
+   "tv_events_total": 67,
+   "tv_events_in_feed": 67,
+   "tv_events_beyond_feed": 0,
+   "matched": 67,
+   "twin_only": [],
+   "tv_only": [],
+   "window": {
+    "start": 1783296000,
+    "end": 1785715200,
+    "matched": 34,
+    "twin_only": [],
+    "tv_only": []
+   },
+   "price_exact_layer": {
+    "kinds": [
+     "brk",
+     "flip"
+    ],
+    "max_abs_delta": 0.0,
+    "violations": []
+   },
+   "declared_residual_layer": {
+    "kinds": [
+     "entry",
+     "bf"
+    ],
+    "n": 61,
+    "mean_abs": 1.2660616345092328,
+    "median_abs": 0.7468484042553314,
+    "max_abs": 7.909000000000049
+   },
+   "pass": true
+  },
+  {
+   "coin": "DRAM",
+   "bars_replayed": 20519,
+   "feed_first_ts": 1779667200,
+   "feed_end_ts": 1785902700,
+   "mintick": 1e-05,
+   "ts_offset_applied_s": 0,
+   "ts_offset_scores": {
+    "0": 44,
+    "300": 0,
+    "-300": 0
+   },
+   "twin_events": 87,
+   "tv_events_total": 93,
+   "tv_events_in_feed": 87,
+   "tv_events_beyond_feed": 6,
+   "matched": 87,
+   "twin_only": [],
+   "tv_only": [],
+   "window": {
+    "start": 1783296000,
+    "end": 1785715200,
+    "matched": 18,
+    "twin_only": [],
+    "tv_only": []
+   },
+   "price_exact_layer": {
+    "kinds": [
+     "brk",
+     "flip"
+    ],
+    "max_abs_delta": 0.0,
+    "violations": []
+   },
+   "declared_residual_layer": {
+    "kinds": [
+     "entry",
+     "bf"
+    ],
+    "n": 67,
+    "mean_abs": 0.24127553454205952,
+    "median_abs": 0.16000999999999976,
+    "max_abs": 1.161990000000003
+   },
+   "pass": true
+  }
+ ]
+}
