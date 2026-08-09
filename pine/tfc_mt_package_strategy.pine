@@ -1,0 +1,1167 @@
+//@version=6
+// =============================================================================
+// TFC-MT PACKAGE strategy [TVB-22] -- the TVB-21 Tier B pattern arms (A1 / A2 /
+// A3) as a TradingView strategy() BACKTEST VEHICLE and live DRIFT/BUG DETECTOR.
+// Merges the Magnitude+Targets DETECTION/LADDER layer into the TFC-BF CONTROL
+// machinery (the pool engine is required by the BF-proximity veto and the
+// C1-style brk/flip exits). NOT a deployment claim; research instrument only.
+//
+// SOURCES (both committed in this repo):
+//   pine/tfc_bf_control_strategy.pine  -- the v6.1 pool/gate/position machinery
+//     (itself a parity-gated fork of the v6.1 watch indicator; TVB-20).
+//   pine/strat_magnitude_targets_plus.pine -- the M+T detection layer (the
+//     as-built, as-traded object; logic-identical fork of the partner
+//     original). Only its TIMEFRAME AGGREGATION -> CLASSIFY -> PMG -> SIGNAL
+//     DETECTION -> LADDER sections are ported (lines 119-121, 136-262,
+//     264-551, 553-587). The REMEMBER / CHOP-counter / status / draw / table
+//     sections are display-layer and are deliberately NOT ported: the Tier B
+//     "chop veto" is the flip-level rule below, not the pine reversal counter.
+//     (Same scope split as the Python twin's analysis/paper/patterns.py.)
+//
+// DECISION SPEC (binding): docs/experiments/tvb21_tier_b_prereg.md "Mechanics"
+// + analysis/paper/engine.py TVB-21 extensions. The strategy must reproduce
+// the twin's Tier B decision EVENTS (bar / direction / kind / pattern / trig);
+// prices carry the declared close-fill residual (see FILL MODEL below).
+//
+// HUNKS vs the two sources (everything else is verbatim):
+//   H1 strategy() declaration -- new title only; all execution params equal
+//      to the CONTROL (commission 0, margin 0/0, process_orders_on_close).
+//   H2 NEW inputs: arm selector (A1/A2/A3), veto percents (fixed 1%/2%
+//      pre-reg defaults), Setup Dictionary toggles at the user's a-priori
+//      10-setup defaults (Shot-Gun, Randy, Gap, Inside-BO, Outside-Cont,
+//      Going-3 default OFF; PMG flag ON, prefix/flag only, never a gate).
+//   H3 M+T insert, verbatim except renames forced by collisions with the
+//      control machinery: n->nSig, j->lj, k->lk, tf->sig_tf, and the bar
+//      color flags g1/r1/g2/r2 -> g1c/r1c/g2c/r2c (the control's gate-TF
+//      inputs own g1/g2/g3). No logic edits.
+//   H4 f_pool veto hunk: a PURE-READ scan at the TOP of the function (before
+//      this bar's detection and lifecycle transitions) returning the nearest
+//      alive harvest-side line beyond the prospective fill -- the twin's
+//      BAR-OPEN alive-set snapshot (engine.py _alive_harvest_vals). One
+//      extra return value; no state is written. (Also rename-only: the
+//      eviction locals d1/d2 -> dl1/dl2; the M+T classify flags own d1/d2.)
+//   H5 position machine: the CONTROL's arm-trigger entry block is REPLACED
+//      by the pattern entry (vetoes -> frozen entry-snapshot target). The
+//      arm-TF snapshot machinery is REMOVED (the twin runs it inert in
+//      pattern mode; removal is decision-equivalent). Under A2/A3 the
+//      bf-harvest exit slot is occupied by the frozen-target exit (twin
+//      shape: bf if C1 exits, elif target). brk + flip stay verbatim.
+//   H6 order emission: entry comment carries pattern zipcode + trigger for
+//      the parity join (twin entry events carry `trig`); target exits
+//      comment "Tgt <rung>". Entry ids stay L/S.
+//
+// ARM MAP (docs/experiments/tvb21_tier_b_prereg.md, arms table):
+//   A1 "pattern isolation" = pattern entries (10-setup dictionary, 1H,
+//      pine-exact) + D/W/M gate; NO vetoes; C1 exits UNCHANGED (bf+brk+flip).
+//   A2 "package, T1-always" = as A1 + BF-prox 1% + chop 2% vetoes; exit ALL
+//      at Target 1 + brk + flip (bf-harvest OFF).
+//   A3 "package, 2 targets"  = as A2 but exit at ladder rung 2, falling back
+//      to T1 when the entry snapshot has no rung 2.
+//
+// PINNED CONVENTIONS (mirror the CONTROL + the Tier B pre-reg):
+//   - FILL MODEL: decision-exact. The internal machine enters at
+//     fill = max(trigger + 1 tick, bar open) for longs (min/- for shorts) --
+//     the twin's declared CONSERVATIVE convention -- and exits targets AT the
+//     level; the strategy() cash fills happen at the signal bar's CLOSE
+//     (process_orders_on_close). Event parity is the claim; entry/target
+//     prices carry a known |close - level| residual, like the CONTROL.
+//   - VETOES (A2/A3 only, evaluated against the prospective fill):
+//     BF-proximity: nearest ALIVE harvest-side line across ALL enabled pools,
+//     valued at this bar's OPEN time on the BAR-OPEN alive set, within 1.0%
+//     of fill ((line-fill)/fill <= 0.01 for longs; mirror shorts). No
+//     qualifying line -> no veto. Chop: |fill - gate open| / fill <= 0.02
+//     for ANY of the three D/W/M period opens. 0 disables either veto.
+//   - FROZEN TARGET: the ladder is snapshotted AT ENTRY and frozen; A2 exits
+//     at rung 1, A3 at rung 2 (fallback rung 1). Touch = the bar reaches the
+//     level (high >= tgt for longs / low <= tgt for shorts). A package arm
+//     candidate with an EMPTY ladder is a structural skip (no entry). Later
+//     signals while in a position never re-target the open trade.
+//   - EXIT RACE per bar: target (or bf in A1) -> brk -> flip; same-bar
+//     re-entry blocked. Exit comments: "Tgt <rung>" / "BF <tf> N<n>" /
+//     "Break <tf>" / "Flip".
+//   - Decisions never read strategy.position_size. Known cold-start facts
+//     carry over from the CONTROL: the D/W/M gate has no value until each
+//     TF's first period boundary (a cold-mounted chart cannot signal until
+//     the first MONTHLY roll); the pattern layer needs up to 250 completed
+//     signal-TF bars of ladder history and the pools need their own loaded
+//     history -- DEEP-LOAD THE CHART FIRST (TVB-18 F3: loaded chart history
+//     is load-bearing state).
+//
+// SCOPE OF THE PARITY CLAIM: NONE YET. This script's OWN parity gate vs the
+// Python twin arms (A1/A2/A3 events, join on bar/direction/kind + trig) must
+// PASS before any drift conclusion is drawn from it. Realtime cadence is out
+// of scope exactly as in the CONTROL (calc_on_every_tick=false evaluates the
+// realtime bar once at its closing tick; the historical convention is the
+// research contract -- do not "repair" it).
+//
+// QUICK START
+//   1. Mount on a 5m chart of a 24/7 perp (the twin replays 5m bars; other
+//      chart TFs change the decision cadence and are NOT parity-covered).
+//      Deep-load history first (scroll back), THEN read signals.
+//   2. Pick the arm in "Package arm". Defaults mirror the pre-registered
+//      arms exactly; the Setup Dictionary defaults are the user's live list.
+//   3. Signal TF default 60 (1H) per pre-reg ruling 4. Changing it is a NEW
+//      variant, not a knob to tune.
+//   4. Alerts: Enter Long / Enter Short / Exit Long / Exit Short / Any,
+//      "Once per bar". Re-create alerts after every script update.
+// =============================================================================
+strategy('TFC-MT PACKAGE [TVB-22]', 'TFC-MT PKG', overlay = true, max_lines_count = 500, max_labels_count = 500, pyramiding = 0, initial_capital = 100000, default_qty_type = strategy.percent_of_equity, default_qty_value = 100, commission_type = strategy.commission.percent, commission_value = 0, slippage = 0, margin_long = 0, margin_short = 0, process_orders_on_close = true, calc_on_every_tick = false, calc_on_order_fills = false, use_bar_magnifier = false)
+
+// ------------------------------- inputs --------------------------------------
+grp_a = 'Package arm'
+arm_in = input.string('A1: pattern entries, control exits', 'Arm', options = ['A1: pattern entries, control exits', 'A2: package, T1 exit', 'A3: package, T2 exit'], group = grp_a, tooltip = 'The pre-registered Tier B arm this instance mirrors (docs/experiments/tvb21_tier_b_prereg.md). A1 = pattern-gated entries with the CONTROL exits unchanged (bf+brk+flip), no vetoes. A2 = + BF-proximity and chop entry vetoes; every trade exits at its frozen Target 1 (bf-harvest off). A3 = as A2 but exits at ladder rung 2, falling back to T1 when the entry snapshot has no rung 2.')
+bf_prox_pct = input.float(1.0, 'BF-proximity veto (%)', minval = 0.0, step = 0.25, group = grp_a, tooltip = 'A2/A3 only. Veto a long entry when the nearest ALIVE harvest-side (upper) BF line across all enabled pools, valued at this bar open on the bar-open alive set, sits within this percent of the prospective fill; mirror for shorts. The pre-registered fixed value is 1.0. 0 disables. Inert in A1.')
+chop_pct = input.float(2.0, 'Chop veto (%)', minval = 0.0, step = 0.25, group = grp_a, tooltip = 'A2/A3 only. Veto an entry when the prospective fill is within this percent of ANY of the three D/W/M period opens (the flip levels). The pre-registered fixed value is 2.0 -- known NOT to transfer across symbols (TVB-21 report: 47-100% per-symbol suppression); it is mirrored here deliberately, warts included. 0 disables. Inert in A1.')
+
+grp_g = 'Entry gate'
+g1 = input.timeframe('D', 'Gate TF 1', group = grp_g, tooltip = 'Continuity gate: close vs this timeframe period open. Full alignment of all three gates in a direction permits entries that way.')
+g2 = input.timeframe('W', 'Gate TF 2', group = grp_g)
+g3 = input.timeframe('M', 'Gate TF 3', group = grp_g)
+allow_long = input.bool(true, 'Long entries', group = grp_g, inline = 'd')
+allow_short = input.bool(true, 'Short entries', group = grp_g, inline = 'd')
+
+grp_s = 'Signal (Magnitude+Targets layer)'
+sigTF = input.timeframe('60', 'Signal timeframe', group = grp_s, tooltip = 'The timeframe the setup dictionary is detected on (aggregated locally from chart bars; no request.security). Pre-reg ruling 4: 1H only, structural ground = the timeframe the user trades these setups live. Changing it is a NEW variant, never a knob.')
+useMintick = input.bool(true, 'Reclaim / break = 1 symbol tick', group = grp_s, tooltip = 'On = a level counts as broken or reclaimed one symbol tick beyond it (strict break, no ties). Off = use the fixed dollar amount below instead. The twin uses the symbol tick; leave on for parity.')
+reclaimValue = input.float(0.01, 'Break amount ($) if not tick', minval = 0.0, step = 0.01, group = grp_s, tooltip = 'Fixed break / reclaim distance in price units, used only while the tick toggle above is OFF.')
+extTargets = input.int(5, 'Extended targets (beyond Target 1)', minval = 0, maxval = 40, group = grp_s, tooltip = 'How many ladder levels to project past Target 1 (prior signal-TF highs / lows not yet taken out). The pre-reg value is 5 (ladder = 6 levels max, 250-bar history depth).')
+
+grp_p = 'Setup Dictionary (pre-reg defaults = the user 10-setup live list)'
+en2Bar = input.bool(true, '2-Bar Rev-Strat (1-2-2)', group = grp_p, tooltip = 'MUST follow an inside bar: 1-2d-2u (long) / 1-2u-2d (short). Trigger = prior bar hi/lo.')
+en2_2 = input.bool(true, '2-2 Reversal (bare, no inside bar)', group = grp_p, tooltip = 'A plain two-bar reversal with NO leading inside bar: 2d-2u (long) / 2u-2d (short).')
+en1_3 = input.bool(true, '1-Bar Rev-Strat (1-3u / 1-3d)', group = grp_p, tooltip = 'Inside bar, then a single outside (3) bar that breaks both sides and closes directional. In-force at the inside bar broken hi (long) / lo (short). Documented divergence vs the strat-methodology skill (R22 prefers the reclaim side) -- user-ruled pine-exact.')
+en1_3_2 = input.bool(true, '2-Bar Rev-Strat (1-3-2, Hammer / Shooter)', group = grp_p, tooltip = 'Inside, then an outside bar, then a 2 in the reversal direction. Signal = the outside bar hi (long) / lo (short). The hammer/shooter close is label-only here (skill R17 requires it) -- user-ruled pine-exact.')
+en3_2 = input.bool(true, '3-2 (Boom on hammer / shooter)', group = grp_p, tooltip = 'A plain outside bar (3) followed by a confirming directional 2. Trigger = the outside bar hi / lo. ALL 3-2s enter (pre-reg ruling 3); Boom is a logged flag, never a gate.')
+enShotgun = input.bool(false, 'Shot-Gun (2-2-2)', group = grp_p, tooltip = 'OFF in the pre-registered dictionary. When off, a Shot-Gun-shaped sequence reroutes down the chain (e.g. enters as a bare 2-2 reversal) -- declared behavior.')
+enRandy = input.bool(false, 'Randy Jackson (1-2-2-2)', group = grp_p, tooltip = 'OFF in the pre-registered dictionary; shapes reroute down the chain.')
+en3_2_2 = input.bool(true, '3-2-2 (Fun to Say, Fun to Do)', group = grp_p, tooltip = 'Outside (3) bar then a 2-2 reversal. Trigger = break of the middle bar hi/lo.')
+en3_1_2 = input.bool(true, '3-1-2 Chicago (Reversal / Continuation)', group = grp_p, tooltip = 'Outside, inside, then a 2. Reversal when the 3 closed against the eventual break; continuation when it closed with it. Both enter (pre-reg ruling 2).')
+en2_1_2rev = input.bool(true, '2-1-2 Reversal', group = grp_p, tooltip = 'Directional bar, inside bar, then the opposite directional bar. Trigger = inside bar hi/lo.')
+en2_1_2momo = input.bool(true, '2-1-2 Momentum (continuation)', group = grp_p, tooltip = 'Same-direction 2-1-2 where the inside bar midpoint holds the prior 2 bar midpoint.')
+en1_3_1_2 = input.bool(true, '1-3-1-2 (Contract-Expand-Contract-Expand)', group = grp_p, tooltip = 'Inside, outside, inside, then a 2. Trigger = the last inside bar hi/lo.')
+enGap = input.bool(false, 'Gap-Up Sell / Gap-Down Buy', group = grp_p, tooltip = 'OFF in the pre-registered dictionary (24/7 perps rarely gap on the 1H).')
+enInsideBO = input.bool(false, 'Inside-Bar Breakout (1-2 continuation)', group = grp_p, tooltip = 'OFF in the pre-registered dictionary.')
+enOut3 = input.bool(false, 'Outside-Bar Continuation (3u / 3d)', group = grp_p, tooltip = 'OFF in the pre-registered dictionary.')
+enGoing3 = input.bool(false, 'Going-3 single / Potential 1-Bar Rev-Strat', group = grp_p, tooltip = 'OFF in the pre-registered dictionary. Weak / unconfirmed shapes.')
+enPMG = input.bool(true, 'PMG context (flag / name prefix only)', group = grp_p, tooltip = 'Pivot Machine Gun context: prefixes the pattern name with PMG+ when a reversal fires into a matching run. A logged FLAG, never a gate (pre-reg ruling 2). As-built quirk on record: the streak walk seeds at the developing bar own extreme, so the prefix is structurally unreachable for the 10 enabled break-directional setups.')
+pmgBars = input.int(5, 'PMG: successive bars required', minval = 3, group = grp_p, tooltip = 'Run length of successive lower highs (bullish PMG) / higher lows (bearish PMG) needed for the PMG+ prefix.')
+
+grp_x = 'BF exit pools (rolling compound-3 per timeframe)'
+en_12h = input.bool(true, '12h pool', group = grp_x, inline = 'p1')
+en_D = input.bool(true, 'Daily pool', group = grp_x, inline = 'p1')
+en_W = input.bool(true, 'Weekly pool', group = grp_x, inline = 'p2')
+en_M = input.bool(true, 'Monthly pool', group = grp_x, inline = 'p2', tooltip = 'Each pool runs the same rolling rule on its own closed candles. In A1 exits race across ALL alive lines; in A2/A3 the pools feed the BF-proximity veto and the adverse-line break exit (bf-harvest is replaced by the frozen target). A pool only runs when the chart TF is below its base TF.')
+n_max = input.int(6, 'Max series length N', minval = 1, maxval = 13, group = grp_x, tooltip = 'Largest window tried by the rolling scan. N=1 is a plain scenario 3.')
+min_sep = input.float(1.0, 'Min anchor separation (periods)', minval = 0.0, step = 0.25, group = grp_x, tooltip = 'A side is valid only if its two anchor wicks are at least this many base-TF periods apart. 0 disables. Provisional example-derived default 1.0 -- dial from live watching, do not tune on backtests.')
+pool_cap = input.int(12, 'Max formations kept per pool', minval = 3, maxval = 30, group = grp_x)
+flip_backstop = input.bool(true, 'Flip backstop exit', group = grp_x, tooltip = 'If no harvest line / target is reached, exit on full OPPOSITE gate alignment at a confirmed bar close. The no-line fallback.')
+brk_exit = input.bool(true, 'Adverse-line break exit', group = grp_x, tooltip = 'Long: exit when a confirmed bar close crosses BELOW an alive lower line (short: mirror at upper lines). The structural-stop side of the BF. Labels "BF Break L/S Exit".')
+warn_pct = input.float(0.5, 'Heads-up distance (%)', minval = 0.0, step = 0.1, group = grp_x, tooltip = 'Paint a warning char when price is within this percent of the next harvest line. 0 disables.')
+
+grp_v = 'Display'
+show_lines = input.bool(true, 'Show BF lines', group = grp_v, tooltip = 'The pool lines themselves. Toggle off for a signals-only chart (exits still fire).')
+show_retired = input.bool(true, 'Show retired lines (faded)', group = grp_v, tooltip = 'Consumed/crossed/superseded lines kept as faded dashed reclaim levels. Toggle off to declutter (phone mode).')
+show_bg = input.bool(true, 'Tint background while in position', group = grp_v)
+show_table = input.bool(true, 'Status table', group = grp_v)
+show_pat_labels = input.bool(true, 'Pattern label on entry', group = grp_v, tooltip = 'Prints the entered setup zipcode (e.g. 2-2u) at the entry bar. Display only.')
+c_long = input.color(color.new(#26a69a, 0), 'Long', group = grp_v, inline = 'c')
+c_short = input.color(color.new(#ef5350, 0), 'Short', group = grp_v, inline = 'c')
+c_tgt = input.color(color.new(#38bdf8, 0), 'Target', group = grp_v, inline = 'c', tooltip = 'Color of the frozen-target line plotted while a package-arm position is open.')
+c_12h = input.color(color.new(#ff9800, 0), '12h', group = grp_v, inline = 'r')
+c_D = input.color(color.new(#2962ff, 0), 'D', group = grp_v, inline = 'r')
+c_W = input.color(color.new(#e040fb, 0), 'W', group = grp_v, inline = 'r')
+c_M = input.color(color.new(#ff1744, 0), 'M', group = grp_v, inline = 'r')
+
+// arm derivation (H5): exit_targets 0 = C1 exits (A1); 1 = T1-always (A2);
+// 2 = rung 2 with T1 fallback (A3). Vetoes exist only in the package arms.
+int exit_targets = str.startswith(arm_in, 'A2') ? 1 : str.startswith(arm_in, 'A3') ? 2 : 0
+bool use_targets = exit_targets > 0
+bool use_vetoes = use_targets
+
+// ------------------------------- gates ---------------------------------------
+f_open(simple string tf) =>
+    ta.valuewhen(timeframe.change(tf), open, 0)
+
+oA = f_open(g1)
+oB = f_open(g2)
+oC = f_open(g3)
+bool gate_ready = not na(oA) and not na(oB) and not na(oC)
+bool gate_up = gate_ready and close > oA and close > oB and close > oC
+bool gate_dn = gate_ready and close < oA and close < oB and close < oC
+
+// =============================================================================
+// M+T INSERT (H3) -- verbatim from pine/strat_magnitude_targets_plus.pine
+// except renames n->nSig, j->lj, k->lk, tf->sig_tf. Detection is LIVE on the
+// developing signal-TF bar; flags are monotone within the bar; color (g0/r0)
+// and therefore the signal can flicker until the bar closes -- by design.
+// =============================================================================
+thr = useMintick ? syminfo.mintick : reclaimValue
+maxLevels = extTargets + 1
+sig_tf = sigTF == '' ? timeframe.period : sigTF
+
+// ---------------- TIMEFRAME AGGREGATION (developing bar + history) -----------
+var arrH = array.new<float>()
+var arrL = array.new<float>()
+var arrO = array.new<float>()
+var arrC = array.new<float>()
+var curH = float(na)
+var curL = float(na)
+var curO = float(na)
+var curC = float(na)
+
+isNew = timeframe.change(sig_tf) or na(curH)
+if isNew
+    if not na(curH)
+        array.push(arrH, curH)
+        array.push(arrL, curL)
+        array.push(arrO, curO)
+        array.push(arrC, curC)
+        if array.size(arrH) > 250
+            array.shift(arrH)
+            array.shift(arrL)
+            array.shift(arrO)
+            array.shift(arrC)
+    curH := high
+    curL := low
+    curO := open
+    curC := close
+    curC
+else
+    curH := math.max(curH, high)
+    curL := math.min(curL, low)
+    curC := close
+    curC
+
+nSig = array.size(arrH)
+H1 = nSig >= 1 ? array.get(arrH, nSig - 1) : na
+L1 = nSig >= 1 ? array.get(arrL, nSig - 1) : na
+H2 = nSig >= 2 ? array.get(arrH, nSig - 2) : na
+L2 = nSig >= 2 ? array.get(arrL, nSig - 2) : na
+H3 = nSig >= 3 ? array.get(arrH, nSig - 3) : na
+L3 = nSig >= 3 ? array.get(arrL, nSig - 3) : na
+
+// ---------------- Hammer / Shooter helpers ----------------
+isHammer(o, h, l, c) =>
+    h - l > 0 and math.min(o, c) - l >= 0.5 * (h - l) and math.abs(c - o) <= 0.4 * (h - l)
+isShooter(o, h, l, c) =>
+    h - l > 0 and h - math.max(o, c) >= 0.5 * (h - l) and math.abs(c - o) <= 0.4 * (h - l)
+
+// ---------------- CLASSIFY (bar0 = developing sig-TF bar, bar1..3 closed) ----
+// v6 note: break/inside flags are history-guarded (bool na is impossible in
+// v6; the guards reproduce the v5 warm-up behavior exactly).
+bh0 = not na(H1) and curH - H1 >= thr
+bl0 = not na(L1) and L1 - curL >= thr
+bh1 = not na(H2) and H1 - H2 >= thr
+bl1 = not na(L2) and L2 - L1 >= thr
+in1 = nSig >= 2 and not bh1 and not bl1
+u1 = bh1 and not bl1
+d1 = bl1 and not bh1
+out1 = bh1 and bl1
+bh2 = not na(H3) and H2 - H3 >= thr
+bl2 = not na(L3) and L3 - L2 >= thr
+in2 = nSig >= 3 and not bh2 and not bl2
+u0 = bh0 and not bl0
+d0 = bl0 and not bh0
+in0 = nSig >= 1 and not bh0 and not bl0
+out0 = bh0 and bl0
+g0 = curC > curO
+r0 = curC < curO
+// extended bars for the setup dictionary
+H4 = nSig >= 4 ? array.get(arrH, nSig - 4) : na
+L4 = nSig >= 4 ? array.get(arrL, nSig - 4) : na
+O1 = nSig >= 1 ? array.get(arrO, nSig - 1) : na
+C1 = nSig >= 1 ? array.get(arrC, nSig - 1) : na
+O2 = nSig >= 2 ? array.get(arrO, nSig - 2) : na
+C2 = nSig >= 2 ? array.get(arrC, nSig - 2) : na
+u2 = bh2 and not bl2
+d2 = bl2 and not bh2
+out2 = bh2 and bl2
+bh3 = not na(H4) and H3 - H4 >= thr
+bl3 = not na(L4) and L4 - L3 >= thr
+in3 = nSig >= 4 and not bh3 and not bl3
+g1c = not na(C1) and not na(O1) and C1 > O1
+r1c = not na(C1) and not na(O1) and C1 < O1
+g2c = not na(C2) and not na(O2) and C2 > O2
+r2c = not na(C2) and not na(O2) and C2 < O2
+ham1 = not na(O1) and isHammer(O1, H1, L1, C1)
+sho1 = not na(O1) and isShooter(O1, H1, L1, C1)
+// PMG streaks (consecutive lower-highs = bullish, higher-lows = bearish)
+lhRun = 0
+contLH = true
+prevHpmg = curH
+iLH = nSig - 1
+while iLH >= 0
+    hh = array.get(arrH, iLH)
+    if contLH and hh > prevHpmg + thr
+        lhRun := lhRun + 1
+        prevHpmg := hh
+        prevHpmg
+    else
+        contLH := false
+        contLH
+    iLH := iLH - 1
+    iLH
+hlRun = 0
+contHL = true
+prevLpmg = curL
+iHL = nSig - 1
+while iHL >= 0
+    ll = array.get(arrL, iHL)
+    if contHL and ll < prevLpmg - thr
+        hlRun := hlRun + 1
+        prevLpmg := ll
+        prevLpmg
+    else
+        contHL := false
+        contHL
+    iHL := iHL - 1
+    iHL
+bullPMG = enPMG and lhRun >= pmgBars
+bearPMG = enPMG and hlRun >= pmgBars
+gapUp = not na(H1) and curO > H1 + thr
+gapDn = not na(L1) and curO < L1 - thr
+
+// ---------------- SIGNAL DETECTION (live, on the developing bar) -------------
+priorTag = d1 ? '2d' : u1 ? '2u' : in1 ? '1' : 'x'
+sigDir = 0
+trig = float(na)
+anchor = float(na)
+anchor2 = float(na)
+weakSig = false
+fragile = false
+isRev = false
+pizazz = false
+nameL = '—'
+nameS = '—'
+
+if enGap and gapUp and r0
+    sigDir := -1
+    trig := curO
+    anchor := H1
+    isRev := true
+    fragile := true
+    nameL := 'Gap-Up Sell'
+    nameS := 'GAP-Sell'
+    nameS
+else if enGap and gapDn and g0
+    sigDir := 1
+    trig := curO
+    anchor := L1
+    isRev := true
+    fragile := true
+    nameL := 'Gap-Down Buy'
+    nameS := 'GAP-Buy'
+    nameS
+else if en1_3_1_2 and in3 and out2 and in1 and u0 and g0
+    sigDir := 1
+    trig := H1
+    anchor := H2
+    isRev := true
+    nameL := '1-3-1-2 Contract→Expand→Contract→Expand'
+    nameS := '1-3-1-2u'
+    nameS
+else if en1_3_1_2 and in3 and out2 and in1 and d0 and r0
+    sigDir := -1
+    trig := L1
+    anchor := L2
+    isRev := true
+    nameL := '1-3-1-2 Contract→Expand→Contract→Expand'
+    nameS := '1-3-1-2d'
+    nameS
+else if enRandy and in3 and u2 and d1 and u0 and g0
+    sigDir := 1
+    trig := H1
+    anchor := H2
+    isRev := true
+    pizazz := true
+    nameL := 'Bullish Randy Jackson (3-Bar Rev-Strat)'
+    nameS := '1-2-2-2u'
+    nameS
+else if enRandy and in3 and d2 and u1 and d0 and r0
+    sigDir := -1
+    trig := L1
+    anchor := L2
+    isRev := true
+    pizazz := true
+    nameL := 'Bearish Randy Jackson (3-Bar Rev-Strat)'
+    nameS := '1-2-2-2d'
+    nameS
+else if en1_3_2 and in2 and out1 and u0 and g0
+    sigDir := 1
+    trig := H1
+    anchor := H3
+    isRev := true
+    pizazz := true
+    nameL := ham1 ? 'Bullish 2-Bar Rev-Strat (1-3 Hammer)' : 'Bullish 2-Bar Rev-Strat (1-3-2)'
+    nameS := '1-3-2u'
+    nameS
+else if en1_3_2 and in2 and out1 and d0 and r0
+    sigDir := -1
+    trig := L1
+    anchor := L3
+    isRev := true
+    pizazz := true
+    nameL := sho1 ? 'Bearish 2-Bar Rev-Strat (1-3 Shooter)' : 'Bearish 2-Bar Rev-Strat (1-3-2)'
+    nameS := '1-3-2d'
+    nameS
+else if en3_2 and out1 and u0 and g0
+    sigDir := 1
+    trig := H1
+    isRev := true
+    pizazz := ham1
+    nameL := ham1 ? 'Bullish 3-2 Boom (Hammer)' : 'Bullish 3-2'
+    nameS := '3-2u'
+    nameS
+else if en3_2 and out1 and d0 and r0
+    sigDir := -1
+    trig := L1
+    isRev := true
+    pizazz := sho1
+    nameL := sho1 ? 'Bearish 3-2 Boom (Shooter)' : 'Bearish 3-2'
+    nameS := '3-2d'
+    nameS
+else if enShotgun and u2 and d1 and u0 and g0
+    sigDir := 1
+    trig := H1
+    anchor := H2
+    isRev := true
+    pizazz := true
+    nameL := 'Bullish Shot-Gun (2u-2d-2u)'
+    nameS := '2-2-2u'
+    nameS
+else if enShotgun and d2 and u1 and d0 and r0
+    sigDir := -1
+    trig := L1
+    anchor := L2
+    isRev := true
+    pizazz := true
+    nameL := 'Bearish Shot-Gun (2d-2u-2d)'
+    nameS := '2-2-2d'
+    nameS
+else if en3_2_2 and out2 and d1 and u0 and g0
+    sigDir := 1
+    trig := H1
+    anchor := H2
+    isRev := true
+    nameL := '3-2-2 Fun to Say, Fun to Do'
+    nameS := '3-2-2u'
+    nameS
+else if en3_2_2 and out2 and u1 and d0 and r0
+    sigDir := -1
+    trig := L1
+    anchor := L2
+    isRev := true
+    nameL := '3-2-2 Fun to Say, Fun to Do'
+    nameS := '3-2-2d'
+    nameS
+else if en3_1_2 and out2 and in1 and u0 and g0
+    sigDir := 1
+    trig := H1
+    anchor := H2
+    isRev := r2c
+    nameL := r2c ? '3-1-2 Chicago Reversal' : '3-1-2 Chicago Continuation'
+    nameS := '3-1-2u'
+    nameS
+else if en3_1_2 and out2 and in1 and d0 and r0
+    sigDir := -1
+    trig := L1
+    anchor := L2
+    isRev := g2c
+    nameL := g2c ? '3-1-2 Chicago Reversal' : '3-1-2 Chicago Continuation'
+    nameS := '3-1-2d'
+    nameS
+else if en2_1_2rev and d2 and in1 and u0 and g0
+    sigDir := 1
+    trig := H1
+    anchor := H2
+    isRev := true
+    nameL := '2-1-2 Reversal'
+    nameS := '2-1-2u'
+    nameS
+else if en2_1_2rev and u2 and in1 and d0 and r0
+    sigDir := -1
+    trig := L1
+    anchor := L2
+    isRev := true
+    nameL := '2-1-2 Reversal'
+    nameS := '2-1-2d'
+    nameS
+else if en2_1_2momo and u2 and in1 and u0 and g0 and (H1 + L1) / 2 >= (H2 + L2) / 2
+    sigDir := 1
+    trig := H1
+    isRev := false
+    nameL := '2-1-2 Momentum (continuation)'
+    nameS := '2-1-2u'
+    nameS
+else if en2_1_2momo and d2 and in1 and d0 and r0 and (H1 + L1) / 2 <= (H2 + L2) / 2
+    sigDir := -1
+    trig := L1
+    isRev := false
+    nameL := '2-1-2 Momentum (continuation)'
+    nameS := '2-1-2d'
+    nameS
+else if en1_3 and in1 and out0 and g0
+    sigDir := 1
+    trig := H1
+    anchor := H2
+    isRev := true
+    pizazz := true
+    nameL := 'Bullish 1-Bar Rev-Strat'
+    nameS := '1-3u'
+    nameS
+else if en1_3 and in1 and out0 and r0
+    sigDir := -1
+    trig := L1
+    anchor := L2
+    isRev := true
+    pizazz := true
+    nameL := 'Bearish 1-Bar Rev-Strat'
+    nameS := '1-3d'
+    nameS
+else if en2Bar and in2 and d1 and u0 and g0
+    sigDir := 1
+    trig := H1
+    anchor := H2
+    anchor2 := not na(H3) and L1 < L3 - thr ? H3 : float(na)
+    isRev := true
+    pizazz := true
+    nameL := 'Bullish 2-Bar Rev-Strat'
+    nameS := '1-2d-2u'
+    nameS
+else if en2Bar and in2 and u1 and d0 and r0
+    sigDir := -1
+    trig := L1
+    anchor := L2
+    anchor2 := not na(L3) and H1 > H3 + thr ? L3 : float(na)
+    isRev := true
+    pizazz := true
+    nameL := 'Bearish 2-Bar Rev-Strat'
+    nameS := '1-2u-2d'
+    nameS
+else if en2_2 and d1 and u0 and g0
+    sigDir := 1
+    trig := H1
+    anchor := H2
+    isRev := true
+    nameL := 'Bullish 2-2 Reversal'
+    nameS := '2-2u'
+    nameS
+else if en2_2 and u1 and d0 and r0
+    sigDir := -1
+    trig := L1
+    anchor := L2
+    isRev := true
+    nameL := 'Bearish 2-2 Reversal'
+    nameS := '2-2d'
+    nameS
+else if enInsideBO and in1 and u0 and g0
+    sigDir := 1
+    trig := H1
+    anchor := H2
+    isRev := false
+    nameL := 'Inside-Bar Breakout (1-2u)'
+    nameS := '1-2u'
+    nameS
+else if enInsideBO and in1 and d0 and r0
+    sigDir := -1
+    trig := L1
+    anchor := L2
+    isRev := false
+    nameL := 'Inside-Bar Breakout (1-2d)'
+    nameS := '1-2d'
+    nameS
+else if enOut3 and out0 and g0
+    sigDir := 1
+    trig := H1
+    isRev := false
+    nameL := '3u Outside Continuation'
+    nameS := priorTag + '-3u'
+    nameS
+else if enOut3 and out0 and r0
+    sigDir := -1
+    trig := L1
+    isRev := false
+    nameL := '3d Outside Continuation'
+    nameS := priorTag + '-3d'
+    nameS
+else if enGoing3 and u0 and r0
+    sigDir := -1
+    trig := H1
+    anchor := L1
+    weakSig := true
+    isRev := true
+    nameL := in1 ? 'Potential 1-Bar Rev-Strat' : '2u→3 (going 3)'
+    nameS := in1 ? '1-2u(r)' : '2u›3'
+    nameS
+else if enGoing3 and d0 and g0
+    sigDir := 1
+    trig := L1
+    anchor := H1
+    weakSig := true
+    isRev := true
+    nameL := in1 ? 'Potential 1-Bar Rev-Strat' : '2d→3 (going 3)'
+    nameS := in1 ? '1-2d(g)' : '2d›3'
+    nameS
+
+pmgHit = isRev and (sigDir == 1 and bullPMG or sigDir == -1 and bearPMG)
+if pmgHit
+    nameL := 'PMG + ' + nameL
+    nameS := 'PMG+' + nameS
+    nameS
+// ---------------- LADDER: prior extremes not yet taken out -------------------
+ladderUp = array.new<float>()
+ladderDn = array.new<float>()
+if not na(anchor) and sigDir == 1
+    array.push(ladderUp, anchor)
+if not na(anchor2) and sigDir == 1
+    array.push(ladderUp, anchor2)
+if not na(anchor) and sigDir == -1
+    array.push(ladderDn, anchor)
+if not na(anchor2) and sigDir == -1
+    array.push(ladderDn, anchor2)
+runMax = not na(anchor2) and sigDir == 1 ? anchor2 : not na(anchor) and sigDir == 1 ? anchor : not na(trig) and not weakSig ? trig : curH
+lj = nSig - 1
+while lj >= 0 and array.size(ladderUp) < maxLevels
+    hv = array.get(arrH, lj)
+    if hv > runMax + thr
+        array.push(ladderUp, hv)
+        runMax := hv
+        runMax
+    lj := lj - 1
+    lj
+runMin = not na(anchor2) and sigDir == -1 ? anchor2 : not na(anchor) and sigDir == -1 ? anchor : not na(trig) and not weakSig ? trig : curL
+lk = nSig - 1
+while lk >= 0 and array.size(ladderDn) < maxLevels
+    lv = array.get(arrL, lk)
+    if lv < runMin - thr
+        array.push(ladderDn, lv)
+        runMin := lv
+        runMin
+    lk := lk - 1
+    lk
+
+lad = sigDir == 1 ? ladderUp : ladderDn
+// ============================ end M+T insert =================================
+
+// ------------------------- shared helpers ------------------------------------
+f_val(int t1, float v1, int t2, float v2) =>
+    t2 == t1 ? v2 : v2 + (v2 - v1) / (t2 - t1) * (time - t2)
+
+f_retire(line ln, color col) =>
+    if not na(ln)
+        if show_retired
+            line.set_color(ln, color.new(col, 72))
+            line.set_style(ln, line.style_dashed)
+            line.set_width(ln, 1)
+        else
+            line.delete(ln)
+
+f_draw(int t1, float v1, int t2, float v2, color col) =>
+    show_lines ? line.new(t1, v1, t2, v2, xloc = xloc.bar_time, extend = extend.right, color = col, width = 2) : line(na)
+
+// ------------------------------- the pool ------------------------------------
+// One rolling compound-3 pool on base TF `tf`. Self-contained per call site
+// (Pine instantiates the var state per call). Detection at base-TF closes;
+// lifecycle + touch collection every bar. Returns exit candidates for the
+// CURRENT position (passed in as prior-bar state), context values, counts.
+// States: 0 alive, 1 consumed, 2 crossed, 3 superseded, 4 ghost (dup side
+// or invalid anchor separation -- never drawn, never active).
+// H4 (TVB-22): _vref/_vdir = prospective pattern fill + direction for the
+// BF-proximity veto. The scan below runs BEFORE this bar's detection and
+// lifecycle transitions -- the twin's BAR-OPEN alive-set snapshot -- and is
+// a pure read: nearest alive harvest-side line strictly beyond the fill
+// (upper for longs, lower for shorts), valued at this bar's open time.
+f_pool(simple string tf, simple bool en, int _pos, float _entry, float _vref, int _vdir, color col) =>
+    var array<float> bH = array.new<float>()
+    var array<float> bL = array.new<float>()
+    var array<int> bHT = array.new<int>()
+    var array<int> bLT = array.new<int>()
+    var float cur_hi = na
+    var float cur_lo = na
+    var int cur_hiT = na
+    var int cur_loT = na
+    var array<int> p_N = array.new<int>()
+    var array<int> p_lo_t1 = array.new<int>()
+    var array<float> p_lo_v1 = array.new<float>()
+    var array<int> p_lo_t2 = array.new<int>()
+    var array<float> p_lo_v2 = array.new<float>()
+    var array<int> p_lo_st = array.new<int>()
+    var array<line> p_lo_ln = array.new<line>()
+    var array<int> p_up_t1 = array.new<int>()
+    var array<float> p_up_v1 = array.new<float>()
+    var array<int> p_up_t2 = array.new<int>()
+    var array<float> p_up_v2 = array.new<float>()
+    var array<int> p_up_st = array.new<int>()
+    var array<line> p_up_ln = array.new<line>()
+    var int ev_alive = 0
+    bool active = en and timeframe.in_seconds(tf) > timeframe.in_seconds()
+    int min_gap = int(timeframe.in_seconds(tf) * 1000.0 * min_sep)
+    // H4 veto scan: BAR-OPEN alive set (before detection / lifecycle below)
+    float vn = na
+    if _vdir != 0 and array.size(p_N) > 0
+        for vi = 0 to array.size(p_N) - 1
+            if _vdir == 1 and array.get(p_up_st, vi) == 0
+                float vv = f_val(array.get(p_up_t1, vi), array.get(p_up_v1, vi), array.get(p_up_t2, vi), array.get(p_up_v2, vi))
+                if vv > _vref and (na(vn) or vv < vn)
+                    vn := vv
+            if _vdir == -1 and array.get(p_lo_st, vi) == 0
+                float vw = f_val(array.get(p_lo_t1, vi), array.get(p_lo_v1, vi), array.get(p_lo_t2, vi), array.get(p_lo_v2, vi))
+                if vw < _vref and (na(vn) or vw > vn)
+                    vn := vw
+    if active
+        if timeframe.change(tf) and not na(cur_hi)
+            // the accumulating candle just COMPLETED: push, then sweep closed data
+            array.push(bH, cur_hi)
+            array.push(bL, cur_lo)
+            array.push(bHT, cur_hiT)
+            array.push(bLT, cur_loT)
+            if array.size(bH) > 2 * n_max
+                array.shift(bH)
+                array.shift(bL)
+                array.shift(bHT)
+                array.shift(bLT)
+            int cnt = array.size(bH)
+            bool found = false
+            for n = 1 to n_max
+                if not found and cnt >= 2 * n
+                    float aHm = -1.0e18
+                    float aLm = 1.0e18
+                    int aHt = 0
+                    int aLt = 0
+                    float bHm = -1.0e18
+                    float bLm = 1.0e18
+                    int bHt = 0
+                    int bLt = 0
+                    for j = cnt - n to cnt - 1
+                        if array.get(bH, j) > aHm
+                            aHm := array.get(bH, j)
+                            aHt := array.get(bHT, j)
+                        if array.get(bL, j) < aLm
+                            aLm := array.get(bL, j)
+                            aLt := array.get(bLT, j)
+                    for j = cnt - 2 * n to cnt - n - 1
+                        if array.get(bH, j) > bHm
+                            bHm := array.get(bH, j)
+                            bHt := array.get(bHT, j)
+                        if array.get(bL, j) < bLm
+                            bLm := array.get(bL, j)
+                            bLt := array.get(bLT, j)
+                    // strict both-sides takeout (R10; equality never breaks)
+                    if aHm > bHm and aLm < bLm
+                        found := true
+                        int sz = array.size(p_N)
+                        bool identical = false
+                        if sz > 0
+                            int li = sz - 1
+                            bool lo_same = array.get(p_lo_t1, li) == bLt and array.get(p_lo_v1, li) == bLm and array.get(p_lo_t2, li) == aLt and array.get(p_lo_v2, li) == aLm
+                            bool up_same = array.get(p_up_t1, li) == bHt and array.get(p_up_v1, li) == bHm and array.get(p_up_t2, li) == aHt and array.get(p_up_v2, li) == aHm
+                            identical := lo_same and up_same
+                            // same structure re-anchored (same left anchors) -> supersede
+                            // ONLY the sides that actually re-anchored (v6.1, audit F1:
+                            // an unchanged side keeps its alive line; its duplicate
+                            // candidate ghosts in the scan below)
+                            if not identical and array.get(p_lo_t1, li) == bLt and array.get(p_lo_v1, li) == bLm and array.get(p_up_t1, li) == bHt and array.get(p_up_v1, li) == bHm
+                                if not lo_same and array.get(p_lo_st, li) == 0
+                                    array.set(p_lo_st, li, 3)
+                                    f_retire(array.get(p_lo_ln, li), col)
+                                if not up_same and array.get(p_up_st, li) == 0
+                                    array.set(p_up_st, li, 3)
+                                    f_retire(array.get(p_up_ln, li), col)
+                        if not identical
+                            // ghost a side when it duplicates an existing line OR
+                            // fails the anchor-separation validity filter
+                            bool lo_ghost = aLt - bLt < min_gap
+                            bool up_ghost = aHt - bHt < min_gap
+                            if sz > 0
+                                for i = 0 to sz - 1
+                                    if array.get(p_lo_t1, i) == bLt and array.get(p_lo_v1, i) == bLm and array.get(p_lo_t2, i) == aLt and array.get(p_lo_v2, i) == aLm
+                                        lo_ghost := true
+                                    if array.get(p_up_t1, i) == bHt and array.get(p_up_v1, i) == bHm and array.get(p_up_t2, i) == aHt and array.get(p_up_v2, i) == aHm
+                                        up_ghost := true
+                            if not (lo_ghost and up_ghost)
+                                array.push(p_N, n)
+                                array.push(p_lo_t1, bLt)
+                                array.push(p_lo_v1, bLm)
+                                array.push(p_lo_t2, aLt)
+                                array.push(p_lo_v2, aLm)
+                                array.push(p_lo_st, lo_ghost ? 4 : 0)
+                                array.push(p_lo_ln, lo_ghost ? line(na) : f_draw(bLt, bLm, aLt, aLm, col))
+                                array.push(p_up_t1, bHt)
+                                array.push(p_up_v1, bHm)
+                                array.push(p_up_t2, aHt)
+                                array.push(p_up_v2, aHm)
+                                array.push(p_up_st, up_ghost ? 4 : 0)
+                                array.push(p_up_ln, up_ghost ? line(na) : f_draw(bHt, bHm, aHt, aHm, col))
+                                if array.size(p_N) > pool_cap
+                                    // v6.1 (audit F2): evict the oldest fully-RETIRED
+                                    // formation first; evict an alive one only when none
+                                    // is retired (counted, shown in the table)
+                                    int ei = -1
+                                    for k = 0 to array.size(p_N) - 1
+                                        if ei < 0 and array.get(p_lo_st, k) != 0 and array.get(p_up_st, k) != 0
+                                            ei := k
+                                    if ei < 0
+                                        ei := 0
+                                        ev_alive += 1
+                                    line dl1 = array.get(p_lo_ln, ei)
+                                    line dl2 = array.get(p_up_ln, ei)
+                                    if not na(dl1)
+                                        line.delete(dl1)
+                                    if not na(dl2)
+                                        line.delete(dl2)
+                                    array.remove(p_N, ei)
+                                    array.remove(p_lo_t1, ei)
+                                    array.remove(p_lo_v1, ei)
+                                    array.remove(p_lo_t2, ei)
+                                    array.remove(p_lo_v2, ei)
+                                    array.remove(p_lo_st, ei)
+                                    array.remove(p_lo_ln, ei)
+                                    array.remove(p_up_t1, ei)
+                                    array.remove(p_up_v1, ei)
+                                    array.remove(p_up_t2, ei)
+                                    array.remove(p_up_v2, ei)
+                                    array.remove(p_up_st, ei)
+                                    array.remove(p_up_ln, ei)
+        if timeframe.change(tf) or na(cur_hi)
+            cur_hi := high
+            cur_lo := low
+            cur_hiT := time
+            cur_loT := time
+        else
+            if high > cur_hi
+                cur_hi := high
+                cur_hiT := time
+            if low < cur_lo
+                cur_lo := low
+                cur_loT := time
+    // per-bar scan: exit candidates (vs the standing position), lifecycle,
+    // context values, counts
+    float xs_v = na
+    int xs_n = 0
+    float xl_v = na
+    int xl_n = 0
+    float ctx_lo = na
+    float ctx_up = na
+    float near_s = na
+    float near_l = na
+    float brk_lo = na
+    float brk_up = na
+    int nal = 0
+    int psz = array.size(p_N)
+    if active and psz > 0
+        for i = 0 to psz - 1
+            if array.get(p_lo_st, i) == 0
+                float v = f_val(array.get(p_lo_t1, i), array.get(p_lo_v1, i), array.get(p_lo_t2, i), array.get(p_lo_v2, i))
+                nal += 1
+                bool touched = low <= v and high >= v
+                if _pos == -1 and touched and v < _entry and (na(xs_v) or v > xs_v)
+                    xs_v := v
+                    xs_n := array.get(p_N, i)
+                if v < close and (na(ctx_lo) or v > ctx_lo)
+                    ctx_lo := v
+                if _pos == -1 and v < _entry and v < low and (na(near_s) or v > near_s)
+                    near_s := v
+                if _pos == 1 and barstate.isconfirmed and close < v and (na(brk_lo) or v > brk_lo)
+                    brk_lo := v
+                if touched
+                    array.set(p_lo_st, i, 1)
+                    f_retire(array.get(p_lo_ln, i), col)
+                else if barstate.isconfirmed and close < v
+                    array.set(p_lo_st, i, 2)
+                    f_retire(array.get(p_lo_ln, i), col)
+            if array.get(p_up_st, i) == 0
+                float v = f_val(array.get(p_up_t1, i), array.get(p_up_v1, i), array.get(p_up_t2, i), array.get(p_up_v2, i))
+                nal += 1
+                bool touched = low <= v and high >= v
+                if _pos == 1 and touched and v > _entry and (na(xl_v) or v < xl_v)
+                    xl_v := v
+                    xl_n := array.get(p_N, i)
+                if v > close and (na(ctx_up) or v < ctx_up)
+                    ctx_up := v
+                if _pos == 1 and v > _entry and v > high and (na(near_l) or v < near_l)
+                    near_l := v
+                if _pos == -1 and barstate.isconfirmed and close > v and (na(brk_up) or v < brk_up)
+                    brk_up := v
+                if touched
+                    array.set(p_up_st, i, 1)
+                    f_retire(array.get(p_up_ln, i), col)
+                else if barstate.isconfirmed and close > v
+                    array.set(p_up_st, i, 2)
+                    f_retire(array.get(p_up_ln, i), col)
+    [xs_v, xs_n, xl_v, xl_n, ctx_lo, ctx_up, near_s, near_l, psz, nal, brk_lo, brk_up, ev_alive, vn]
+
+// --------------------------- run the four pools ------------------------------
+var int pos = 0
+var float entry_px = na
+var float tgt_px = na
+var int tgt_rung = na
+
+// prospective pattern fill (twin _pattern_entry: max(trig + tick, open) for
+// longs / min(trig - tick, open) for shorts) and the veto direction. The
+// veto snapshot is only needed when flat at bar start with a live signal in
+// a package arm -- exactly the twin's collection condition.
+float pat_fill = sigDir == 1 ? math.max(trig + syminfo.mintick, open) : sigDir == -1 ? math.min(trig - syminfo.mintick, open) : na
+int veto_dir = use_vetoes and pos == 0 and sigDir != 0 ? sigDir : 0
+
+[xsA, xsnA, xlA, xlnA, cloA, cupA, nsA, nlA, nfA, nalA, bloA, bupA, evA, vnA] = f_pool('720', en_12h, pos, entry_px, pat_fill, veto_dir, c_12h)
+[xsB, xsnB, xlB, xlnB, cloB, cupB, nsB, nlB, nfB, nalB, bloB, bupB, evB, vnB] = f_pool('D', en_D, pos, entry_px, pat_fill, veto_dir, c_D)
+[xsC, xsnC, xlC, xlnC, cloC, cupC, nsC, nlC, nfC, nalC, bloC, bupC, evC, vnC] = f_pool('W', en_W, pos, entry_px, pat_fill, veto_dir, c_W)
+[xsD, xsnD, xlD, xlnD, cloD, cupD, nsD, nlD, nfD, nalD, bloD, bupD, evD, vnD] = f_pool('M', en_M, pos, entry_px, pat_fill, veto_dir, c_M)
+
+// v6.1 (audit F4): warn when an active pool's base TF is not tiled by the
+// chart TF (envelopes then approximate; months tile whenever days do)
+f_tiles(simple string tf) =>
+    tf == 'M' ? 86400 % timeframe.in_seconds() == 0 : timeframe.in_seconds(tf) % timeframe.in_seconds() == 0
+
+bool warn_tile = (en_12h and timeframe.in_seconds('720') > timeframe.in_seconds() and not f_tiles('720')) or (en_D and timeframe.in_seconds('D') > timeframe.in_seconds() and not f_tiles('D')) or (en_W and timeframe.in_seconds('W') > timeframe.in_seconds() and not f_tiles('W')) or (en_M and timeframe.in_seconds('M') > timeframe.in_seconds() and not f_tiles('M'))
+
+// combine short-exit candidates: highest touched eligible line wins
+float xs_v = na
+int xs_n = 0
+string xs_tf = ''
+if not na(xsA)
+    xs_v := xsA
+    xs_n := xsnA
+    xs_tf := '12h'
+if not na(xsB) and (na(xs_v) or xsB > xs_v)
+    xs_v := xsB
+    xs_n := xsnB
+    xs_tf := 'D'
+if not na(xsC) and (na(xs_v) or xsC > xs_v)
+    xs_v := xsC
+    xs_n := xsnC
+    xs_tf := 'W'
+if not na(xsD) and (na(xs_v) or xsD > xs_v)
+    xs_v := xsD
+    xs_n := xsnD
+    xs_tf := 'M'
+// combine long-exit candidates: lowest touched eligible line wins
+float xl_v = na
+int xl_n = 0
+string xl_tf = ''
+if not na(xlA)
+    xl_v := xlA
+    xl_n := xlnA
+    xl_tf := '12h'
+if not na(xlB) and (na(xl_v) or xlB < xl_v)
+    xl_v := xlB
+    xl_n := xlnB
+    xl_tf := 'D'
+if not na(xlC) and (na(xl_v) or xlC < xl_v)
+    xl_v := xlC
+    xl_n := xlnC
+    xl_tf := 'W'
+if not na(xlD) and (na(xl_v) or xlD < xl_v)
+    xl_v := xlD
+    xl_n := xlnD
+    xl_tf := 'M'
+// combine adverse-break events: nearest broken structure names the label
+float brk_lo = na
+string brk_lo_tf = ''
+if not na(bloA)
+    brk_lo := bloA
+    brk_lo_tf := '12h'
+if not na(bloB) and (na(brk_lo) or bloB > brk_lo)
+    brk_lo := bloB
+    brk_lo_tf := 'D'
+if not na(bloC) and (na(brk_lo) or bloC > brk_lo)
+    brk_lo := bloC
+    brk_lo_tf := 'W'
+if not na(bloD) and (na(brk_lo) or bloD > brk_lo)
+    brk_lo := bloD
+    brk_lo_tf := 'M'
+float brk_up = na
+string brk_up_tf = ''
+if not na(bupA)
+    brk_up := bupA
+    brk_up_tf := '12h'
+if not na(bupB) and (na(brk_up) or bupB < brk_up)
+    brk_up := bupB
+    brk_up_tf := 'D'
+if not na(bupC) and (na(brk_up) or bupC < brk_up)
+    brk_up := bupC
+    brk_up_tf := 'W'
+if not na(bupD) and (na(brk_up) or bupD < brk_up)
+    brk_up := bupD
+    brk_up_tf := 'M'
+// combine the veto snapshot: nearest qualifying line across pools (min of
+// the per-pool nearest-above for longs; max of nearest-below for shorts)
+float veto_near = na
+if veto_dir == 1
+    for v in array.from(vnA, vnB, vnC, vnD)
+        if not na(v) and (na(veto_near) or v < veto_near)
+            veto_near := v
+else if veto_dir == -1
+    for v in array.from(vnA, vnB, vnC, vnD)
+        if not na(v) and (na(veto_near) or v > veto_near)
+            veto_near := v
+
+// --------------------------- position machine --------------------------------
+// Verbatim CONTROL shape; H5 deltas: (a) under A2/A3 the bf-harvest slot is
+// occupied by the frozen-target exit (twin: bf if C1 exits, elif target);
+// (b) the entry block is the pattern entry (vetoes -> frozen target).
+var int vc_cand = 0
+var int vc_notgt = 0
+var int vc_prox = 0
+var int vc_chop = 0
+var int vc_both = 0
+var int vc_entries = 0
+bool sig_el = false
+bool sig_es = false
+bool sig_xl = false
+bool sig_xs = false
+string x_kind = ''
+int exit_rung = na
+string e_comment = ''
+if not use_targets
+    if pos == -1 and not na(xs_v)
+        pos := 0
+        sig_xs := true
+        x_kind := 'bf'
+    if pos == 1 and not na(xl_v)
+        pos := 0
+        sig_xl := true
+        x_kind := 'bf'
+else
+    if pos == 1 and not na(tgt_px) and high >= tgt_px
+        pos := 0
+        sig_xl := true
+        x_kind := 'tgt'
+        exit_rung := tgt_rung
+    else if pos == -1 and not na(tgt_px) and low <= tgt_px
+        pos := 0
+        sig_xs := true
+        x_kind := 'tgt'
+        exit_rung := tgt_rung
+if brk_exit and pos == 1 and not na(brk_lo)
+    pos := 0
+    sig_xl := true
+    x_kind := 'brk'
+if brk_exit and pos == -1 and not na(brk_up)
+    pos := 0
+    sig_xs := true
+    x_kind := 'brk'
+if pos == 1 and flip_backstop and gate_dn and barstate.isconfirmed
+    pos := 0
+    sig_xl := true
+    x_kind := 'flip'
+if pos == -1 and flip_backstop and gate_up and barstate.isconfirmed
+    pos := 0
+    sig_xs := true
+    x_kind := 'flip'
+if sig_xl or sig_xs
+    tgt_px := na
+    tgt_rung := na
+
+// pattern entry (twin _position_step + _pattern_entry, pre-reg mechanics)
+if pos == 0 and not sig_xl and not sig_xs and sigDir != 0
+    bool dir_ok = sigDir == 1 ? allow_long and gate_up : allow_short and gate_dn
+    if dir_ok
+        vc_cand += 1
+        if use_targets and array.size(lad) == 0
+            // a package arm cannot satisfy its exit semantics with no target
+            // in the entry snapshot: structural skip, logged separately
+            vc_notgt += 1
+        else
+            bool veto_prox = false
+            if use_vetoes and bf_prox_pct > 0 and not na(veto_near)
+                veto_prox := sigDir == 1 ? (veto_near - pat_fill) / pat_fill <= bf_prox_pct / 100.0 : (pat_fill - veto_near) / pat_fill <= bf_prox_pct / 100.0
+            bool veto_chop = false
+            if use_vetoes and chop_pct > 0
+                veto_chop := math.abs(pat_fill - oA) / pat_fill <= chop_pct / 100.0 or math.abs(pat_fill - oB) / pat_fill <= chop_pct / 100.0 or math.abs(pat_fill - oC) / pat_fill <= chop_pct / 100.0
+            if veto_prox and veto_chop
+                vc_both += 1
+            else if veto_prox
+                vc_prox += 1
+            else if veto_chop
+                vc_chop += 1
+            else
+                vc_entries += 1
+                pos := sigDir
+                entry_px := pat_fill
+                if use_targets
+                    int ti = math.min(exit_targets, array.size(lad)) - 1
+                    tgt_px := array.get(lad, ti)
+                    tgt_rung := ti + 1
+                e_comment := nameS + ' t=' + str.tostring(trig, format.mintick)
+                if sigDir == 1
+                    sig_el := true
+                else
+                    sig_es := true
+
+// ------------------- order emission (strategy layer ONLY) --------------------
+// The position machine above is the SOLE decision source. These calls mirror
+// its transitions; nothing below feeds back into logic. Decision-exact fill
+// model: market orders on the signal bar, filled at that bar's close
+// (process_orders_on_close). The machine blocks same-bar re-entry after an
+// exit, so at most one order action fires per bar. Entry comments carry the
+// pattern zipcode + trigger for the parity join (H6).
+string x_comment = x_kind == 'flip' ? 'Flip' : x_kind == 'brk' ? (sig_xl ? 'Break ' + brk_lo_tf : 'Break ' + brk_up_tf) : x_kind == 'tgt' ? 'Tgt ' + str.tostring(exit_rung) : sig_xl ? 'BF ' + xl_tf + ' N' + str.tostring(xl_n) : 'BF ' + xs_tf + ' N' + str.tostring(xs_n)
+if sig_xl
+    strategy.close('L', comment = x_comment)
+if sig_xs
+    strategy.close('S', comment = x_comment)
+if sig_el
+    strategy.entry('L', strategy.long, comment = e_comment)
+if sig_es
+    strategy.entry('S', strategy.short, comment = e_comment)
+
+// ------------------------- heads-up proximity --------------------------------
+float near_s = na
+for v in array.from(nsA, nsB, nsC, nsD)
+    if not na(v) and (na(near_s) or v > near_s)
+        near_s := v
+float near_l = na
+for v in array.from(nlA, nlB, nlC, nlD)
+    if not na(v) and (na(near_l) or v < near_l)
+        near_l := v
+bool warn_s = warn_pct > 0 and pos == -1 and not na(near_s) and (low - near_s) / low * 100 <= warn_pct
+bool warn_l = warn_pct > 0 and pos == 1 and not na(near_l) and (near_l - high) / high * 100 <= warn_pct
+
+// ------------------------------ visuals --------------------------------------
+bgcolor(show_bg and pos == 1 ? color.new(c_long, 92) : show_bg and pos == -1 ? color.new(c_short, 92) : na)
+plot(use_targets and pos != 0 ? tgt_px : na, 'Frozen target', color = c_tgt, linewidth = 2, style = plot.style_linebr)
+plotshape(sig_el, 'Enter Long', style = shape.labelup, color = c_long, text = 'LONG', textcolor = color.white, location = location.belowbar, size = size.tiny)
+plotshape(sig_es, 'Enter Short', style = shape.labeldown, color = c_short, text = 'SHORT', textcolor = color.white, location = location.abovebar, size = size.tiny)
+plotchar(warn_s, 'Heads-up (short near line)', '!', location.belowbar, color.new(color.yellow, 20), size = size.tiny)
+plotchar(warn_l, 'Heads-up (long near line)', '!', location.abovebar, color.new(color.yellow, 20), size = size.tiny)
+if show_pat_labels and (sig_el or sig_es)
+    label.new(bar_index, sig_el ? low : high, e_comment, style = sig_el ? label.style_label_up : label.style_label_down, color = color.new(color.gray, 40), textcolor = color.white, size = size.tiny,
+      tooltip = 'Entered ' + nameL + ' | trigger ' + str.tostring(trig, format.mintick) + (use_targets ? ' | frozen target T' + str.tostring(tgt_rung) + ' = ' + str.tostring(tgt_px, format.mintick) : ''))
+if sig_xl
+    label.new(bar_index, high, x_kind == 'flip' ? 'Flip L Exit' : x_kind == 'brk' ? 'BF Break L Exit' : x_kind == 'tgt' ? 'Tgt L Exit' : 'BF L Exit', style = label.style_label_down, color = color.new(c_long, 20), textcolor = color.white, size = size.small,
+      tooltip = x_kind == 'flip' ? 'Flip backstop: full opposite alignment at a confirmed close; no harvest line / target reached.' : x_kind == 'brk' ? 'Structural break: confirmed close BELOW the ' + brk_lo_tf + '-pool lower line at ' + str.tostring(brk_lo, format.mintick) + ' while long.' : x_kind == 'tgt' ? 'Frozen target T' + str.tostring(exit_rung) + ' touched (entry snapshot ladder).' : 'Long exit: ' + xl_tf + '-pool N=' + str.tostring(xl_n) + ' upper line at ' + str.tostring(xl_v, format.mintick) + ' (above entry ' + str.tostring(entry_px, format.mintick) + ').')
+if sig_xs
+    label.new(bar_index, low, x_kind == 'flip' ? 'Flip S Exit' : x_kind == 'brk' ? 'BF Break S Exit' : x_kind == 'tgt' ? 'Tgt S Exit' : 'BF S Exit', style = label.style_label_up, color = color.new(c_short, 20), textcolor = color.white, size = size.small,
+      tooltip = x_kind == 'flip' ? 'Flip backstop: full opposite alignment at a confirmed close; no harvest line / target reached.' : x_kind == 'brk' ? 'Structural break: confirmed close ABOVE the ' + brk_up_tf + '-pool upper line at ' + str.tostring(brk_up, format.mintick) + ' while short.' : x_kind == 'tgt' ? 'Frozen target T' + str.tostring(exit_rung) + ' touched (entry snapshot ladder).' : 'Short exit: ' + xs_tf + '-pool N=' + str.tostring(xs_n) + ' lower line at ' + str.tostring(xs_v, format.mintick) + ' (below entry ' + str.tostring(entry_px, format.mintick) + ').')
+
+// ------------------------------ alerts ---------------------------------------
+alertcondition(sig_el, 'Enter Long', 'TFC-MT PKG: LONG entry (pattern signal, gate aligned)')
+alertcondition(sig_es, 'Enter Short', 'TFC-MT PKG: SHORT entry (pattern signal, gate aligned)')
+alertcondition(sig_xl, 'Exit Long', 'TFC-MT PKG: EXIT LONG (target, BF line, break, or flip)')
+alertcondition(sig_xs, 'Exit Short', 'TFC-MT PKG: EXIT SHORT (target, BF line, break, or flip)')
+alertcondition(sig_el or sig_es or sig_xl or sig_xs, 'Any signal', 'TFC-MT PKG: signal')
+
+// ------------------------------ status table ---------------------------------
+var table tbl = na
+if barstate.islast and show_table
+    if na(tbl)
+        tbl := table.new(position.top_right, 1, 7, bgcolor = color.new(color.black, 30), border_width = 1)
+    string s_pos = pos == 1 ? 'LONG' : pos == -1 ? 'SHORT' : 'flat'
+    string s_gate = gate_up ? 'gate UP' : gate_dn ? 'gate DOWN' : 'gate grey'
+    float ctx_lo = na
+    for v in array.from(cloA, cloB, cloC, cloD)
+        if not na(v) and (na(ctx_lo) or v > ctx_lo)
+            ctx_lo := v
+    float ctx_up = na
+    for v in array.from(cupA, cupB, cupC, cupD)
+        if not na(v) and (na(ctx_up) or v < ctx_up)
+            ctx_up := v
+    table.cell(tbl, 0, 0, 'TFC-MT PACKAGE [TVB-22]', text_color = color.white, text_size = size.small)
+    table.cell(tbl, 0, 1, arm_in + ' | sig TF ' + sig_tf, text_color = color.silver, text_size = size.tiny)
+    table.cell(tbl, 0, 2, s_pos + ' | ' + s_gate + (pos != 0 and use_targets and not na(tgt_px) ? ' | T' + str.tostring(tgt_rung) + ' ' + str.tostring(tgt_px, format.mintick) : ''), text_color = color.silver, text_size = size.tiny)
+    table.cell(tbl, 0, 3, 'next line dn ' + (na(ctx_lo) ? '--' : str.tostring(ctx_lo, format.mintick)) + ' | up ' + (na(ctx_up) ? '--' : str.tostring(ctx_up, format.mintick)), text_color = color.silver, text_size = size.tiny)
+    table.cell(tbl, 0, 4, '12h ' + str.tostring(nalA) + ' | D ' + str.tostring(nalB) + ' | W ' + str.tostring(nalC) + ' | M ' + str.tostring(nalD) + ' alive' + (evA + evB + evC + evD > 0 ? ' | evict-alive ' + str.tostring(evA + evB + evC + evD) : ''), text_color = color.silver, text_size = size.tiny)
+    table.cell(tbl, 0, 5, 'cand ' + str.tostring(vc_cand) + ' | no-tgt ' + str.tostring(vc_notgt) + ' | prox ' + str.tostring(vc_prox) + ' | chop ' + str.tostring(vc_chop) + ' | both ' + str.tostring(vc_both) + ' | in ' + str.tostring(vc_entries), text_color = color.silver, text_size = size.tiny)
+    if warn_tile
+        table.cell(tbl, 0, 6, 'WARN: chart TF does not tile a pool base -- approx envelopes', text_color = color.yellow, text_size = size.tiny)
