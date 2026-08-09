@@ -49,6 +49,12 @@
 //   H6 order emission: entry comment carries pattern zipcode + trigger for
 //      the parity join (twin entry events carry `trig`); target exits
 //      comment "Tgt <rung>". Entry ids stay L/S.
+//   H7 runtime-budget hunks (2026-08-09, decision-identical): the PMG
+//      streak walks and the ladder history walk run ONLY while a signal is
+//      live (their outputs are read nowhere else). The indicator's
+//      every-bar shape broke the strategy's execution budget on deep 5m
+//      charts ("Calculation failed" runtime error at ~20k bars). Loop
+//      bodies stay verbatim; only the guards are new.
 //
 // ARM MAP (docs/experiments/tvb21_tier_b_prereg.md, arms table):
 //   A1 "pattern isolation" = pattern entries (10-setup dictionary, 1H,
@@ -113,7 +119,11 @@ strategy('TFC-MT PACKAGE [TVB-22]', 'TFC-MT PKG', overlay = true, max_lines_coun
 
 // ------------------------------- inputs --------------------------------------
 grp_a = 'Package arm'
-arm_in = input.string('A1: pattern entries, control exits', 'Arm', options = ['A1: pattern entries, control exits', 'A2: package, T1 exit', 'A3: package, T2 exit'], group = grp_a, tooltip = 'The pre-registered Tier B arm this instance mirrors (docs/experiments/tvb21_tier_b_prereg.md). A1 = pattern-gated entries with the CONTROL exits unchanged (bf+brk+flip), no vetoes. A2 = + BF-proximity and chop entry vetoes; every trade exits at its frozen Target 1 (bf-harvest off). A3 = as A2 but exits at ladder rung 2, falling back to T1 when the entry snapshot has no rung 2.')
+// NOTE: arm option labels are deliberately COMMA-FREE -- a comma inside a
+// string input value breaks TV's input round-trip (setInputValues ->
+// "Can't parse pine" runtime kill; found TVB-22 while building the
+// parity harvest).
+arm_in = input.string('A1 isolation (pattern entries + control exits)', 'Arm', options = ['A1 isolation (pattern entries + control exits)', 'A2 package (T1 exit)', 'A3 package (T2 exit)'], group = grp_a, tooltip = 'The pre-registered Tier B arm this instance mirrors (docs/experiments/tvb21_tier_b_prereg.md). A1 = pattern-gated entries with the CONTROL exits unchanged (bf+brk+flip), no vetoes. A2 = + BF-proximity and chop entry vetoes; every trade exits at its frozen Target 1 (bf-harvest off). A3 = as A2 but exits at ladder rung 2, falling back to T1 when the entry snapshot has no rung 2.')
 bf_prox_pct = input.float(1.0, 'BF-proximity veto (%)', minval = 0.0, step = 0.25, group = grp_a, tooltip = 'A2/A3 only. Veto a long entry when the nearest ALIVE harvest-side (upper) BF line across all enabled pools, valued at this bar open on the bar-open alive set, sits within this percent of the prospective fill; mirror for shorts. The pre-registered fixed value is 1.0. 0 disables. Inert in A1.')
 chop_pct = input.float(2.0, 'Chop veto (%)', minval = 0.0, step = 0.25, group = grp_a, tooltip = 'A2/A3 only. Veto an entry when the prospective fill is within this percent of ANY of the three D/W/M period opens (the flip levels). The pre-registered fixed value is 2.0 -- known NOT to transfer across symbols (TVB-21 report: 47-100% per-symbol suppression); it is mirrored here deliberately, warts included. 0 disables. Inert in A1.')
 
@@ -289,39 +299,6 @@ g2c = not na(C2) and not na(O2) and C2 > O2
 r2c = not na(C2) and not na(O2) and C2 < O2
 ham1 = not na(O1) and isHammer(O1, H1, L1, C1)
 sho1 = not na(O1) and isShooter(O1, H1, L1, C1)
-// PMG streaks (consecutive lower-highs = bullish, higher-lows = bearish)
-lhRun = 0
-contLH = true
-prevHpmg = curH
-iLH = nSig - 1
-while iLH >= 0
-    hh = array.get(arrH, iLH)
-    if contLH and hh > prevHpmg + thr
-        lhRun := lhRun + 1
-        prevHpmg := hh
-        prevHpmg
-    else
-        contLH := false
-        contLH
-    iLH := iLH - 1
-    iLH
-hlRun = 0
-contHL = true
-prevLpmg = curL
-iHL = nSig - 1
-while iHL >= 0
-    ll = array.get(arrL, iHL)
-    if contHL and ll < prevLpmg - thr
-        hlRun := hlRun + 1
-        prevLpmg := ll
-        prevLpmg
-    else
-        contHL := false
-        contHL
-    iHL := iHL - 1
-    iHL
-bullPMG = enPMG and lhRun >= pmgBars
-bearPMG = enPMG and hlRun >= pmgBars
 gapUp = not na(H1) and curO > H1 + thr
 gapDn = not na(L1) and curO < L1 - thr
 
@@ -607,6 +584,47 @@ else if enGoing3 and d0 and g0
     nameS := in1 ? '1-2d(g)' : '2d›3'
     nameS
 
+// H7 LAZY PMG (TVB-22 runtime-budget hunk, decision-identical): the streak
+// walks are only READ by pmgHit, which needs them only when a reversal
+// signal is live. Running them on every 5m bar (the indicator's shape) is
+// ~500 wasted loop iterations per signal-less bar and broke the strategy's
+// execution budget on deep charts. Loop bodies verbatim from the source.
+bool bullPMG = false
+bool bearPMG = false
+if enPMG and sigDir != 0 and isRev
+    lhRun = 0
+    contLH = true
+    prevHpmg = curH
+    iLH = nSig - 1
+    while iLH >= 0
+        hh = array.get(arrH, iLH)
+        if contLH and hh > prevHpmg + thr
+            lhRun := lhRun + 1
+            prevHpmg := hh
+            prevHpmg
+        else
+            contLH := false
+            contLH
+        iLH := iLH - 1
+        iLH
+    hlRun = 0
+    contHL = true
+    prevLpmg = curL
+    iHL = nSig - 1
+    while iHL >= 0
+        ll = array.get(arrL, iHL)
+        if contHL and ll < prevLpmg - thr
+            hlRun := hlRun + 1
+            prevLpmg := ll
+            prevLpmg
+        else
+            contHL := false
+            contHL
+        iHL := iHL - 1
+        iHL
+    bullPMG := lhRun >= pmgBars
+    bearPMG := hlRun >= pmgBars
+
 pmgHit = isRev and (sigDir == 1 and bullPMG or sigDir == -1 and bearPMG)
 if pmgHit
     nameL := 'PMG + ' + nameL
@@ -615,34 +633,38 @@ if pmgHit
 // ---------------- LADDER: prior extremes not yet taken out -------------------
 ladderUp = array.new<float>()
 ladderDn = array.new<float>()
-if not na(anchor) and sigDir == 1
-    array.push(ladderUp, anchor)
-if not na(anchor2) and sigDir == 1
-    array.push(ladderUp, anchor2)
-if not na(anchor) and sigDir == -1
-    array.push(ladderDn, anchor)
-if not na(anchor2) and sigDir == -1
-    array.push(ladderDn, anchor2)
-runMax = not na(anchor2) and sigDir == 1 ? anchor2 : not na(anchor) and sigDir == 1 ? anchor : not na(trig) and not weakSig ? trig : curH
-lj = nSig - 1
-while lj >= 0 and array.size(ladderUp) < maxLevels
-    hv = array.get(arrH, lj)
-    if hv > runMax + thr
-        array.push(ladderUp, hv)
-        runMax := hv
-        runMax
-    lj := lj - 1
-    lj
-runMin = not na(anchor2) and sigDir == -1 ? anchor2 : not na(anchor) and sigDir == -1 ? anchor : not na(trig) and not weakSig ? trig : curL
-lk = nSig - 1
-while lk >= 0 and array.size(ladderDn) < maxLevels
-    lv = array.get(arrL, lk)
-    if lv < runMin - thr
-        array.push(ladderDn, lv)
-        runMin := lv
-        runMin
-    lk := lk - 1
-    lk
+// H7 LAZY LADDER (TVB-22 runtime-budget hunk, decision-identical): lad is
+// only read while a signal is live (entry block, sigDir != 0), so the
+// per-bar history walk is skipped on signal-less bars. Bodies verbatim.
+if sigDir != 0
+    if not na(anchor) and sigDir == 1
+        array.push(ladderUp, anchor)
+    if not na(anchor2) and sigDir == 1
+        array.push(ladderUp, anchor2)
+    if not na(anchor) and sigDir == -1
+        array.push(ladderDn, anchor)
+    if not na(anchor2) and sigDir == -1
+        array.push(ladderDn, anchor2)
+    runMax = not na(anchor2) and sigDir == 1 ? anchor2 : not na(anchor) and sigDir == 1 ? anchor : not na(trig) and not weakSig ? trig : curH
+    lj = nSig - 1
+    while lj >= 0 and array.size(ladderUp) < maxLevels
+        hv = array.get(arrH, lj)
+        if hv > runMax + thr
+            array.push(ladderUp, hv)
+            runMax := hv
+            runMax
+        lj := lj - 1
+        lj
+    runMin = not na(anchor2) and sigDir == -1 ? anchor2 : not na(anchor) and sigDir == -1 ? anchor : not na(trig) and not weakSig ? trig : curL
+    lk = nSig - 1
+    while lk >= 0 and array.size(ladderDn) < maxLevels
+        lv = array.get(arrL, lk)
+        if lv < runMin - thr
+            array.push(ladderDn, lv)
+            runMin := lv
+            runMin
+        lk := lk - 1
+        lk
 
 lad = sigDir == 1 ? ladderUp : ladderDn
 // ============================ end M+T insert =================================

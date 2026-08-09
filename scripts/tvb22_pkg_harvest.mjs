@@ -17,10 +17,12 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { evaluate, disconnect } from 'file:///C:/Strat_Trading_Bot/tradingview-mcp-jackson/src/connection.js';
 
 const COINS = process.argv.slice(2).length ? process.argv.slice(2) : ['GOOGL', 'TSLA', 'DRAM'];
+// Comma-free labels: a comma inside a string input value breaks TV's input
+// round-trip (setInputValues -> "Can't parse pine" runtime kill).
 const ARMS = [
-  { tag: 'A1', value: 'A1: pattern entries, control exits' },
-  { tag: 'A2', value: 'A2: package, T1 exit' },
-  { tag: 'A3', value: 'A3: package, T2 exit' },
+  { tag: 'A1', value: 'A1 isolation (pattern entries + control exits)' },
+  { tag: 'A2', value: 'A2 package (T1 exit)' },
+  { tag: 'A3', value: 'A3 package (T2 exit)' },
 ];
 const STRATEGY_TITLE = 'TFC-MT PACKAGE [TVB-22]';
 const OUT_DIR = 'analysis/reference/pkg_parity';
@@ -104,7 +106,13 @@ const EDGES = `(function(){
 })()`;
 
 // Set the package strategy's Arm input in place. The arm selector is found
-// by its VALUE shape (^A[123]:) rather than a generated input id.
+// by its VALUE shape (^A[123] ) rather than a generated input id.
+// CRITICAL (found TVB-22): setInputValues must receive ONLY the modified
+// entry. getInputValues() also returns the internal entries (text = the
+// compiled script blob, pineId, pineVersion, pineFeatures) and re-sending
+// the full array corrupts the study ("Can't parse pine" runtime kill --
+// this also breaks the jackson MCP's indicator_set_inputs idiom on Pine
+// user scripts in the current TV build).
 function setArmExpr(armValue) {
   return `(function(){
     try {
@@ -119,10 +127,10 @@ function setArmExpr(armValue) {
       var cur = st.getInputValues();
       var hit = null;
       for (var j = 0; j < cur.length; j++) {
-        if (/^A[123]: /.test(String(cur[j].value))) { cur[j].value = ${JSON.stringify(armValue)}; hit = cur[j].id; }
+        if (/^A[123] /.test(String(cur[j].value))) { hit = cur[j].id; }
       }
       if (!hit) return { error: 'arm input not found among ' + cur.length + ' inputs' };
-      st.setInputValues(cur);
+      st.setInputValues([{ id: hit, value: ${JSON.stringify(armValue)} }]);
       return { ok: 1, input_id: hit, entity_id: target.id };
     } catch(e){ return { error: e.message }; }
   })()`;
