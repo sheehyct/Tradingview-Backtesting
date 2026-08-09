@@ -203,6 +203,127 @@ def test_no_target_candidate_is_skipped_in_package_arms():
     assert len(ev) == 1 and tw2.pos == 1
 
 
+def test_target_containment_born_beyond_long():
+    # TVB-22 amendment (audit F1): a long BORN BEYOND its frozen T1 must NOT
+    # exit on a bar wholly above the level (the as-built one-sided h >= tgt
+    # booked a fill the bar never traded); it exits at the first bar whose
+    # range contains the level, at the level, for a real structural loss.
+    tw = _twin(exit_targets=1, bf_harvest_exit=False)
+    tw._position_step(
+        0,
+        105.0,
+        100.4,
+        104.9,
+        *NONES8,
+        True,
+        False,
+        o=100.6,
+        sig=_sig(ladder=[103.0]),
+        prox_vals=None,
+    )
+    assert tw.pos == 1 and tw.entry_px > tw.tgt_px  # born beyond
+    ev = tw._position_step(
+        300, 105.5, 104.0, 105.0, *NONES8, False, False, o=104.9, sig=None, prox_vals=None
+    )
+    assert ev == [] and tw.pos == 1  # bar wholly above the level: no exit
+    ev = tw._position_step(
+        600, 104.2, 102.8, 103.5, *NONES8, False, False, o=104.0, sig=None, prox_vals=None
+    )
+    assert len(ev) == 1 and ev[0]["kind"] == "tgt" and ev[0]["price"] == 103.0
+    assert ev[0]["pnl_pct"] < 0  # real containment fill, structural loss
+
+
+def test_target_containment_born_beyond_short_mirror():
+    tw = _twin(exit_targets=1, bf_harvest_exit=False)
+    tw._position_step(
+        0,
+        99.5,
+        94.9,
+        95.0,
+        *NONES8,
+        False,
+        True,
+        o=99.0,
+        sig=_sig(direction=-1, trig=95.1, name="2-2d", ladder=[97.0]),
+        prox_vals=None,
+    )
+    assert tw.pos == -1 and tw.entry_px < tw.tgt_px  # born beyond
+    ev = tw._position_step(
+        300, 94.5, 93.0, 93.5, *NONES8, False, False, o=94.4, sig=None, prox_vals=None
+    )
+    assert ev == [] and tw.pos == -1  # bar wholly below the level: no exit
+    ev = tw._position_step(
+        600, 97.5, 96.5, 97.0, *NONES8, False, False, o=96.6, sig=None, prox_vals=None
+    )
+    assert len(ev) == 1 and ev[0]["kind"] == "tgt" and ev[0]["price"] == 97.0
+    assert ev[0]["pnl_pct"] < 0
+
+
+def test_target_gap_past_favorable_side_waits_for_containment():
+    # The gap-past edge is pinned deliberately (same convention as the C1 bf
+    # containment touch): a bar wholly beyond a FAVORABLE target does not
+    # exit either; the exit fires when the level actually trades.
+    tw = _twin(exit_targets=1, bf_harvest_exit=False)
+    tw._position_step(
+        0,
+        105.0,
+        100.4,
+        104.9,
+        *NONES8,
+        True,
+        False,
+        o=100.6,
+        sig=_sig(ladder=[106.0]),
+        prox_vals=None,
+    )
+    assert tw.pos == 1 and tw.tgt_px == 106.0
+    ev = tw._position_step(
+        300, 107.5, 106.4, 107.0, *NONES8, False, False, o=106.5, sig=None, prox_vals=None
+    )
+    assert ev == [] and tw.pos == 1  # gapped past the level: no containment
+    ev = tw._position_step(
+        600, 106.8, 105.9, 106.2, *NONES8, False, False, o=106.7, sig=None, prox_vals=None
+    )
+    assert len(ev) == 1 and ev[0]["kind"] == "tgt" and ev[0]["price"] == 106.0
+
+
+def test_no_target_vetoed_overlap_counter():
+    # TVB-22 amendment (audit F2): vetoes are evaluated for every candidate
+    # BEFORE the structural no-target skip; the overlap is logged so
+    # entries = candidates - (vetoed + no_target - no_target_vetoed).
+    tw = _twin(exit_targets=1, bf_harvest_exit=False, bf_prox_veto_pct=1.0)
+    ev = tw._position_step(
+        0,
+        105.0,
+        100.4,
+        104.9,
+        *NONES8,
+        True,
+        False,
+        o=100.6,
+        sig=_sig(ladder=[]),
+        prox_vals=[105.5],
+    )
+    assert ev == [] and tw.pos == 0
+    vc = tw.veto_counts
+    assert vc["no_target"] == 1 and vc["bf_prox"] == 1 and vc["no_target_vetoed"] == 1
+    # unvetoed no-target candidate: skip logged, overlap unchanged
+    ev = tw._position_step(
+        0,
+        105.0,
+        100.4,
+        104.9,
+        *NONES8,
+        True,
+        False,
+        o=100.6,
+        sig=_sig(ladder=[]),
+        prox_vals=[120.0],
+    )
+    assert ev == [] and vc["no_target"] == 2 and vc["no_target_vetoed"] == 1
+    assert vc["candidates"] == 2 and vc["entries"] == 0
+
+
 def test_late_entry_fills_at_bar_open_not_stale_level():
     tw = _twin()
     ev = tw._position_step(

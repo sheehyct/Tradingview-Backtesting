@@ -421,6 +421,22 @@ def main() -> None:
     head = subprocess.run(
         ["git", "rev-parse", "HEAD"], capture_output=True, text=True, cwd=REPO
     ).stdout.strip()
+    # TVB-22 amendment (audit F4): bind the manifest to the EXECUTED source,
+    # not just the HEAD at run time -- blob hashes of the runner/engine/
+    # pattern modules plus the worktree clean/dirty state.
+    executed_blobs = {
+        p.name: hashlib.sha256(p.read_bytes()).hexdigest()[:16]
+        for p in (
+            Path(__file__).resolve(),
+            REPO / "analysis" / "paper" / "engine.py",
+            REPO / "analysis" / "paper" / "patterns.py",
+        )
+    }
+    git_dirty = bool(
+        subprocess.run(
+            ["git", "status", "--porcelain"], capture_output=True, text=True, cwd=REPO
+        ).stdout.strip()
+    )
     bar_hashes = {}
     for e in symbols:
         for iv in ("5m", "1h", "1d"):
@@ -448,6 +464,8 @@ def main() -> None:
         "prereg": "docs/experiments/tvb21_tier_b_prereg.md",
         "label": "PRE-COMMITTED LAYER ABLATION with named contrasts",
         "git_head": head,
+        "git_dirty": git_dirty,
+        "executed_blobs": executed_blobs,
         "window": {"start": WINDOW_START, "end": WINDOW_END},
         "arms": [
             {

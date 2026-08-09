@@ -350,6 +350,7 @@ class Twin:
         default_factory=lambda: {
             "candidates": 0,
             "no_target": 0,
+            "no_target_vetoed": 0,
             "bf_prox": 0,
             "chop": 0,
             "both": 0,
@@ -482,9 +483,14 @@ class Twin:
         elif cfg.exit_targets is not None:
             # TVB-21 package arms: the frozen entry-snapshot target occupies
             # the bf slot; touch exits AT the level (bf-touch convention).
-            if self.pos == 1 and self.tgt_px is not None and h >= self.tgt_px:
+            # TVB-22 amendment (audit F1, user-ruled): touch = the bar RANGE
+            # CONTAINS the level, never a one-sided reach -- a born-beyond
+            # trade exits at the first bar that actually trades the level,
+            # and a bar wholly beyond the level does not exit (gap-past
+            # edge, same as the C1 bf containment touch).
+            if self.pos == 1 and self.tgt_px is not None and l <= self.tgt_px <= h:
                 close_out("long", "tgt", self.tgt_px, None, self.tgt_rung)
-            elif self.pos == -1 and self.tgt_px is not None and l <= self.tgt_px:
+            elif self.pos == -1 and self.tgt_px is not None and l <= self.tgt_px <= h:
                 close_out("short", "tgt", self.tgt_px, None, self.tgt_rung)
         if cfg.brk_exit and self.pos == 1 and brk_lo is not None:
             close_out("long", "brk", c, brk_lo_tf)
@@ -550,11 +556,11 @@ class Twin:
         vc = self.veto_counts
         vc["candidates"] += 1
         fill = max(sig.trig + cfg.mintick, o) if sig.dir == 1 else min(sig.trig - cfg.mintick, o)
-        if cfg.exit_targets is not None and not sig.ladder:
-            # A package arm cannot satisfy its exit semantics with no target
-            # in the entry snapshot: structural skip, logged separately.
-            vc["no_target"] += 1
-            return
+        # TVB-22 amendment (audit F2, user-ruled): both vetoes are evaluated
+        # for EVERY candidate BEFORE the structural no-target skip, so
+        # veto-rate denominators cover all candidates; no_target_vetoed logs
+        # the overlap (entries = candidates - (vetoed + no_target -
+        # no_target_vetoed)). Entry behavior is unchanged.
         veto_prox = False
         if cfg.bf_prox_veto_pct is not None and prox_vals:
             lim = cfg.bf_prox_veto_pct / 100.0
@@ -572,6 +578,14 @@ class Twin:
             )
         if veto_prox or veto_chop:
             vc["both" if (veto_prox and veto_chop) else "bf_prox" if veto_prox else "chop"] += 1
+        if cfg.exit_targets is not None and not sig.ladder:
+            # A package arm cannot satisfy its exit semantics with no target
+            # in the entry snapshot: structural skip, logged separately.
+            vc["no_target"] += 1
+            if veto_prox or veto_chop:
+                vc["no_target_vetoed"] += 1
+            return
+        if veto_prox or veto_chop:
             return
         vc["entries"] += 1
         rung = None
