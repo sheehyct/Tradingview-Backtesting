@@ -1,0 +1,115 @@
+{
+ "prereg": "docs/experiments/tvb21_tier_b_prereg.md",
+ "label": "PRE-COMMITTED LAYER ABLATION with named contrasts",
+ "git_head": "94090e9e67de2750eff12c4777b2b1f8e971a568",
+ "window": {
+  "start": "2026-07-06",
+  "end": "2026-08-03"
+ },
+ "arms": [
+  {
+   "arm_id": "A0a",
+   "label": "control, deployed cadence (C1 @ 15m arm trigger)",
+   "twin": {
+    "arm_tf_s": 900
+   },
+   "tier_a_tag": "arm900_12hON_n6_s1.0_c12_brkON_flipON"
+  },
+  {
+   "arm_id": "A0b",
+   "label": "control, matched cadence (C1 @ 1H arm trigger)",
+   "twin": {
+    "arm_tf_s": 3600
+   },
+   "tier_a_tag": "arm3600_12hON_n6_s1.0_c12_brkON_flipON"
+  },
+  {
+   "arm_id": "A1",
+   "label": "pattern isolation (dictionary entries, C1 exits, no vetoes)",
+   "twin": {
+    "entry_mode": "pattern",
+    "arm_tf_s": 3600
+   },
+   "tier_a_tag": null
+  },
+  {
+   "arm_id": "A2",
+   "label": "package, T1-always (vetoes on, targets replace bf-harvest)",
+   "twin": {
+    "entry_mode": "pattern",
+    "arm_tf_s": 3600,
+    "bf_prox_veto_pct": 1.0,
+    "chop_veto_pct": 2.0,
+    "exit_targets": 1,
+    "bf_harvest_exit": false
+   },
+   "tier_a_tag": null
+  },
+  {
+   "arm_id": "A3",
+   "label": "package, 2 targets (exit at rung 2, fallback T1)",
+   "twin": {
+    "entry_mode": "pattern",
+    "arm_tf_s": 3600,
+    "bf_prox_veto_pct": 1.0,
+    "chop_veto_pct": 2.0,
+    "exit_targets": 2,
+    "bf_harvest_exit": false
+   },
+   "tier_a_tag": null
+  }
+ ],
+ "warm_key": "(True, 6, 1.0, 12)",
+ "n_symbols": 11,
+ "smoke_subset": false,
+ "bar_hashes": {
+  "xyz_MRVL_5m.json": "c5ad8359993e0afd",
+  "xyz_MRVL_1h.json": "f1af88118977e9bd",
+  "xyz_MRVL_1d.json": "064edaf0a653bcf6",
+  "xyz_GOOGL_5m.json": "ec1e20c9c26b2a10",
+  "xyz_GOOGL_1h.json": "29e94d88c7bcb3e0",
+  "xyz_GOOGL_1d.json": "9e89fffeba7a23f0",
+  "xyz_AMZN_5m.json": "ae4f06dd8dfb9b94",
+  "xyz_AMZN_1h.json": "7b80cd42ffb3b1d4",
+  "xyz_AMZN_1d.json": "ac8561f67a374fc2",
+  "xyz_MSFT_5m.json": "1c561c65461b2429",
+  "xyz_MSFT_1h.json": "1edfafad5911de54",
+  "xyz_MSFT_1d.json": "53a412b9868c9702",
+  "xyz_GOLD_5m.json": "a5e0a7242aa55f73",
+  "xyz_GOLD_1h.json": "49e7f5f90787211e",
+  "xyz_GOLD_1d.json": "54f5207693636c6d",
+  "xyz_AAPL_5m.json": "0ef2d8440defcfe4",
+  "xyz_AAPL_1h.json": "7a52ea16920fd9ed",
+  "xyz_AAPL_1d.json": "35c8fb4fd57eed43",
+  "xyz_SKHX_5m.json": "457be491a3762f11",
+  "xyz_SKHX_1h.json": "da6fa9df75064c45",
+  "xyz_SKHX_1d.json": "3b1f27a8530e32f1",
+  "xyz_SKHY_5m.json": "4f979c21bb9e15f4",
+  "xyz_SKHY_1h.json": "7c368abbdf62f29a",
+  "xyz_SKHY_1d.json": "bfd3b4219b51c628",
+  "xyz_NBIS_5m.json": "ae8d932727bf386e",
+  "xyz_NBIS_1h.json": "a34f4134e5653ddb",
+  "xyz_NBIS_1d.json": "263a42199b04b738",
+  "xyz_TSLA_5m.json": "ff6630cc737459b3",
+  "xyz_TSLA_1h.json": "3761904d08c6deeb",
+  "xyz_TSLA_1d.json": "bb5afdc794032d86",
+  "xyz_DRAM_5m.json": "bfd57a76018ae375",
+  "xyz_DRAM_1h.json": "3bab1182ec48d15f",
+  "xyz_DRAM_1d.json": "86e3d3377788e1e9"
+ },
+ "tier_a_determinism_check": {
+  "A0a": {
+   "tag": "arm900_12hON_n6_s1.0_c12_brkON_flipON",
+   "n_committed_rows": 11,
+   "mismatches": []
+  },
+  "A0b": {
+   "tag": "arm3600_12hON_n6_s1.0_c12_brkON_flipON",
+   "n_committed_rows": 11,
+   "mismatches": []
+  }
+ },
+ "tier_a_determinism_pass": true,
+ "run_start_utc": "2026-08-09T04:08:35+00:00",
+ "run_end_utc": "2026-08-09T04:08:46+00:00"
+}

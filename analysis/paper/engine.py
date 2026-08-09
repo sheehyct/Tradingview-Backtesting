@@ -39,12 +39,22 @@ Deliberately not modeled (visual-only in the Pine): heads-up proximity
 chars, status table, background tint. Known fidelity deltas (anchor-time
 resolution of warm-up bars, TV-vs-HL wick variance, tick-live vs 5m-bar
 evaluation) are declared in the protocol doc, not hidden here.
+
+TVB-21 Tier B extension (docs/experiments/tvb21_tier_b_prereg.md): behind
+inert defaults, TwinConfig can swap the arm trigger for the pine-exact
+Magnitude+Targets pattern layer (analysis/paper/patterns.py), add the
+BF-proximity / chop entry vetoes, and replace the bf-touch harvest exit with
+frozen entry-snapshot target exits. entry_mode="arm" (the default) leaves
+every pre-existing code path bit-identical.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+
+from analysis.paper.patterns import USER_DICTIONARY, PatternConfig, PatternDetector
+
 
 DAY = 86400
 # timeframe.in_seconds("1M"): TV's average-month constant (30.4167 days).
@@ -303,6 +313,18 @@ class TwinConfig:
     # False keeps the twin's original bootstrap (first loaded bar adopted as
     # every period's open), which all pre-TVB-20 replays and sweeps used.
     pine_gate_warmup: bool = False
+    # --- TVB-21 Tier B pattern layer (docs/experiments/tvb21_tier_b_prereg.md).
+    # Defaults are inert: "arm" never constructs the detector and every veto/
+    # target branch is additionally guarded on non-None values.
+    entry_mode: str = "arm"  # "arm" (C1 trigger) | "pattern" (Tier B arms)
+    pattern_tf_s: int = 3600  # signal TF for the dictionary (pre-reg: 1H)
+    pattern_enabled: frozenset | None = None  # None -> patterns.USER_DICTIONARY
+    pattern_ext_targets: int = 5  # pine extTargets (ladder = this + 1 levels)
+    pattern_pmg_bars: int = 5
+    bf_prox_veto_pct: float | None = None  # 1.0 = veto within 1% of nearest alive harvest line
+    chop_veto_pct: float | None = None  # 2.0 = veto within 2% of any D/W/M gate open
+    exit_targets: int | None = None  # None = C1 exits; 1 = T1-always; 2 = rung 2 (fallback T1)
+    bf_harvest_exit: bool = True  # False in package arms: targets replace bf-touch
 
 
 @dataclass
@@ -321,6 +343,19 @@ class Twin:
     a_lo: float | None = None
     prev_ah: float | None = None
     prev_al: float | None = None
+    pattern: PatternDetector | None = None
+    tgt_px: float | None = None
+    tgt_rung: int | None = None
+    veto_counts: dict = field(
+        default_factory=lambda: {
+            "candidates": 0,
+            "no_target": 0,
+            "bf_prox": 0,
+            "chop": 0,
+            "both": 0,
+            "entries": 0,
+        }
+    )
 
     def __post_init__(self):
         if not self.pools:
@@ -337,6 +372,20 @@ class Twin:
                 )
                 for name, kf, ps in POOL_SPECS
             ]
+        if self.cfg.entry_mode == "pattern" and self.pattern is None:
+            self.pattern = PatternDetector(
+                PatternConfig(
+                    mintick=self.cfg.mintick,
+                    tf_s=self.cfg.pattern_tf_s,
+                    ext_targets=self.cfg.pattern_ext_targets,
+                    pmg_bars=self.cfg.pattern_pmg_bars,
+                    enabled=(
+                        self.cfg.pattern_enabled
+                        if self.cfg.pattern_enabled is not None
+                        else USER_DICTIONARY
+                    ),
+                )
+            )
 
     def pool(self, name: str) -> Pool:
         return next(p for p in self.pools if p.name == name)
@@ -361,6 +410,21 @@ class Twin:
         """Set the prior completed arm-TF extremes at the replay start."""
         self.prev_ah, self.prev_al = prev_ah, prev_al
 
+    def _alive_harvest_vals(self, ts: int, direction: int) -> list[float]:
+        """Alive harvest-side line values at bar-open time (TVB-21 BF-prox veto).
+
+        Long harvest side = upper lines, short = lower lines, across ALL
+        enabled pools (pre-reg ruling 6). Must be called BEFORE the pools
+        process this bar so the values reflect the bar-open alive set.
+        """
+        out: list[float] = []
+        for p in self.pools:
+            for f in p.formations:
+                side = f.up if direction == 1 else f.lo
+                if side.state == "alive":
+                    out.append(side.val(ts))
+        return out
+
     def _position_step(
         self,
         ts: int,
@@ -377,8 +441,16 @@ class Twin:
         brk_up_tf,
         gate_up: bool,
         gate_dn: bool,
+        o: float | None = None,
+        sig=None,
+        prox_vals=None,
     ) -> list[dict]:
-        """Exit race then entry, Pine order (:432-473). Mutates position."""
+        """Exit race then entry, Pine order (:432-473). Mutates position.
+
+        o/sig/prox_vals are the TVB-21 pattern-arm inputs (bar open, live
+        pattern Signal, bar-open alive harvest-line values); all None on the
+        default arm path.
+        """
         cfg = self.cfg
         events: list[dict] = []
 
@@ -400,11 +472,20 @@ class Twin:
                 }
             )
             self.pos, self.entry_px, self.entry_ts = 0, None, None
+            self.tgt_px = self.tgt_rung = None
 
-        if self.pos == -1 and xs is not None:
-            close_out("short", "bf", xs[0], xs_tf, xs[1])
-        if self.pos == 1 and xl is not None:
-            close_out("long", "bf", xl[0], xl_tf, xl[1])
+        if cfg.bf_harvest_exit:
+            if self.pos == -1 and xs is not None:
+                close_out("short", "bf", xs[0], xs_tf, xs[1])
+            if self.pos == 1 and xl is not None:
+                close_out("long", "bf", xl[0], xl_tf, xl[1])
+        elif cfg.exit_targets is not None:
+            # TVB-21 package arms: the frozen entry-snapshot target occupies
+            # the bf slot; touch exits AT the level (bf-touch convention).
+            if self.pos == 1 and self.tgt_px is not None and h >= self.tgt_px:
+                close_out("long", "tgt", self.tgt_px, None, self.tgt_rung)
+            elif self.pos == -1 and self.tgt_px is not None and l <= self.tgt_px:
+                close_out("short", "tgt", self.tgt_px, None, self.tgt_rung)
         if cfg.brk_exit and self.pos == 1 and brk_lo is not None:
             close_out("long", "brk", c, brk_lo_tf)
         if cfg.brk_exit and self.pos == -1 and brk_up is not None:
@@ -416,7 +497,13 @@ class Twin:
         exited = bool(events)
 
         if self.pos == 0 and not exited:
-            if (
+            if cfg.entry_mode == "pattern":
+                if sig is not None and (
+                    (sig.dir == 1 and cfg.allow_long and gate_up)
+                    or (sig.dir == -1 and cfg.allow_short and gate_dn)
+                ):
+                    self._pattern_entry(ts, o, sig, prox_vals, events)
+            elif (
                 cfg.allow_long
                 and gate_up
                 and self.prev_ah is not None
@@ -450,6 +537,67 @@ class Twin:
                 )
         return events
 
+    def _pattern_entry(self, ts: int, o: float, sig, prox_vals, events: list) -> None:
+        """TVB-21 pattern-arm entry: vetoes, then fill (pre-reg mechanics).
+
+        Fill = max(trigger + tick, bar open) for longs (min/- for shorts):
+        late-in-bar entries (signal persisting after a gate/veto cleared)
+        fill at the available price, a declared CONSERVATIVE bias vs the
+        controls' level fills. Gate/direction filtering happened at the call
+        site; this method owns vetoes, target freezing, and the event.
+        """
+        cfg = self.cfg
+        vc = self.veto_counts
+        vc["candidates"] += 1
+        fill = max(sig.trig + cfg.mintick, o) if sig.dir == 1 else min(sig.trig - cfg.mintick, o)
+        if cfg.exit_targets is not None and not sig.ladder:
+            # A package arm cannot satisfy its exit semantics with no target
+            # in the entry snapshot: structural skip, logged separately.
+            vc["no_target"] += 1
+            return
+        veto_prox = False
+        if cfg.bf_prox_veto_pct is not None and prox_vals:
+            lim = cfg.bf_prox_veto_pct / 100.0
+            if sig.dir == 1:
+                above = [v for v in prox_vals if v > fill]
+                veto_prox = bool(above) and (min(above) - fill) / fill <= lim
+            else:
+                below = [v for v in prox_vals if v < fill]
+                veto_prox = bool(below) and (fill - max(below)) / fill <= lim
+        veto_chop = False
+        if cfg.chop_veto_pct is not None:
+            lim = cfg.chop_veto_pct / 100.0
+            veto_chop = any(
+                v is not None and abs(fill - v) / fill <= lim for v in self.gate_open.values()
+            )
+        if veto_prox or veto_chop:
+            vc["both" if (veto_prox and veto_chop) else "bf_prox" if veto_prox else "chop"] += 1
+            return
+        vc["entries"] += 1
+        rung = None
+        if cfg.exit_targets is not None:
+            idx = min(cfg.exit_targets, len(sig.ladder)) - 1
+            self.tgt_px, self.tgt_rung = sig.ladder[idx], idx + 1
+            rung = self.tgt_rung
+        self.pos, self.entry_px, self.entry_ts = sig.dir, fill, ts
+        events.append(
+            {
+                "ts": ts,
+                "sym": cfg.symbol,
+                "action": "enter",
+                "dir": "long" if sig.dir == 1 else "short",
+                "price": fill,
+                "trig": sig.trig,
+                "pattern": sig.name,
+                "rev": sig.rev,
+                "star": sig.star,
+                "boom": sig.boom,
+                "pmg": sig.pmg,
+                "ladder": list(sig.ladder),
+                "tgt_rung": rung,
+            }
+        )
+
     def replay_bar(self, ts: int, o: float, h: float, l: float, c: float, bar_s: int = 300):
         """Phase B: one closed chart bar through the full v6 pass."""
         # gate opens (f_open :112-117), then gate state on this bar's close
@@ -470,6 +618,13 @@ class Twin:
             self.arm_key, self.a_hi, self.a_lo = ak, h, l
         else:
             self.a_hi, self.a_lo = max(self.a_hi, h), min(self.a_lo, l)
+        # TVB-21 pattern layer: detection on the developing signal-TF bar; the
+        # BF-prox veto reads the BAR-OPEN alive set, so collect it before the
+        # pools process this bar's lifecycle transitions.
+        sig = self.pattern.update(ts, o, h, l, c) if self.pattern is not None else None
+        prox_vals = None
+        if sig is not None and self.pos == 0 and self.cfg.bf_prox_veto_pct is not None:
+            prox_vals = self._alive_harvest_vals(ts, sig.dir)
         # pools see the position standing at bar start (:354-360)
         pos0, entry0 = self.pos, self.entry_px
         xs = xl = None
@@ -500,6 +655,9 @@ class Twin:
             brk_up_tf,
             gate_up,
             gate_dn,
+            o=o,
+            sig=sig,
+            prox_vals=prox_vals,
         )
         # roll the arm snapshot LAST (corrected clock, :475-478)
         if (ts + bar_s) % self.cfg.arm_tf_s == 0:
