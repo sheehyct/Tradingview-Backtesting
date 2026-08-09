@@ -1,7 +1,13 @@
 {
  "prereg": "docs/experiments/tvb21_tier_b_prereg.md",
  "label": "PRE-COMMITTED LAYER ABLATION with named contrasts",
- "git_head": "94090e9e67de2750eff12c4777b2b1f8e971a568",
+ "git_head": "40d6e7fd654c64d8484e9e0049087937a4cd3006",
+ "git_dirty": true,
+ "executed_blobs": {
+  "tier_b.py": "8714b93591276b02",
+  "engine.py": "23e8e2193185d395",
+  "patterns.py": "a30f5e2fe71cf732"
+ },
  "window": {
   "start": "2026-07-06",
   "end": "2026-08-03"
@@ -110,6 +116,6 @@
   }
  },
  "tier_a_determinism_pass": true,
- "run_start_utc": "2026-08-09T04:08:35+00:00",
- "run_end_utc": "2026-08-09T04:08:46+00:00"
+ "run_start_utc": "2026-08-09T14:51:17+00:00",
+ "run_end_utc": "2026-08-09T14:51:28+00:00"
 }
