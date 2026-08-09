@@ -121,10 +121,12 @@ pre-registered BEFORE code, built, executed, and autopsied same session.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: `f90d0c9^..` on `main` -- concrete head pinned in
-  docs/reviews/REVIEW_REQUEST.md after the session-end push (RANGE-PIN
-  RULE: caret keeps f90d0c9 in the diff; sanity-check with
-  `git diff --name-status`).
+- Commits to review: `f90d0c9^..1cd6b0c` on `main` (4 commits: f90d0c9
+  TVB-20 audit fold-in; 94090e9 Tier B pre-registration; 163323b Tier B
+  build + run + report; 1cd6b0c session-end docs. RANGE-PIN RULE: the
+  caret keeps f90d0c9 in the diff; sanity-checked -- `git diff
+  --name-status f90d0c9^..1cd6b0c` lists all 23 files the session
+  touched).
 - Scope / what changed: TVB-20 audit fold-in (4 findings); Tier B
   pre-registration; pine-exact pattern layer + engine extensions + runner;
   Tier B execution + report.

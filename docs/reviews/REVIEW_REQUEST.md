@@ -31,7 +31,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `f90d0c9^..{pending push}` (f90d0c9 TVB-20 audit fold-in; 94090e9 Tier B pre-registration; 163323b Tier B build + run + report; session-end docs commit follows; concrete head pinned after push) |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `f90d0c9^..1cd6b0c` (4 commits: f90d0c9 TVB-20 audit fold-in; 94090e9 Tier B pre-registration; 163323b Tier B build + run + report; 1cd6b0c session-end docs; sanity-checked -- `git diff --name-status f90d0c9^..1cd6b0c` lists all 23 files the session touched) |
 
 ## Read first (in this order)
 
