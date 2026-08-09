@@ -72,10 +72,14 @@
 //     qualifying line -> no veto. Chop: |fill - gate open| / fill <= 0.02
 //     for ANY of the three D/W/M period opens. 0 disables either veto.
 //   - FROZEN TARGET: the ladder is snapshotted AT ENTRY and frozen; A2 exits
-//     at rung 1, A3 at rung 2 (fallback rung 1). Touch = the bar reaches the
-//     level (high >= tgt for longs / low <= tgt for shorts). A package arm
-//     candidate with an EMPTY ladder is a structural skip (no entry). Later
-//     signals while in a position never re-target the open trade.
+//     at rung 1, A3 at rung 2 (fallback rung 1). Touch = the bar RANGE
+//     CONTAINS the level (low <= tgt <= high), fill AT the level -- the
+//     C1 bf containment convention, gap-past edge included, per the
+//     2026-08-09 prereg amendment (audit F1; one-sided reach predicates
+//     were the audited defect). A package arm candidate with an EMPTY
+//     ladder is a structural skip (no entry; vetoes still evaluated first
+//     for coherent counters, audit F2). Later signals while in a position
+//     never re-target the open trade.
 //   - EXIT RACE per bar: target (or bf in A1) -> brk -> flip; same-bar
 //     re-entry blocked. Exit comments: "Tgt <rung>" / "BF <tf> N<n>" /
 //     "Break <tf>" / "Flip".
@@ -1002,6 +1006,7 @@ else if veto_dir == -1
 // (b) the entry block is the pattern entry (vetoes -> frozen target).
 var int vc_cand = 0
 var int vc_notgt = 0
+var int vc_notgt_veto = 0
 var int vc_prox = 0
 var int vc_chop = 0
 var int vc_both = 0
@@ -1023,12 +1028,14 @@ if not use_targets
         sig_xl := true
         x_kind := 'bf'
 else
-    if pos == 1 and not na(tgt_px) and high >= tgt_px
+    // TVB-22 amendment (audit F1): touch = the bar RANGE CONTAINS the
+    // frozen level, never a one-sided reach (mirrors engine.py verbatim)
+    if pos == 1 and not na(tgt_px) and low <= tgt_px and high >= tgt_px
         pos := 0
         sig_xl := true
         x_kind := 'tgt'
         exit_rung := tgt_rung
-    else if pos == -1 and not na(tgt_px) and low <= tgt_px
+    else if pos == -1 and not na(tgt_px) and low <= tgt_px and high >= tgt_px
         pos := 0
         sig_xs := true
         x_kind := 'tgt'
@@ -1058,36 +1065,40 @@ if pos == 0 and not sig_xl and not sig_xs and sigDir != 0
     bool dir_ok = sigDir == 1 ? allow_long and gate_up : allow_short and gate_dn
     if dir_ok
         vc_cand += 1
+        // TVB-22 amendment (audit F2): vetoes evaluated for EVERY candidate
+        // BEFORE the structural no-target skip (mirrors engine.py; entry
+        // behavior unchanged, counters made coherent)
+        bool veto_prox = false
+        if use_vetoes and bf_prox_pct > 0 and not na(veto_near)
+            veto_prox := sigDir == 1 ? (veto_near - pat_fill) / pat_fill <= bf_prox_pct / 100.0 : (pat_fill - veto_near) / pat_fill <= bf_prox_pct / 100.0
+        bool veto_chop = false
+        if use_vetoes and chop_pct > 0
+            veto_chop := math.abs(pat_fill - oA) / pat_fill <= chop_pct / 100.0 or math.abs(pat_fill - oB) / pat_fill <= chop_pct / 100.0 or math.abs(pat_fill - oC) / pat_fill <= chop_pct / 100.0
+        if veto_prox and veto_chop
+            vc_both += 1
+        else if veto_prox
+            vc_prox += 1
+        else if veto_chop
+            vc_chop += 1
         if use_targets and array.size(lad) == 0
             // a package arm cannot satisfy its exit semantics with no target
             // in the entry snapshot: structural skip, logged separately
             vc_notgt += 1
-        else
-            bool veto_prox = false
-            if use_vetoes and bf_prox_pct > 0 and not na(veto_near)
-                veto_prox := sigDir == 1 ? (veto_near - pat_fill) / pat_fill <= bf_prox_pct / 100.0 : (pat_fill - veto_near) / pat_fill <= bf_prox_pct / 100.0
-            bool veto_chop = false
-            if use_vetoes and chop_pct > 0
-                veto_chop := math.abs(pat_fill - oA) / pat_fill <= chop_pct / 100.0 or math.abs(pat_fill - oB) / pat_fill <= chop_pct / 100.0 or math.abs(pat_fill - oC) / pat_fill <= chop_pct / 100.0
-            if veto_prox and veto_chop
-                vc_both += 1
-            else if veto_prox
-                vc_prox += 1
-            else if veto_chop
-                vc_chop += 1
+            if veto_prox or veto_chop
+                vc_notgt_veto += 1
+        else if not veto_prox and not veto_chop
+            vc_entries += 1
+            pos := sigDir
+            entry_px := pat_fill
+            if use_targets
+                int ti = math.min(exit_targets, array.size(lad)) - 1
+                tgt_px := array.get(lad, ti)
+                tgt_rung := ti + 1
+            e_comment := nameS + ' t=' + str.tostring(trig, format.mintick)
+            if sigDir == 1
+                sig_el := true
             else
-                vc_entries += 1
-                pos := sigDir
-                entry_px := pat_fill
-                if use_targets
-                    int ti = math.min(exit_targets, array.size(lad)) - 1
-                    tgt_px := array.get(lad, ti)
-                    tgt_rung := ti + 1
-                e_comment := nameS + ' t=' + str.tostring(trig, format.mintick)
-                if sigDir == 1
-                    sig_el := true
-                else
-                    sig_es := true
+                sig_es := true
 
 // ------------------- order emission (strategy layer ONLY) --------------------
 // The position machine above is the SOLE decision source. These calls mirror
@@ -1162,6 +1173,6 @@ if barstate.islast and show_table
     table.cell(tbl, 0, 2, s_pos + ' | ' + s_gate + (pos != 0 and use_targets and not na(tgt_px) ? ' | T' + str.tostring(tgt_rung) + ' ' + str.tostring(tgt_px, format.mintick) : ''), text_color = color.silver, text_size = size.tiny)
     table.cell(tbl, 0, 3, 'next line dn ' + (na(ctx_lo) ? '--' : str.tostring(ctx_lo, format.mintick)) + ' | up ' + (na(ctx_up) ? '--' : str.tostring(ctx_up, format.mintick)), text_color = color.silver, text_size = size.tiny)
     table.cell(tbl, 0, 4, '12h ' + str.tostring(nalA) + ' | D ' + str.tostring(nalB) + ' | W ' + str.tostring(nalC) + ' | M ' + str.tostring(nalD) + ' alive' + (evA + evB + evC + evD > 0 ? ' | evict-alive ' + str.tostring(evA + evB + evC + evD) : ''), text_color = color.silver, text_size = size.tiny)
-    table.cell(tbl, 0, 5, 'cand ' + str.tostring(vc_cand) + ' | no-tgt ' + str.tostring(vc_notgt) + ' | prox ' + str.tostring(vc_prox) + ' | chop ' + str.tostring(vc_chop) + ' | both ' + str.tostring(vc_both) + ' | in ' + str.tostring(vc_entries), text_color = color.silver, text_size = size.tiny)
+    table.cell(tbl, 0, 5, 'cand ' + str.tostring(vc_cand) + ' | no-tgt ' + str.tostring(vc_notgt) + '(' + str.tostring(vc_notgt_veto) + 'v) | prox ' + str.tostring(vc_prox) + ' | chop ' + str.tostring(vc_chop) + ' | both ' + str.tostring(vc_both) + ' | in ' + str.tostring(vc_entries), text_color = color.silver, text_size = size.tiny)
     if warn_tile
         table.cell(tbl, 0, 6, 'WARN: chart TF does not tile a pool base -- approx envelopes', text_color = color.yellow, text_size = size.tiny)
