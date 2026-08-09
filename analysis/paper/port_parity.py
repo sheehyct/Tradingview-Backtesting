@@ -26,6 +26,15 @@ The join tries offsets {0, +300, -300} seconds against the twin's bar-open
 event timestamps, picks the best on entry events, and DECLARES the choice --
 a constant offset is a reporting convention, a non-constant one is a finding.
 
+Hardened per the TVB-20 external audit F1 (returned 2026-08-08): the join is
+required to be injective and the gate fails CLOSED on malformed streams.
+Structural violations -- duplicate (ts, action, dir, kind) keys on either
+side, a direction outside {L, S}, an unrecognized exit comment, more than one
+open row or an open row that is not the final trade, or raw cardinality
+inequality (twin != tv-in-feed != matched) -- force pass=False and are listed
+in the result. The committed TVB-20 artifacts satisfy the hardened contract
+with identical counts (regression-pinned in tests/test_port_parity.py).
+
 Usage: uv run python -m analysis.paper.port_parity [GOOGL TSLA DRAM]
 Exit 0 = gate PASS on all symbols (full-span event match, break/flip exact).
 """
@@ -34,6 +43,7 @@ from __future__ import annotations
 
 import json
 import sys
+from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 from statistics import mean, median
@@ -48,6 +58,9 @@ WINDOW_START = int(datetime(2026, 7, 6, tzinfo=timezone.utc).timestamp())
 WINDOW_END = int(datetime(2026, 8, 3, tzinfo=timezone.utc).timestamp())
 
 KIND_BY_PREFIX = (("BF ", "bf"), ("Break", "brk"), ("Flip", "flip"))
+DIR_BY_TV = {"L": "long", "S": "short"}
+VALID_DIRS = frozenset(DIR_BY_TV.values())
+EXIT_KINDS = frozenset(("bf", "brk", "flip"))
 
 
 def kind_of(exit_signal: str) -> str:
@@ -55,6 +68,51 @@ def kind_of(exit_signal: str) -> str:
         if exit_signal.startswith(prefix):
             return kind
     raise ValueError(f"unrecognized exit comment: {exit_signal!r}")
+
+
+def key(e: dict) -> tuple:
+    return (e["ts"], e["action"], e["dir"], e["kind"] if e["action"] == "exit" else "entry")
+
+
+def validate_trades(trades: list[dict]) -> list[str]:
+    """Contract checks that must hold BEFORE the trade list is parsed into events."""
+    problems = []
+    for i, tr in enumerate(trades):
+        if tr.get("direction") not in DIR_BY_TV:
+            problems.append(
+                f"trades[{i}] (index {tr.get('index')}): direction "
+                f"{tr.get('direction')!r} not in {sorted(DIR_BY_TV)}"
+            )
+        sig = tr.get("exit_signal") or ""
+        if sig:
+            try:
+                kind_of(sig)
+            except ValueError as exc:
+                problems.append(f"trades[{i}] (index {tr.get('index')}): {exc}")
+    open_rows = [i for i, tr in enumerate(trades) if not (tr.get("exit_signal") or "")]
+    if len(open_rows) > 1:
+        problems.append(
+            f"{len(open_rows)} open rows (empty exit_signal) at {open_rows}; at most one is allowed"
+        )
+    if open_rows and open_rows[-1] != len(trades) - 1:
+        problems.append(f"open row at {open_rows[-1]} is not the final trade row")
+    return problems
+
+
+def validate_events(evs: list[dict], side: str) -> list[str]:
+    """Per-stream checks: enum validity and key multiplicity (injective-join precondition)."""
+    problems = []
+    for e in evs:
+        if e["action"] not in ("enter", "exit"):
+            problems.append(f"{side}: invalid action {e['action']!r} at ts {e['ts']}")
+        elif e["action"] == "exit" and e["kind"] not in EXIT_KINDS:
+            problems.append(f"{side}: invalid exit kind {e['kind']!r} at ts {e['ts']}")
+        if e["dir"] not in VALID_DIRS:
+            problems.append(f"{side}: invalid dir {e['dir']!r} at ts {e['ts']}")
+    for k, n in sorted(Counter(map(key, evs)).items()):
+        if n > 1:
+            problems.append(f"{side}: duplicate event key {k} (x{n})")
+    return problems
 
 
 def twin_events(coin: str, first_bar_ts: int, mintick: float):
@@ -73,7 +131,7 @@ def twin_events(coin: str, first_bar_ts: int, mintick: float):
 def tv_events(trades: list[dict]):
     evs = []
     for tr in trades:
-        d = "long" if tr["direction"] == "L" else "short"
+        d = DIR_BY_TV[tr["direction"]]  # validate_trades() runs first; KeyError = caller bug
         evs.append(
             {
                 "ts": int(tr["entry_time"] // 1000),
@@ -108,12 +166,21 @@ def pick_offset(tv_entries, twin_entry_ts):
     return best, scores
 
 
-def compare(coin: str) -> dict:
-    port = json.loads((PORT / f"tvb20_{coin}_trades.json").read_text())
+def gate(coin: str, tw_evs, feed_end: int, closes: dict, n_bars: int, port: dict) -> dict:
+    """Join + validation layer, artifact-free for testability.
+
+    compare() wires the committed artifacts in; tests feed synthetic streams.
+    """
     mintick = port["chart"]["mintick"]
     first_bar_ts = port["chart"]["first_bar_ts"]
-    tw_evs, feed_end, closes, n_bars = twin_events(coin, first_bar_ts, mintick)
+    violations = validate_trades(port["trades"])
+    if violations:
+        # The trade list cannot be parsed under the contract: fail closed
+        # without a join rather than aliasing malformed rows into events.
+        return {"coin": coin, "structural_violations": violations, "pass": False}
     tv_evs = tv_events(port["trades"])
+    violations += validate_events(tw_evs, "twin")
+    violations += validate_events(tv_evs, "tv")
 
     twin_entry_ts = {e["ts"] for e in tw_evs if e["action"] == "enter"}
     offset, offset_scores = pick_offset(
@@ -123,14 +190,19 @@ def compare(coin: str) -> dict:
     in_feed = [dict(e, ts=e["ts"] + offset) for e in tv_evs if e["ts"] + offset <= feed_end]
     beyond_feed = [e for e in tv_evs if e["ts"] + offset > feed_end]
 
-    def key(e):
-        return (e["ts"], e["action"], e["dir"], e["kind"] if e["action"] == "exit" else "entry")
-
+    # Duplicate keys were rejected above, so these maps are injective and the
+    # set algebra below is a true one-to-one join.
     twin_by_key = {key(e): e for e in tw_evs}
     tv_by_key = {key(e): e for e in in_feed}
     matched = sorted(set(twin_by_key) & set(tv_by_key))
     twin_only = sorted(set(twin_by_key) - set(tv_by_key))
     tv_only = sorted(set(tv_by_key) - set(twin_by_key))
+
+    if not (len(tw_evs) == len(in_feed) == len(matched)):
+        violations.append(
+            f"cardinality: twin {len(tw_evs)} / tv_in_feed {len(in_feed)} / "
+            f"matched {len(matched)} must all be equal for PASS"
+        )
 
     # price layer on matched events
     exact_kinds = {"brk", "flip"}
@@ -196,9 +268,18 @@ def compare(coin: str) -> dict:
             "median_abs": median(abs_res) if abs_res else None,
             "max_abs": max(abs_res) if abs_res else None,
         },
-        "pass": not twin_only and not tv_only and not exact_bad,
+        "structural_violations": violations,
+        "pass": not twin_only and not tv_only and not exact_bad and not violations,
     }
     return result
+
+
+def compare(coin: str) -> dict:
+    port = json.loads((PORT / f"tvb20_{coin}_trades.json").read_text())
+    tw_evs, feed_end, closes, n_bars = twin_events(
+        coin, port["chart"]["first_bar_ts"], port["chart"]["mintick"]
+    )
+    return gate(coin, tw_evs, feed_end, closes, n_bars, port)
 
 
 def main(argv: list[str]) -> int:
@@ -210,18 +291,23 @@ def main(argv: list[str]) -> int:
         results.append(r)
         all_pass &= r["pass"]
         status = "PASS" if r["pass"] else "MISMATCH"
-        print(
-            f"{coin}: {status} -- {r['matched']} events matched over {r['bars_replayed']} bars "
-            f"(twin_only {len(r['twin_only'])}, tv_only {len(r['tv_only'])}, "
-            f"offset {r['ts_offset_applied_s']}s, beyond_feed {r['tv_events_beyond_feed']}); "
-            f"break/flip max |dp| {r['price_exact_layer']['max_abs_delta']:.6g}; "
-            f"entry+bf residual median |dp| "
-            f"{r['declared_residual_layer']['median_abs'] if r['declared_residual_layer']['median_abs'] is not None else float('nan'):.6g}"
-        )
-        for k in r["twin_only"]:
-            print(f"  twin-only: {k['iso']} {k['action']} {k['dir']} {k['kind']}")
-        for k in r["tv_only"]:
-            print(f"  tv-only:   {k['iso']} {k['action']} {k['dir']} {k['kind']}")
+        if "matched" not in r:
+            print(f"{coin}: {status} -- structural contract violations, join skipped")
+        else:
+            print(
+                f"{coin}: {status} -- {r['matched']} events matched over {r['bars_replayed']} bars "
+                f"(twin_only {len(r['twin_only'])}, tv_only {len(r['tv_only'])}, "
+                f"offset {r['ts_offset_applied_s']}s, beyond_feed {r['tv_events_beyond_feed']}); "
+                f"break/flip max |dp| {r['price_exact_layer']['max_abs_delta']:.6g}; "
+                f"entry+bf residual median |dp| "
+                f"{r['declared_residual_layer']['median_abs'] if r['declared_residual_layer']['median_abs'] is not None else float('nan'):.6g}"
+            )
+            for k in r["twin_only"]:
+                print(f"  twin-only: {k['iso']} {k['action']} {k['dir']} {k['kind']}")
+            for k in r["tv_only"]:
+                print(f"  tv-only:   {k['iso']} {k['action']} {k['dir']} {k['kind']}")
+        for p in r.get("structural_violations", []):
+            print(f"  violation: {p}")
     out = PORT / "tvb20_parity_result.json"
     out.write_text(
         json.dumps(

@@ -72,6 +72,21 @@ The one structural hypothesis worth ablation-testing (see §5): **compression-th
 > forbidden; labeled deliberate-overfit censuses of the pattern space are ceiling-mapping,
 > never promotion. Seed: `docs/experiments/tvb20_design_session_seed.md`.
 
+> **Amendment 2026-08-08 (TVB-20 external audit F3 fold-in, TVB-21): the contrast ladder is
+> named**, so every conclusion attaches to the contrast that isolates it: **C0** = the Section
+> 5 minimal continuity-only baseline (trigger + TFO gate + state-stop -- the whole minimal
+> strategy; "continuity-only" never means entry-features-only); **C1** = C0 + the BF-exit
+> layer (v6.1 semantics; the mounted CONTROL strategy() is C1, the operational control);
+> **C2** = C1 + the full Magnitude+Targets package (setup dictionary + trigger semantics +
+> target ladder + position-health/chop logic + BF-proximity veto). Each layer earns its place
+> by beating the control directly below it (C1 vs C0, C2 vs C1). The preceding amendment's
+> "if it wins, 3.1 is revised on evidence" is qualified: because C2 changes exit and veto
+> mechanics together with the pattern dictionary, a C2-vs-C1 result adjudicates the PACKAGE
+> only; revising the 3.1 thesis itself requires a contrast that isolates the pattern block
+> with non-pattern mechanics held fixed (e.g. a pattern-gate-only arm over C1), otherwise the
+> conclusion stays constrained to the composite. Which contrasts actually run is a
+> design-session pre-registration decision.
+
 ### 3.2 The TFO is the gate; the timeframe set is the most important knob
 
 The TFO indicator **collapses whatever timeframe set you feed it into a single up / down / neutral state.** Consequences:
@@ -148,6 +163,9 @@ If A/B don't beat baseline → the hypothesis is confirmed, patterns were redund
 > Magnitude+Targets LAYER BLOCK (see the 3.1 amendment) -- one additional pre-committed
 > variant in the same baseline-vs-variant shape, not a reopening of the menu. "Keep at most
 > one thing" is superseded for that block only; the per-pattern menu stays closed.
+> Clarified same day (audit F3 fold-in): the block's control in the ladder is C1 (the
+> BF-exit layer), per the 3.1 contrast amendment; the bare baseline defined in item 1 above
+> is C0.
 
 ---
 

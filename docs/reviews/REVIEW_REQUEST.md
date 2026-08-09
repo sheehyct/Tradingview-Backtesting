@@ -10,8 +10,11 @@
 
 ## Status
 
-- Status: REQUESTED
+- Status: RETURNED (audit file written)
   <!-- REQUESTED | RETURNED (audit file written) -->
+- Returned: 2026-08-08 -- verdict NEEDS-CHANGES (3 MEDIUM + 1 LOW);
+  ADDRESSED by TVB-21 same day (all four findings reproduced before
+  adjudication; critical synthesis in the docs/HANDOFF.md TVB-20 block)
 - Session under review: TVB-20 -- audit fold-ins (TVB-18 + TVB-19, every
   finding reproduced before adjudication), the layering-arc alignment
   (design-session seed + charter S3.1/S5 amendments + the CLAUDE.md

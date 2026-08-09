@@ -41,6 +41,17 @@ the depth numbers above describe the committed inventory, not a
 verified venue floor. Re-harvests now fail unless every dataset lands
 with a clean floor state, and the summary merges by (coin, interval).
 
+Summary provenance fields (TVB-20 audit F2, 2026-08-08): the harvester
+now writes `run_complete` (this run's requested subset landed) SEPARATE
+from `inventory_complete` (every canonical roster x interval row
+present, error-free, and carrying the fail-closed floor receipt
+`history.state == "floor"`). The committed 2026-08-05 summary predates
+both fields and none of its 33 rows carries a floor receipt, so any
+post-fix rerun reports `inventory_complete: false` until the full
+inventory is re-harvested fail-closed -- that flag being false is the
+honest state, not an error. Unknown or empty `TVB19_COINS` selectors
+now fail before anything runs.
+
 Symbol-name trap: HL `xyz:SKHX` is listed on TV as
 `HIP3XYZ:SKHYNIXUSDC.P` (files here use the TV coin string SKHYNIX).
 TV symbol search does NOT index HIP3XYZ at all -- found by direct chart

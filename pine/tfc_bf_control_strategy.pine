@@ -1,11 +1,20 @@
 //@version=6
 // =============================================================================
 // TFC-BF CONTROL strategy [TVB-20] -- the v6.1 watch indicator forked into a
-// strategy() BACKTEST VEHICLE. ZERO SEMANTIC CHANGE: the v6.1 detection /
-// pool lifecycle / gates / position machine below are verbatim; the only
-// additions are this header, the strategy() declaration, and the
+// strategy() BACKTEST VEHICLE. ZERO HISTORICAL SOURCE-LOGIC CHANGE: the v6.1
+// detection / pool lifecycle / gates / position machine below are verbatim;
+// the only additions are this header, the strategy() declaration, and the
 // order-emission block at the bottom, which MIRRORS the internal position
 // machine. Decisions never read strategy.position_size.
+//
+// SCOPE OF THE PARITY CLAIM (qualified 2026-08-08, TVB-20 audit F4): full
+// decision-EVENT parity with the Python twin on HISTORICAL bars under the
+// close-only convention. NOT a realtime-cadence claim: with
+// calc_on_every_tick=false a strategy() evaluates the realtime bar once at
+// its closing tick, while the v6.1 indicator executes on realtime updates
+// intrabar. Realtime alert timing is intentionally NOT parity-tested. Do not
+// "repair" this by enabling calc_on_every_tick -- that is a different
+// research contract (and a live/historical repaint surface), not a fix.
 //
 // PINNED CONVENTIONS (TVB-20 parity contract, user-approved 2026-08-08):
 //   - Fill model: DECISION-EXACT. Market orders emitted on the signal bar,
@@ -19,7 +28,9 @@
 //   - The live surface stays pine/tfc_bf_watch.pine v6.1 (untouched).
 //   - NOT a deployment claim: research CONTROL for A/B exit-design work.
 //   - The v6.1 header below is preserved as logic documentation; its
-//     "ORDER-FREE indicator" line describes the SOURCE script, not this fork.
+//     "ORDER-FREE indicator" line and its intrabar entry/touch wording
+//     describe the SOURCE script's live surface, not this fork's bar-close
+//     research convention (see SCOPE above).
 // =============================================================================
 // TFC Entry + BF Exit [TVB-14] -- tier-1 live watch surface, v6.
 // ORDER-FREE indicator: paints entries/exits and fires alerts; never trades.

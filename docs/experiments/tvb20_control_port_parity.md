@@ -1,14 +1,18 @@
 # TVB-20: v6.1 CONTROL strategy() Port + Parity Gate -- PASS
 
 2026-08-08. The deployed v6.1 watch indicator (`pine/tfc_bf_watch.pine`) was
-forked into a TradingView `strategy()` backtest vehicle with zero semantic
-change, mounted on the TVB18-parity scratch layout, and parity-gated against
-the Python twin over TV-harvested 5m bars. **The gate PASSED on all three
+forked into a TradingView `strategy()` backtest vehicle with zero HISTORICAL
+source-logic change (claim qualified same day per external audit F4:
+decision-event parity under the close-only convention, NOT realtime cadence
+-- see the consequences list below), mounted on the TVB18-parity scratch
+layout, and parity-gated against the Python twin over TV-harvested 5m bars. **The gate PASSED on all three
 parity symbols: every event matched on (bar, direction, kind) over the full
 ~20,500-bar feed, and break/flip exit prices are float-exact.** This strategy
-is the CONTROL arm for the exit-design and Magnitude+Targets ablations. It is
-a research instrument, not a deployment claim; the live surface remains the
-v6.1 indicator, untouched.
+is C1 in the contrast ladder (continuity entries + BF exits; charter S3.1
+amendments 2026-08-08): the operational control for the exit-design and
+Magnitude+Targets ablations. The charter's minimal continuity-only baseline
+(C0) is a distinct object. It is a research instrument, not a deployment
+claim; the live surface remains the v6.1 indicator, untouched.
 
 ## The object
 
@@ -47,6 +51,14 @@ Consequences of decision-exact, for every later reader:
   cross-engine P&L claims must use twin prices.
 - TV trade times are the SIGNAL bar's open timestamp (offset search chose 0s
   against the twin's bar-open convention on every symbol).
+- REALTIME cadence is OUT OF SCOPE (audit F4, 2026-08-08): with
+  calc_on_every_tick=false the strategy evaluates the realtime bar once at
+  its closing tick, where the v6.1 indicator executes on realtime updates
+  intrabar (TradingView declaration-statement semantics). On historical bars
+  both sides evaluate completed bars, so historical decision parity is
+  unaffected; realtime alert timing is intentionally not parity-tested, and
+  the calc flag stays false -- changing it would be a different research
+  contract plus a live/historical repaint surface, not a repair.
 
 ## Parity method
 

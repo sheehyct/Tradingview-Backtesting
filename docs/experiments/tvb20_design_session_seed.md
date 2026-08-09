@@ -27,6 +27,27 @@ Sequencing confirmed by the user: control strategy() port + parity gate FIRST (t
 measuring stick), then ONE design session covering exit redesign + Magnitude+Targets
 layering together, then Tier B pre-registration.
 
+## Contrast identification (TVB-20 audit F3 fold-in, 2026-08-08)
+
+The audit's design-relevant finding: "tested against the continuity-only control"
+was ambiguous across the charter amendment, this seed, and the parity record.
+Pinned here BEFORE the design session (full text: charter S3.1 second amendment):
+
+- C0 = the charter S5 minimal baseline: trigger + TFO gate + state-stop. The whole
+  minimal strategy -- "continuity-only" never means entry-features-only.
+- C1 = C0 + the BF-exit layer = v6.1 semantics. The mounted CONTROL strategy() is
+  C1: the operational control for exit-design variants and for the M+T ablation.
+- C2 = C1 + the Magnitude+Targets package (setup dictionary + trigger semantics +
+  target ladder + position-health/chop logic + BF-proximity veto).
+
+Each layer must beat the control directly below it. A C2-vs-C1 result adjudicates
+the PACKAGE, not charter S3.1: the package co-mingles exit and veto changes with
+the pattern dictionary, so revising 3.1 requires a contrast that isolates the
+pattern block with non-pattern mechanics held fixed (e.g. a pattern-gate-only arm
+over C1), otherwise the conclusion stays constrained to the composite. Which
+contrasts actually run -- including whether a held-exit pattern-only arm exists --
+is a design-session pre-registration output, not a default.
+
 ## Point 1 -- Pattern dictionary (a-priori, not swept)
 
 - The user will supply the list of setups they actually trade live; that fixed list

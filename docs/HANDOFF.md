@@ -130,7 +130,15 @@ mounted, and parity-gated PASS (full-span, three symbols, zero mismatches).
 > below) and write a verbatim assessment to docs/reviews/tvb20-codex-audit.md.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: REQUESTED
+- Review status: ADDRESSED (returned 2026-08-08, NEEDS-CHANGES, 3 MEDIUM +
+  1 LOW; all four findings independently REPRODUCED by TVB-21 before
+  adjudication, fixes landed same day). Synthesis: the audit VALIDATED the
+  headline before critiquing the tooling -- it independently reconstructed
+  the 89/67/87 parity result, regenerated all 9,504 sweep rows + 864 rollups
+  bit-exact under the default-off warm-up flag, reproduced both fold-ins,
+  and confirmed frozen week-1 artifacts, the 4-hunk Pine diff, and zero
+  lookahead. The PASS stands; the findings future-proof the instruments.
+  Nothing disputed materially.
 - Commits to review: `bef6dae^..fffbacb` on `main` (5 commits: bef6dae,
   9f11a74, bbdb10b, 2d1f25b, fffbacb; RANGE-PIN RULE: the caret keeps
   bef6dae itself in the diff; sanity-checked -- `git diff --name-status
@@ -149,8 +157,63 @@ mounted, and parity-gated PASS (full-span, three symbols, zero mismatches).
   decision-exact residual accounting -- no hidden P&L claim anywhere; (5)
   no frozen week-1 artifact modified in the range; (6) request.security:
   the new .pine must add none (it forks v6.1 verbatim -- verify).
-- Reviewed by: pending
-- Findings: (blank until docs/reviews/tvb20-codex-audit.md exists)
+- Reviewed by: local Codex CLI (GPT-5), returned 2026-08-08, via
+  /session-review
+- Findings (all CONFIRMED by TVB-21 reproduction; verbatim in
+  docs/reviews/tvb20-codex-audit.md):
+  - F1 MEDIUM, parity gate not multiplicity-safe: REPRODUCED on the committed
+    GOOGL artifact -- a duplicated closed-trade row false-PASSed with
+    tv_events_in_feed 91 vs matched 89 (dict-comprehension collapse), and a
+    corrupted direction 's' silently aliased to short and PASSed. FIXED:
+    injective join enforced in analysis/paper/port_parity.py -- fail-closed
+    validate_trades (direction enum, exit-comment parse, at-most-one FINAL
+    open row) runs before parsing; validate_events rejects duplicate
+    (ts,action,dir,kind) keys + bad enums on BOTH streams; PASS now also
+    requires twin == tv_in_feed == matched cardinality; gate() extracted
+    artifact-free so the false-pass fixtures are permanent (8 new tests,
+    including the committed-GOOGL 89/89/89 pin). The committed
+    tvb20_parity_result.json is NOT regenerated -- its values are unchanged
+    and the hardened gate is test-pinned against it. Matters forward: M+T
+    multi-target variants are exactly the streams that can emit same-key
+    events legitimately, so the key schema must widen when they arrive.
+  - F2 MEDIUM, harvester can stamp complete over legacy inventory:
+    REPRODUCED in scratch on a copy of the committed summary --
+    TVB19_COINS=BOGUS gave zero targets, zero failures, exit 0, and REWROTE
+    the summary with complete:true over 33 legacy rows carrying ZERO floor
+    receipts (the committed 2026-08-05 file has no complete field at all; a
+    rerun would ADD the false receipt). FIXED in scripts/tvb19_harvest.mjs:
+    unknown/empty selectors exit 1 before anything runs; summary now splits
+    run_complete (this run's subset) from inventory_complete (all 33
+    canonical rows error-free with history.state=='floor'). Verified: bogus
+    selector exits 1 leaving the file byte-untouched; a simulated successful
+    GOOGL-only rerun yields run_complete true / inventory_complete false
+    (1/33 receipted). tv_deep README documents the split; committed
+    dumps/summary untouched.
+  - F3 MEDIUM, layering contrast not identified: CONFIRMED by reading the
+    three records side by side (charter amendment said "continuity-only
+    control"; seed + parity record named v6.1 = layers 1+2). FIXED in docs
+    BEFORE the design session: charter S3.1 second amendment names the
+    ladder C0 (S5 minimal continuity-only, whole-strategy sense) / C1
+    (C0 + BF exits = v6.1 = the mounted CONTROL) / C2 (C1 + M+T package) and
+    qualifies the "if it wins, 3.1 is revised" inference -- a C2-vs-C1
+    result adjudicates the PACKAGE; revising 3.1 itself requires a
+    pattern-isolating contrast (non-pattern mechanics held fixed) or the
+    conclusion stays composite-constrained. S5 amendment, CLAUDE.md bullet,
+    seed doc, and parity doc now name the same ladder. Which contrasts run
+    (incl. any held-exit pattern-only arm) is deliberately left to the
+    design-session pre-registration.
+  - F4 LOW, ZERO-SEMANTIC-CHANGE overstated: CONFIRMED (with
+    calc_on_every_tick=false a strategy evaluates the realtime bar at its
+    closing tick; the indicator ticks intrabar; historical bars identical).
+    FIXED as wording only: .pine contract header now claims ZERO HISTORICAL
+    SOURCE-LOGIC CHANGE with an explicit SCOPE block (realtime cadence out
+    of scope, intentionally not parity-tested, calc flag stays false);
+    parity doc intro + a consequences bullet mirror it; CLAUDE.md 2U-timing
+    bullet carries the declared-exception parenthetical. The 4-hunk diff
+    claim re-verified AFTER the edit (the qualification lives inside the
+    inserted header hunk). The TV-side script now trails the local source by
+    this comment block only -- sync at the next TV session; comments do not
+    change compiled behavior.
 
 ---
 

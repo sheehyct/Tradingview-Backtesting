@@ -52,7 +52,9 @@ Mechanics where a reasonable default is wrong:
   with ONE alert; never split the logic into TradingView's multi-condition alert UI.
 - **A bar is a 2U the instant price trades through the prior high** -- same instant as trigger and
   entry, not at close. Trigger off the raw level cross (`high > high[1]`), NOT a painted
-  bar-shape series, and evaluate once-per-bar, never once-per-bar-CLOSE.
+  bar-shape series, and evaluate once-per-bar, never once-per-bar-CLOSE. (Declared exception:
+  the TVB-20 CONTROL strategy() evaluates at bar close by research convention -- historical
+  decision parity only, never a live-cadence claim.)
 - **The equity/RTH orthodoxy does not transfer.** 24/7 perps: the day rolls 00:00 UTC, no bell,
   no gap, no closing auction. Importing Alpaca/RTH/weekend-filter priors is itself an unexamined
   prior. Never synthetic or mock OHLCV.
@@ -60,10 +62,13 @@ Mechanics where a reasonable default is wrong:
   after-hours structure differ.
 - **Ablation, not tournament.** Pattern-world features enter as PRE-COMMITTED blocks chosen
   a-priori by the user (e.g. the Magnitude+Targets setup dictionary -- the TVB-20 layering arc)
-  and must beat the continuity-only control to earn a place. Ranking individual patterns or
-  timeframes on sample performance and promoting the winner remains the forbidden move; labeled
-  overfit censuses are ceiling-mapping, never promotion. (Reworded from "No pattern tournament"
-  2026-08-08; charter S3.1/S5 annotated same day.)
+  and must beat the control directly below them in the named ladder (C0 continuity-only ->
+  C1 +BF exits -> C2 +M+T package; charter S3.1 amendments) to earn a place. A composite-
+  package result adjudicates the package, never the pattern thesis alone. Ranking individual
+  patterns or timeframes on sample performance and promoting the winner remains the forbidden
+  move; labeled overfit censuses are ceiling-mapping, never promotion. (Reworded from "No
+  pattern tournament" 2026-08-08; charter S3.1/S5 annotated same day + audit-F3 contrast
+  ladder 2026-08-08.)
 - **Timeframe sets are chosen a-priori and NOT tuned on the sample.** Picking "W/D/12h vs M/W/D"
   by performance is overfitting with fewer knobs.
 - Research only -- no broker is attached to TradingView; `replay_trade` is simulation by

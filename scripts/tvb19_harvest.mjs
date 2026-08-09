@@ -8,7 +8,13 @@
 // The dumped series ends on TV's ACTIVE bar: the last row may still be forming.
 // Consumers must drop or close-gate the final row (declared in tv_deep/README.md).
 // A run FAILS (exit 1) unless every requested dataset lands with a clean floor;
-// the summary merges by (coin, interval) so partial re-harvests never erase rows.
+// unknown or empty TVB19_COINS selectors fail before anything runs. The summary
+// merges by (coin, interval) so partial re-harvests never erase rows, and it
+// separates run_complete (this run's requested subset only) from
+// inventory_complete (every canonical roster x interval row present,
+// error-free, and carrying the fail-closed floor receipt history.state ===
+// 'floor') -- TVB-20 audit F2: a partial rerun over legacy fail-open rows must
+// never certify the whole inventory.
 // Usage: node scripts/tvb19_harvest.mjs [outDir]  (default analysis/reference/tv_deep)
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { evaluate, disconnect } from 'file:///C:/Strat_Trading_Bot/tradingview-mcp-jackson/src/connection.js';
@@ -38,6 +44,21 @@ const CHART = 'window.TradingViewApi._activeChartWidgetWV.value()';
 const MS = `${CHART}._chartWidget.model().model().mainSeries()`;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const log = (o) => console.log(JSON.stringify({ t: new Date().toISOString(), ...o }));
+
+// Selector guard (TVB-20 audit F2): an unknown coin in TVB19_COINS used to
+// yield zero targets, zero failures, a rewritten summary, and exit 0.
+if (ONLY) {
+  const known = new Set(SYMBOL_MAP.map((s) => s.coin));
+  const unknown = [...ONLY].filter((c) => !known.has(c));
+  if (unknown.length) {
+    log({ ev: 'bad_selector', unknown, known: [...known] });
+    process.exit(1);
+  }
+}
+if (!TARGETS.length) {
+  log({ ev: 'empty_selector' });
+  process.exit(1);
+}
 
 async function poll(exprCheck, timeoutMs, label) {
   const t0 = Date.now();
@@ -183,18 +204,39 @@ try {
   // Merge by (coin, iv) into any existing summary so a partial rerun updates its
   // own rows without erasing the rest of the inventory.
   const sumPath = `${OUT_DIR}/tvb19_harvest_summary.json`;
+  const rowKey = (r) => `${r.coin}|${r.iv || ''}`;
   let merged = summary;
   if (existsSync(sumPath)) {
     const prior = JSON.parse(readFileSync(sumPath, 'utf8')).datasets || [];
-    const key = (r) => `${r.coin}|${r.iv || ''}`;
-    const fresh = new Map(summary.map((r) => [key(r), r]));
-    merged = prior.map((r) => fresh.get(key(r)) || r);
-    for (const r of summary) if (!prior.some((p) => key(p) === key(r))) merged.push(r);
+    const fresh = new Map(summary.map((r) => [rowKey(r), r]));
+    merged = prior.map((r) => fresh.get(rowKey(r)) || r);
+    for (const r of summary) if (!prior.some((p) => rowKey(p) === rowKey(r))) merged.push(r);
   }
+  // Provenance split (TVB-20 audit F2): run_complete certifies only THIS run's
+  // requested subset; inventory_complete certifies the canonical roster x
+  // interval inventory, and a row only counts when it landed error-free under
+  // the fail-closed path (history.state === 'floor'). Legacy 2026-08-05 rows
+  // predate floor receipts, so inventory_complete stays false until every
+  // canonical dataset is re-harvested fail-closed.
+  const byKey = new Map(merged.map((r) => [rowKey(r), r]));
+  const canonical = SYMBOL_MAP.flatMap((s) => INTERVALS.map((iv) => `${s.coin}|${iv}`));
+  const inventory_complete = canonical.every((k) => {
+    const r = byKey.get(k);
+    return !!r && !r.error && !!r.history && r.history.state === 'floor';
+  });
   writeFileSync(sumPath, JSON.stringify(
-    { generated_utc: new Date().toISOString(), complete: failures === 0, datasets: merged },
+    {
+      generated_utc: new Date().toISOString(),
+      run_targets: TARGETS.map((s) => s.coin),
+      run_intervals: INTERVALS,
+      run_failures: failures,
+      run_complete: failures === 0,
+      inventory_complete,
+      inventory_canonical: canonical.length,
+      datasets: merged,
+    },
     null, 1));
-  log({ ev: 'done', datasets: summary.length, failures });
+  log({ ev: 'done', datasets: summary.length, failures, inventory_complete });
   if (failures > 0) process.exitCode = 1;
 } finally {
   await disconnect();
