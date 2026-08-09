@@ -321,7 +321,15 @@ def _rollup_arm(arm: dict, sym_results: list[dict]) -> dict:
         }
     veto = {
         k: sum(r["veto_counts"][k] for r in recs)
-        for k in ("candidates", "no_target", "bf_prox", "chop", "both", "entries")
+        for k in (
+            "candidates",
+            "no_target",
+            "no_target_vetoed",
+            "bf_prox",
+            "chop",
+            "both",
+            "entries",
+        )
     }
     census: dict[str, dict] = {}
     for r in recs:
