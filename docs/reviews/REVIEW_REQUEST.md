@@ -10,7 +10,13 @@
 
 ## Status
 
-- Status: REQUESTED
+- Status: RETURNED (2026-08-09, audit at docs/reviews/tvb21-codex-audit.md;
+  NEEDS-CHANGES -- F1 HIGH reproduced to the decimal in TVB-22: one-sided
+  target-exit predicates book fills outside the exit bar for born-beyond
+  trades; containment sensitivity flips A2/A3 to +24.6/+31.0pp; package
+  verdict + churn magnitude + tail metrics INVALID pending user-ruled
+  semantics amendment + rerun. F2/F3/F4 LOW all confirmed. A1/S3.1 and
+  both controls unaffected. Synthesis in docs/HANDOFF.md TVB-21 block.)
   <!-- REQUESTED | RETURNED (audit file written) -->
 - Session under review: TVB-21 -- TVB-20 audit fold-in (all four findings
   reproduced before adjudication: parity-gate injective-join hardening,

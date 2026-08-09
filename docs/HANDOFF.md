@@ -121,7 +121,9 @@ pre-registered BEFORE code, built, executed, and autopsied same session.
 > below) and write a verbatim assessment to docs/reviews/tvb21-codex-audit.md.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: REQUESTED
+- Review status: RETURNED (2026-08-09; NEEDS-CHANGES; folded in by TVB-22
+  same day -- all four findings independently reproduced before
+  adjudication; synthesis below)
 - Commits to review: `f90d0c9^..1cd6b0c` on `main` (4 commits: f90d0c9
   TVB-20 audit fold-in; 94090e9 Tier B pre-registration; 163323b Tier B
   build + run + report; 1cd6b0c session-end docs. RANGE-PIN RULE: the
@@ -146,8 +148,52 @@ pre-registered BEFORE code, built, executed, and autopsied same session.
   contrast-language discipline (S3.1 wording constrained to A1-vs-A0b, no
   promotion anywhere); (7) request.security: no executable Pine changed
   (control header comments only) -- confirm.
-- Reviewed by: pending
-- Findings: (blank until docs/reviews/tvb21-codex-audit.md exists)
+- Reviewed by: OpenAI Codex (GPT-5), verdict NEEDS-CHANGES
+- Findings + CRITICAL SYNTHESIS (TVB-22 fold-in, 2026-08-09; every number
+  below independently reproduced from committed runner + bars before
+  adjudication):
+  - F1 HIGH -- AGREE, CONFIRMED TO THE DECIMAL. The Tier B target exit
+    uses one-sided predicates (long `h >= tgt` / short `l <= tgt`,
+    engine.py:485-488) instead of the pre-registered "5m bar range reaches
+    the level" containment. For trades BORN BEYOND their frozen target the
+    predicate is true on bars wholly past the level, so the engine books a
+    fill AT a price the exit bar never traded. Reproduced: A2 208/410
+    target exits outside their exit bar; the 244 born-beyond trades split
+    188 impossible-fill exits = -278.3pp vs 55 contained exits = -29.0pp.
+    A3: 102/255 outside; 97 = -146.2pp vs 61 = -8.7pp. Requiring
+    containment (all else unchanged) flips A2/A3 combined from
+    -222.0/-127.5pp to +24.6/+31.0pp. CONSEQUENCE: the TVB-21 package
+    verdict, the churn-loss MAGNITUDE attribution, candidate counts, and
+    the package-arm MAE-tail metrics are INVALID pending a semantics
+    ruling + rerun. What survives: the born-beyond re-entry MECHANISM is
+    real (contained born-beyond exits are still structural losses, just
+    small); both A0 controls; the A1-vs-A0b S3.1 contrast (negative for
+    patterns) -- none touch the target branch. The audit's containment
+    sensitivity is a DIAGNOSTIC, not a result: the contract for a target
+    already marketable at entry (and the no-target skip, F2) must be
+    pre-registered as a dated amendment BEFORE the A2/A3 rerun -- that is
+    a user ruling, queued in TVB-22. The TVB-22 TV port (056f47b) mirrors
+    the as-built predicates verbatim by design; it inherits the same fix
+    once ruled, before its parity gate is meaningful.
+  - F2 LOW -- AGREE. The no-target structural skip was a post-declaration
+    choice never written into the prereg as a dated amendment, and it
+    makes veto-rate denominators ambiguous (131 skipped signals counted
+    as candidates but never veto-evaluated). Fold into the same amendment.
+  - F3 LOW -- AGREE, REPRODUCED from committed rows: the report's plain
+    3-2 census (182 / -163.0pp / 33%) is the ALL-11 scope (DRAM included,
+    Boom removed); the declared 10-symbol roster gives 139 / -151.2pp /
+    29.5%. Qualitative reading (largest, worst class) unchanged. Report
+    annotated rather than silently rewritten.
+  - F4 LOW -- AGREE. manifest git_head = 94090e9 (prereg-only commit; the
+    runner first exists in 163323b): it proves prereg-before-code, not
+    which source ran. The audit's own re-run reproduced all 55 rows + 5
+    rollups exactly, so provenance is intact in practice. Future
+    manifests get executed-blob hashes + clean/dirty state -- lands with
+    the F1 rerun.
+  - DISPUTED: nothing. The audit's positive checks (fold-in fidelity,
+    pattern-port pine-exactness incl. the PMG+ unreachability proof,
+    default-path invariance, A1 regeneration, no promotion) match our
+    records.
 
 ---
 

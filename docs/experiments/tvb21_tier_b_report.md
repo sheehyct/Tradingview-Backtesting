@@ -1,5 +1,26 @@
 # TVB-21 Tier B report -- the Magnitude+Targets layer ablation
 
+> **INVALIDATION NOTICE (2026-08-09, TVB-22 audit fold-in -- external audit
+> `docs/reviews/tvb21-codex-audit.md` F1 HIGH, independently reproduced to
+> the decimal before adjudication).** The A2/A3 target exit implemented
+> one-sided predicates (long `h >= tgt` / short `l <= tgt`) instead of the
+> pre-registered range-containment touch. Trades born beyond their frozen
+> target were therefore closed AT the target on bars that never traded that
+> price: A2 208/410 target exits filled outside their exit bar (188 of them
+> in the born-beyond class, -278.3pp of the reported -310.1pp); A3 102/255
+> (97, -146.2pp). Requiring containment flips A2/A3 combined from
+> -222.0/-127.5pp to +24.6/+31.0pp (diagnostic only). CONSEQUENTLY the
+> package verdict, the churn-loss MAGNITUDE, candidate counts, and the
+> package-arm MAE-tail claims below are INVALID pending a pre-registered
+> semantics amendment (marketable-at-entry targets + the no-target skip)
+> and a full A2/A3 rerun. The born-beyond re-entry MECHANISM itself, both
+> A0 controls, and the A1-vs-A0b S3.1 contrast are unaffected. Also
+> corrected (audit F3): the plain 3-2 census quoted below (182 trades,
+> -163.0pp, 33% win) is the ALL-11-symbol scope with Boom removed; under
+> the declared 10-symbol roster it is 139 trades, -151.2pp, 29.5% win --
+> still the largest and worst class. Original text below is preserved
+> unchanged as the record of what was claimed.
+
 Pre-registration: `docs/experiments/tvb21_tier_b_prereg.md` (94090e9, declared
 before any pattern/veto/target code). Artifacts: `analysis/paper/tier_b/`
 (manifest carries git head, bar hashes, and the PASSING A0 determinism check:
