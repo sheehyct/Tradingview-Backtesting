@@ -1,0 +1,484 @@
+{
+ "generated_utc": "2026-08-09T15:20:05.564062+00:00",
+ "gate": "TVB-22 package-port parity (decision-exact + pattern layer)",
+ "all_pass": true,
+ "results": [
+  {
+   "coin": "GOOGL",
+   "arm": "A1",
+   "bars_replayed": 20323,
+   "feed_first_ts": 1779667200,
+   "feed_end_ts": 1785902100,
+   "mintick": 0.001,
+   "ts_offset_applied_s": 0,
+   "ts_offset_scores": {
+    "0": 40,
+    "300": 0,
+    "-300": 0
+   },
+   "twin_events": 79,
+   "tv_events_total": 81,
+   "tv_events_in_feed": 79,
+   "tv_events_beyond_feed": 2,
+   "matched": 79,
+   "twin_only": [],
+   "tv_only": [],
+   "window": {
+    "start": 1783296000,
+    "end": 1785715200,
+    "matched": 50,
+    "twin_only": [],
+    "tv_only": []
+   },
+   "price_exact_layer": {
+    "kinds": [
+     "brk",
+     "flip"
+    ],
+    "max_abs_delta": 0.0,
+    "violations": []
+   },
+   "declared_residual_layer": {
+    "kinds": [
+     "entry",
+     "bf",
+     "tgt"
+    ],
+    "n": 64,
+    "mean_abs": 0.5953714053984429,
+    "median_abs": 0.3247934407364994,
+    "max_abs": 3.6227881040891816
+   },
+   "pattern_layer": {
+    "checked": 40,
+    "violations": []
+   },
+   "structural_violations": [],
+   "pass": true
+  },
+  {
+   "coin": "GOOGL",
+   "arm": "A2",
+   "bars_replayed": 20323,
+   "feed_first_ts": 1779667200,
+   "feed_end_ts": 1785902100,
+   "mintick": 0.001,
+   "ts_offset_applied_s": 0,
+   "ts_offset_scores": {
+    "0": 16,
+    "300": 0,
+    "-300": 0
+   },
+   "twin_events": 32,
+   "tv_events_total": 32,
+   "tv_events_in_feed": 32,
+   "tv_events_beyond_feed": 0,
+   "matched": 32,
+   "twin_only": [],
+   "tv_only": [],
+   "window": {
+    "start": 1783296000,
+    "end": 1785715200,
+    "matched": 16,
+    "twin_only": [],
+    "tv_only": []
+   },
+   "price_exact_layer": {
+    "kinds": [
+     "brk",
+     "flip"
+    ],
+    "max_abs_delta": 0.0,
+    "violations": []
+   },
+   "declared_residual_layer": {
+    "kinds": [
+     "entry",
+     "bf",
+     "tgt"
+    ],
+    "n": 31,
+    "mean_abs": 0.2730967741935578,
+    "median_abs": 0.12000000000000455,
+    "max_abs": 2.0499999999999545
+   },
+   "pattern_layer": {
+    "checked": 16,
+    "violations": []
+   },
+   "structural_violations": [],
+   "pass": true
+  },
+  {
+   "coin": "GOOGL",
+   "arm": "A3",
+   "bars_replayed": 20323,
+   "feed_first_ts": 1779667200,
+   "feed_end_ts": 1785902100,
+   "mintick": 0.001,
+   "ts_offset_applied_s": 0,
+   "ts_offset_scores": {
+    "0": 14,
+    "300": 0,
+    "-300": 0
+   },
+   "twin_events": 28,
+   "tv_events_total": 28,
+   "tv_events_in_feed": 28,
+   "tv_events_beyond_feed": 0,
+   "matched": 28,
+   "twin_only": [],
+   "tv_only": [],
+   "window": {
+    "start": 1783296000,
+    "end": 1785715200,
+    "matched": 12,
+    "twin_only": [],
+    "tv_only": []
+   },
+   "price_exact_layer": {
+    "kinds": [
+     "brk",
+     "flip"
+    ],
+    "max_abs_delta": 0.0,
+    "violations": []
+   },
+   "declared_residual_layer": {
+    "kinds": [
+     "entry",
+     "bf",
+     "tgt"
+    ],
+    "n": 25,
+    "mean_abs": 0.2670800000000099,
+    "median_abs": 0.22900000000004184,
+    "max_abs": 1.089999999999975
+   },
+   "pattern_layer": {
+    "checked": 14,
+    "violations": []
+   },
+   "structural_violations": [],
+   "pass": true
+  },
+  {
+   "coin": "TSLA",
+   "arm": "A1",
+   "bars_replayed": 20626,
+   "feed_first_ts": 1779667200,
+   "feed_end_ts": 1785902700,
+   "mintick": 0.001,
+   "ts_offset_applied_s": 0,
+   "ts_offset_scores": {
+    "0": 26,
+    "300": 0,
+    "-300": 0
+   },
+   "twin_events": 51,
+   "tv_events_total": 51,
+   "tv_events_in_feed": 51,
+   "tv_events_beyond_feed": 0,
+   "matched": 51,
+   "twin_only": [],
+   "tv_only": [],
+   "window": {
+    "start": 1783296000,
+    "end": 1785715200,
+    "matched": 19,
+    "twin_only": [],
+    "tv_only": []
+   },
+   "price_exact_layer": {
+    "kinds": [
+     "brk",
+     "flip"
+    ],
+    "max_abs_delta": 0.0,
+    "violations": []
+   },
+   "declared_residual_layer": {
+    "kinds": [
+     "entry",
+     "bf",
+     "tgt"
+    ],
+    "n": 48,
+    "mean_abs": 0.6070924204603744,
+    "median_abs": 0.2896527516462868,
+    "max_abs": 4.832105868814722
+   },
+   "pattern_layer": {
+    "checked": 26,
+    "violations": []
+   },
+   "structural_violations": [],
+   "pass": true
+  },
+  {
+   "coin": "TSLA",
+   "arm": "A2",
+   "bars_replayed": 20626,
+   "feed_first_ts": 1779667200,
+   "feed_end_ts": 1785902700,
+   "mintick": 0.001,
+   "ts_offset_applied_s": 0,
+   "ts_offset_scores": {
+    "0": 26,
+    "300": 0,
+    "-300": 0
+   },
+   "twin_events": 52,
+   "tv_events_total": 56,
+   "tv_events_in_feed": 52,
+   "tv_events_beyond_feed": 4,
+   "matched": 52,
+   "twin_only": [],
+   "tv_only": [],
+   "window": {
+    "start": 1783296000,
+    "end": 1785715200,
+    "matched": 34,
+    "twin_only": [],
+    "tv_only": []
+   },
+   "price_exact_layer": {
+    "kinds": [
+     "brk",
+     "flip"
+    ],
+    "max_abs_delta": 0.0,
+    "violations": []
+   },
+   "declared_residual_layer": {
+    "kinds": [
+     "entry",
+     "bf",
+     "tgt"
+    ],
+    "n": 51,
+    "mean_abs": 0.39739215686274276,
+    "median_abs": 0.13999999999998636,
+    "max_abs": 3.7299999999999613
+   },
+   "pattern_layer": {
+    "checked": 26,
+    "violations": []
+   },
+   "structural_violations": [],
+   "pass": true
+  },
+  {
+   "coin": "TSLA",
+   "arm": "A3",
+   "bars_replayed": 20626,
+   "feed_first_ts": 1779667200,
+   "feed_end_ts": 1785902700,
+   "mintick": 0.001,
+   "ts_offset_applied_s": 0,
+   "ts_offset_scores": {
+    "0": 26,
+    "300": 0,
+    "-300": 0
+   },
+   "twin_events": 52,
+   "tv_events_total": 55,
+   "tv_events_in_feed": 52,
+   "tv_events_beyond_feed": 3,
+   "matched": 52,
+   "twin_only": [],
+   "tv_only": [],
+   "window": {
+    "start": 1783296000,
+    "end": 1785715200,
+    "matched": 30,
+    "twin_only": [],
+    "tv_only": []
+   },
+   "price_exact_layer": {
+    "kinds": [
+     "brk",
+     "flip"
+    ],
+    "max_abs_delta": 0.0,
+    "violations": []
+   },
+   "declared_residual_layer": {
+    "kinds": [
+     "entry",
+     "bf",
+     "tgt"
+    ],
+    "n": 51,
+    "mean_abs": 0.5045882352941229,
+    "median_abs": 0.2699999999999818,
+    "max_abs": 3.1200000000000045
+   },
+   "pattern_layer": {
+    "checked": 26,
+    "violations": []
+   },
+   "structural_violations": [],
+   "pass": true
+  },
+  {
+   "coin": "DRAM",
+   "arm": "A1",
+   "bars_replayed": 18741,
+   "feed_first_ts": 1780272000,
+   "feed_end_ts": 1785902700,
+   "mintick": 1e-05,
+   "ts_offset_applied_s": 0,
+   "ts_offset_scores": {
+    "0": 16,
+    "300": 0,
+    "-300": 0
+   },
+   "twin_events": 31,
+   "tv_events_total": 34,
+   "tv_events_in_feed": 31,
+   "tv_events_beyond_feed": 3,
+   "matched": 31,
+   "twin_only": [],
+   "tv_only": [],
+   "window": {
+    "start": 1783296000,
+    "end": 1785715200,
+    "matched": 16,
+    "twin_only": [],
+    "tv_only": []
+   },
+   "price_exact_layer": {
+    "kinds": [
+     "brk",
+     "flip"
+    ],
+    "max_abs_delta": 0.0,
+    "violations": []
+   },
+   "declared_residual_layer": {
+    "kinds": [
+     "entry",
+     "bf",
+     "tgt"
+    ],
+    "n": 28,
+    "mean_abs": 0.18813518917988656,
+    "median_abs": 0.1634513888888911,
+    "max_abs": 0.5883598265895955
+   },
+   "pattern_layer": {
+    "checked": 16,
+    "violations": []
+   },
+   "structural_violations": [],
+   "pass": true
+  },
+  {
+   "coin": "DRAM",
+   "arm": "A2",
+   "bars_replayed": 18741,
+   "feed_first_ts": 1780272000,
+   "feed_end_ts": 1785902700,
+   "mintick": 1e-05,
+   "ts_offset_applied_s": 0,
+   "ts_offset_scores": {
+    "0": 43,
+    "300": 0,
+    "-300": 0
+   },
+   "twin_events": 85,
+   "tv_events_total": 86,
+   "tv_events_in_feed": 85,
+   "tv_events_beyond_feed": 1,
+   "matched": 85,
+   "twin_only": [],
+   "tv_only": [],
+   "window": {
+    "start": 1783296000,
+    "end": 1785715200,
+    "matched": 73,
+    "twin_only": [],
+    "tv_only": []
+   },
+   "price_exact_layer": {
+    "kinds": [
+     "brk",
+     "flip"
+    ],
+    "max_abs_delta": 0.0,
+    "violations": []
+   },
+   "declared_residual_layer": {
+    "kinds": [
+     "entry",
+     "bf",
+     "tgt"
+    ],
+    "n": 84,
+    "mean_abs": 0.16568964285714283,
+    "median_abs": 0.10549999999999926,
+    "max_abs": 1.1700000000000017
+   },
+   "pattern_layer": {
+    "checked": 43,
+    "violations": []
+   },
+   "structural_violations": [],
+   "pass": true
+  },
+  {
+   "coin": "DRAM",
+   "arm": "A3",
+   "bars_replayed": 18741,
+   "feed_first_ts": 1780272000,
+   "feed_end_ts": 1785902700,
+   "mintick": 1e-05,
+   "ts_offset_applied_s": 0,
+   "ts_offset_scores": {
+    "0": 39,
+    "300": 0,
+    "-300": 0
+   },
+   "twin_events": 77,
+   "tv_events_total": 78,
+   "tv_events_in_feed": 77,
+   "tv_events_beyond_feed": 1,
+   "matched": 77,
+   "twin_only": [],
+   "tv_only": [],
+   "window": {
+    "start": 1783296000,
+    "end": 1785715200,
+    "matched": 67,
+    "twin_only": [],
+    "tv_only": []
+   },
+   "price_exact_layer": {
+    "kinds": [
+     "brk",
+     "flip"
+    ],
+    "max_abs_delta": 0.0,
+    "violations": []
+   },
+   "declared_residual_layer": {
+    "kinds": [
+     "entry",
+     "bf",
+     "tgt"
+    ],
+    "n": 76,
+    "mean_abs": 0.14042052631578947,
+    "median_abs": 0.08449999999999847,
+    "max_abs": 0.7419999999999973
+   },
+   "pattern_layer": {
+    "checked": 39,
+    "violations": []
+   },
+   "structural_violations": [],
+   "pass": true
+  }
+ ]
+}
