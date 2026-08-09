@@ -10,21 +10,20 @@
 
 ## Status
 
-- Status: RETURNED (audit file written)
+- Status: REQUESTED
   <!-- REQUESTED | RETURNED (audit file written) -->
-- Returned: 2026-08-08 -- verdict NEEDS-CHANGES (3 MEDIUM + 1 LOW);
-  ADDRESSED by TVB-21 same day (all four findings reproduced before
-  adjudication; critical synthesis in the docs/HANDOFF.md TVB-20 block)
-- Session under review: TVB-20 -- audit fold-ins (TVB-18 + TVB-19, every
-  finding reproduced before adjudication), the layering-arc alignment
-  (design-session seed + charter S3.1/S5 amendments + the CLAUDE.md
-  "Ablation, not tournament" reword), and the v6.1 CONTROL strategy()
-  port: pine/tfc_bf_control_strategy.pine, parity gate PASS (full-span,
-  GOOGL/TSLA/DRAM, zero mismatches, break/flip float-exact), and the
-  TwinConfig.pine_gate_warmup engine flag.
+- Session under review: TVB-21 -- TVB-20 audit fold-in (all four findings
+  reproduced before adjudication: parity-gate injective-join hardening,
+  harvester run/inventory provenance split, C0/C1/C2 contrast ladder,
+  port-wording scope block); THE design session (user-ruled: pine-exact
+  dictionary, 1H signal TF, contrast set, veto semantics/values, exit
+  substitution); Tier B pre-registered BEFORE code, then built
+  (analysis/paper/patterns.py pine-exact M+T port, engine extensions
+  behind inert defaults, tier_b.py runner) and executed (5 arms x 11
+  symbols) with the report's churn-mechanism autopsy.
 - SCOPE: standard.
-- Requested: 2026-08-08
-- Write the audit to: `docs/reviews/tvb20-codex-audit.md` (copy
+- Requested: 2026-08-09
+- Write the audit to: `docs/reviews/tvb21-codex-audit.md` (copy
   `docs/reviews/_TEMPLATE.md`)
 - NOTE: tvb8/tvb9 remain unreturned (standing note).
 
@@ -32,57 +31,58 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `bef6dae^..fffbacb` (5 commits: bef6dae TVB-18 fold-in; 9f11a74 TVB-19 fold-in; bbdb10b layering-arc seed + charter/CLAUDE.md amendments; 2d1f25b CONTROL port + parity gate; fffbacb session-end docs; sanity-checked -- `git diff --name-status bef6dae^..fffbacb` lists all 34 files the session touched) |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `f90d0c9^..{pending push}` (f90d0c9 TVB-20 audit fold-in; 94090e9 Tier B pre-registration; 163323b Tier B build + run + report; session-end docs commit follows; concrete head pinned after push) |
 
 ## Read first (in this order)
 
-1. `CLAUDE.md`; charter Section 0, then the 2026-08-08 S3.1/S5 amendments.
-2. `docs/HANDOFF.md` -- the TVB-20 entry at top (its External Review block
-   mirrors this request); the TVB-18/19 blocks for the fold-in context.
-3. `docs/experiments/tvb20_design_session_seed.md` (the alignment record)
-   and `docs/experiments/tvb20_control_port_parity.md` (conventions +
-   results + the Pine gate warm-up finding).
-4. `docs/reviews/tvb18-codex-audit.md` + `docs/reviews/tvb19-codex-audit.md`
-   (the audits whose fold-ins open this range).
+1. `CLAUDE.md`; charter Section 0, then the S3.1 amendments (both 2026-08-08
+   blocks -- the second is this session's audit-F3 fold-in).
+2. `docs/HANDOFF.md` -- the TVB-21 entry at top; the TVB-20 entry's External
+   Review block (the fold-in synthesis adjudicated there).
+3. `docs/experiments/tvb21_tier_b_prereg.md` (declared 94090e9, before code)
+   and `docs/experiments/tvb21_tier_b_report.md` (the autopsy).
+4. `docs/reviews/tvb20-codex-audit.md` (the audit whose fold-in opens the
+   range).
 5. `docs/EXTERNAL_REVIEW_PROTOCOL.md`.
 
 ## Focus areas (scrutinize these)
 
-1. ZERO-SEMANTIC-CHANGE claim: diff `pine/tfc_bf_control_strategy.pine`
-   against `pine/tfc_bf_watch.pine`. The claim is exactly 4 hunks (contract
-   header, strategy() declaration, order-emission block, table title) and
-   that the emission block cannot feed back into decisions
-   (strategy.position_size never read; at most one order action per bar by
-   the machine's same-bar re-entry block).
-2. Parity method validity (`analysis/paper/port_parity.py`): the ts-offset
-   selection (0/+300/-300 scored on entries), beyond_feed handling (dump
-   ends 2026-08-05, trades harvested 2026-08-08), OPEN-trade handling
-   (entry-only), the close-fill cross-check, and whether the
-   full-span-beats-window argument is sound.
-3. `TwinConfig.pine_gate_warmup` isolation: default False must leave
-   compare_config and the committed TVB-19 sweep replays bit-identical --
-   verify no committed artifact changes when re-run; verify the True path
-   matches Pine's ta.valuewhen(timeframe.change) boundary semantics
-   (including the first-chart-bar false convention).
-4. Decision-exact residual accounting: entry/BF close-fill residuals are
-   DECLARED, and no claim anywhere treats TV-reported P&L as twin P&L.
-5. Audit fold-in fidelity: `bef6dae` / `9f11a74` against the two audit
-   files -- every finding addressed or explicitly deferred with reasons;
-   the regenerated sweep artifacts changed ONLY in the declared med fields.
-6. No frozen week-1 artifact modified anywhere in the range
-   (events_week1.jsonl, scoreboard_week1.md, roster_week1.json).
-7. request.security lookahead: the new .pine must add none (it forks v6.1
-   verbatim -- verify no un-offset lookahead_on anywhere in the range).
-8. Charter amendment coherence: the S3.1/S5 annotations + CLAUDE.md reword
-   must not quietly weaken the anti-overfit invariants (per-pattern winner
-   promotion must remain forbidden in every formulation).
+1. Fold-in fidelity: every TVB-20 finding addressed or explicitly deferred
+   with reasons; the hardened gate's false-pass fixtures actually pin the
+   reproduced failures (tests/test_port_parity.py); the committed parity
+   artifact was deliberately NOT regenerated -- verify values unchanged.
+2. patterns.py pine-exactness vs pine/strat_magnitude_targets_plus.pine:
+   else-if chain order, `>= thr` subtraction-form break flags, warm-up
+   guards, hammer/shooter rule, ladder walk (anchor/anchor2 seeding, strict
+   monotone, maxLevels, 250-bar cap), the color gates -- and the PMG+
+   unreachability claim (streak walk seeded at the developing bar).
+3. Engine default-path invariance: entry_mode="arm" must leave every
+   pre-existing path bit-identical. Evidence to check: the full suite, the
+   committed-GOOGL port-parity pin, and the manifest's A0 determinism check
+   (both control arms vs committed Tier A rows, all shared fields).
+4. Pre-reg-vs-execution fidelity in analysis/paper/tier_b.py: the five
+   arms' configs, veto math vs the prospective FILL price, the bar-open
+   alive-set snapshot ordering, frozen-at-entry target semantics (rung-2
+   fallback), the conservative fill convention (max(trig+tick, open)), and
+   the no-target structural skip (a post-declaration pre-run
+   clarification -- flag if you think it needed a prereg amendment).
+5. The report's arithmetic: born-beyond-T1 splits (A2 244/413 = -310.1pp vs
+   +88.1pp; A3 159/263), one-bar-exit and chain counts, the 54.2pp A1 fill
+   drag, veto-rate table -- all from post-hoc deterministic replays;
+   reproduce independently.
+6. Contrast-language discipline: S3.1 conclusions constrained to A1-vs-A0b;
+   package results never adjudicate S3.1; no arm/cell/pattern promoted
+   anywhere (report, commits, HANDOFF).
+7. request.security lookahead: no executable Pine changed this session
+   (tfc_bf_control_strategy.pine header comments only) -- confirm no
+   lookahead anywhere in the range.
 
-Standing priorities apply (model fidelity; overfitting language; the
-control is a research instrument, never a deployment claim).
+Standing priorities apply (model fidelity; overfitting language; controls
+are research instruments, never deployment claims).
 
 ## Output contract
 
-- Verbatim audit -> `docs/reviews/tvb20-codex-audit.md` (template:
+- Verbatim audit -> `docs/reviews/tvb21-codex-audit.md` (template:
   `docs/reviews/_TEMPLATE.md`, skeptic preamble included).
 - Be concrete; cite `file:line`. Never paste a secret/IP/account value.
 - The critical synthesis is written by the NEXT session into `docs/HANDOFF.md`.

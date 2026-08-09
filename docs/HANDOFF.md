@@ -5,6 +5,149 @@
 
 ---
 
+## Session TVB-21: TVB-20 audit fold-in + design session + Tier B built and executed (COMPLETE)
+
+**Date:** 2026-08-08/09
+**Status:** COMPLETE -- all four TVB-20 audit findings reproduced-then-fixed,
+THE design session held in plan mode (every variable user-ruled), Tier B
+pre-registered BEFORE code, built, executed, and autopsied same session.
+
+### What was accomplished
+
+- TVB-20 AUDIT FOLD-IN (f90d0c9, all four findings reproduced before
+  adjudication): F1 parity gate hardened (injective join, fail-closed
+  stream validation, cardinality equality; false-pass reproduced on the
+  committed GOOGL artifact pre-fix -- dup trade PASSed 91v89, direction 's'
+  aliased to short; 8 regression tests incl. the committed-GOOGL 89/89/89
+  pin; committed parity artifact NOT regenerated). F2 harvester provenance
+  (bogus selector reproduced writing complete:true over 33 zero-receipt
+  legacy rows at exit 0; now unknown/empty selectors exit 1 and the summary
+  splits run_complete from inventory_complete requiring history.state ==
+  'floor' receipts on all 33 canonical rows). F3 contrast identification
+  (C0/C1/C2 ladder named in charter S3.1 second amendment + S5 + CLAUDE.md
+  + seed + parity doc; package results never adjudicate S3.1). F4 wording
+  (ZERO HISTORICAL SOURCE-LOGIC CHANGE + realtime-cadence scope block in
+  the .pine contract header, 4-hunk diff re-verified after the edit;
+  calc_on_every_tick untouched). Synthesis in the TVB-20 block below.
+- DESIGN SESSION (plan mode, strat-methodology loaded, user supplied the
+  10-setup live dictionary): rulings -- pine-exact detection (divergences
+  vs skill R22/R17/color-gate documented, not re-designed); all 3-2s with
+  Boom as a logged flag; 1H signal TF only (structural: the user's live
+  TF); contrasts = C2-vs-C1 + a pattern-isolation arm; BF-prox veto =
+  nearest alive harvest line across ALL pools (user flagged possible
+  over-suppression -> pre-committed diagnostic); target exits REPLACE
+  bf-harvest (brk/flip stay); fixed 1%/2% veto values.
+- TIER B PRE-REGISTERED (94090e9, declared before any pattern/veto/target
+  code): 5 arms (A0a deployed control 15m / A0b matched control 1H / A1
+  isolation / A2 package-T1 / A3 package-T2), binding contrast statements,
+  mechanics, diagnostics, named deferred arms.
+- BUILT (163323b): analysis/paper/patterns.py (pine-exact M+T port, 12
+  fixture tests; found the as-built PMG+ quirk -- streak walk seeded at the
+  developing bar's own extreme makes the prefix unreachable for all 10
+  enabled setups); engine extensions behind inert defaults (pattern entry
+  mode, vetoes with bar-open alive-line snapshot, frozen target exits;
+  entry events now carry trig; 9 tests; suite 140 passed); tier_b.py
+  runner with the A0 determinism cross-check.
+- EXECUTED + AUTOPSIED (163323b, report
+  docs/experiments/tvb21_tier_b_report.md): headline = the package died to
+  ONE identified mechanism -- trades BORN BEYOND their frozen reclaim
+  target via re-entry-while-signal-persists (A2: 244/413 trades = -310.1pp
+  vs +88.1pp on the rest; 73% one-bar exits; GOOGL chain reproduced on raw
+  events). S3.1 contrast (A1 -7.7pp vs A0b +104.8pp) negative for patterns
+  under BOTH fill conventions (measured drag 54.2pp declared). Chop veto
+  does not transfer (47-100% per-symbol suppression; GOLD zero trades) --
+  the user's fixed-percent concern confirmed with mechanism. Package arms
+  DO collapse the MAE tail (0.78-1.32% avg vs 2.6-2.8% controls, worst 15%
+  vs 37%). Boom split n=2 (unreadable, recorded). Both A0 controls
+  reproduced committed Tier A cells field-exact (manifest check PASS).
+
+### Context for next session
+
+- USER REQUEST at close: build the TV-side PACKAGE strategy() so the user
+  can run it live as the drift/bug detector. Assessed build shape: insert
+  the M+T detection/ladder block INTO the tfc_bf_control_strategy.pine
+  machinery (the pool engine is required by the BF-prox veto and C1-style
+  exits) as a NEW script (Make-a-copy flow), arm toggles for A1/A2/A3, MCP
+  compile, then its OWN parity gate vs the twin arms (twin entry events
+  carry trig for the join). Deferred from TVB-21 deliberately -- a blind
+  ~400-line Pine merge at session end creates drift instead of catching it.
+- T1-floor entry guard (the user's own rule-base component) is the
+  mechanism-motivated repair for the churn class; ATR-scaled vetoes for the
+  chop transfer failure. Both need a-priori values pinned with the user
+  before any run; both stay ablations vs C1.
+- The BF-harvest-replacement exit ruling is revisitable AFTER visualization
+  per the user -- as a NEW pre-registered variant, never a mid-run change.
+- Tier B artifacts are deterministic from committed runner + bars + prereg;
+  the fill-drag/churn/ladder diagnostics were post-hoc reads on
+  deterministic replays (no artifacts modified).
+
+### Files created/modified
+
+- Fold-in (f90d0c9): analysis/paper/port_parity.py (hardened),
+  tests/test_port_parity.py (+8), scripts/tvb19_harvest.mjs,
+  analysis/reference/tv_deep/README.md, charter S3.1/S5, CLAUDE.md,
+  tvb20 seed + parity docs, pine/tfc_bf_control_strategy.pine (header),
+  HANDOFF + REVIEW_REQUEST flips, docs/reviews/tvb20-codex-audit.md
+  (committed).
+- Pre-reg (94090e9): docs/experiments/tvb21_tier_b_prereg.md.
+- Build+run (163323b): analysis/paper/patterns.py (NEW),
+  analysis/paper/tier_b.py (NEW), analysis/paper/engine.py (extensions),
+  tests/test_patterns.py + tests/test_pattern_engine.py (NEW),
+  analysis/paper/tier_b/ (manifest + 2 JSONL),
+  docs/experiments/tvb21_tier_b_report.md (NEW).
+- Suite: 140 passed, 2 skipped.
+
+### Open
+
+- [ ] TV-side package strategy() port + parity gate (TVB-22 headline; user
+      request 2026-08-09)
+- [ ] T1-floor guard + ATR-scaled veto variant pre-registration (values
+      a-priori with user)
+- [ ] Greenlit repairs bundle (TVB-18): F2 roster receipts + fail-closed,
+      F3 5m-lifecycle warm-up regression, F4 eviction telemetry split,
+      freeze-boundary invariant, SKHX tv_symbol/mintick backfill
+- [ ] Nudge the M+T collaborator: PMG+ prefix structurally unreachable for
+      break-directional setups (as-built streak-walk seeding)
+- [ ] BF-harvest-replacement exit ruling revisit after visualization (user
+      note, new pre-registered variant only)
+- [ ] HANDOFF.md over the 1500-line budget -- archive older entries pending
+      user confirmation
+- [ ] tvb8/tvb9 external reviews still unreturned (standing)
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb21-codex-audit.md.
+> See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: `f90d0c9^..` on `main` -- concrete head pinned in
+  docs/reviews/REVIEW_REQUEST.md after the session-end push (RANGE-PIN
+  RULE: caret keeps f90d0c9 in the diff; sanity-check with
+  `git diff --name-status`).
+- Scope / what changed: TVB-20 audit fold-in (4 findings); Tier B
+  pre-registration; pine-exact pattern layer + engine extensions + runner;
+  Tier B execution + report.
+- Focus areas (scrutinize these): (1) fold-in fidelity vs
+  docs/reviews/tvb20-codex-audit.md (every finding reproduced/fixed or
+  explicitly deferred); (2) patterns.py pine-exactness vs
+  pine/strat_magnitude_targets_plus.pine (chain order, >= thr break forms,
+  warm-up guards, ladder walk, hammer rule, the PMG quirk claim); (3)
+  engine default-path invariance (entry_mode="arm" bit-exactness; the A0
+  determinism check + committed-GOOGL parity pin as evidence); (4)
+  pre-reg-vs-execution fidelity in tier_b.py (arms, vetoes vs fill price,
+  bar-open alive-set snapshot, frozen-ladder exits, fill convention); (5)
+  the report's churn-mechanism attribution and fill-drag decomposition
+  arithmetic (born-beyond-T1 splits, 54.2pp drag) -- these came from
+  post-hoc deterministic reads, verify they reproduce; (6)
+  contrast-language discipline (S3.1 wording constrained to A1-vs-A0b, no
+  promotion anywhere); (7) request.security: no executable Pine changed
+  (control header comments only) -- confirm.
+- Reviewed by: pending
+- Findings: (blank until docs/reviews/tvb21-codex-audit.md exists)
+
+---
+
 ## Session TVB-20: Audit fold-ins + layering-arc alignment + v6.1 CONTROL strategy() port (COMPLETE)
 
 **Date:** 2026-08-07/08
