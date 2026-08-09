@@ -178,6 +178,44 @@ weekend/low-liquidity protocol arms; per-veto ablation singles; TV-side
 strategy() port of the package (requires its own parity gate); any
 re-targeting of open trades.
 
+## Amendment 2026-08-09 (TVB-22, user-ruled, declared BEFORE the F1 rerun)
+
+Follows `docs/reviews/tvb21-codex-audit.md` (F1 HIGH + F2 LOW, both
+independently reproduced in TVB-22 before adjudication). Rulings made by the
+user 2026-08-09; the rerun happens only after this amendment is committed.
+
+1. **Target exit contract (F1): containment touch.** A frozen target exits
+   the trade on the first 5m bar whose RANGE CONTAINS the level
+   (`low <= tgt <= high`), fill AT the level -- the same containment-touch
+   convention the C1 bf-harvest exit already uses, gap-past edge included
+   (a bar wholly beyond the level does NOT exit; on 24/7 perp 5m bars a
+   true gap across a level without containment is rare). This applies
+   uniformly, INCLUDING trades whose frozen target was at-or-behind the
+   fill at entry (born-beyond): they exit at the first bar that actually
+   trades the level. The as-built one-sided predicates (long `h >= tgt` /
+   short `l <= tgt`) are the DEFECT this amendment removes. Marketable-at-
+   entry targets are neither exited at entry nor vetoed -- the T1-floor
+   entry guard stays a separate named deferred variant, values a-priori.
+2. **No-target signals (F2): structural skip retained; vetoes evaluated
+   first.** A package-arm candidate with an empty entry-snapshot ladder
+   still never enters (it cannot satisfy its exit contract), but BOTH veto
+   diagnostics are now evaluated for EVERY candidate before the skip, so
+   veto-rate denominators are coherent (share-of-candidates statements
+   include all candidates). Counters: `both`/`bf_prox`/`chop` count the
+   vetoed set over ALL candidates; `no_target` counts all empty-ladder
+   candidates; a new `no_target_vetoed` counts the overlap, so
+   `entries = candidates - (vetoed + no_target - no_target_vetoed)`.
+3. **Manifest source-binding (F4):** the rerun manifest additionally
+   records sha256 blob hashes of the executed `tier_b.py` / `engine.py` /
+   `patterns.py` and the git clean/dirty state at run time.
+
+Everything else is unchanged. The rerun regenerates `analysis/paper/tier_b/`
+IN PLACE (git history preserves the invalidated run). Fix-isolation
+invariants, checked before the new artifacts are accepted: A0a / A0b / A1
+per-symbol rows must equal the invalidated run's rows on every field except
+the `veto_counts` dict gaining the zero-valued `no_target_vetoed` key, and
+the A0 determinism check vs the committed Tier A cells must still pass.
+
 ## Execution + provenance
 
 - Runner: analysis/paper/tier_b.py, written AFTER this document; reuses
