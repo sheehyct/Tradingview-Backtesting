@@ -5,6 +5,162 @@
 
 ---
 
+## Session TVB-22: TV package strategy + parity gate 9/9 + audit fold-in with ruled rerun (COMPLETE)
+
+**Date:** 2026-08-09/10
+**Status:** COMPLETE -- the user-requested TV package strategy() built and
+parity-gated PASS on all nine cells; the TVB-21 Codex audit returned
+mid-session, its HIGH finding reproduced to the decimal, semantics ruled by
+the user, engine fixed, Tier B rerun regenerated; mechanism decomposition +
+next-variant seed written for the T1-floor design session.
+
+### What was accomplished
+
+- TV PACKAGE STRATEGY (056f47b): pine/tfc_mt_package_strategy.pine -- the
+  Tier B pattern arms (A1/A2/A3 via one Arm selector) as a strategy();
+  M+T detection/ladder layers inserted verbatim (renames + hunks H1-H7
+  documented in header) into the control pool/gate/position machinery;
+  f_pool gained a pure-read BAR-OPEN alive-set veto scan; entry comments
+  carry pattern zipcode + trig for the parity join. Created on TV via the
+  Make-a-copy flow (new id USER;b0e937c5...; CONTROL + M+T stamps verified
+  unchanged), compiled clean, round-trip byte-identical.
+- TVB-21 AUDIT FOLDED (a70339b; returned mid-session, NEEDS-CHANGES): all
+  four findings independently reproduced BEFORE adjudication -- F1 HIGH to
+  the decimal (A2 208/410 target exits outside their exit bar; born-beyond
+  split 188/-278.3pp vs 55/-29.0pp; containment sensitivity +24.6/+31.0pp).
+  Package verdict/churn magnitude/tail metrics invalidated; report carries
+  a dated notice (original preserved); statuses flipped RETURNED; synthesis
+  in the TVB-21 block below.
+- USER RULINGS (3, 2026-08-09): containment-touch targets (C1 bf-touch
+  convention, gap-past edge included); no-target skip retained with vetoes
+  evaluated first (+ no_target_vetoed overlap counter); parity gate only
+  after the fix. Prereg amendment committed BEFORE code (2865e5a).
+- FIX + RERUN (b54b07b, 40d6e7f, d2418dd): engine containment predicates +
+  4 fixtures (born-beyond long/short, favorable gap-past, counter
+  reconciliation); manifests source-bound (executed blob hashes + dirty
+  state). Full rerun regenerated tier_b/ IN PLACE: A2 -222.0 -> +24.6pp,
+  A3 -127.5 -> +31.0pp -- still 80.2/73.8 under A0b (C2 does not earn its
+  place over C1); trades 413->186/263->157 (churn loop dissolves under
+  containment); 3-2 census REVERSES to +43.4pp/52% (was impossible-fill
+  artifact); MAE-tail collapse survives and strengthens. Fix-isolation
+  invariants verified (A0a/A0b/A1 rows identical modulo the zero counter
+  key; A0 determinism PASS). Report: docs/experiments/tvb22_tier_b_rerun_report.md.
+- PINE MIRROR (b990d22): same two semantic hunks applied to the TV
+  strategy; recompiled; round-trip identical.
+- PARITY GATE PASS 9/9 (870b45d, 9b48a78, 87ca603): GOOGL/TSLA/DRAM x
+  A1/A2/A3 vs the twin over TV-harvested feeds, shared cold start,
+  pine_gate_warmup: 487 events matched, ZERO mismatches, offset 0s,
+  break/flip float-exact, and the NEW pattern layer (name + trig within
+  tick/2 on all 246 entries) clean -- the drift-detection payload works.
+- THREE TV TRAPS FOUND: (1) setInputValues with the full getInputValues
+  array corrupts any Pine user script ("Can't parse pine" sticky kill,
+  even value-unchanged -- the array echoes text/pineId/pineVersion/
+  pineFeatures; jackson's indicator_set_inputs idiom is broken on this
+  build; partial arrays work; memory tv-mcp-setinputs-trap). (2) The M+T
+  every-bar PMG/ladder walks blow the strategy execution budget on deep 5m
+  charts -- now lazy behind decision-identical guards (H7). (3) Comma in a
+  string-input option value adopted as defensively-removed while bisecting.
+- MECHANISM DECOMPOSITION (post-hoc reads on the rerun, no artifacts
+  modified): package losses ~= the born-beyond class (A2: 75 trades
+  -21.3pp, 3% win); hollow wins = the tiny-target class (53 trades +4.4pp,
+  100% win, ~0.08% each; 17/53 compressed by late fills) -- both killed by
+  the user's own T1-floor rule. A1 ladder census BIMODAL: 43% stall at 1-2
+  rungs, 40% run 4+; harvest exits fire after ~3.6 rungs avg. Twin trade
+  tables for all 9 parity cells committed
+  (analysis/reference/pkg_parity/tvb22_twin_trades.md, 46298d6).
+- NEXT-VARIANT SEED (2162780): docs/experiments/tvb22_next_variant_seed.md
+  -- T1-floor arm(s), depth sweep N=1..5 as labeled ceiling-map (floor
+  on), ATR-scaled vetoes, retracement census as read-only diagnostic
+  (pine's own status rules, ported with fixtures); six open rulings
+  listed. User prior on record: a retracement-label EXIT would likely hurt
+  by exiting early -- census first.
+
+### Context for next session
+
+- The user reviews the seed doc between sessions; next session opens with
+  the T1-floor round DESIGN SESSION (plan mode; rulings -> prereg -> code).
+  User direction at close: push to limits -- deeper targets, potentially
+  other timeframes. Depth = labeled ceiling-map, floor on, no N promoted;
+  timeframe changes need structural grounds (15m/30m signal-TF arms are
+  named deferred in the Tier B prereg), never sample-picked.
+- Any engine change mirrors into pine/tfc_mt_package_strategy.pine and
+  RE-GATES before the user runs it live.
+- Workbench end state: TVB18-parity layout, DRAM 5m chart; package
+  strategy mounted (arm A1, healthy) + CONTROL remounted + v6.1 watch
+  indicator; Pine editor bound to the PACKAGE script; TV Desktop running
+  with CDP 9222. FLAG: while diagnosing the input-kill I broke the mounted
+  CONTROL instance with an unchanged-value round-trip; it was restored as
+  a FRESH mount with default settings (the tester recomputes; no
+  accumulated strategy state was load-bearing, but it is a new instance).
+
+### Files created/modified
+
+- New: pine/tfc_mt_package_strategy.pine, analysis/paper/pkg_parity.py,
+  scripts/tvb22_pkg_harvest.mjs, analysis/reference/pkg_parity/ (9 trade
+  dumps + result + twin trade tables),
+  docs/experiments/tvb22_tier_b_rerun_report.md,
+  docs/experiments/tvb22_next_variant_seed.md,
+  docs/reviews/tvb21-codex-audit.md (committed verbatim).
+- Modified: analysis/paper/engine.py (containment + veto order +
+  no_target_vetoed), analysis/paper/tier_b.py (source-bound manifest +
+  rollup counter), tests/test_pattern_engine.py (+4),
+  docs/experiments/tvb21_tier_b_prereg.md (dated amendment),
+  docs/experiments/tvb21_tier_b_report.md (invalidation notice),
+  analysis/paper/tier_b/ (regenerated in place), HANDOFF + REVIEW_REQUEST
+  flips, .session_startup_prompt.md.
+- Suite: 144 passed, 2 skipped; ruff clean.
+
+### Open
+
+- [ ] T1-floor round: design session (seed = agenda) -> prereg -> build ->
+      run -> report; mirror + re-gate the TV strategy after any engine change
+- [ ] Greenlit repairs bundle (TVB-18, carried): F2 roster receipts +
+      fail-closed, F3 5m-lifecycle warm-up regression, F4 eviction telemetry
+      split, freeze-boundary invariant, SKHX tv_symbol/mintick backfill
+- [ ] Nudge the M+T collaborator: PMG+ prefix structurally unreachable
+      (carried from TVB-21)
+- [ ] jackson MCP indicator_set_inputs kills Pine user scripts (full-array
+      setInputValues) -- fix in tradingview-mcp-jackson (new this session)
+- [ ] BF-harvest-replacement exit ruling revisit after visualization
+      (carried; retracement census is the measurement path)
+- [ ] tvb8/tvb9 external reviews still unreturned (standing)
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb22-codex-audit.md.
+> See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: `056f47b^..{head pinned in REVIEW_REQUEST.md}` on
+  `main`. RANGE-PIN RULE: the caret keeps 056f47b in the diff;
+  sanity-check with `git diff --name-status`.
+- Scope / what changed: TV package strategy() port + its parity harness/
+  gate (9/9 PASS); TVB-21 audit fold-in (F1 reproduced, prereg amendment,
+  engine containment fix, full Tier B rerun regenerated in place);
+  mechanism decomposition docs + next-variant seed.
+- Focus areas (scrutinize these): (1) fold-in fidelity vs
+  docs/reviews/tvb21-codex-audit.md (F1 reproduction, amendment wording vs
+  the three user rulings, report invalidation notice); (2) the containment
+  fix (l <= tgt <= h both sides, gap-past edge) + the four new fixtures --
+  do they pin the failure classes; (3) rerun integrity: fix-isolation
+  invariants (A0a/A0b/A1 rows unchanged modulo the zero-valued
+  no_target_vetoed key), A0 determinism vs committed Tier A cells,
+  in-place regeneration provenance (manifest executed-blob hashes,
+  git_dirty=true explained as output-only); (4) the Pine merge:
+  declared hunks H1-H7 vs verbatim sources, especially H7's
+  "decision-identical" claim (lazy PMG/ladder guards) and the f_pool
+  veto scan's bar-open-alive-set equivalence to engine._alive_harvest_vals;
+  (5) pkg_parity.py gate soundness: injective join, fail-closed
+  validation, tgt in the residual layer, the pattern layer's name/trig
+  checks, cold-start twin alignment to first_bar_ts; (6) no promotion
+  language in the rerun report / seed / trade tables; (7)
+  request.security: the new pine has NONE -- confirm across the range.
+- Reviewed by: pending
+- Findings: (blank until docs/reviews/tvb22-codex-audit.md exists)
+
+---
+
 ## Session TVB-21: TVB-20 audit fold-in + design session + Tier B built and executed (COMPLETE)
 
 **Date:** 2026-08-08/09
