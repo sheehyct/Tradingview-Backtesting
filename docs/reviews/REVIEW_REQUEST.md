@@ -32,7 +32,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `{pending push -- pinned after session-end push}` |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `056f47b^..a2ede4e` (14 commits: 056f47b package strategy; a70339b audit fold-in; 2865e5a prereg amendment; b54b07b + 40d6e7f containment fix; d2418dd rerun; b990d22 pine mirror; 870b45d + 9b48a78 + 87ca603 parity harness/hardening/gate; 46298d6 twin trade tables; 2162780 next-variant seed; a2ede4e session-end docs. Sanity-checked -- `git diff --name-status 056f47b^..a2ede4e` lists all 28 files the session touched) |
 
 ## Read first (in this order)
 

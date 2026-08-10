@@ -132,9 +132,10 @@ next-variant seed written for the T1-floor design session.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: `056f47b^..{head pinned in REVIEW_REQUEST.md}` on
-  `main`. RANGE-PIN RULE: the caret keeps 056f47b in the diff;
-  sanity-check with `git diff --name-status`.
+- Commits to review: `056f47b^..a2ede4e` on `main` (14 commits; RANGE-PIN
+  RULE: the caret keeps 056f47b in the diff; sanity-checked -- `git diff
+  --name-status 056f47b^..a2ede4e` lists all 28 files the session
+  touched).
 - Scope / what changed: TV package strategy() port + its parity harness/
   gate (9/9 PASS); TVB-21 audit fold-in (F1 reproduced, prereg amendment,
   engine containment fix, full Tier B rerun regenerated in place);
