@@ -65,9 +65,16 @@ symbol filter); ATR scaling is the named repair.
    `pine/strat_magnitude_targets_plus.pine:694-716`. RETRACEMENT = the
    developing 1H bar is inside (in0) and colored against the held
    direction. POTENTIAL 3 = the against-side level is taken (d0 for
-   longs, u0 for shorts -- an outside-bar 3 satisfies this) OR a
-   with-side break is closing against (u0-and-r0 for longs, d0-and-g0
-   for shorts). Per-bar, no latch. Declared substitution: the held
+   longs, u0 for shorts) OR a with-side break is closing against
+   (u0-and-r0 for longs, d0-and-g0 for shorts). Per-bar, no latch.
+   [Correction 2026-08-10, dated BEFORE code: the pine's own comment
+   (:696-701) claims an outside-bar 3 is included, but its CODE uses the
+   one-sided flags (d0 = bl0 and not bh0), so an outside bar labels
+   POTENTIAL 3 only through the intrabar phase where exactly the
+   against-side is broken; if the with-side breaks first, the flags skip
+   to out0 and the label never fires. Pine-exact means the CODE; this
+   as-built edge is documented, kept, and pinned by fixture -- same
+   policy as the TVB-21 detection divergences.] Declared substitution: the held
    trade's direction replaces the pine's remember-layer `mrDir`. User
    prior on record (2026-08-10): a retracement-label EXIT would likely
    hurt by exiting early -- the census measures, never decides.
