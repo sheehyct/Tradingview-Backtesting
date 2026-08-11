@@ -56,6 +56,24 @@ symbol filter); ATR scaling is the named repair.
    the snapshot lacks rung N) -- the ruled A3 semantics. Consequence,
    asserted at run time: the entry book is IDENTICAL across every
    depth cell, so the curve isolates exit depth alone.
+   [Correction 2026-08-10, caught by the run-time gate on the first full
+   run BEFORE any results were read: the identical-book consequence was
+   wrongly stated in this document (the design session's own gloss, not
+   the user's ruling). On a ONE-POSITION book, deeper exits hold longer,
+   so later candidates fire while shallow arms are flat and deep arms are
+   not -- realized entries differ through position occupancy (observed:
+   D1 137 -> D5 85 -> DINF 50 entries; Tier B's A2 186 vs A3 157 closed
+   already had this shape). What IS depth-invariant, and what the gate
+   now asserts per symbol: the candidate rule and detector stream are
+   arm-independent, so two depth arms' event streams must be IDENTICAL up
+   to their first divergence and that divergence must be an EXIT event
+   (entries never diverge except downstream of an exit divergence). The
+   fallback ruling is unaffected -- it still removes the skip-variant's
+   entry-set confound. READING consequence, bound now: the depth curve
+   reads exit depth WITH its book-occupancy consequence, never exits in
+   isolation; the exits-in-isolation read is the matched-entry
+   (shared-prefix) per-trade comparison, a pre-committed diagnostic. The
+   per-arm entry-count funnel is itself reported.]
 4. **ATR vetoes ride:** Wilder ATR(14) on the aggregated 1H signal-TF
    bars; BF-proximity veto = within 1.0 x ATR of the line; chop veto =
    within 2.0 x ATR of a gate open (preserves the ruled 1:2 fixed-pair
@@ -217,8 +235,12 @@ veto counters), PLUS:
   question), with ATR% of price stated per symbol for context.
 - MAE-tail table across all arms vs the controls' 30-40% tail and the
   package's known collapse (worst 9-28.7%) -- where does depth erode it.
-- Entry-book invariance receipt: D1..D5 + DINF entry event streams
-  (ts, dir, pattern, trig) byte-equal; A1F book size delta vs A1 stated.
+- Entry-stream receipt (as corrected 2026-08-10 under ruling 3): per
+  symbol, D1..D5 + DINF event streams identical up to a first divergence
+  that is an EXIT event (gate, fail-closed); the per-arm entry-count
+  funnel reported; matched-entry (shared-prefix) per-trade exit
+  comparison as the exits-in-isolation diagnostic; A1F book size delta
+  vs A1 stated.
 
 ## Named deferred (NOT run in v1; on record so they cannot be smuggled in)
 

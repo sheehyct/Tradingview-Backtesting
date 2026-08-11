@@ -1,0 +1,226 @@
+{
+ "prereg": "docs/experiments/tvb23_t1floor_prereg.md",
+ "label": "PRE-COMMITTED LAYER ABLATION + LABELED OVERFIT CEILING-MAP",
+ "git_head": "8c5c126d810a742d7cea40967ea8e040930be8f6",
+ "git_dirty": true,
+ "git_dirty_paths": [
+  " M docs/experiments/tvb23_t1floor_prereg.md",
+  "?? analysis/paper/round_census.py",
+  "?? analysis/paper/tier_b_t1floor.py",
+  "?? analysis/paper/tier_b_t1floor/"
+ ],
+ "executed_blobs": {
+  "tier_b_t1floor.py": "99eadbfbed16dc46",
+  "tier_b.py": "8714b93591276b02",
+  "engine.py": "12081d949a0cea1c",
+  "patterns.py": "e63c02f3f03ebf8a"
+ },
+ "window": {
+  "start": "2026-07-06",
+  "end": "2026-08-03"
+ },
+ "arms": [
+  {
+   "arm_id": "D1",
+   "label": "floored package, exit rung 1 (fallback shallower)",
+   "twin": {
+    "entry_mode": "pattern",
+    "arm_tf_s": 3600,
+    "t1_floor_pct": 0.25,
+    "retrace_census": true,
+    "bf_prox_veto_pct": 1.0,
+    "chop_veto_pct": 2.0,
+    "exit_targets": 1,
+    "bf_harvest_exit": false
+   }
+  },
+  {
+   "arm_id": "D2",
+   "label": "floored package, exit rung 2 (fallback shallower)",
+   "twin": {
+    "entry_mode": "pattern",
+    "arm_tf_s": 3600,
+    "t1_floor_pct": 0.25,
+    "retrace_census": true,
+    "bf_prox_veto_pct": 1.0,
+    "chop_veto_pct": 2.0,
+    "exit_targets": 2,
+    "bf_harvest_exit": false
+   }
+  },
+  {
+   "arm_id": "D3",
+   "label": "floored package, exit rung 3 (fallback shallower)",
+   "twin": {
+    "entry_mode": "pattern",
+    "arm_tf_s": 3600,
+    "t1_floor_pct": 0.25,
+    "retrace_census": true,
+    "bf_prox_veto_pct": 1.0,
+    "chop_veto_pct": 2.0,
+    "exit_targets": 3,
+    "bf_harvest_exit": false
+   }
+  },
+  {
+   "arm_id": "D4",
+   "label": "floored package, exit rung 4 (fallback shallower)",
+   "twin": {
+    "entry_mode": "pattern",
+    "arm_tf_s": 3600,
+    "t1_floor_pct": 0.25,
+    "retrace_census": true,
+    "bf_prox_veto_pct": 1.0,
+    "chop_veto_pct": 2.0,
+    "exit_targets": 4,
+    "bf_harvest_exit": false
+   }
+  },
+  {
+   "arm_id": "D5",
+   "label": "floored package, exit rung 5 (fallback shallower)",
+   "twin": {
+    "entry_mode": "pattern",
+    "arm_tf_s": 3600,
+    "t1_floor_pct": 0.25,
+    "retrace_census": true,
+    "bf_prox_veto_pct": 1.0,
+    "chop_veto_pct": 2.0,
+    "exit_targets": 5,
+    "bf_harvest_exit": false
+   }
+  },
+  {
+   "arm_id": "DINF",
+   "label": "depth infinity: floored entries, fixed vetoes, C1 exits",
+   "twin": {
+    "entry_mode": "pattern",
+    "arm_tf_s": 3600,
+    "t1_floor_pct": 0.25,
+    "retrace_census": true,
+    "bf_prox_veto_pct": 1.0,
+    "chop_veto_pct": 2.0
+   }
+  },
+  {
+   "arm_id": "A1F",
+   "label": "floored isolation: floor only, no vetoes, C1 exits",
+   "twin": {
+    "entry_mode": "pattern",
+    "arm_tf_s": 3600,
+    "t1_floor_pct": 0.25,
+    "retrace_census": true
+   }
+  },
+  {
+   "arm_id": "D1ATR",
+   "label": "floored package, ATR(14) vetoes 1x/2x, exit rung 1",
+   "twin": {
+    "entry_mode": "pattern",
+    "arm_tf_s": 3600,
+    "t1_floor_pct": 0.25,
+    "retrace_census": true,
+    "bf_prox_veto_atr": 1.0,
+    "chop_veto_atr": 2.0,
+    "atr_window": 14,
+    "exit_targets": 1,
+    "bf_harvest_exit": false
+   }
+  }
+ ],
+ "determinism_arms": [
+  "A0a",
+  "A0b",
+  "A1",
+  "A2",
+  "A3"
+ ],
+ "warm_key": "(True, 6, 1.0, 12)",
+ "n_symbols": 11,
+ "smoke_subset": false,
+ "bar_hashes": {
+  "xyz_MRVL_5m.json": "c5ad8359993e0afd",
+  "xyz_MRVL_1h.json": "f1af88118977e9bd",
+  "xyz_MRVL_1d.json": "064edaf0a653bcf6",
+  "xyz_GOOGL_5m.json": "ec1e20c9c26b2a10",
+  "xyz_GOOGL_1h.json": "29e94d88c7bcb3e0",
+  "xyz_GOOGL_1d.json": "9e89fffeba7a23f0",
+  "xyz_AMZN_5m.json": "ae4f06dd8dfb9b94",
+  "xyz_AMZN_1h.json": "7b80cd42ffb3b1d4",
+  "xyz_AMZN_1d.json": "ac8561f67a374fc2",
+  "xyz_MSFT_5m.json": "1c561c65461b2429",
+  "xyz_MSFT_1h.json": "1edfafad5911de54",
+  "xyz_MSFT_1d.json": "53a412b9868c9702",
+  "xyz_GOLD_5m.json": "a5e0a7242aa55f73",
+  "xyz_GOLD_1h.json": "49e7f5f90787211e",
+  "xyz_GOLD_1d.json": "54f5207693636c6d",
+  "xyz_AAPL_5m.json": "0ef2d8440defcfe4",
+  "xyz_AAPL_1h.json": "7a52ea16920fd9ed",
+  "xyz_AAPL_1d.json": "35c8fb4fd57eed43",
+  "xyz_SKHX_5m.json": "457be491a3762f11",
+  "xyz_SKHX_1h.json": "da6fa9df75064c45",
+  "xyz_SKHX_1d.json": "3b1f27a8530e32f1",
+  "xyz_SKHY_5m.json": "4f979c21bb9e15f4",
+  "xyz_SKHY_1h.json": "7c368abbdf62f29a",
+  "xyz_SKHY_1d.json": "bfd3b4219b51c628",
+  "xyz_NBIS_5m.json": "ae8d932727bf386e",
+  "xyz_NBIS_1h.json": "a34f4134e5653ddb",
+  "xyz_NBIS_1d.json": "263a42199b04b738",
+  "xyz_TSLA_5m.json": "ff6630cc737459b3",
+  "xyz_TSLA_1h.json": "3761904d08c6deeb",
+  "xyz_TSLA_1d.json": "bb5afdc794032d86",
+  "xyz_DRAM_5m.json": "bfd57a76018ae375",
+  "xyz_DRAM_1h.json": "3bab1182ec48d15f",
+  "xyz_DRAM_1d.json": "86e3d3377788e1e9"
+ },
+ "tier_b_determinism_check": {
+  "n_committed_rows": 55,
+  "n_compared": 55,
+  "mismatches": []
+ },
+ "entry_stream_gate": {
+  "rule": "per symbol, depth-arm event streams identical until a first divergence that is an exit (prereg ruling 3, 2026-08-10 correction)",
+  "arms": [
+   "D1",
+   "D2",
+   "D3",
+   "D4",
+   "D5",
+   "DINF"
+  ],
+  "pass": true,
+  "entry_funnel": {
+   "D1": 137,
+   "D2": 108,
+   "D3": 93,
+   "D4": 89,
+   "D5": 85,
+   "DINF": 50
+  },
+  "entries_per_arm": {
+   "D1": 137,
+   "D2": 108,
+   "D3": 93,
+   "D4": 89,
+   "D5": 85,
+   "DINF": 50,
+   "A1F": 97,
+   "D1ATR": 106
+  }
+ },
+ "a1f_entries_per_symbol": {
+  "xyz:MRVL": 8,
+  "xyz:GOOGL": 8,
+  "xyz:AMZN": 8,
+  "xyz:MSFT": 7,
+  "xyz:GOLD": 4,
+  "xyz:AAPL": 8,
+  "xyz:SKHX": 9,
+  "xyz:SKHY": 16,
+  "xyz:NBIS": 12,
+  "xyz:TSLA": 7,
+  "xyz:DRAM": 10
+ },
+ "run_start_utc": "2026-08-11T03:40:14+00:00",
+ "run_end_utc": "2026-08-11T03:40:47+00:00"
+}
