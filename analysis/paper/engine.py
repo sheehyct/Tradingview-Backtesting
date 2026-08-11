@@ -325,6 +325,72 @@ class TwinConfig:
     chop_veto_pct: float | None = None  # 2.0 = veto within 2% of any D/W/M gate open
     exit_targets: int | None = None  # None = C1 exits; 1 = T1-always; 2 = rung 2 (fallback T1)
     bf_harvest_exit: bool = True  # False in package arms: targets replace bf-touch
+    # --- TVB-23 T1-floor round (docs/experiments/tvb23_t1floor_prereg.md).
+    # Defaults inert. The ATR veto forms are mutually exclusive with the pct
+    # forms (enforced in Twin.__post_init__); the floor is fee-grounded and
+    # stays a fixed percent even in ATR-veto arms (prereg ruling 1).
+    t1_floor_pct: float | None = (
+        None  # 0.25 = veto entries whose frozen T1 sits < 0.25% beyond fill
+    )
+    bf_prox_veto_atr: float | None = (
+        None  # k: veto within k x ATR (price units) of the nearest line
+    )
+    chop_veto_atr: float | None = None  # k: veto within k x ATR of any D/W/M gate open
+    atr_window: int = 14  # Wilder window over completed signal-TF bars
+    retrace_census: bool = False  # read-only M+T position-health first-label stamps
+
+
+class _Atr:
+    """Wilder ATR over completed signal-TF bars (TVB-23 prereg "Mechanics").
+
+    TR = max(h - l, |h - prev_close|, |l - prev_close|); the first bar (no
+    prior close) uses h - l. Seed = SMA of the first `window` TRs, then
+    Wilder smoothing atr = (atr * (window - 1) + tr) / window. `value` stays
+    None until the window fills; the veto layer reads the value as of the
+    last COMPLETED bar (the developing bar never contributes). Aggregation
+    boundaries mirror the pattern detector's (ts - ts % tf_s).
+    """
+
+    def __init__(self, tf_s: int, window: int):
+        self.tf_s = tf_s
+        self.window = window
+        self.key: int | None = None
+        self.cur_h: float | None = None
+        self.cur_l: float | None = None
+        self.cur_c: float | None = None
+        self.prev_c: float | None = None
+        self._seed_trs: list[float] = []
+        self.value: float | None = None
+
+    def push_completed(self, h: float, l: float, c: float) -> None:  # noqa: E741
+        tr = (
+            h - l if self.prev_c is None else max(h - l, abs(h - self.prev_c), abs(l - self.prev_c))
+        )
+        if self.value is None:
+            self._seed_trs.append(tr)
+            if len(self._seed_trs) == self.window:
+                self.value = sum(self._seed_trs) / self.window
+        else:
+            self.value = (self.value * (self.window - 1) + tr) / self.window
+        self.prev_c = c
+
+    def seed(self, bars) -> None:
+        """Warm from archived COMPLETED signal-TF bars (ts, o, h, l, c)."""
+        for r in bars:
+            self.push_completed(r[2], r[3], r[4])
+
+    def update(self, ts: int, h: float, l: float, c: float) -> None:  # noqa: E741
+        """Feed one chart bar; completes the prior signal-TF bar on rollover."""
+        k = ts - ts % self.tf_s
+        if self.key is None or k != self.key:
+            if self.key is not None and self.cur_h is not None:
+                self.push_completed(self.cur_h, self.cur_l, self.cur_c)
+            self.key = k
+            self.cur_h, self.cur_l, self.cur_c = h, l, c
+        else:
+            self.cur_h = max(self.cur_h, h)
+            self.cur_l = min(self.cur_l, l)
+            self.cur_c = c
 
 
 @dataclass
@@ -346,6 +412,9 @@ class Twin:
     pattern: PatternDetector | None = None
     tgt_px: float | None = None
     tgt_rung: int | None = None
+    atr: _Atr | None = None
+    first_retrace_ts: int | None = None
+    first_p3_ts: int | None = None
     veto_counts: dict = field(
         default_factory=lambda: {
             "candidates": 0,
@@ -354,6 +423,10 @@ class Twin:
             "bf_prox": 0,
             "chop": 0,
             "both": 0,
+            "t1_floor": 0,
+            "t1_floor_le0": 0,
+            "t1_floor_small": 0,
+            "t1_floor_only": 0,
             "entries": 0,
         }
     )
@@ -373,6 +446,14 @@ class Twin:
                 )
                 for name, kf, ps in POOL_SPECS
             ]
+        if self.cfg.bf_prox_veto_pct is not None and self.cfg.bf_prox_veto_atr is not None:
+            raise ValueError("bf_prox_veto_pct and bf_prox_veto_atr are mutually exclusive")
+        if self.cfg.chop_veto_pct is not None and self.cfg.chop_veto_atr is not None:
+            raise ValueError("chop_veto_pct and chop_veto_atr are mutually exclusive")
+        if (
+            self.cfg.bf_prox_veto_atr is not None or self.cfg.chop_veto_atr is not None
+        ) and self.atr is None:
+            self.atr = _Atr(self.cfg.pattern_tf_s, self.cfg.atr_window)
         if self.cfg.entry_mode == "pattern" and self.pattern is None:
             self.pattern = PatternDetector(
                 PatternConfig(
@@ -457,23 +538,28 @@ class Twin:
 
         def close_out(direction: str, kind: str, price: float, line_tf=None, line_n=None):
             sign = 1.0 if direction == "long" else -1.0
-            events.append(
-                {
-                    "ts": ts,
-                    "sym": cfg.symbol,
-                    "action": "exit",
-                    "dir": direction,
-                    "kind": kind,
-                    "price": price,
-                    "line_tf": line_tf,
-                    "line_N": line_n,
-                    "entry_ts": self.entry_ts,
-                    "entry_px": self.entry_px,
-                    "pnl_pct": sign * (price - self.entry_px) / self.entry_px * 100.0,
-                }
-            )
+            ev = {
+                "ts": ts,
+                "sym": cfg.symbol,
+                "action": "exit",
+                "dir": direction,
+                "kind": kind,
+                "price": price,
+                "line_tf": line_tf,
+                "line_N": line_n,
+                "entry_ts": self.entry_ts,
+                "entry_px": self.entry_px,
+                "pnl_pct": sign * (price - self.entry_px) / self.entry_px * 100.0,
+            }
+            if cfg.retrace_census:
+                # TVB-23 census stamps ride the exit event only under the
+                # flag so the default event shape (golden-pinned) is untouched
+                ev["first_retrace_ts"] = self.first_retrace_ts
+                ev["first_p3_ts"] = self.first_p3_ts
+            events.append(ev)
             self.pos, self.entry_px, self.entry_ts = 0, None, None
             self.tgt_px = self.tgt_rung = None
+            self.first_retrace_ts = self.first_p3_ts = None
 
         if cfg.bf_harvest_exit:
             if self.pos == -1 and xs is not None:
@@ -570,22 +656,59 @@ class Twin:
             else:
                 below = [v for v in prox_vals if v < fill]
                 veto_prox = bool(below) and (fill - max(below)) / fill <= lim
+        elif cfg.bf_prox_veto_atr is not None and prox_vals:
+            # TVB-23 ATR variant (prereg ruling 4): limit in PRICE units,
+            # k x ATR as of the last completed signal-TF bar. ATR is always
+            # formed in-window (250-bar seed); a None value vetoes nothing.
+            a = self.atr.value if self.atr is not None else None
+            if a is not None:
+                lim = cfg.bf_prox_veto_atr * a
+                if sig.dir == 1:
+                    above = [v for v in prox_vals if v > fill]
+                    veto_prox = bool(above) and min(above) - fill <= lim
+                else:
+                    below = [v for v in prox_vals if v < fill]
+                    veto_prox = bool(below) and fill - max(below) <= lim
         veto_chop = False
         if cfg.chop_veto_pct is not None:
             lim = cfg.chop_veto_pct / 100.0
             veto_chop = any(
                 v is not None and abs(fill - v) / fill <= lim for v in self.gate_open.values()
             )
+        elif cfg.chop_veto_atr is not None:
+            a = self.atr.value if self.atr is not None else None
+            if a is not None:
+                lim = cfg.chop_veto_atr * a
+                veto_chop = any(
+                    v is not None and abs(fill - v) <= lim for v in self.gate_open.values()
+                )
         if veto_prox or veto_chop:
             vc["both" if (veto_prox and veto_chop) else "bf_prox" if veto_prox else "chop"] += 1
-        if cfg.exit_targets is not None and not sig.ladder:
+        # TVB-23 T1-floor veto (prereg ruling 1): directional distance from
+        # the prospective fill to the frozen T1 (ladder[0]); d <= 0 is the
+        # born-beyond class, 0 < d < floor the tiny class. Evaluated for
+        # every candidate with a non-empty snapshot ladder, before the
+        # no-target skip.
+        veto_floor = False
+        if cfg.t1_floor_pct is not None and sig.ladder:
+            t1 = sig.ladder[0]
+            d = (t1 - fill) / fill if sig.dir == 1 else (fill - t1) / fill
+            veto_floor = d < cfg.t1_floor_pct / 100.0
+            if veto_floor:
+                vc["t1_floor"] += 1
+                vc["t1_floor_le0" if d <= 0 else "t1_floor_small"] += 1
+                if not (veto_prox or veto_chop):
+                    vc["t1_floor_only"] += 1
+        if (cfg.exit_targets is not None or cfg.t1_floor_pct is not None) and not sig.ladder:
             # A package arm cannot satisfy its exit semantics with no target
-            # in the entry snapshot: structural skip, logged separately.
+            # in the entry snapshot -- and a floor arm has no Target 1 to
+            # measure (TVB-23: uniform structural skip across all floor
+            # arms, incl. C1-exit ones): structural skip, logged separately.
             vc["no_target"] += 1
             if veto_prox or veto_chop:
                 vc["no_target_vetoed"] += 1
             return
-        if veto_prox or veto_chop:
+        if veto_prox or veto_chop or veto_floor:
             return
         vc["entries"] += 1
         rung = None
@@ -594,6 +717,7 @@ class Twin:
             self.tgt_px, self.tgt_rung = sig.ladder[idx], idx + 1
             rung = self.tgt_rung
         self.pos, self.entry_px, self.entry_ts = sig.dir, fill, ts
+        self.first_retrace_ts = self.first_p3_ts = None
         events.append(
             {
                 "ts": ts,
@@ -636,8 +760,31 @@ class Twin:
         # BF-prox veto reads the BAR-OPEN alive set, so collect it before the
         # pools process this bar's lifecycle transitions.
         sig = self.pattern.update(ts, o, h, l, c) if self.pattern is not None else None
+        if self.atr is not None:
+            self.atr.update(ts, h, l, c)
+        # TVB-23 read-only retracement census (prereg ruling 5): evaluated
+        # on the bar-start position BEFORE the position step, so the entry
+        # bar is structurally excluded (no position stands yet) and the
+        # exit bar is included. Writes nothing the position machine reads.
+        if self.cfg.retrace_census and self.pos != 0 and self.pattern is not None:
+            fl = self.pattern.health_flags()
+            if fl is not None:
+                if self.pos == 1:
+                    retr = fl["in0"] and fl["r0"]
+                    p3 = fl["d0"] or (fl["u0"] and fl["r0"])
+                else:
+                    retr = fl["in0"] and fl["g0"]
+                    p3 = fl["u0"] or (fl["d0"] and fl["g0"])
+                if retr and self.first_retrace_ts is None:
+                    self.first_retrace_ts = ts
+                if p3 and self.first_p3_ts is None:
+                    self.first_p3_ts = ts
         prox_vals = None
-        if sig is not None and self.pos == 0 and self.cfg.bf_prox_veto_pct is not None:
+        if (
+            sig is not None
+            and self.pos == 0
+            and (self.cfg.bf_prox_veto_pct is not None or self.cfg.bf_prox_veto_atr is not None)
+        ):
             prox_vals = self._alive_harvest_vals(ts, sig.dir)
         # pools see the position standing at bar start (:354-360)
         pos0, entry0 = self.pos, self.entry_px

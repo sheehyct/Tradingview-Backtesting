@@ -154,6 +154,31 @@ class PatternDetector:
             self.cur_c = c
         return self._detect()
 
+    def health_flags(self) -> dict | None:
+        """Developing-bar flags for the M+T position-health predicates.
+
+        TVB-23 retracement census (read-only; detection never consults
+        this). Pine-exact reads of the status inputs (pine :192-206,
+        :694-716): one-sided break flags of the developing signal-TF bar
+        vs the last completed bar, plus live color. Note the as-built
+        edge (prereg correction 2026-08-10): d0/u0 are ONE-SIDED, so a
+        bar that has broken both sides (out0) sets neither.
+        """
+        n = len(self.arr_h)
+        if n < 1 or self.cur_h is None:
+            return None
+        thr = self.cfg.mintick
+        bh0 = self.cur_h - self.arr_h[n - 1] >= thr
+        bl0 = self.arr_l[n - 1] - self.cur_l >= thr
+        return {
+            "in0": not bh0 and not bl0,
+            "u0": bh0 and not bl0,
+            "d0": bl0 and not bh0,
+            "out0": bh0 and bl0,
+            "g0": self.cur_c > self.cur_o,
+            "r0": self.cur_c < self.cur_o,
+        }
+
     # ------------------------------------------------------------------
     def _detect(self):  # noqa: C901 -- the pine chain is one long else-if
         cfg = self.cfg

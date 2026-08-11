@@ -149,9 +149,14 @@ alongside the other vetoes, BEFORE the no-target skip. Counters:
 `t1_floor` (total floor-vetoed), split `t1_floor_le0` (d <= 0, the
 born-beyond class) and `t1_floor_small` (0 < d < floor, the tiny class),
 plus `t1_floor_only` (floor-vetoed and passed by every other veto -- the
-floor's marginal suppression). Entry reconciliation stays exact via a
-direct skip counter; the runner asserts
-`entries = candidates - skipped_total` per (arm, symbol).
+floor's marginal suppression). [Amended 2026-08-10, before the engine
+change landed: reconciliation is asserted via the exact counter equation
+`entries = candidates - no_target - (both + bf_prox + chop -
+no_target_vetoed) - t1_floor_only` per (arm, symbol) -- equivalent to the
+originally-worded direct skip counter, but it keeps every NEW counter
+zero-valued on the determinism arms, so their field-equality check stays
+strict modulo zero-valued new keys (the TVB-22 no_target_vetoed
+precedent).]
 
 ATR (D1ATR): true range on COMPLETED aggregated 1H signal-TF bars
 (TR = max(h - l, |h - prev_close|, |l - prev_close|)); Wilder smoothing,
