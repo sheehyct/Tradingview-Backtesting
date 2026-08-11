@@ -131,11 +131,13 @@ next-variant seed written for the T1-floor design session.
 > below) and write a verbatim assessment to docs/reviews/tvb22-codex-audit.md.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: REQUESTED
-- Commits to review: `056f47b^..a2ede4e` on `main` (14 commits; RANGE-PIN
-  RULE: the caret keeps 056f47b in the diff; sanity-checked -- `git diff
-  --name-status 056f47b^..a2ede4e` lists all 28 files the session
-  touched).
+- Review status: RETURNED (2026-08-10) -- NEEDS-CHANGES; all three findings
+  reproduced and ADDRESSED same day (synthesis below).
+- Commits to review: `056f47b^..a2ede4e` on `main` (13 commits -- the "14"
+  originally recorded here was a miscount, audit F3, `git rev-list --count`
+  = 13 and the SHA list was already complete; RANGE-PIN RULE: the caret
+  keeps 056f47b in the diff; sanity-checked -- `git diff --name-status
+  056f47b^..a2ede4e` lists all 28 files the session touched).
 - Scope / what changed: TV package strategy() port + its parity harness/
   gate (9/9 PASS); TVB-21 audit fold-in (F1 reproduced, prereg amendment,
   engine containment fix, full Tier B rerun regenerated in place);
@@ -157,8 +159,62 @@ next-variant seed written for the T1-floor design session.
   checks, cold-start twin alignment to first_bar_ts; (6) no promotion
   language in the rerun report / seed / trade tables; (7)
   request.security: the new pine has NONE -- confirm across the range.
-- Reviewed by: pending
-- Findings: (blank until docs/reviews/tvb22-codex-audit.md exists)
+- Reviewed by: OpenAI Codex (GPT-5), verdict NEEDS-CHANGES
+  (docs/reviews/tvb22-codex-audit.md, verbatim).
+- CRITICAL SYNTHESIS (folded 2026-08-10, next session; all findings
+  reproduced BEFORE adjudication):
+  - F1 MEDIUM (missing/NaN twin trig false-passes the pattern layer):
+    CONFIRMED -- reproduced pre-fix on the committed GOOGL/A1 cell exactly
+    as the audit describes (delete-trig and NaN both false-PASSed at 79
+    events / 40 checked / zero violations). One refinement: +inf already
+    FAILED via the comparison; the silent paths were missing and NaN
+    specifically. FIXED fail-closed at two layers (pkg_parity.py):
+    validate_events now requires a non-empty pattern name and a finite
+    numeric trig on every enter event on BOTH sides, and the trig
+    comparison treats a non-finite twin value as a violation even if
+    validation were bypassed. NEW tests/test_pkg_parity.py (12 tests):
+    synthetic pattern-stream contract, all malformed-payload paths
+    (missing/NaN/inf/string trig, missing/empty pattern), name-mismatch
+    and half-tick-drift pins, the committed GOOGL/A1 pin (79/79/79, 40
+    checked), and the audit's adversarial delete-one-committed-trig case.
+    All nine committed cells re-verified PASS in memory under the hardened
+    gate; the committed parity artifact was deliberately NOT regenerated
+    (TVB-20 F1 precedent: committed artifacts are a pinned regression
+    surface).
+  - F2 LOW (ladder census had no pinned denominator/receipt): CONFIRMED --
+    the committed rows carry only ladder_depth_at_entry; the seed's
+    70/40/43 figures were unpinned post-hoc reads mixing denominators.
+    BUILT analysis/paper/ladder_census.py (replays A1 via the tier_b
+    warm/seed path, tier_b.py itself untouched -- its blob hash stays
+    manifest-pinned) + committed receipt
+    analysis/paper/tier_b/ladder_census_receipt.json with every convention
+    declared (10-symbol scope, entry-bar excluded, reach AND containment
+    touch both reported, zero-rung in denominator, per-trade rows) and a
+    fail-closed determinism guard vs the committed A1 rows (PASS). The
+    receipt reproduces the AUDIT's readings exactly (reach, 137 closed:
+    65.0% >= 2, 37.2% >= 4, 39.4% stall 1-2; bf mean 3.41 / 3.62
+    excl-zero) -- independent convergence on conventions. Seed corrected
+    in place with receipt-backed figures; bimodality survives with
+    corrected numbers (39% stall vs 37% run-4+). 5 unit tests pin the
+    counting rules (tests/test_ladder_census.py). The census is now
+    prereg-citable for the T1-floor round.
+  - F3 LOW (stale parity metadata): CONFIRMED -- pine header updated to
+    name the passed nine-cell artifact (487 events, 246 pattern checks)
+    with the realtime-cadence caveat preserved and an explicit
+    re-gate-on-any-semantic-change rule; comment-only change, zero
+    semantic hunks (TV-side copy is one comment block behind until the
+    next TV sync; decisions unchanged). Range count corrected 14 -> 13
+    here and in REVIEW_REQUEST.md.
+  - Audit confirmations worth keeping: rerun arithmetic + class splits
+    independently reproduced; fix-isolation invariants verified; Pine
+    H1-H7 statement-equality checked against both sources incl. H4
+    veto-scan equivalence to engine._alive_harvest_vals and H7's
+    guard-only claim; nine-cell parity regenerated in memory 487/487; no
+    executable request.security in the range; no promotion language.
+    Carried validation limits: parity is historical close-cadence
+    decision-level evidence on three symbols; Tier B remains one ~4-week
+    gross in-sample window; the manifest records a dirty boolean, not the
+    dirty path list (accepted, noted for future manifests).
 
 ---
 

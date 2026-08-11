@@ -1,0 +1,1999 @@
+{
+ "generated_utc": "2026-08-11T02:35:31+00:00",
+ "purpose": "TVB-22 audit F2: reproducible A1 ladder-traversal census receipt",
+ "conventions": {
+  "scope": "arm A1, week-1 roster minus parity symbol xyz:DRAM (10 symbols)",
+  "window": {
+   "start": "2026-07-06",
+   "end": "2026-08-03"
+  },
+  "ladder": "entry-snapshot ladder frozen at entry; rung 1 = ladder[0] (nearest); rungs_reached = deepest rung satisfied; zero-rung trades stay in denominators",
+  "bars_counted": "strictly after the entry bar through the exit bar inclusive; open trades marked through the window's last bar",
+  "touch_reach": "favorable extreme at/past rung (long high >= rung, short low <= rung); price travel, gap-past counts",
+  "touch_containment": "low <= rung <= high (ruled fill convention, 2026-08-09 amendment); gap-past does not count"
+ },
+ "symbols": [
+  "xyz:MRVL",
+  "xyz:GOOGL",
+  "xyz:AMZN",
+  "xyz:MSFT",
+  "xyz:GOLD",
+  "xyz:AAPL",
+  "xyz:SKHX",
+  "xyz:SKHY",
+  "xyz:NBIS",
+  "xyz:TSLA"
+ ],
+ "determinism_check_vs_committed_a1_rows": {
+  "n_committed_rows": 11,
+  "mismatches": []
+ },
+ "aggregates": {
+  "reach": {
+   "closed": {
+    "n": 137,
+    "histogram": {
+     "0": 19,
+     "1": 29,
+     "2": 25,
+     "3": 13,
+     "4": 8,
+     "5": 5,
+     "6": 38
+    },
+    "ge1": {
+     "n": 118,
+     "of": 137,
+     "pct": 86.1
+    },
+    "ge2": {
+     "n": 89,
+     "of": 137,
+     "pct": 65.0
+    },
+    "ge4": {
+     "n": 51,
+     "of": 137,
+     "pct": 37.2
+    },
+    "stall_1_2": {
+     "n": 54,
+     "of": 137,
+     "pct": 39.4
+    },
+    "mean": 2.9416,
+    "mean_excl_zero": 3.4153,
+    "n_zero": 19
+   },
+   "closed_open": {
+    "n": 146,
+    "histogram": {
+     "0": 20,
+     "1": 32,
+     "2": 28,
+     "3": 14,
+     "4": 8,
+     "5": 6,
+     "6": 38
+    },
+    "ge1": {
+     "n": 126,
+     "of": 146,
+     "pct": 86.3
+    },
+    "ge2": {
+     "n": 94,
+     "of": 146,
+     "pct": 64.4
+    },
+    "ge4": {
+     "n": 52,
+     "of": 146,
+     "pct": 35.6
+    },
+    "stall_1_2": {
+     "n": 60,
+     "of": 146,
+     "pct": 41.1
+    },
+    "mean": 2.8767,
+    "mean_excl_zero": 3.3333,
+    "n_zero": 20
+   },
+   "by_exit_kind": {
+    "bf": {
+     "n": 86,
+     "histogram": {
+      "0": 5,
+      "1": 17,
+      "2": 19,
+      "3": 7,
+      "4": 5,
+      "5": 1,
+      "6": 32
+     },
+     "ge1": {
+      "n": 81,
+      "of": 86,
+      "pct": 94.2
+     },
+     "ge2": {
+      "n": 64,
+      "of": 86,
+      "pct": 74.4
+     },
+     "ge4": {
+      "n": 38,
+      "of": 86,
+      "pct": 44.2
+     },
+     "stall_1_2": {
+      "n": 36,
+      "of": 86,
+      "pct": 41.9
+     },
+     "mean": 3.407,
+     "mean_excl_zero": 3.6173,
+     "n_zero": 5
+    },
+    "brk": {
+     "n": 26,
+     "histogram": {
+      "0": 7,
+      "1": 7,
+      "2": 3,
+      "3": 4,
+      "4": 2,
+      "5": 1,
+      "6": 2
+     },
+     "ge1": {
+      "n": 19,
+      "of": 26,
+      "pct": 73.1
+     },
+     "ge2": {
+      "n": 12,
+      "of": 26,
+      "pct": 46.2
+     },
+     "ge4": {
+      "n": 5,
+      "of": 26,
+      "pct": 19.2
+     },
+     "stall_1_2": {
+      "n": 10,
+      "of": 26,
+      "pct": 38.5
+     },
+     "mean": 1.9231,
+     "mean_excl_zero": 2.6316,
+     "n_zero": 7
+    },
+    "flip": {
+     "n": 25,
+     "histogram": {
+      "0": 7,
+      "1": 5,
+      "2": 3,
+      "3": 2,
+      "4": 1,
+      "5": 3,
+      "6": 4
+     },
+     "ge1": {
+      "n": 18,
+      "of": 25,
+      "pct": 72.0
+     },
+     "ge2": {
+      "n": 13,
+      "of": 25,
+      "pct": 52.0
+     },
+     "ge4": {
+      "n": 8,
+      "of": 25,
+      "pct": 32.0
+     },
+     "stall_1_2": {
+      "n": 8,
+      "of": 25,
+      "pct": 32.0
+     },
+     "mean": 2.4,
+     "mean_excl_zero": 3.3333,
+     "n_zero": 7
+    }
+   }
+  },
+  "containment": {
+   "closed": {
+    "n": 137,
+    "histogram": {
+     "0": 25,
+     "1": 28,
+     "2": 25,
+     "3": 13,
+     "4": 8,
+     "5": 5,
+     "6": 33
+    },
+    "ge1": {
+     "n": 112,
+     "of": 137,
+     "pct": 81.8
+    },
+    "ge2": {
+     "n": 84,
+     "of": 137,
+     "pct": 61.3
+    },
+    "ge4": {
+     "n": 46,
+     "of": 137,
+     "pct": 33.6
+    },
+    "stall_1_2": {
+     "n": 53,
+     "of": 137,
+     "pct": 38.7
+    },
+    "mean": 2.7153,
+    "mean_excl_zero": 3.3214,
+    "n_zero": 25
+   },
+   "closed_open": {
+    "n": 146,
+    "histogram": {
+     "0": 26,
+     "1": 31,
+     "2": 28,
+     "3": 14,
+     "4": 8,
+     "5": 6,
+     "6": 33
+    },
+    "ge1": {
+     "n": 120,
+     "of": 146,
+     "pct": 82.2
+    },
+    "ge2": {
+     "n": 89,
+     "of": 146,
+     "pct": 61.0
+    },
+    "ge4": {
+     "n": 47,
+     "of": 146,
+     "pct": 32.2
+    },
+    "stall_1_2": {
+     "n": 59,
+     "of": 146,
+     "pct": 40.4
+    },
+    "mean": 2.6644,
+    "mean_excl_zero": 3.2417,
+    "n_zero": 26
+   },
+   "by_exit_kind": {
+    "bf": {
+     "n": 86,
+     "histogram": {
+      "0": 11,
+      "1": 16,
+      "2": 19,
+      "3": 7,
+      "4": 5,
+      "5": 1,
+      "6": 27
+     },
+     "ge1": {
+      "n": 75,
+      "of": 86,
+      "pct": 87.2
+     },
+     "ge2": {
+      "n": 59,
+      "of": 86,
+      "pct": 68.6
+     },
+     "ge4": {
+      "n": 33,
+      "of": 86,
+      "pct": 38.4
+     },
+     "stall_1_2": {
+      "n": 35,
+      "of": 86,
+      "pct": 40.7
+     },
+     "mean": 3.0465,
+     "mean_excl_zero": 3.4933,
+     "n_zero": 11
+    },
+    "brk": {
+     "n": 26,
+     "histogram": {
+      "0": 7,
+      "1": 7,
+      "2": 3,
+      "3": 4,
+      "4": 2,
+      "5": 1,
+      "6": 2
+     },
+     "ge1": {
+      "n": 19,
+      "of": 26,
+      "pct": 73.1
+     },
+     "ge2": {
+      "n": 12,
+      "of": 26,
+      "pct": 46.2
+     },
+     "ge4": {
+      "n": 5,
+      "of": 26,
+      "pct": 19.2
+     },
+     "stall_1_2": {
+      "n": 10,
+      "of": 26,
+      "pct": 38.5
+     },
+     "mean": 1.9231,
+     "mean_excl_zero": 2.6316,
+     "n_zero": 7
+    },
+    "flip": {
+     "n": 25,
+     "histogram": {
+      "0": 7,
+      "1": 5,
+      "2": 3,
+      "3": 2,
+      "4": 1,
+      "5": 3,
+      "6": 4
+     },
+     "ge1": {
+      "n": 18,
+      "of": 25,
+      "pct": 72.0
+     },
+     "ge2": {
+      "n": 13,
+      "of": 25,
+      "pct": 52.0
+     },
+     "ge4": {
+      "n": 8,
+      "of": 25,
+      "pct": 32.0
+     },
+     "stall_1_2": {
+      "n": 8,
+      "of": 25,
+      "pct": 32.0
+     },
+     "mean": 2.4,
+     "mean_excl_zero": 3.3333,
+     "n_zero": 7
+    }
+   }
+  }
+ },
+ "per_trade": [
+  {
+   "symbol": "xyz:MRVL",
+   "dir": "short",
+   "entry_ts": 1783335900,
+   "exit_ts": 1783382400,
+   "exit_kind": "bf",
+   "pattern": "2-2d",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:MRVL",
+   "dir": "short",
+   "entry_ts": 1783411200,
+   "exit_ts": 1783431000,
+   "exit_kind": "bf",
+   "pattern": "2-2d",
+   "ladder_len": 2,
+   "rungs_reach": 2,
+   "rungs_containment": 2
+  },
+  {
+   "symbol": "xyz:MRVL",
+   "dir": "short",
+   "entry_ts": 1783431300,
+   "exit_ts": 1784266800,
+   "exit_kind": "bf",
+   "pattern": "2-2d",
+   "ladder_len": 1,
+   "rungs_reach": 1,
+   "rungs_containment": 1
+  },
+  {
+   "symbol": "xyz:MRVL",
+   "dir": "short",
+   "entry_ts": 1784287200,
+   "exit_ts": 1784765400,
+   "exit_kind": "brk",
+   "pattern": "2-2d",
+   "ladder_len": 3,
+   "rungs_reach": 1,
+   "rungs_containment": 1
+  },
+  {
+   "symbol": "xyz:MRVL",
+   "dir": "short",
+   "entry_ts": 1785114900,
+   "exit_ts": 1785161400,
+   "exit_kind": "bf",
+   "pattern": "3-2d",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:MRVL",
+   "dir": "short",
+   "entry_ts": 1785172500,
+   "exit_ts": 1785245400,
+   "exit_kind": "bf",
+   "pattern": "1-2u-2d",
+   "ladder_len": 4,
+   "rungs_reach": 4,
+   "rungs_containment": 4
+  },
+  {
+   "symbol": "xyz:MRVL",
+   "dir": "short",
+   "entry_ts": 1785245700,
+   "exit_ts": 1785359400,
+   "exit_kind": "bf",
+   "pattern": "1-3d",
+   "ladder_len": 1,
+   "rungs_reach": 1,
+   "rungs_containment": 1
+  },
+  {
+   "symbol": "xyz:MRVL",
+   "dir": "short",
+   "entry_ts": 1785463200,
+   "exit_ts": null,
+   "exit_kind": "open",
+   "pattern": "3-2-2d",
+   "ladder_len": 6,
+   "rungs_reach": 2,
+   "rungs_containment": 2
+  },
+  {
+   "symbol": "xyz:GOOGL",
+   "dir": "long",
+   "entry_ts": 1783350300,
+   "exit_ts": 1783431600,
+   "exit_kind": "bf",
+   "pattern": "3-2-2u",
+   "ladder_len": 3,
+   "rungs_reach": 3,
+   "rungs_containment": 3
+  },
+  {
+   "symbol": "xyz:GOOGL",
+   "dir": "long",
+   "entry_ts": 1783431900,
+   "exit_ts": 1783599000,
+   "exit_kind": "brk",
+   "pattern": "1-3u",
+   "ladder_len": 3,
+   "rungs_reach": 3,
+   "rungs_containment": 3
+  },
+  {
+   "symbol": "xyz:GOOGL",
+   "dir": "short",
+   "entry_ts": 1783599300,
+   "exit_ts": 1783602300,
+   "exit_kind": "bf",
+   "pattern": "3-2d",
+   "ladder_len": 6,
+   "rungs_reach": 2,
+   "rungs_containment": 2
+  },
+  {
+   "symbol": "xyz:GOOGL",
+   "dir": "short",
+   "entry_ts": 1783606200,
+   "exit_ts": 1783930200,
+   "exit_kind": "flip",
+   "pattern": "3-2d",
+   "ladder_len": 5,
+   "rungs_reach": 1,
+   "rungs_containment": 1
+  },
+  {
+   "symbol": "xyz:GOOGL",
+   "dir": "long",
+   "entry_ts": 1783937100,
+   "exit_ts": 1783941000,
+   "exit_kind": "flip",
+   "pattern": "2-1-2u",
+   "ladder_len": 6,
+   "rungs_reach": 0,
+   "rungs_containment": 0
+  },
+  {
+   "symbol": "xyz:GOOGL",
+   "dir": "short",
+   "entry_ts": 1783941300,
+   "exit_ts": 1783950000,
+   "exit_kind": "flip",
+   "pattern": "1-2u-2d",
+   "ladder_len": 6,
+   "rungs_reach": 5,
+   "rungs_containment": 5
+  },
+  {
+   "symbol": "xyz:GOOGL",
+   "dir": "short",
+   "entry_ts": 1783952100,
+   "exit_ts": 1784040900,
+   "exit_kind": "flip",
+   "pattern": "3-2d",
+   "ladder_len": 5,
+   "rungs_reach": 5,
+   "rungs_containment": 5
+  },
+  {
+   "symbol": "xyz:GOOGL",
+   "dir": "long",
+   "entry_ts": 1784049000,
+   "exit_ts": 1784082900,
+   "exit_kind": "bf",
+   "pattern": "2-2u",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:GOOGL",
+   "dir": "long",
+   "entry_ts": 1784083200,
+   "exit_ts": 1784122200,
+   "exit_kind": "bf",
+   "pattern": "3-2u",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:GOOGL",
+   "dir": "long",
+   "entry_ts": 1784122500,
+   "exit_ts": 1784124000,
+   "exit_kind": "bf",
+   "pattern": "3-2u",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 0
+  },
+  {
+   "symbol": "xyz:GOOGL",
+   "dir": "long",
+   "entry_ts": 1784139300,
+   "exit_ts": 1784189700,
+   "exit_kind": "bf",
+   "pattern": "2-2u",
+   "ladder_len": 1,
+   "rungs_reach": 1,
+   "rungs_containment": 1
+  },
+  {
+   "symbol": "xyz:GOOGL",
+   "dir": "long",
+   "entry_ts": 1784193900,
+   "exit_ts": 1784228700,
+   "exit_kind": "flip",
+   "pattern": "3-2u",
+   "ladder_len": 0,
+   "rungs_reach": 0,
+   "rungs_containment": 0
+  },
+  {
+   "symbol": "xyz:GOOGL",
+   "dir": "short",
+   "entry_ts": 1784247000,
+   "exit_ts": 1784261100,
+   "exit_kind": "bf",
+   "pattern": "2-2d",
+   "ladder_len": 5,
+   "rungs_reach": 4,
+   "rungs_containment": 4
+  },
+  {
+   "symbol": "xyz:GOOGL",
+   "dir": "short",
+   "entry_ts": 1784261400,
+   "exit_ts": 1784262600,
+   "exit_kind": "bf",
+   "pattern": "2-2d",
+   "ladder_len": 2,
+   "rungs_reach": 2,
+   "rungs_containment": 2
+  },
+  {
+   "symbol": "xyz:GOOGL",
+   "dir": "short",
+   "entry_ts": 1784262900,
+   "exit_ts": 1784291100,
+   "exit_kind": "bf",
+   "pattern": "2-2d",
+   "ladder_len": 2,
+   "rungs_reach": 2,
+   "rungs_containment": 2
+  },
+  {
+   "symbol": "xyz:GOOGL",
+   "dir": "short",
+   "entry_ts": 1784291400,
+   "exit_ts": 1784294700,
+   "exit_kind": "bf",
+   "pattern": "3-2d",
+   "ladder_len": 2,
+   "rungs_reach": 2,
+   "rungs_containment": 2
+  },
+  {
+   "symbol": "xyz:GOOGL",
+   "dir": "short",
+   "entry_ts": 1784308800,
+   "exit_ts": 1784476500,
+   "exit_kind": "brk",
+   "pattern": "1-3d",
+   "ladder_len": 3,
+   "rungs_reach": 2,
+   "rungs_containment": 2
+  },
+  {
+   "symbol": "xyz:GOOGL",
+   "dir": "short",
+   "entry_ts": 1784520600,
+   "exit_ts": 1784554500,
+   "exit_kind": "flip",
+   "pattern": "2-1-2d",
+   "ladder_len": 6,
+   "rungs_reach": 2,
+   "rungs_containment": 2
+  },
+  {
+   "symbol": "xyz:GOOGL",
+   "dir": "long",
+   "entry_ts": 1784554800,
+   "exit_ts": 1784641500,
+   "exit_kind": "flip",
+   "pattern": "1-3-1-2u",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:GOOGL",
+   "dir": "short",
+   "entry_ts": 1784647500,
+   "exit_ts": 1784750400,
+   "exit_kind": "bf",
+   "pattern": "1-3d",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:GOOGL",
+   "dir": "short",
+   "entry_ts": 1784754600,
+   "exit_ts": 1784754900,
+   "exit_kind": "bf",
+   "pattern": "3-2d",
+   "ladder_len": 0,
+   "rungs_reach": 0,
+   "rungs_containment": 0
+  },
+  {
+   "symbol": "xyz:GOOGL",
+   "dir": "short",
+   "entry_ts": 1784755200,
+   "exit_ts": 1784809800,
+   "exit_kind": "bf",
+   "pattern": "3-2d",
+   "ladder_len": 0,
+   "rungs_reach": 0,
+   "rungs_containment": 0
+  },
+  {
+   "symbol": "xyz:GOOGL",
+   "dir": "short",
+   "entry_ts": 1784831700,
+   "exit_ts": 1785139500,
+   "exit_kind": "brk",
+   "pattern": "2-1-2d",
+   "ladder_len": 2,
+   "rungs_reach": 1,
+   "rungs_containment": 1
+  },
+  {
+   "symbol": "xyz:GOOGL",
+   "dir": "short",
+   "entry_ts": 1785150000,
+   "exit_ts": 1785526800,
+   "exit_kind": "flip",
+   "pattern": "3-2d",
+   "ladder_len": 6,
+   "rungs_reach": 3,
+   "rungs_containment": 3
+  },
+  {
+   "symbol": "xyz:GOOGL",
+   "dir": "long",
+   "entry_ts": 1785566400,
+   "exit_ts": null,
+   "exit_kind": "open",
+   "pattern": "3-2-2u",
+   "ladder_len": 4,
+   "rungs_reach": 3,
+   "rungs_containment": 3
+  },
+  {
+   "symbol": "xyz:AMZN",
+   "dir": "long",
+   "entry_ts": 1783352400,
+   "exit_ts": 1783599300,
+   "exit_kind": "brk",
+   "pattern": "3-1-2u",
+   "ladder_len": 5,
+   "rungs_reach": 5,
+   "rungs_containment": 5
+  },
+  {
+   "symbol": "xyz:AMZN",
+   "dir": "long",
+   "entry_ts": 1783649100,
+   "exit_ts": 1783672500,
+   "exit_kind": "bf",
+   "pattern": "1-3-1-2u",
+   "ladder_len": 5,
+   "rungs_reach": 4,
+   "rungs_containment": 4
+  },
+  {
+   "symbol": "xyz:AMZN",
+   "dir": "long",
+   "entry_ts": 1783677900,
+   "exit_ts": 1783689900,
+   "exit_kind": "bf",
+   "pattern": "3-1-2u",
+   "ladder_len": 2,
+   "rungs_reach": 2,
+   "rungs_containment": 2
+  },
+  {
+   "symbol": "xyz:AMZN",
+   "dir": "long",
+   "entry_ts": 1783739700,
+   "exit_ts": 1783832700,
+   "exit_kind": "brk",
+   "pattern": "2-2u",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:AMZN",
+   "dir": "long",
+   "entry_ts": 1783900800,
+   "exit_ts": 1784122200,
+   "exit_kind": "bf",
+   "pattern": "2-2u",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:AMZN",
+   "dir": "long",
+   "entry_ts": 1784122500,
+   "exit_ts": 1784124900,
+   "exit_kind": "bf",
+   "pattern": "3-2u",
+   "ladder_len": 3,
+   "rungs_reach": 3,
+   "rungs_containment": 3
+  },
+  {
+   "symbol": "xyz:AMZN",
+   "dir": "long",
+   "entry_ts": 1784145600,
+   "exit_ts": 1784678400,
+   "exit_kind": "brk",
+   "pattern": "2-2u",
+   "ladder_len": 3,
+   "rungs_reach": 3,
+   "rungs_containment": 3
+  },
+  {
+   "symbol": "xyz:AMZN",
+   "dir": "long",
+   "entry_ts": 1784711100,
+   "exit_ts": 1784727000,
+   "exit_kind": "brk",
+   "pattern": "3-2u",
+   "ladder_len": 6,
+   "rungs_reach": 2,
+   "rungs_containment": 2
+  },
+  {
+   "symbol": "xyz:AMZN",
+   "dir": "short",
+   "entry_ts": 1784830500,
+   "exit_ts": 1785201000,
+   "exit_kind": "bf",
+   "pattern": "2-1-2d",
+   "ladder_len": 2,
+   "rungs_reach": 2,
+   "rungs_containment": 2
+  },
+  {
+   "symbol": "xyz:AMZN",
+   "dir": "short",
+   "entry_ts": 1785201300,
+   "exit_ts": 1785246000,
+   "exit_kind": "bf",
+   "pattern": "3-2d",
+   "ladder_len": 2,
+   "rungs_reach": 2,
+   "rungs_containment": 2
+  },
+  {
+   "symbol": "xyz:AMZN",
+   "dir": "short",
+   "entry_ts": 1785246300,
+   "exit_ts": 1785336000,
+   "exit_kind": "bf",
+   "pattern": "2-2d",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:AMZN",
+   "dir": "short",
+   "entry_ts": 1785340800,
+   "exit_ts": 1785403800,
+   "exit_kind": "brk",
+   "pattern": "2-1-2d",
+   "ladder_len": 1,
+   "rungs_reach": 1,
+   "rungs_containment": 1
+  },
+  {
+   "symbol": "xyz:AMZN",
+   "dir": "long",
+   "entry_ts": 1785438900,
+   "exit_ts": 1785442500,
+   "exit_kind": "bf",
+   "pattern": "2-2u",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:AMZN",
+   "dir": "long",
+   "entry_ts": 1785442800,
+   "exit_ts": 1785484800,
+   "exit_kind": "bf",
+   "pattern": "3-2u",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 0
+  },
+  {
+   "symbol": "xyz:AMZN",
+   "dir": "long",
+   "entry_ts": 1785503100,
+   "exit_ts": 1785504600,
+   "exit_kind": "bf",
+   "pattern": "2-2u",
+   "ladder_len": 2,
+   "rungs_reach": 2,
+   "rungs_containment": 2
+  },
+  {
+   "symbol": "xyz:AMZN",
+   "dir": "long",
+   "entry_ts": 1785504900,
+   "exit_ts": 1785691200,
+   "exit_kind": "bf",
+   "pattern": "2-2u",
+   "ladder_len": 2,
+   "rungs_reach": 2,
+   "rungs_containment": 2
+  },
+  {
+   "symbol": "xyz:AMZN",
+   "dir": "long",
+   "entry_ts": 1785705900,
+   "exit_ts": null,
+   "exit_kind": "open",
+   "pattern": "1-3u",
+   "ladder_len": 1,
+   "rungs_reach": 1,
+   "rungs_containment": 1
+  },
+  {
+   "symbol": "xyz:MSFT",
+   "dir": "long",
+   "entry_ts": 1783422300,
+   "exit_ts": 1783434000,
+   "exit_kind": "bf",
+   "pattern": "2-2u",
+   "ladder_len": 3,
+   "rungs_reach": 3,
+   "rungs_containment": 3
+  },
+  {
+   "symbol": "xyz:MSFT",
+   "dir": "long",
+   "entry_ts": 1783434300,
+   "exit_ts": 1783586700,
+   "exit_kind": "brk",
+   "pattern": "3-2u",
+   "ladder_len": 0,
+   "rungs_reach": 0,
+   "rungs_containment": 0
+  },
+  {
+   "symbol": "xyz:MSFT",
+   "dir": "long",
+   "entry_ts": 1783900800,
+   "exit_ts": 1783949400,
+   "exit_kind": "bf",
+   "pattern": "2-2u",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:MSFT",
+   "dir": "long",
+   "entry_ts": 1783954800,
+   "exit_ts": 1784027400,
+   "exit_kind": "brk",
+   "pattern": "3-2-2u",
+   "ladder_len": 6,
+   "rungs_reach": 3,
+   "rungs_containment": 3
+  },
+  {
+   "symbol": "xyz:MSFT",
+   "dir": "long",
+   "entry_ts": 1784103300,
+   "exit_ts": 1784124600,
+   "exit_kind": "bf",
+   "pattern": "2-2u",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:MSFT",
+   "dir": "long",
+   "entry_ts": 1784149800,
+   "exit_ts": 1784192100,
+   "exit_kind": "bf",
+   "pattern": "2-1-2u",
+   "ladder_len": 3,
+   "rungs_reach": 3,
+   "rungs_containment": 3
+  },
+  {
+   "symbol": "xyz:MSFT",
+   "dir": "long",
+   "entry_ts": 1784214600,
+   "exit_ts": 1784220300,
+   "exit_kind": "bf",
+   "pattern": "2-1-2u",
+   "ladder_len": 4,
+   "rungs_reach": 4,
+   "rungs_containment": 4
+  },
+  {
+   "symbol": "xyz:MSFT",
+   "dir": "long",
+   "entry_ts": 1784225100,
+   "exit_ts": 1784228100,
+   "exit_kind": "bf",
+   "pattern": "2-1-2u",
+   "ladder_len": 1,
+   "rungs_reach": 1,
+   "rungs_containment": 1
+  },
+  {
+   "symbol": "xyz:MSFT",
+   "dir": "long",
+   "entry_ts": 1784239500,
+   "exit_ts": 1784815800,
+   "exit_kind": "brk",
+   "pattern": "1-2d-2u",
+   "ladder_len": 2,
+   "rungs_reach": 1,
+   "rungs_containment": 1
+  },
+  {
+   "symbol": "xyz:MSFT",
+   "dir": "long",
+   "entry_ts": 1785129600,
+   "exit_ts": 1785355200,
+   "exit_kind": "bf",
+   "pattern": "2-1-2u",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:MSFT",
+   "dir": "long",
+   "entry_ts": 1785355500,
+   "exit_ts": 1785362700,
+   "exit_kind": "bf",
+   "pattern": "2-2u",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:MSFT",
+   "dir": "long",
+   "entry_ts": 1785427200,
+   "exit_ts": null,
+   "exit_kind": "open",
+   "pattern": "2-2u",
+   "ladder_len": 1,
+   "rungs_reach": 1,
+   "rungs_containment": 1
+  },
+  {
+   "symbol": "xyz:GOLD",
+   "dir": "long",
+   "entry_ts": 1783299600,
+   "exit_ts": 1783302300,
+   "exit_kind": "bf",
+   "pattern": "2-2u",
+   "ladder_len": 1,
+   "rungs_reach": 1,
+   "rungs_containment": 1
+  },
+  {
+   "symbol": "xyz:GOLD",
+   "dir": "long",
+   "entry_ts": 1783302600,
+   "exit_ts": 1783499700,
+   "exit_kind": "brk",
+   "pattern": "2-2u",
+   "ladder_len": 1,
+   "rungs_reach": 0,
+   "rungs_containment": 0
+  },
+  {
+   "symbol": "xyz:GOLD",
+   "dir": "long",
+   "entry_ts": 1783900800,
+   "exit_ts": 1783959900,
+   "exit_kind": "flip",
+   "pattern": "2-2u",
+   "ladder_len": 6,
+   "rungs_reach": 0,
+   "rungs_containment": 0
+  },
+  {
+   "symbol": "xyz:GOLD",
+   "dir": "short",
+   "entry_ts": 1783960200,
+   "exit_ts": 1784032200,
+   "exit_kind": "flip",
+   "pattern": "2-1-2d",
+   "ladder_len": 1,
+   "rungs_reach": 1,
+   "rungs_containment": 1
+  },
+  {
+   "symbol": "xyz:GOLD",
+   "dir": "long",
+   "entry_ts": 1784041200,
+   "exit_ts": 1784205600,
+   "exit_kind": "flip",
+   "pattern": "1-2d-2u",
+   "ladder_len": 6,
+   "rungs_reach": 1,
+   "rungs_containment": 1
+  },
+  {
+   "symbol": "xyz:GOLD",
+   "dir": "short",
+   "entry_ts": 1784206800,
+   "exit_ts": 1784508900,
+   "exit_kind": "flip",
+   "pattern": "3-2d",
+   "ladder_len": 1,
+   "rungs_reach": 1,
+   "rungs_containment": 1
+  },
+  {
+   "symbol": "xyz:GOLD",
+   "dir": "long",
+   "entry_ts": 1784509200,
+   "exit_ts": 1784604300,
+   "exit_kind": "bf",
+   "pattern": "3-2u",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:GOLD",
+   "dir": "long",
+   "entry_ts": 1784636400,
+   "exit_ts": 1784679300,
+   "exit_kind": "bf",
+   "pattern": "1-2d-2u",
+   "ladder_len": 6,
+   "rungs_reach": 5,
+   "rungs_containment": 5
+  },
+  {
+   "symbol": "xyz:GOLD",
+   "dir": "long",
+   "entry_ts": 1784679600,
+   "exit_ts": 1784682900,
+   "exit_kind": "bf",
+   "pattern": "1-3u",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:GOLD",
+   "dir": "long",
+   "entry_ts": 1784683200,
+   "exit_ts": 1784689200,
+   "exit_kind": "bf",
+   "pattern": "1-3-2u",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 0
+  },
+  {
+   "symbol": "xyz:GOLD",
+   "dir": "long",
+   "entry_ts": 1784700000,
+   "exit_ts": 1784728800,
+   "exit_kind": "bf",
+   "pattern": "3-2u",
+   "ladder_len": 1,
+   "rungs_reach": 1,
+   "rungs_containment": 1
+  },
+  {
+   "symbol": "xyz:GOLD",
+   "dir": "long",
+   "entry_ts": 1784751900,
+   "exit_ts": 1785333900,
+   "exit_kind": "flip",
+   "pattern": "2-2u",
+   "ladder_len": 4,
+   "rungs_reach": 0,
+   "rungs_containment": 0
+  },
+  {
+   "symbol": "xyz:GOLD",
+   "dir": "long",
+   "entry_ts": 1785427200,
+   "exit_ts": 1785543900,
+   "exit_kind": "flip",
+   "pattern": "2-2u",
+   "ladder_len": 6,
+   "rungs_reach": 0,
+   "rungs_containment": 0
+  },
+  {
+   "symbol": "xyz:GOLD",
+   "dir": "short",
+   "entry_ts": 1785546600,
+   "exit_ts": 1785636300,
+   "exit_kind": "brk",
+   "pattern": "1-3d",
+   "ladder_len": 6,
+   "rungs_reach": 4,
+   "rungs_containment": 4
+  },
+  {
+   "symbol": "xyz:AAPL",
+   "dir": "long",
+   "entry_ts": 1783347300,
+   "exit_ts": 1783947600,
+   "exit_kind": "bf",
+   "pattern": "3-2u",
+   "ladder_len": 2,
+   "rungs_reach": 2,
+   "rungs_containment": 2
+  },
+  {
+   "symbol": "xyz:AAPL",
+   "dir": "long",
+   "entry_ts": 1783947900,
+   "exit_ts": 1783949400,
+   "exit_kind": "bf",
+   "pattern": "1-3-2u",
+   "ladder_len": 1,
+   "rungs_reach": 1,
+   "rungs_containment": 1
+  },
+  {
+   "symbol": "xyz:AAPL",
+   "dir": "long",
+   "entry_ts": 1783949700,
+   "exit_ts": 1784132100,
+   "exit_kind": "bf",
+   "pattern": "1-3-2u",
+   "ladder_len": 1,
+   "rungs_reach": 1,
+   "rungs_containment": 1
+  },
+  {
+   "symbol": "xyz:AAPL",
+   "dir": "long",
+   "entry_ts": 1784142000,
+   "exit_ts": 1784209800,
+   "exit_kind": "bf",
+   "pattern": "2-1-2u",
+   "ladder_len": 2,
+   "rungs_reach": 2,
+   "rungs_containment": 2
+  },
+  {
+   "symbol": "xyz:AAPL",
+   "dir": "long",
+   "entry_ts": 1784210100,
+   "exit_ts": 1784216700,
+   "exit_kind": "bf",
+   "pattern": "1-3u",
+   "ladder_len": 2,
+   "rungs_reach": 2,
+   "rungs_containment": 2
+  },
+  {
+   "symbol": "xyz:AAPL",
+   "dir": "long",
+   "entry_ts": 1784221200,
+   "exit_ts": 1784248200,
+   "exit_kind": "bf",
+   "pattern": "2-1-2u",
+   "ladder_len": 1,
+   "rungs_reach": 1,
+   "rungs_containment": 1
+  },
+  {
+   "symbol": "xyz:AAPL",
+   "dir": "long",
+   "entry_ts": 1784252400,
+   "exit_ts": 1784548800,
+   "exit_kind": "brk",
+   "pattern": "3-2u",
+   "ladder_len": 0,
+   "rungs_reach": 0,
+   "rungs_containment": 0
+  },
+  {
+   "symbol": "xyz:AAPL",
+   "dir": "long",
+   "entry_ts": 1785110400,
+   "exit_ts": 1785110700,
+   "exit_kind": "bf",
+   "pattern": "2-2u",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 0
+  },
+  {
+   "symbol": "xyz:AAPL",
+   "dir": "long",
+   "entry_ts": 1785111000,
+   "exit_ts": 1785245100,
+   "exit_kind": "bf",
+   "pattern": "2-2u",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:AAPL",
+   "dir": "long",
+   "entry_ts": 1785251100,
+   "exit_ts": 1785295500,
+   "exit_kind": "bf",
+   "pattern": "3-2-2u",
+   "ladder_len": 1,
+   "rungs_reach": 1,
+   "rungs_containment": 1
+  },
+  {
+   "symbol": "xyz:AAPL",
+   "dir": "long",
+   "entry_ts": 1785311100,
+   "exit_ts": 1785446700,
+   "exit_kind": "brk",
+   "pattern": "2-2u",
+   "ladder_len": 2,
+   "rungs_reach": 1,
+   "rungs_containment": 1
+  },
+  {
+   "symbol": "xyz:AAPL",
+   "dir": "short",
+   "entry_ts": 1785542400,
+   "exit_ts": null,
+   "exit_kind": "open",
+   "pattern": "1-2u-2d",
+   "ladder_len": 6,
+   "rungs_reach": 2,
+   "rungs_containment": 2
+  },
+  {
+   "symbol": "xyz:SKHX",
+   "dir": "short",
+   "entry_ts": 1783297500,
+   "exit_ts": 1783383000,
+   "exit_kind": "bf",
+   "pattern": "3-2d",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:SKHX",
+   "dir": "short",
+   "entry_ts": 1783386600,
+   "exit_ts": 1783604100,
+   "exit_kind": "brk",
+   "pattern": "3-2d",
+   "ladder_len": 4,
+   "rungs_reach": 4,
+   "rungs_containment": 4
+  },
+  {
+   "symbol": "xyz:SKHX",
+   "dir": "short",
+   "entry_ts": 1783649100,
+   "exit_ts": 1783881000,
+   "exit_kind": "brk",
+   "pattern": "2-1-2d",
+   "ladder_len": 6,
+   "rungs_reach": 1,
+   "rungs_containment": 1
+  },
+  {
+   "symbol": "xyz:SKHX",
+   "dir": "short",
+   "entry_ts": 1783897200,
+   "exit_ts": 1783900800,
+   "exit_kind": "bf",
+   "pattern": "3-2d",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 0
+  },
+  {
+   "symbol": "xyz:SKHX",
+   "dir": "short",
+   "entry_ts": 1783923000,
+   "exit_ts": 1784032200,
+   "exit_kind": "brk",
+   "pattern": "3-2d",
+   "ladder_len": 0,
+   "rungs_reach": 0,
+   "rungs_containment": 0
+  },
+  {
+   "symbol": "xyz:SKHX",
+   "dir": "short",
+   "entry_ts": 1784077800,
+   "exit_ts": 1784652600,
+   "exit_kind": "brk",
+   "pattern": "2-2d",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:SKHX",
+   "dir": "short",
+   "entry_ts": 1784935200,
+   "exit_ts": 1785163200,
+   "exit_kind": "bf",
+   "pattern": "1-3d",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:SKHX",
+   "dir": "short",
+   "entry_ts": 1785163500,
+   "exit_ts": 1785193200,
+   "exit_kind": "bf",
+   "pattern": "3-2d",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:SKHX",
+   "dir": "short",
+   "entry_ts": 1785200700,
+   "exit_ts": 1785298500,
+   "exit_kind": "bf",
+   "pattern": "3-1-2d",
+   "ladder_len": 1,
+   "rungs_reach": 1,
+   "rungs_containment": 1
+  },
+  {
+   "symbol": "xyz:SKHX",
+   "dir": "short",
+   "entry_ts": 1785313200,
+   "exit_ts": null,
+   "exit_kind": "open",
+   "pattern": "1-2u-2d",
+   "ladder_len": 3,
+   "rungs_reach": 2,
+   "rungs_containment": 2
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "dir": "long",
+   "entry_ts": 1783629900,
+   "exit_ts": 1783641900,
+   "exit_kind": "flip",
+   "pattern": "1-3-2u",
+   "ladder_len": 2,
+   "rungs_reach": 2,
+   "rungs_containment": 2
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "dir": "short",
+   "entry_ts": 1783650300,
+   "exit_ts": 1783655100,
+   "exit_kind": "flip",
+   "pattern": "2-2d",
+   "ladder_len": 3,
+   "rungs_reach": 0,
+   "rungs_containment": 0
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "dir": "long",
+   "entry_ts": 1783655400,
+   "exit_ts": 1783667400,
+   "exit_kind": "flip",
+   "pattern": "2-2u",
+   "ladder_len": 5,
+   "rungs_reach": 5,
+   "rungs_containment": 5
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "dir": "long",
+   "entry_ts": 1783691400,
+   "exit_ts": 1783908000,
+   "exit_kind": "flip",
+   "pattern": "1-3u",
+   "ladder_len": 2,
+   "rungs_reach": 2,
+   "rungs_containment": 2
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "dir": "short",
+   "entry_ts": 1783923000,
+   "exit_ts": 1784035500,
+   "exit_kind": "flip",
+   "pattern": "3-2d",
+   "ladder_len": 1,
+   "rungs_reach": 1,
+   "rungs_containment": 1
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "dir": "long",
+   "entry_ts": 1784035800,
+   "exit_ts": 1784214600,
+   "exit_kind": "flip",
+   "pattern": "3-2u",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "dir": "short",
+   "entry_ts": 1784221200,
+   "exit_ts": 1784295300,
+   "exit_kind": "bf",
+   "pattern": "3-2d",
+   "ladder_len": 3,
+   "rungs_reach": 3,
+   "rungs_containment": 3
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "dir": "short",
+   "entry_ts": 1784332800,
+   "exit_ts": 1784505600,
+   "exit_kind": "brk",
+   "pattern": "1-3d",
+   "ladder_len": 3,
+   "rungs_reach": 2,
+   "rungs_containment": 2
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "dir": "long",
+   "entry_ts": 1784553900,
+   "exit_ts": 1784575200,
+   "exit_kind": "flip",
+   "pattern": "2-2u",
+   "ladder_len": 6,
+   "rungs_reach": 0,
+   "rungs_containment": 0
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "dir": "short",
+   "entry_ts": 1784592000,
+   "exit_ts": 1784621100,
+   "exit_kind": "flip",
+   "pattern": "2-2d",
+   "ladder_len": 5,
+   "rungs_reach": 3,
+   "rungs_containment": 3
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "dir": "long",
+   "entry_ts": 1784630100,
+   "exit_ts": 1784679300,
+   "exit_kind": "bf",
+   "pattern": "2-1-2u",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "dir": "long",
+   "entry_ts": 1784764800,
+   "exit_ts": 1784814000,
+   "exit_kind": "bf",
+   "pattern": "2-1-2u",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "dir": "long",
+   "entry_ts": 1784822400,
+   "exit_ts": 1784901000,
+   "exit_kind": "brk",
+   "pattern": "1-2d-2u",
+   "ladder_len": 6,
+   "rungs_reach": 0,
+   "rungs_containment": 0
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "dir": "long",
+   "entry_ts": 1785060000,
+   "exit_ts": 1785110700,
+   "exit_kind": "flip",
+   "pattern": "2-2u",
+   "ladder_len": 6,
+   "rungs_reach": 4,
+   "rungs_containment": 4
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "dir": "short",
+   "entry_ts": 1785111300,
+   "exit_ts": 1785135000,
+   "exit_kind": "flip",
+   "pattern": "2-2d",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "dir": "short",
+   "entry_ts": 1785160800,
+   "exit_ts": 1785161400,
+   "exit_kind": "bf",
+   "pattern": "3-2d",
+   "ladder_len": 2,
+   "rungs_reach": 2,
+   "rungs_containment": 2
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "dir": "short",
+   "entry_ts": 1785161700,
+   "exit_ts": 1785162000,
+   "exit_kind": "bf",
+   "pattern": "3-2d",
+   "ladder_len": 2,
+   "rungs_reach": 2,
+   "rungs_containment": 2
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "dir": "short",
+   "entry_ts": 1785162300,
+   "exit_ts": 1785203700,
+   "exit_kind": "bf",
+   "pattern": "3-2d",
+   "ladder_len": 2,
+   "rungs_reach": 2,
+   "rungs_containment": 2
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "dir": "short",
+   "entry_ts": 1785219000,
+   "exit_ts": 1785236400,
+   "exit_kind": "bf",
+   "pattern": "1-2u-2d",
+   "ladder_len": 2,
+   "rungs_reach": 2,
+   "rungs_containment": 2
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "dir": "short",
+   "entry_ts": 1785245400,
+   "exit_ts": 1785245700,
+   "exit_kind": "bf",
+   "pattern": "3-2-2d",
+   "ladder_len": 1,
+   "rungs_reach": 1,
+   "rungs_containment": 1
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "dir": "short",
+   "entry_ts": 1785246000,
+   "exit_ts": 1785246300,
+   "exit_kind": "bf",
+   "pattern": "3-2-2d",
+   "ladder_len": 1,
+   "rungs_reach": 1,
+   "rungs_containment": 0
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "dir": "short",
+   "entry_ts": 1785246600,
+   "exit_ts": 1785297900,
+   "exit_kind": "bf",
+   "pattern": "3-2-2d",
+   "ladder_len": 1,
+   "rungs_reach": 1,
+   "rungs_containment": 1
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "dir": "short",
+   "entry_ts": 1785312600,
+   "exit_ts": null,
+   "exit_kind": "open",
+   "pattern": "2-2d",
+   "ladder_len": 3,
+   "rungs_reach": 1,
+   "rungs_containment": 1
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "dir": "short",
+   "entry_ts": 1783324800,
+   "exit_ts": 1783344000,
+   "exit_kind": "bf",
+   "pattern": "2-2d",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "dir": "short",
+   "entry_ts": 1783344300,
+   "exit_ts": 1783395600,
+   "exit_kind": "bf",
+   "pattern": "2-2d",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "dir": "short",
+   "entry_ts": 1783400400,
+   "exit_ts": 1783431000,
+   "exit_kind": "bf",
+   "pattern": "2-1-2d",
+   "ladder_len": 1,
+   "rungs_reach": 1,
+   "rungs_containment": 1
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "dir": "short",
+   "entry_ts": 1783431300,
+   "exit_ts": 1783432500,
+   "exit_kind": "bf",
+   "pattern": "2-2d",
+   "ladder_len": 2,
+   "rungs_reach": 2,
+   "rungs_containment": 2
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "dir": "short",
+   "entry_ts": 1783450800,
+   "exit_ts": 1783499100,
+   "exit_kind": "bf",
+   "pattern": "3-2d",
+   "ladder_len": 1,
+   "rungs_reach": 1,
+   "rungs_containment": 1
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "dir": "short",
+   "entry_ts": 1783501500,
+   "exit_ts": 1783501800,
+   "exit_kind": "bf",
+   "pattern": "3-2d",
+   "ladder_len": 0,
+   "rungs_reach": 0,
+   "rungs_containment": 0
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "dir": "short",
+   "entry_ts": 1783502100,
+   "exit_ts": 1783555800,
+   "exit_kind": "brk",
+   "pattern": "3-2d",
+   "ladder_len": 0,
+   "rungs_reach": 0,
+   "rungs_containment": 0
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "dir": "short",
+   "entry_ts": 1783562400,
+   "exit_ts": 1784216400,
+   "exit_kind": "bf",
+   "pattern": "2-1-2d",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "dir": "short",
+   "entry_ts": 1784255400,
+   "exit_ts": 1784505600,
+   "exit_kind": "brk",
+   "pattern": "2-2d",
+   "ladder_len": 1,
+   "rungs_reach": 1,
+   "rungs_containment": 1
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "dir": "short",
+   "entry_ts": 1784511000,
+   "exit_ts": 1784737800,
+   "exit_kind": "brk",
+   "pattern": "2-2d",
+   "ladder_len": 6,
+   "rungs_reach": 3,
+   "rungs_containment": 3
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "dir": "short",
+   "entry_ts": 1785110400,
+   "exit_ts": 1785245400,
+   "exit_kind": "bf",
+   "pattern": "2-2d",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "dir": "short",
+   "entry_ts": 1785245700,
+   "exit_ts": 1785334800,
+   "exit_kind": "bf",
+   "pattern": "3-2-2d",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "dir": "short",
+   "entry_ts": 1785335100,
+   "exit_ts": 1785456000,
+   "exit_kind": "brk",
+   "pattern": "3-2d",
+   "ladder_len": 0,
+   "rungs_reach": 0,
+   "rungs_containment": 0
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "dir": "short",
+   "entry_ts": 1785463800,
+   "exit_ts": 1785658800,
+   "exit_kind": "flip",
+   "pattern": "2-2d",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "dir": "long",
+   "entry_ts": 1785659100,
+   "exit_ts": null,
+   "exit_kind": "open",
+   "pattern": "2-2u",
+   "ladder_len": 6,
+   "rungs_reach": 5,
+   "rungs_containment": 5
+  },
+  {
+   "symbol": "xyz:TSLA",
+   "dir": "short",
+   "entry_ts": 1783335600,
+   "exit_ts": 1783344600,
+   "exit_kind": "bf",
+   "pattern": "2-1-2d",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:TSLA",
+   "dir": "short",
+   "entry_ts": 1783501500,
+   "exit_ts": 1784208600,
+   "exit_kind": "bf",
+   "pattern": "3-2d",
+   "ladder_len": 6,
+   "rungs_reach": 3,
+   "rungs_containment": 3
+  },
+  {
+   "symbol": "xyz:TSLA",
+   "dir": "short",
+   "entry_ts": 1784217600,
+   "exit_ts": 1784276100,
+   "exit_kind": "bf",
+   "pattern": "2-1-2d",
+   "ladder_len": 2,
+   "rungs_reach": 2,
+   "rungs_containment": 2
+  },
+  {
+   "symbol": "xyz:TSLA",
+   "dir": "short",
+   "entry_ts": 1784312100,
+   "exit_ts": 1784511600,
+   "exit_kind": "bf",
+   "pattern": "3-2d",
+   "ladder_len": 3,
+   "rungs_reach": 0,
+   "rungs_containment": 0
+  },
+  {
+   "symbol": "xyz:TSLA",
+   "dir": "short",
+   "entry_ts": 1784511900,
+   "exit_ts": 1784750400,
+   "exit_kind": "bf",
+   "pattern": "3-2d",
+   "ladder_len": 6,
+   "rungs_reach": 6,
+   "rungs_containment": 6
+  },
+  {
+   "symbol": "xyz:TSLA",
+   "dir": "short",
+   "entry_ts": 1784773200,
+   "exit_ts": 1784807700,
+   "exit_kind": "bf",
+   "pattern": "2-1-2d",
+   "ladder_len": 4,
+   "rungs_reach": 4,
+   "rungs_containment": 4
+  },
+  {
+   "symbol": "xyz:TSLA",
+   "dir": "short",
+   "entry_ts": 1784808000,
+   "exit_ts": 1784811600,
+   "exit_kind": "bf",
+   "pattern": "3-2d",
+   "ladder_len": 0,
+   "rungs_reach": 0,
+   "rungs_containment": 0
+  },
+  {
+   "symbol": "xyz:TSLA",
+   "dir": "short",
+   "entry_ts": 1784828100,
+   "exit_ts": 1785247500,
+   "exit_kind": "bf",
+   "pattern": "2-2d",
+   "ladder_len": 1,
+   "rungs_reach": 1,
+   "rungs_containment": 1
+  },
+  {
+   "symbol": "xyz:TSLA",
+   "dir": "short",
+   "entry_ts": 1785261900,
+   "exit_ts": 1785355500,
+   "exit_kind": "bf",
+   "pattern": "2-1-2d",
+   "ladder_len": 3,
+   "rungs_reach": 3,
+   "rungs_containment": 3
+  },
+  {
+   "symbol": "xyz:TSLA",
+   "dir": "short",
+   "entry_ts": 1785355800,
+   "exit_ts": null,
+   "exit_kind": "open",
+   "pattern": "3-2d",
+   "ladder_len": 0,
+   "rungs_reach": 0,
+   "rungs_containment": 0
+  }
+ ]
+}

@@ -97,12 +97,20 @@
 //     history -- DEEP-LOAD THE CHART FIRST (TVB-18 F3: loaded chart history
 //     is load-bearing state).
 //
-// SCOPE OF THE PARITY CLAIM: NONE YET. This script's OWN parity gate vs the
-// Python twin arms (A1/A2/A3 events, join on bar/direction/kind + trig) must
-// PASS before any drift conclusion is drawn from it. Realtime cadence is out
-// of scope exactly as in the CONTROL (calc_on_every_tick=false evaluates the
-// realtime bar once at its closing tick; the historical convention is the
-// research contract -- do not "repair" it).
+// SCOPE OF THE PARITY CLAIM (2026-08-10, gate PASS): this script's OWN
+// parity gate vs the Python twin arms PASSED on all nine cells
+// (GOOGL/TSLA/DRAM x A1/A2/A3) over TV-harvested 5m feeds with shared cold
+// start: 487/487 events matched (join on bar/direction/kind), offset 0s,
+// break/flip float-exact, pattern layer clean on all 246 entries (name
+// exact, trig within mintick/2). Artifact:
+// analysis/reference/pkg_parity/tvb22_parity_result.json; gate:
+// analysis/paper/pkg_parity.py (fail-closed hardened per TVB-22 external
+// audit F1). The claim is HISTORICAL close-cadence decision parity on
+// those cells ONLY. Realtime cadence stays out of scope exactly as in the
+// CONTROL (calc_on_every_tick=false evaluates the realtime bar once at its
+// closing tick; the historical convention is the research contract -- do
+// not "repair" it). Any semantic change to this script or the engine
+// re-opens the claim until the gate is re-run.
 //
 // QUICK START
 //   1. Mount on a 5m chart of a 24/7 perp (the twin replays 5m bars; other

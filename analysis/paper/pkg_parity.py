@@ -32,6 +32,7 @@ Exit 0 = gate PASS on all (symbol, arm) cells.
 from __future__ import annotations
 
 import json
+import math
 import re
 import sys
 from collections import Counter
@@ -117,6 +118,10 @@ def validate_trades(trades: list[dict]) -> list[str]:
     return problems
 
 
+def _finite_number(x) -> bool:
+    return isinstance(x, (int, float)) and not isinstance(x, bool) and math.isfinite(x)
+
+
 def validate_events(evs: list[dict], side: str) -> list[str]:
     problems = []
     for e in evs:
@@ -124,6 +129,15 @@ def validate_events(evs: list[dict], side: str) -> list[str]:
             problems.append(f"{side}: invalid action {e['action']!r} at ts {e['ts']}")
         elif e["action"] == "exit" and e["kind"] not in EXIT_KINDS:
             problems.append(f"{side}: invalid exit kind {e['kind']!r} at ts {e['ts']}")
+        elif e["action"] == "enter":
+            # TVB-22 audit F1: the pattern layer is the drift payload; a missing or
+            # NaN trig must FAIL the gate, never NaN-compare into a silent pass.
+            if not (isinstance(e.get("pattern"), str) and e.get("pattern")):
+                problems.append(f"{side}: entry at ts {e['ts']} missing pattern name")
+            if not _finite_number(e.get("trig")):
+                problems.append(
+                    f"{side}: entry at ts {e['ts']} trig {e.get('trig')!r} is not a finite number"
+                )
         if e["dir"] not in VALID_DIRS:
             problems.append(f"{side}: invalid dir {e['dir']!r} at ts {e['ts']}")
     for k, n in sorted(Counter(map(key, evs)).items()):
@@ -242,8 +256,12 @@ def gate(coin: str, arm: str, tw_evs, feed_end: int, closes: dict, n_bars: int, 
                 pattern_bad.append(
                     {"key": k, "tv_pattern": ve["pattern"], "twin_pattern": te.get("pattern")}
                 )
-            elif abs(ve["trig"] - te.get("trig", float("nan"))) > mintick / 2:
-                pattern_bad.append({"key": k, "tv_trig": ve["trig"], "twin_trig": te.get("trig")})
+            else:
+                # fail-closed even if validation is bypassed: a non-finite twin trig
+                # is a violation, not a vacuous comparison (TVB-22 audit F1)
+                tw_trig = te.get("trig")
+                if not _finite_number(tw_trig) or abs(ve["trig"] - tw_trig) > mintick / 2:
+                    pattern_bad.append({"key": k, "tv_trig": ve["trig"], "twin_trig": tw_trig})
 
     in_window = [k for k in matched if WINDOW_START <= k[0] < WINDOW_END]
     win_twin_only = [k for k in twin_only if WINDOW_START <= k[0] < WINDOW_END]

@@ -18,11 +18,19 @@ Post-hoc decomposition of the ruled containment rerun (committed window,
   on target distance kills both classes. This is the user's own rule-base
   rule ("Target 1 must be far enough away to cover fees and ensure real
   profit") arriving as the mechanism-motivated repair.
-- Ladder-traversal census on A1 (control exits give price room): 70% of
-  trades touched >= 2 frozen rungs before exit, 40% touched >= 4; harvest
-  exits fired after ~3.6 rungs on average. The book is BIMODAL (stall at
-  1-2 rungs: 43%; run 4+: 40%) -- no single fixed depth serves both modes,
-  which is mechanically why the live playbook harvests along the ladder.
+- Ladder-traversal census on A1 (control exits give price room). RECEIPT
+  (2026-08-10, external audit F2): the original 70/40/43 figures here were
+  unpinned post-hoc reads mixing denominators -- superseded by
+  analysis/paper/tier_b/ladder_census_receipt.json (regenerate:
+  `uv run python -m analysis.paper.ladder_census`; conventions pinned in
+  the module docstring; determinism-guarded against the committed A1
+  rows). Receipt figures, all 137 closed trades, reach touch: 65.0%
+  reached >= 2 frozen rungs before exit, 37.2% reached >= 4, 39.4%
+  stalled at 1-2, 13.9% never reached rung 1; the 86 bf-harvest exits
+  fired after 3.62 rungs on average (zero-rung excluded; 3.41 including).
+  The book stays BIMODAL (stall-at-1-2 39% vs run-4+ 37%) -- no single
+  fixed depth serves both modes, which is mechanically why the live
+  playbook harvests along the ladder.
 - Depth costs: A3 vs A2 shifted the book toward real magnitudes but paid
   -28.8pp across 9 backstop exits; the package's MAE-tail collapse (worst
   9% vs 37%) comes from exiting fast and will erode with depth.
