@@ -34,7 +34,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `{pending push -- pinned by the session-end follow-up commit}` |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `0023852^..9099bad` (6 commits: 0023852 TVB-22 audit fold; 58f08d7 prereg; 2fcd13b prereg correction; 8c5c126 engine extensions; 8967a07 round executed; 9099bad session-end docs. Sanity-checked -- `git diff --name-status 0023852^..9099bad` lists all 37 files the session touched) |
 
 ## Read first (in this order)
 

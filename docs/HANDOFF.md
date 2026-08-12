@@ -150,10 +150,10 @@ the TV mirror + re-gate of the new arms.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: `0023852^..{head}` on `main` -- concrete head pinned
-  in docs/reviews/REVIEW_REQUEST.md after the session-end push (RANGE-PIN
-  RULE: the caret keeps 0023852 in the diff; sanity-check with `git diff
-  --name-status`).
+- Commits to review: `0023852^..9099bad` on `main` (6 commits; RANGE-PIN
+  RULE: the caret keeps 0023852 in the diff; sanity-checked -- `git diff
+  --name-status 0023852^..9099bad` lists all 37 files the session
+  touched).
 - Scope / what changed: TVB-22 audit fold-in (pkg_parity fail-closed +
   tests, ladder-census receipt, metadata fixes); T1-floor round (prereg
   BEFORE code + 3 dated corrections, engine floor/ATR/retracement behind
