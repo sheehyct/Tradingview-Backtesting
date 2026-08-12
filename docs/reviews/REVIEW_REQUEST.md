@@ -10,23 +10,23 @@
 
 ## Status
 
-- Status: RETURNED (audit file written 2026-08-10; verdict NEEDS-CHANGES;
-  all three findings reproduced and addressed same day -- critical
-  synthesis in the TVB-22 External Review block of docs/HANDOFF.md)
+- Status: REQUESTED
   <!-- REQUESTED | RETURNED (audit file written) -->
-- Session under review: TVB-22 -- TV package strategy() port (M+T
-  detection/ladder merged into the control machinery, arm toggles
-  A1/A2/A3, Make-a-copy flow, compiled + round-trip-verified) with its own
-  parity harness and gate (9/9 cells PASS, 487 events, zero mismatches,
-  pattern layer clean); the TVB-21 Codex audit RETURNED mid-session and
-  FOLDED (F1 HIGH reproduced to the decimal, three user rulings, dated
-  prereg amendment BEFORE code, engine containment fix + 4 fixtures,
-  source-bound manifests, full Tier B rerun regenerated in place with
-  fix-isolation invariants); mechanism decomposition (born-beyond +
-  tiny-target classes; A1 ladder census) + next-variant seed.
+- Session under review: TVB-23 -- TVB-22 audit fold-in (pkg_parity pattern
+  layer hardened fail-closed after reproducing the NaN/missing-trig false
+  PASS; ladder-census receipt reproducing the audit's readings exactly;
+  metadata fixes) + the T1-floor round: design session (7 user rulings),
+  prereg committed BEFORE code with three dated corrections (pine
+  comment-vs-code edge; counter-equation reconciliation; the
+  identical-entry-book gloss corrected after the run-time gate caught the
+  one-position occupancy funnel 137->50), engine floor/ATR/retracement
+  extensions behind inert defaults (20 fixtures), runner with
+  determinism/entry-stream/reconciliation gates (all PASS), full 13-arm
+  run, per-arm census receipts, report. Also: TV-side header sync
+  (byte-verified) after the prior session's audit item.
 - SCOPE: standard.
-- Requested: 2026-08-10
-- Write the audit to: `docs/reviews/tvb22-codex-audit.md` (copy
+- Requested: 2026-08-12
+- Write the audit to: `docs/reviews/tvb23-codex-audit.md` (copy
   `docs/reviews/_TEMPLATE.md`)
 - NOTE: tvb8/tvb9 remain unreturned (standing note).
 
@@ -34,60 +34,60 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `056f47b^..a2ede4e` (13 commits -- count corrected from 14 per audit F3: 056f47b package strategy; a70339b audit fold-in; 2865e5a prereg amendment; b54b07b + 40d6e7f containment fix; d2418dd rerun; b990d22 pine mirror; 870b45d + 9b48a78 + 87ca603 parity harness/hardening/gate; 46298d6 twin trade tables; 2162780 next-variant seed; a2ede4e session-end docs. Sanity-checked -- `git diff --name-status 056f47b^..a2ede4e` lists all 28 files the session touched) |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `{pending push -- pinned by the session-end follow-up commit}` |
 
 ## Read first (in this order)
 
 1. `CLAUDE.md`; charter Section 0 (S3.1 amendments unchanged this session).
-2. `docs/HANDOFF.md` -- the TVB-22 entry at top (incl. the TVB-21 audit
-   synthesis inside the TVB-21 entry's External Review block).
-3. `docs/reviews/tvb21-codex-audit.md` (the audit folded this session) and
-   `docs/experiments/tvb21_tier_b_prereg.md` (its 2026-08-09 amendment).
-4. `docs/experiments/tvb22_tier_b_rerun_report.md` (the ruled-contract
-   rerun) and `docs/experiments/tvb22_next_variant_seed.md` (nothing in it
-   is declared).
-5. `pine/tfc_mt_package_strategy.pine` header (hunks H1-H7) and
-   `analysis/paper/pkg_parity.py` docstring.
+2. `docs/HANDOFF.md` -- the TVB-23 entry at top (incl. the TVB-22 audit
+   synthesis inside the TVB-22 entry's External Review block).
+3. `docs/experiments/tvb23_t1floor_prereg.md` (binding spec; note the
+   three DATED corrections and verify each predates the code/results it
+   governs) and `docs/experiments/tvb23_t1floor_report.md`.
+4. `analysis/paper/tier_b_t1floor.py` docstring (the gates) and
+   `analysis/paper/round_census.py` docstring (census conventions);
+   `analysis/paper/ladder_census.py` (the TVB-22 F2 receipt).
+5. `docs/reviews/tvb22-codex-audit.md` (the audit folded this session).
 6. `docs/EXTERNAL_REVIEW_PROTOCOL.md`.
 
 ## Focus areas (scrutinize these)
 
-1. Fold-in fidelity: every TVB-21 finding reproduced/fixed or explicitly
-   deferred; the amendment wording matches the three user rulings
-   (containment touch incl. gap-past; skip-with-vetoes-first +
-   no_target_vetoed; gate-after-fix); the invalidation notice preserves
-   the original report text.
-2. The containment fix (engine.py: `l <= tgt <= h` both directions) and
-   the four new fixtures (born-beyond long/short, favorable gap-past,
-   counter reconciliation) -- do they pin the audited failure classes.
-3. Rerun integrity: fix-isolation invariants (A0a/A0b/A1 per-symbol rows
-   byte-equal to the invalidated run modulo the zero-valued
-   no_target_vetoed key), A0 determinism vs committed Tier A cells,
-   in-place regeneration provenance (manifest executed-blob hashes;
-   git_dirty=true explained as output-files-only), and the rerun report's
-   arithmetic (reproduce the class splits independently).
-4. The Pine merge: declared hunks H1-H7 vs the two verbatim sources --
-   especially H7's decision-identical claim (lazy PMG/ladder guards) and
-   whether the f_pool veto scan (top-of-function, pre-detection,
-   pre-lifecycle) equals engine._alive_harvest_vals' bar-open alive-set
-   semantics.
-5. pkg_parity.py: injective join + fail-closed contract carried over
-   intact; `tgt` correctly in the declared-residual layer; the pattern
-   layer (name exact, trig within mintick/2) as a gate-failing check;
-   cold-start twin alignment to the harvested first_bar_ts; the harvest
-   script's direction-from-e.tp mapping.
-6. Language discipline: no arm/depth/pattern promoted anywhere (rerun
-   report, twin trade tables, seed); package results never adjudicate
-   charter S3.1.
-7. request.security: the new pine has NONE and no executable Pine changed
-   except the two package-strategy files -- confirm across the range.
+1. Fold-in fidelity: the F1 reproduction (missing/NaN false PASS on
+   committed GOOGL/A1; +inf already failed), the two-layer fail-closed
+   fix in `analysis/paper/pkg_parity.py`, the deliberate NON-regeneration
+   of the committed parity artifact, the 12 regression tests.
+2. Receipt integrity: `ladder_census.py` receipt vs its committed
+   numbers; `round_census.py` conventions vs the prereg (entry bar
+   excluded, exit bar included, label bar EXCLUSIVE for before-label
+   rungs, roster scope excluding xyz:DRAM); every determinism guard
+   fail-closed.
+3. Floor veto semantics vs prereg + amendments: strict `d < floor`,
+   born-beyond/tiny/only counter split, empty-ladder uniform structural
+   skip across ALL floor arms (incl. C1-exit shapes), the DINF/A1F split
+   design note, the counter reconciliation equation.
+4. ATR: Wilder seed (SMA of first 14 TRs) + smoothing math, first-bar
+   TR = h-l convention, price-unit veto predicates, and that the PCT
+   predicate arithmetic is byte-untouched (determinism arms depend on it).
+5. Retracement layer: truly read-only (nothing the position machine
+   reads; golden event shape unchanged when the flag is off); the
+   as-built one-sided-flag edge fixture vs
+   `pine/strat_magnitude_targets_plus.pine:192-206,694-716`.
+6. Runner gates: determinism arms replayed through `tier_b._replay_arm`
+   itself, field-equality modulo zero-valued NEW veto keys only;
+   entry-stream first-divergence-is-exit logic; the occupancy funnel
+   (137/108/93/89/85/50) reproduced.
+7. Report + language discipline: rerun the rollup arithmetic; contrasts
+   only; no arm/depth/setup promoted; constructed win rates flagged;
+   S3.1 never adjudicated by package arms.
+8. request.security: no executable Pine change in the range (the package
+   header edit is comment-only; TV-side copy byte-verified in-session).
 
 Standing priorities apply (model fidelity; overfitting language; controls
 are research instruments, never deployment claims).
 
 ## Output contract
 
-- Verbatim audit -> `docs/reviews/tvb22-codex-audit.md` (template:
+- Verbatim audit -> `docs/reviews/tvb23-codex-audit.md` (template:
   `docs/reviews/_TEMPLATE.md`, skeptic preamble included).
 - Be concrete; cite `file:line`. Never paste a secret/IP/account value.
 - The critical synthesis is written by the NEXT session into `docs/HANDOFF.md`.

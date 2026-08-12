@@ -5,6 +5,182 @@
 
 ---
 
+## Session TVB-23: TVB-22 audit folded + T1-floor round designed, prereg'd, built, run, reported (COMPLETE)
+
+**Date:** 2026-08-10/12
+**Status:** COMPLETE -- audit fold-in (gate hardened fail-closed, census
+receipt-backed), TV header sync, design session (7 user rulings), prereg
+BEFORE code with three dated corrections, engine + runner + full 13-arm
+run with every gate PASS, censuses, report. One plan step remains open:
+the TV mirror + re-gate of the new arms.
+
+### What was accomplished
+
+- TVB-22 AUDIT FOLDED (0023852; RETURNED NEEDS-CHANGES, all three findings
+  reproduced BEFORE adjudication): F1 MEDIUM missing/NaN twin trig
+  NaN-compared into a silent pattern-layer PASS -- reproduced on committed
+  GOOGL/A1 (79 events/40 checked; +inf already failed, missing/NaN were
+  the silent paths); pkg_parity now fail-closed at validation AND
+  comparison; 12 regression tests (tests/test_pkg_parity.py) incl. the
+  committed pin + the audit's delete-one-trig case; all 9 cells
+  re-verified PASS in memory; committed artifact NOT regenerated (TVB-20
+  precedent). F2 LOW: analysis/paper/ladder_census.py + committed receipt
+  reproduces the audit's readings EXACTLY (137 closed, reach: 65.0% >=2,
+  37.2% >=4, 39.4% stall; bf 3.41/3.62; with-open n=146 matches too);
+  seed corrected (70/40/43 were unpinned mixtures); bimodality survives.
+  F3 LOW: pine header names the passed artifact; range count 14 -> 13.
+- TV HEADER SYNC: TradingView relaunched with CDP (MSIX Start-Process
+  recipe); editor binding verified (TV source byte-equal to pre-edit
+  committed base after decode fix -- cp1252 artifact, not real drift);
+  full source injected via pine_set_source, byte-verified, compiled
+  clean, saved. Local and TV copies identical again.
+- DESIGN SESSION (plan mode; strat-methodology loaded; 7 user rulings
+  2026-08-10): fixed 0.25% floor (10x worst round-trip taker); depth
+  N=1..5 + infinity endpoint (labeled ceiling-map, floor on, no N
+  promoted); fallback shallower; Wilder ATR(14) 1H vetoes at 1x/2x with
+  fixed comparators; retracement census rides read-only; 1H only;
+  per-setup census as declared report reading.
+- PREREG BEFORE CODE (58f08d7) + three dated corrections, all before
+  results were read: (a) the M+T pine's POTENTIAL-3 comment overstates
+  its code -- one-sided flags mean an outside bar whose with-side broke
+  first never labels (pine-exact = the code; fixture pins it, 2fcd13b);
+  (b) counter reconciliation by equation so new counters stay zero-valued
+  on determinism arms; (c) the "identical entry book across depth" gloss
+  was WRONG -- caught by the run-time gate on the first full run:
+  one-position occupancy funnels entries 137 -> 50 as exits deepen; gate
+  corrected to first-divergence-is-exit; the fallback ruling itself
+  unaffected. Also declared: DINF/A1F split (the seed's infinity endpoint
+  carried two jobs with contradictory veto requirements); empty-ladder =
+  uniform structural skip across all floor arms.
+- ENGINE (8c5c126, inert defaults): t1_floor_pct entry veto (directional
+  fill->T1 distance, strict d < floor, le0/small/only counter split,
+  before the extended no-target skip); _Atr Wilder on completed 1H bars
+  driving price-unit bf_prox_veto_atr/chop_veto_atr (pct arithmetic
+  untouched); read-only retracement layer (health_flags + first-label
+  stamps on bar-start position; entry bar excluded, exit bar included;
+  stamps ride exit events only under the flag -- golden shape unchanged).
+  20 fixtures (tests/test_t1floor_engine.py).
+- RUNNER + RUN (8967a07): analysis/paper/tier_b_t1floor.py (tier_b.py
+  untouched; determinism arms replay through tier_b._replay_arm itself).
+  Gates ALL PASS: 55 determinism rows field-equal (modulo zero-valued new
+  keys), entry-stream first-divergence-is-exit, counter reconciliation,
+  census determinism per arm. Census tooling analysis/paper/round_census.py
+  (roster scope). 88 rows, 8 rollups, 8 event dumps, 8 receipts, manifest
+  with dirty PATH LIST.
+- FINDINGS (docs/experiments/tvb23_t1floor_report.md; one gross in-sample
+  window, no promotion): floor repairs the package (D1 +83.8 vs A2 +24.6)
+  but A0b +104.8 still leads -- C2F does NOT earn its place over C1; risk
+  shape transforms (maxDD 22.1 vs 122.2, zero open drag, avg MAE 1.47 vs
+  2.63); ~40% of ALL candidates arrive at/past their own frozen T1
+  (born-beyond real at candidate scale); A1F flips A1 -7.7 -> +23.0 while
+  halving the book (S3.1 reinforced: still -81.8pp under A0b); depth
+  curve non-monotone shallow-top 83.8/38.5/51.3/60.0/65.4/19.4, MAE tail
+  erodes by D3 as predicted; ATR vetoes DISSOLVE the chop symbol filter
+  (spread 43-100% -> 58-80%, three shut-outs unlocked; P&L -15.1pp stated
+  not adjudicated); retracement census supports the user prior -- first
+  POTENTIAL-3 label before 0.02-1.3 rungs of progress, 100% of losers AND
+  48-96% of winners labeled (an exit would cut winners early); 98-99% win
+  rates flagged as exit-construction artifacts.
+- USER CLARIFICATIONS (2026-08-12): entry timing = intrabar of the 1H
+  (developing-bar break, 5m-quantized, color-gated as-built; never waits
+  for 1H close; Strategy Tester's close-paint is accounting only);
+  3-1-2U walk-through incl. the flagged GAP: the canonical intrabar-3
+  invalidation exit (entry bar goes 3 against you -> exit at market) is
+  ABSENT from the implemented exit set, and the retracement label cannot
+  see that case (with-side broke first by construction); 5m mount is the
+  parity-covered instrument, a 1H mount is a different uncovered variant.
+  Validation-maturity assessment delivered: verification ~90%, design
+  ~75% (exits open), evidence ~25% (everything one in-sample window).
+
+### Context for next session
+
+- THE ONE OPEN PLAN STEP: prereg step 7 -- mirror floor/ATR/arm-selector
+  into pine/tfc_mt_package_strategy.pine (semantics verbatim; comma-free
+  option labels; verify editor binding before save) and re-gate
+  GOOGL/TSLA/DRAM x {D1, DINF, D1ATR} via tvb22_pkg_harvest.mjs +
+  hardened pkg_parity.py. Until PASS the mounted TV strategy is valid
+  ONLY for the TVB-22 arms (declared in the prereg).
+- Next research fork per user: exit-design lane (bimodal ladder unsolved;
+  census evidence in place; plan mode ON) vs fresh-window replication
+  (the biggest evidence gap). The user's stated arc: exits matter most.
+- Workbench end state: TV Desktop RUNNING with CDP 9222 (relaunched this
+  session), TVB18-parity layout, DRAM 5m chart, package strategy mounted
+  (arm A1) + CONTROL + v6.1 watch indicator; Pine editor bound to the
+  PACKAGE script; TV-side source byte-identical to committed HEAD.
+
+### Files created/modified
+
+- New: analysis/paper/ladder_census.py + tier_b/ladder_census_receipt.json,
+  analysis/paper/tier_b_t1floor.py, analysis/paper/round_census.py,
+  analysis/paper/tier_b_t1floor/ (rows, rollups, manifest, 8 event dumps,
+  8 census receipts), tests/test_pkg_parity.py, tests/test_ladder_census.py,
+  tests/test_t1floor_engine.py, docs/experiments/tvb23_t1floor_prereg.md,
+  docs/experiments/tvb23_t1floor_report.md, docs/reviews/tvb22-codex-audit.md.
+- Modified: analysis/paper/pkg_parity.py (fail-closed pattern layer),
+  analysis/paper/engine.py (floor/ATR/retracement, inert defaults),
+  analysis/paper/patterns.py (health_flags, read-only),
+  pine/tfc_mt_package_strategy.pine (header parity block; TV synced),
+  docs/experiments/tvb22_next_variant_seed.md (census figures corrected),
+  HANDOFF + REVIEW_REQUEST flips, .session_startup_prompt.md.
+- Suite: 181 passed, 2 skipped; ruff clean.
+
+### Open
+
+- [ ] TV mirror + re-gate of the new arms (prereg step 7): floor + ATR +
+      arm selector into the package pine, then 9-cell parity gate; TV
+      strategy stays on TVB-22 arms until PASS
+- [ ] Exit-design lane (reserved; bimodal ladder unsolved; retracement
+      census evidence now in place; canonical intrabar-3 invalidation
+      exit absent -- future pre-registered variant if wanted)
+- [ ] Fresh-window replication round (own prereg; biggest evidence gap)
+- [ ] Greenlit repairs bundle (TVB-18, carried): F2 roster receipts +
+      fail-closed, F3 5m-lifecycle warm-up regression, F4 eviction
+      telemetry split, freeze-boundary invariant, SKHX tv_symbol/mintick
+      backfill
+- [ ] Nudge the M+T collaborator: PMG+ prefix structurally unreachable
+      (carried from TVB-21)
+- [ ] jackson MCP indicator_set_inputs kills Pine user scripts (carried;
+      fix in tradingview-mcp-jackson)
+- [ ] tvb8/tvb9 external reviews still unreturned (standing)
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb23-codex-audit.md.
+> See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: `0023852^..{head}` on `main` -- concrete head pinned
+  in docs/reviews/REVIEW_REQUEST.md after the session-end push (RANGE-PIN
+  RULE: the caret keeps 0023852 in the diff; sanity-check with `git diff
+  --name-status`).
+- Scope / what changed: TVB-22 audit fold-in (pkg_parity fail-closed +
+  tests, ladder-census receipt, metadata fixes); T1-floor round (prereg
+  BEFORE code + 3 dated corrections, engine floor/ATR/retracement behind
+  inert defaults, runner with determinism/entry-stream/reconciliation
+  gates, full 13-arm run, per-arm census receipts, report).
+- Focus areas (scrutinize these): (1) F1 fix: validate_events +
+  comparison fail-closed paths, the committed parity artifact NOT
+  regenerated, the 12 regression tests; (2) receipt integrity: does
+  ladder_census reproduce its committed numbers, do the round_census
+  conventions match the prereg (entry bar excluded, label bar exclusive,
+  roster scope), determinism guards fail-closed; (3) floor veto semantics
+  vs the prereg + amendments: strict d < floor, empty-ladder uniform
+  skip, DINF/A1F split justification, counter equation; (4) ATR: Wilder
+  seed/step math, price-unit predicates, pct-path arithmetic untouched
+  (determinism), first-bar TR = h-l convention declared; (5) retracement
+  layer truly read-only (no decision path reads it; golden event shape
+  unchanged when off) + the as-built one-sided-flag edge fixture vs the
+  pine source; (6) runner gates: determinism modulo-zero-new-keys rule,
+  entry-stream first-divergence-is-exit logic, occupancy funnel numbers;
+  (7) report language discipline (no promotion, constructed win rates
+  flagged, contrasts only); (8) request.security: no executable Pine
+  change except the package header comment block (TV-synced, byte-equal).
+- Reviewed by: pending
+- Findings: (blank until docs/reviews/tvb23-codex-audit.md exists)
+
+---
+
 ## Session TVB-22: TV package strategy + parity gate 9/9 + audit fold-in with ruled rerun (COMPLETE)
 
 **Date:** 2026-08-09/10
