@@ -37,7 +37,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `674c7f6^..130013e` (4 commits: 674c7f6 audit fold; 33c7138 assessment fold; b58688e TV mirror + gate PASS; 130013e session-end docs. Sanity-checked -- `git diff --name-status 674c7f6^..130013e` lists all files the session touched) |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `674c7f6^..{head pinned after final push}` (674c7f6 audit fold; 33c7138 assessment fold; b58688e TV mirror + gate PASS; 130013e session-end docs; a0160bd range pin; + the morning design-session commit adding docs/experiments/tvb25_exit_round_prereg.md -- REVIEW THE PREREG TOO: it is the binding spec the next round builds against, written before any code) |
 
 ## Read first (in this order)
 
@@ -91,6 +91,13 @@
    three-benchmark fill framing used consistently; no promotion anywhere.
 7. request.security: no new calls in the range (H8 is local aggregation
    only; verify).
+8. The TVB-25 prereg (docs/experiments/tvb25_exit_round_prereg.md,
+   committed before any code): internal coherence (rulings vs arms vs
+   mechanics tables), the per-setup structural stop table vs canonical
+   STRAT stop rules, whether every declared convention (P2 floor
+   semantics, D3 gap-through stops, X1 arming, tranche attribution) is
+   unambiguous enough to build against without further interpretation,
+   and whether any threshold smells sample-tuned rather than structural.
 
 Standing priorities apply (model fidelity; overfitting language; controls
 are research instruments, never deployment claims).

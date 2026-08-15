@@ -74,6 +74,25 @@ TV mirror built, saved, and 9-cell parity gate PASS. Three commits pushed.
   by title attribute; screenshots hang when the session is locked (drove
   the whole TV phase blind via DOM probes); worked in a NEW
   "TVB24-mirror" layout so the user's layouts/live tab were never driven.
+- MORNING DESIGN SESSION (user present, plan mode; the research fork
+  RESOLVED): the TVB-25 exit round designed and PRE-REGISTERED
+  (docs/experiments/tvb25_exit_round_prereg.md, committed BEFORE any
+  code). User rulings: all four exit candidates enter (thesis exits
+  individual, overlays as with/without, one composite endpoint); C0 state
+  stop = 2-against at 1H close; ladder bottom = TWO arms (S0a pure /
+  S0b +flip) vs A0b; BOTH partial profiles (P1 two-piece 50@T1+runner;
+  P2 the user's runner profile: skip T1, 40/20/20/10 at T2-T5, 10%
+  runner to the BF touch, floor arms after the T2 bank, T1 retrace exits
+  the middles, runner exits at breakeven, -0.25% variant named-deferred);
+  risk overlay = per-setup STRUCTURAL stops (skill 5.2 table in the
+  prereg) with ATR(14,1H)x3 default for controls/undefined anchors;
+  intrabar-3 invalidation as an overlay contrast; fresh window = Aug 3 ->
+  latest complete day now, extended through Aug 31 under the same prereg;
+  headless first, TV mirror on demand per arm. Also logged to memory:
+  the $50-or-less separate-wallet live canary + realism layer
+  (sizing/dollar P&L/leverage/margin) as a named future lane; the user's
+  vol/time-compression observation (instrument/regime-dependent minimal
+  continuity, a-priori-only future variant).
 
 ### Context for next session
 
@@ -105,8 +124,12 @@ TV mirror built, saved, and 9-cell parity gate PASS. Three commits pushed.
 
 ### Open
 
-- [ ] Research fork (user direction): exit-design lane / fresh-window
-      replication / C0-current-vs-C1-current isolated pair
+- [x] Research fork (user direction) -- CLOSED same session by the morning
+      design session: all three lanes merged into ONE pre-registered round
+      (docs/experiments/tvb25_exit_round_prereg.md); TVB-25 builds + runs it
+- [ ] TVB-25 round: build + run per the committed prereg (engine tranche
+      machinery, structural/ATR stops, state stop, intrabar-3, X1 arming;
+      fresh-bar harvest FIRST; hardened gates); month-end window extension
 - [ ] Assessment owner decisions: kernel-vs-Pine charter question; start
       1m/trade archiving for causal-fill work; spine CLAUDE.md
       project-map row stale (outside this repo)
