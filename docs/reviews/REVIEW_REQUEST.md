@@ -37,7 +37,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `674c7f6^..{head pinned after final push}` (674c7f6 audit fold; 33c7138 assessment fold; b58688e TV mirror + gate PASS; 130013e session-end docs; a0160bd range pin; + the morning design-session commit adding docs/experiments/tvb25_exit_round_prereg.md -- REVIEW THE PREREG TOO: it is the binding spec the next round builds against, written before any code) |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `674c7f6^..e92e59c` (6 commits: 674c7f6 audit fold; 33c7138 assessment fold; b58688e TV mirror + gate PASS; 130013e session-end docs; a0160bd range pin; e92e59c the TVB-25 exit-round prereg -- REVIEW THE PREREG TOO: it is the binding spec the next round builds against, written before any code. Sanity-checked -- `git diff --name-status 674c7f6^..e92e59c` lists every file the session touched) |
 
 ## Read first (in this order)
 

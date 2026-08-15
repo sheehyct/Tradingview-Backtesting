@@ -150,7 +150,7 @@ TV mirror built, saved, and 9-cell parity gate PASS. Three commits pushed.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: `674c7f6^..130013e` on `main` (4 commits: 674c7f6
+- Commits to review: `674c7f6^..e92e59c` on `main` (6 commits incl. the TVB-25 prereg e92e59c: 674c7f6
   audit fold; 33c7138 assessment fold; b58688e TV mirror + gate PASS;
   130013e session-end docs. RANGE-PIN RULE: the caret keeps 674c7f6 in
   the diff; sanity-checked with `git diff --name-status`).
