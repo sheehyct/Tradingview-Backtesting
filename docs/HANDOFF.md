@@ -5,6 +5,154 @@
 
 ---
 
+## Session TVB-24: both reviews folded + TV mirror parity-gated PASS (COMPLETE)
+
+**Date:** 2026-08-15 (autonomous overnight; user in and out)
+**Status:** COMPLETE -- TVB-23 Codex audit folded (every finding reproduced
+before adjudication), the 2026-08-14 strategy-implementation assessment
+folded (both diagnostics reproduced exactly), and prereg step 7 closed:
+TV mirror built, saved, and 9-cell parity gate PASS. Three commits pushed.
+
+### What was accomplished
+
+- TVB-23 AUDIT FOLDED (674c7f6; NEEDS-CHANGES, 3 MEDIUM + 2 LOW, all
+  reproduced BEFORE adjudication -- critical synthesis in the TVB-23
+  entry's External Review block below): F1 guards hardened fail-closed
+  (determinism union-of-fields + row cardinality both directions;
+  entry-stream all 15 depth pairs + equal symbol sets +
+  prefix-next-must-be-exit; census open count/direction + event linkage)
+  with 17 adversarial regression tests (tests/test_t1floor_gates.py);
+  committed artifacts re-verified PASS in memory, NOT regenerated. F2 the
+  two prereg-bound diagnostics delivered post-hoc
+  (analysis/paper/t1floor_diagnostics.py): atr_context_receipt.json
+  (roster ATR% spread 0.26-1.98%, grounds the accidental-symbol-filter
+  mechanism) + matched_exit_receipt.json (NEW mechanism reading: on the
+  37 trades closed in ALL six depth arms realized P&L rises strictly with
+  depth 38.4 -> 66.2pp, so the whole-arm shallow-top is an occupancy
+  effect; survivor boundary declared); report finding 5 narrowed by dated
+  correction (label-bar-exclusive census cannot support the exit
+  counterfactual). F3 provenance downgraded to self-attested for the two
+  same-commit corrections (dated prereg note); runner now records
+  prereg_blob_sha256. F4/F5 dated text corrections (arm count 9 -> 8,
+  superseded entry-book language, the realized-P&L D2 dip).
+- ASSESSMENT FOLDED (33c7138): docs/strategy-implementation-assessment.md
+  committed as source; BOTH its diagnostics reproduced exactly before
+  adoption (D1 entry-vs-close 61/41 mean +0.0809pp sum +8.25pp; identity
+  funnel 4111 evals -> 682 identities, 102 entries / 86 / 16 re-entered)
+  and folded into committed tooling analysis/paper/entry_audit.py +
+  entry_audit_receipt.json with pinned tests. NEW finding beyond the
+  assessment: 11/765 committed entries (4 distinct events) booked level
+  fills OUTSIDE the entry bar's range -- entry-side born-beyond analogue,
+  but structurally PESSIMISTIC-direction (far side of the max/min fill
+  rule) and immaterial (~0.7pp against the arms). Three-benchmark fill
+  framing pinned (vs level/open = conservative-by-construction; vs
+  decision close = favorable-majority; vs live intrabar = unresolved at
+  5m). Constitution sync: CLAUDE.md + README no longer deny the Python
+  engine exists (stale since TVB-21); engine comment disambiguates the
+  gate-open-proximity veto from M+T's reversal-streak chop (P1-3).
+  Adjudication delivered to the user in-session: adopt the
+  research-integrity spine now, park the G0-G7 execution architecture
+  until the live arc opens (tension with the loss-tolerable micro-canary
+  philosophy surfaced, user's call).
+- TV MIRROR + RE-GATE (b58688e; prereg step 7 CLOSED): floor/ATR/
+  arm-selector into pine/tfc_mt_package_strategy.pine, semantics verbatim
+  from engine.py (H8 header hunk; ATR update-order verified against
+  replay_bar; comma-free labels; D1ATR tested before D1 in the startswith
+  chain). Editor binding verified BEFORE save (byte-equal to committed
+  base modulo the known cp1252 dump artifact); injection disk -> Monaco
+  via node CDP with SHA-256 round-trip verification (70,537 chars
+  byte-equal); compiled clean; saved (same script evolves, v10+). GATE
+  PASS 9/9 (GOOGL/TSLA/DRAM x D1/DINF/D1ATR): 218/218 events matched,
+  zero twin-only/tv-only, offset 0s every cell, break/flip float-exact,
+  pattern layer clean on all 111 checked entries. The TV strategy is now
+  parity-valid for ALL SIX arms. New tooling:
+  scripts/tvb23_pkg_harvest.mjs (TVB_TARGET target pinning),
+  pkg_parity.py --arms with generation-scoped artifacts (committed TVB-22
+  pin never overwritten; gate twin's ATR seed-exact vs the pine).
+- OPERATIONAL (memory tv-mcp-tvb24-ops): layout_switch false-success
+  (create-new-layout UI flow works); Add-to-chart is icon-only, findable
+  by title attribute; screenshots hang when the session is locked (drove
+  the whole TV phase blind via DOM probes); worked in a NEW
+  "TVB24-mirror" layout so the user's layouts/live tab were never driven.
+
+### Context for next session
+
+- Prereg step 7 CLOSED -- nothing blocks the research fork; it needs the
+  USER's direction (exit-design [plan mode ON] vs fresh-window vs the
+  assessment-motivated C0-current/C1-current isolated pair).
+- The assessment's owner-level items stay parked: kernel-vs-Pine charter
+  question, 1m/trade archiving start, spine CLAUDE.md project-map row
+  (outside this repo, still says Pine-first).
+- Workbench: TV Desktop on CDP 9222, TVB24-mirror layout, package
+  strategy mounted (DRAM 5m, arm D1ATR), editor bound to the package
+  script, TV source byte-equal to committed HEAD.
+
+### Files created/modified
+
+- New: analysis/paper/t1floor_diagnostics.py, analysis/paper/entry_audit.py,
+  scripts/tvb23_pkg_harvest.mjs, tests/test_t1floor_gates.py,
+  tests/test_t1floor_diagnostics.py, tests/test_entry_audit.py,
+  docs/reviews/tvb23-codex-audit.md, docs/strategy-implementation-assessment.md,
+  tier_b_t1floor/{atr_context,matched_exit,entry_audit}_receipt.json,
+  analysis/reference/pkg_parity/tvb23_*_trades.json (9) + tvb23_parity_result.json.
+- Modified: analysis/paper/tier_b_t1floor.py + round_census.py (fail-closed
+  gates), analysis/paper/pkg_parity.py (TVB-23 arms), analysis/paper/engine.py
+  (comment only), pine/tfc_mt_package_strategy.pine (H8 + gate-pass header;
+  TV-synced sha-verified), docs/experiments/tvb23_t1floor_{prereg,report}.md
+  (dated corrections), CLAUDE.md, README.md, HANDOFF + REVIEW_REQUEST flips,
+  .session_startup_prompt.md.
+- Suite: 205 passed, 2 skipped (24 new tests); ruff clean.
+
+### Open
+
+- [ ] Research fork (user direction): exit-design lane / fresh-window
+      replication / C0-current-vs-C1-current isolated pair
+- [ ] Assessment owner decisions: kernel-vs-Pine charter question; start
+      1m/trade archiving for causal-fill work; spine CLAUDE.md
+      project-map row stale (outside this repo)
+- [ ] Greenlit repairs bundle (TVB-18, carried): F2 roster receipts +
+      fail-closed, F3 5m-lifecycle warm-up regression, F4 eviction
+      telemetry split, freeze-boundary invariant, SKHX tv_symbol/mintick
+      backfill
+- [ ] Nudge the M+T collaborator: PMG+ prefix structurally unreachable
+      (carried from TVB-21)
+- [ ] jackson MCP indicator_set_inputs kills Pine user scripts (carried;
+      fix in tradingview-mcp-jackson)
+- [ ] tvb8/tvb9 external reviews still unreturned (standing)
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb24-codex-audit.md.
+> See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: `674c7f6^..b58688e` on `main` (3 commits + the
+  session-end docs commit that follows; RANGE-PIN RULE: the caret keeps
+  674c7f6 in the diff; final head pinned in docs/reviews/REVIEW_REQUEST.md
+  after the docs push).
+- Scope / what changed: TVB-23 audit fold (fail-closed gate hardening +
+  adversarial tests; prereg-bound diagnostics as receipts; dated
+  corrections; provenance hashing); assessment fold (entry_audit receipts,
+  constitution sync, chop-naming disambiguation); TV mirror of the TVB-23
+  arms + 9-cell parity gate PASS (harvest variant, pkg_parity --arms).
+- Focus areas (scrutinize these): (1) hardened gates genuinely fail-closed
+  (union-of-fields, all-pairs, prefix rule, census open checks) and the
+  adversarial tests actually bite; (2) t1floor_diagnostics + entry_audit
+  receipts reproduce from committed artifacts (conventions honest,
+  survivor-shape boundary on the matched-exit read); (3) pine H8 hunk
+  semantics verbatim vs engine.py (floor order before no-target skip; ATR
+  Wilder math + update order; pct/ATR mutual exclusion; arm derivation
+  startswith chain D1ATR-before-D1); (4) parity gate extension (prefix
+  routing, generation-scoped artifact never overwrites the TVB-22 pin;
+  ATR seed-exactness claim for the gate twin); (5) dated corrections
+  never silently rewrite (prereg/report); (6) request.security: no new
+  calls; pine change is the H8 logic + header (TV-synced, sha-verified).
+- Reviewed by: pending
+- Findings: (blank until docs/reviews/tvb24-codex-audit.md exists)
+
+---
+
 ## Session TVB-23: TVB-22 audit folded + T1-floor round designed, prereg'd, built, run, reported (COMPLETE)
 
 **Date:** 2026-08-10/12
