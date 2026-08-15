@@ -127,10 +127,10 @@ TV mirror built, saved, and 9-cell parity gate PASS. Three commits pushed.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: `674c7f6^..b58688e` on `main` (3 commits + the
-  session-end docs commit that follows; RANGE-PIN RULE: the caret keeps
-  674c7f6 in the diff; final head pinned in docs/reviews/REVIEW_REQUEST.md
-  after the docs push).
+- Commits to review: `674c7f6^..130013e` on `main` (4 commits: 674c7f6
+  audit fold; 33c7138 assessment fold; b58688e TV mirror + gate PASS;
+  130013e session-end docs. RANGE-PIN RULE: the caret keeps 674c7f6 in
+  the diff; sanity-checked with `git diff --name-status`).
 - Scope / what changed: TVB-23 audit fold (fail-closed gate hardening +
   adversarial tests; prereg-bound diagnostics as receipts; dated
   corrections; provenance hashing); assessment fold (entry_audit receipts,

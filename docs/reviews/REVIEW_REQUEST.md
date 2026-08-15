@@ -37,7 +37,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `674c7f6^..{pending push}` (674c7f6 audit fold; 33c7138 assessment fold; b58688e TV mirror + gate PASS; + the session-end docs commit -- concrete head pinned after push) |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `674c7f6^..130013e` (4 commits: 674c7f6 audit fold; 33c7138 assessment fold; b58688e TV mirror + gate PASS; 130013e session-end docs. Sanity-checked -- `git diff --name-status 674c7f6^..130013e` lists all files the session touched) |
 
 ## Read first (in this order)
 
