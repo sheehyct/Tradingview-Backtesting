@@ -20,9 +20,14 @@ Gates (fail-closed, prereg "Execution + provenance"):
   analysis/paper/tier_b/results_by_symbol.jsonl rows, modulo NEW
   veto-counter keys that are zero-valued (the TVB-22 no_target_vetoed
   precedent).
-- ENTRY-BOOK INVARIANCE: D1..D5 and DINF must produce identical entry
-  streams (sym, ts, dir, pattern, trig) -- the fallback-shallower ruling's
-  direct consequence; the depth curve isolates exit depth alone.
+- ENTRY-STREAM GATE (prereg ruling 3 as corrected 2026-08-10; docstring
+  reconciled 2026-08-15, TVB-23 audit F4): depth-arm event streams are NOT
+  identical -- one-position occupancy funnels entries as exits deepen. Per
+  symbol, every PAIR of depth-arm streams must be identical up to a first
+  divergence that is an EXIT event (a strict prefix passes only if the
+  longer stream continues with an exit), with equal symbol sets. The depth
+  curve reads exit depth WITH its occupancy consequence, never in
+  isolation.
 - COUNTER RECONCILIATION: entries = candidates - no_target - (both +
   bf_prox + chop - no_target_vetoed) - t1_floor_only, per (arm, symbol).
 
@@ -47,6 +52,7 @@ import time
 from bisect import bisect_left, bisect_right
 from copy import deepcopy
 from datetime import datetime, timezone
+from itertools import combinations
 from pathlib import Path
 
 from analysis.giveback import episode_metrics
@@ -381,33 +387,53 @@ def _strip_new_zero_keys(ours: dict, committed: dict) -> dict:
     return {k: v for k, v in ours.items() if k in committed or v not in (0, None)}
 
 
+_MISSING = "(missing)"
+
+
 def _determinism_check(recs: list[dict]) -> dict:
+    """Fail-closed field equality vs the committed Tier B rows (hardened
+    2026-08-15, TVB-23 audit F1): every committed (arm, symbol) row must be
+    produced exactly once; fields compare over the UNION of key sets, so a
+    missing produced field, a missing row, a duplicate, or an unexpected
+    extra row all mismatch. veto_counts keeps the declared modulo rule:
+    NEW keys are tolerated iff zero-valued."""
     committed: dict[tuple, dict] = {}
     with open(TIER_B_BY_SYMBOL, encoding="utf-8") as f:
         for line in f:
             row = json.loads(line)
             committed[(row["arm_id"], row["symbol"])] = row
+    produced: dict[tuple, dict] = {}
     mismatches = []
     for rec in recs:
-        base = committed.get((rec["arm_id"], rec["symbol"]))
-        if base is None:
+        key = (rec["arm_id"], rec["symbol"])
+        if key in produced:
+            mismatches.append({"arm": key[0], "symbol": key[1], "field": "(duplicate replay row)"})
+        produced[key] = rec
+    for key, base in committed.items():
+        rec = produced.get(key)
+        if rec is None:
             mismatches.append(
-                {"arm": rec["arm_id"], "symbol": rec["symbol"], "field": "(row missing)"}
+                {"arm": key[0], "symbol": key[1], "field": "(row missing from replay)"}
             )
             continue
-        for fld, ours in rec.items():
-            if fld == "veto_counts":
-                ours = _strip_new_zero_keys(ours, base.get(fld) or {})
-            if fld not in base or ours != base[fld]:
+        for fld in sorted(set(base) | set(rec)):
+            ours = rec.get(fld, _MISSING)
+            theirs = base.get(fld, _MISSING)
+            if fld == "veto_counts" and isinstance(ours, dict) and isinstance(theirs, dict):
+                ours = _strip_new_zero_keys(ours, theirs)
+            if ours != theirs:
                 mismatches.append(
                     {
-                        "arm": rec["arm_id"],
-                        "symbol": rec["symbol"],
+                        "arm": key[0],
+                        "symbol": key[1],
                         "field": fld,
                         "ours": ours,
-                        "committed": base.get(fld),
+                        "committed": theirs,
                     }
                 )
+    for key in produced:
+        if key not in committed:
+            mismatches.append({"arm": key[0], "symbol": key[1], "field": "(unexpected replay row)"})
     return {"n_committed_rows": len(committed), "n_compared": len(recs), "mismatches": mismatches}
 
 
@@ -421,14 +447,21 @@ def _stream_key(e: dict) -> tuple:
 
 
 def _first_divergence_is_exit(a: list[tuple], b: list[tuple]) -> bool:
-    """True iff the streams are equal (or one a prefix of the other) OR their
-    first differing event is an exit on at least one side -- entries may only
-    diverge DOWNSTREAM of an exit divergence (position-occupancy effect on a
-    one-position book; deeper exits hold longer)."""
+    """True iff the streams are equal OR their first differing event is an
+    exit on at least one side -- entries may only diverge DOWNSTREAM of an
+    exit divergence (position-occupancy effect on a one-position book;
+    deeper exits hold longer). Hardened 2026-08-15 (TVB-23 audit F1): a
+    strict prefix passes ONLY if the longer stream's next event is an exit.
+    Two arms flat at the same point face the identical candidate rule, so a
+    prefix continuing with an ENTRY (including an empty stream against an
+    entry-opening one) is a mechanics violation and fails."""
     for x, y in zip(a, b):
         if x != y:
             return x[0] == "exit" or y[0] == "exit"
-    return True
+    if len(a) == len(b):
+        return True
+    longer = a if len(a) > len(b) else b
+    return longer[min(len(a), len(b))][0] == "exit"
 
 
 def main() -> None:
@@ -544,11 +577,24 @@ def main() -> None:
     checked = [a for a in ENTRY_BOOK_ARMS if a in arm_streams]
     stream_fail = []
     if len(checked) > 1:
-        ref = arm_streams[checked[0]]
+        # hardened 2026-08-15 (TVB-23 audit F1): ALL depth-arm pairs, equal
+        # symbol sets, and the prefix rule inside _first_divergence_is_exit
+        sym_sets = {a: set(arm_streams[a]) for a in checked}
         for other in checked[1:]:
-            for sym in ref:
-                if not _first_divergence_is_exit(ref[sym], arm_streams[other].get(sym, [])):
-                    stream_fail.append({"arms": (checked[0], other), "symbol": sym})
+            if sym_sets[other] != sym_sets[checked[0]]:
+                stream_fail.append(
+                    {
+                        "arms": (checked[0], other),
+                        "symbol": sorted(sym_sets[other] ^ sym_sets[checked[0]]),
+                        "reason": "symbol set mismatch",
+                    }
+                )
+        for a, b in combinations(checked, 2):
+            for sym in sorted(sym_sets[a] | sym_sets[b]):
+                if not _first_divergence_is_exit(
+                    arm_streams[a].get(sym, []), arm_streams[b].get(sym, [])
+                ):
+                    stream_fail.append({"arms": (a, b), "symbol": sym})
     if stream_fail:
         for m in stream_fail[:10]:
             print(f"  stream divergence not at an exit: {m}")
@@ -559,6 +605,11 @@ def main() -> None:
 
     manifest = {
         "prereg": "docs/experiments/tvb23_t1floor_prereg.md",
+        # audit F3 (2026-08-15): hash the BINDING prereg content at run time so
+        # a future rerun's manifest proves which correction text governed it
+        "prereg_blob_sha256": hashlib.sha256(
+            (REPO / "docs" / "experiments" / "tvb23_t1floor_prereg.md").read_bytes()
+        ).hexdigest(),
         "label": "PRE-COMMITTED LAYER ABLATION + LABELED OVERFIT CEILING-MAP",
         "git_head": head,
         "git_dirty": bool(dirty_paths),
@@ -573,8 +624,11 @@ def main() -> None:
         "bar_hashes": bar_hashes,
         "tier_b_determinism_check": determinism,
         "entry_stream_gate": {
-            "rule": "per symbol, depth-arm event streams identical until a first "
-            "divergence that is an exit (prereg ruling 3, 2026-08-10 correction)",
+            "rule": "per symbol, ALL depth-arm stream pairs identical until a "
+            "first divergence that is an exit; a strict prefix requires the "
+            "longer stream's next event to be an exit; symbol sets equal "
+            "(prereg ruling 3, 2026-08-10 correction; hardened 2026-08-15 "
+            "audit F1)",
             "arms": checked,
             "pass": (not stream_fail) if len(checked) > 1 else None,
             "entry_funnel": {a: entry_counts[a] for a in checked},

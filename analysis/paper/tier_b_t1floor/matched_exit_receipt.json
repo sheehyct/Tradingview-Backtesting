@@ -1,0 +1,3800 @@
+{
+ "generated_utc": "2026-08-15T04:47:34+00:00",
+ "purpose": "TVB-23 prereg-bound diagnostic delivered post-hoc (audit F2): matched-entry per-trade exit comparison across D1..D5+DINF (exits in isolation on the closed-in-all-six subset)",
+ "conventions": "module docstring analysis/paper/t1floor_diagnostics.py; entry identity (sym, entry_ts, dir, pattern, trig); identity matching is a superset of strict stream-prefix matching; roster scope (parity symbol excluded); open positions marked from open_mark price, flagged, and excluded from the exits-in-isolation aggregate",
+ "source_hashes": {
+  "events_D1.jsonl": "7801a25e5292bd50",
+  "events_D2.jsonl": "ef537de7645fd1e1",
+  "events_D3.jsonl": "737c7eef3bf3e286",
+  "events_D4.jsonl": "53228ab1688ae3f4",
+  "events_D5.jsonl": "fb2e753734f07850",
+  "events_DINF.jsonl": "8f04f203cabbd49c",
+  "results_by_symbol.jsonl": "09e01551dff83428"
+ },
+ "per_arm_trades": {
+  "D1": 102,
+  "D2": 85,
+  "D3": 77,
+  "D4": 73,
+  "D5": 70,
+  "DINF": 41
+ },
+ "pairwise_matched_counts": {
+  "D1&D2": 85,
+  "D1&D3": 77,
+  "D1&D4": 73,
+  "D1&D5": 70,
+  "D1&DINF": 41,
+  "D2&D3": 77,
+  "D2&D4": 73,
+  "D2&D5": 70,
+  "D2&DINF": 41,
+  "D3&D4": 73,
+  "D3&D5": 70,
+  "D3&DINF": 41,
+  "D4&D5": 69,
+  "D4&DINF": 41,
+  "D5&DINF": 41
+ },
+ "n_matched_all6": 41,
+ "n_matched_all6_closed_everywhere": 37,
+ "exits_in_isolation_closed_all6": {
+  "D1": {
+   "n": 37,
+   "sum_pnl_pp": 38.3996,
+   "mean_pnl_pp": 1.0378,
+   "median_pnl_pp": 0.637,
+   "win_rate": 0.973,
+   "exit_kinds": {
+    "brk": 1,
+    "tgt": 36
+   }
+  },
+  "D2": {
+   "n": 37,
+   "sum_pnl_pp": 45.7003,
+   "mean_pnl_pp": 1.2351,
+   "median_pnl_pp": 0.7038,
+   "win_rate": 0.9189,
+   "exit_kinds": {
+    "brk": 2,
+    "flip": 1,
+    "tgt": 34
+   }
+  },
+  "D3": {
+   "n": 37,
+   "sum_pnl_pp": 52.7378,
+   "mean_pnl_pp": 1.4253,
+   "median_pnl_pp": 0.9706,
+   "win_rate": 0.8919,
+   "exit_kinds": {
+    "brk": 3,
+    "flip": 1,
+    "tgt": 33
+   }
+  },
+  "D4": {
+   "n": 37,
+   "sum_pnl_pp": 58.4751,
+   "mean_pnl_pp": 1.5804,
+   "median_pnl_pp": 0.9938,
+   "win_rate": 0.8649,
+   "exit_kinds": {
+    "brk": 4,
+    "flip": 1,
+    "tgt": 32
+   }
+  },
+  "D5": {
+   "n": 37,
+   "sum_pnl_pp": 66.2171,
+   "mean_pnl_pp": 1.7897,
+   "median_pnl_pp": 1.105,
+   "win_rate": 0.8649,
+   "exit_kinds": {
+    "brk": 4,
+    "flip": 1,
+    "tgt": 32
+   }
+  },
+  "DINF": {
+   "n": 37,
+   "sum_pnl_pp": 55.0068,
+   "mean_pnl_pp": 1.4867,
+   "median_pnl_pp": 2.1653,
+   "win_rate": 0.7027,
+   "exit_kinds": {
+    "bf": 25,
+    "brk": 9,
+    "flip": 3
+   }
+  }
+ },
+ "matched_all6_incl_open": {
+  "D1": {
+   "n": 41,
+   "sum_pnl_pp": 45.6168,
+   "mean_pnl_pp": 1.1126,
+   "median_pnl_pp": 0.6508,
+   "win_rate": 0.9756,
+   "exit_kinds": {
+    "brk": 1,
+    "tgt": 40
+   }
+  },
+  "D2": {
+   "n": 41,
+   "sum_pnl_pp": 30.9347,
+   "mean_pnl_pp": 0.7545,
+   "median_pnl_pp": 0.7026,
+   "win_rate": 0.878,
+   "exit_kinds": {
+    "brk": 2,
+    "flip": 1,
+    "open": 2,
+    "tgt": 36
+   }
+  },
+  "D3": {
+   "n": 41,
+   "sum_pnl_pp": 14.5618,
+   "mean_pnl_pp": 0.3552,
+   "median_pnl_pp": 0.9409,
+   "win_rate": 0.8293,
+   "exit_kinds": {
+    "brk": 3,
+    "flip": 1,
+    "open": 3,
+    "tgt": 34
+   }
+  },
+  "D4": {
+   "n": 41,
+   "sum_pnl_pp": 20.2991,
+   "mean_pnl_pp": 0.4951,
+   "median_pnl_pp": 0.9658,
+   "win_rate": 0.8049,
+   "exit_kinds": {
+    "brk": 4,
+    "flip": 1,
+    "open": 3,
+    "tgt": 33
+   }
+  },
+  "D5": {
+   "n": 41,
+   "sum_pnl_pp": 28.0411,
+   "mean_pnl_pp": 0.6839,
+   "median_pnl_pp": 0.9706,
+   "win_rate": 0.8049,
+   "exit_kinds": {
+    "brk": 4,
+    "flip": 1,
+    "open": 3,
+    "tgt": 33
+   }
+  },
+  "DINF": {
+   "n": 41,
+   "sum_pnl_pp": 19.4376,
+   "mean_pnl_pp": 0.4741,
+   "median_pnl_pp": 1.8803,
+   "win_rate": 0.6585,
+   "exit_kinds": {
+    "bf": 25,
+    "brk": 9,
+    "flip": 3,
+    "open": 4
+   }
+  }
+ },
+ "per_trade": [
+  {
+   "symbol": "xyz:GOOGL",
+   "entry_ts": 1784139300,
+   "dir": "long",
+   "pattern": "2-2u",
+   "trig": 372.9,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1784179200,
+     "pnl_pp": 0.2733,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1784179200,
+     "pnl_pp": 0.2733,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1784179200,
+     "pnl_pp": 0.2733,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1784179200,
+     "pnl_pp": 0.2733,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1784179200,
+     "pnl_pp": 0.2733,
+     "open": false
+    },
+    "DINF": {
+     "kind": "bf",
+     "exit_ts": 1784189700,
+     "pnl_pp": 0.9778,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:GOOGL",
+   "entry_ts": 1784308800,
+   "dir": "short",
+   "pattern": "1-3d",
+   "trig": 346.2,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1784309700,
+     "pnl_pp": 0.2828,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1784310000,
+     "pnl_pp": 0.3579,
+     "open": false
+    },
+    "D3": {
+     "kind": "brk",
+     "exit_ts": 1784476500,
+     "pnl_pp": -0.396,
+     "open": false
+    },
+    "D4": {
+     "kind": "brk",
+     "exit_ts": 1784476500,
+     "pnl_pp": -0.396,
+     "open": false
+    },
+    "D5": {
+     "kind": "brk",
+     "exit_ts": 1784476500,
+     "pnl_pp": -0.396,
+     "open": false
+    },
+    "DINF": {
+     "kind": "brk",
+     "exit_ts": 1784476500,
+     "pnl_pp": -0.396,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:MRVL",
+   "entry_ts": 1783431900,
+   "dir": "short",
+   "pattern": "2-2d",
+   "trig": 236.12,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783471500,
+     "pnl_pp": 0.5844,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1783471500,
+     "pnl_pp": 0.5844,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1783471500,
+     "pnl_pp": 0.5844,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1783471500,
+     "pnl_pp": 0.5844,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1783471500,
+     "pnl_pp": 0.5844,
+     "open": false
+    },
+    "DINF": {
+     "kind": "bf",
+     "exit_ts": 1784266800,
+     "pnl_pp": 24.5737,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:MRVL",
+   "entry_ts": 1783684800,
+   "dir": "short",
+   "pattern": "1-2u-2d",
+   "trig": 239.97,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783685100,
+     "pnl_pp": 0.3833,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1783690500,
+     "pnl_pp": 1.1043,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1783690500,
+     "pnl_pp": 1.6543,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1783690500,
+     "pnl_pp": 2.6795,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1783690800,
+     "pnl_pp": 2.992,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:MRVL",
+   "entry_ts": 1783685700,
+   "dir": "short",
+   "pattern": "1-2u-2d",
+   "trig": 239.97,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783687200,
+     "pnl_pp": 0.3833,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:MRVL",
+   "entry_ts": 1783702800,
+   "dir": "short",
+   "pattern": "1-2u-2d",
+   "trig": 236.39,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783904100,
+     "pnl_pp": 1.379,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1783904400,
+     "pnl_pp": 1.5398,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1783904700,
+     "pnl_pp": 1.7598,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1783907400,
+     "pnl_pp": 2.4239,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1783907400,
+     "pnl_pp": 2.4578,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:MRVL",
+   "entry_ts": 1783939200,
+   "dir": "short",
+   "pattern": "2-2d",
+   "trig": 228.45,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783949400,
+     "pnl_pp": 0.7923,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1783949400,
+     "pnl_pp": 1.0812,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1783949400,
+     "pnl_pp": 1.195,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1783949400,
+     "pnl_pp": 1.4182,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1783949400,
+     "pnl_pp": 1.8297,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:MRVL",
+   "entry_ts": 1783959300,
+   "dir": "short",
+   "pattern": "1-2u-2d",
+   "trig": 220.58,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783960500,
+     "pnl_pp": 0.9656,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1783960500,
+     "pnl_pp": 1.2512,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1783964700,
+     "pnl_pp": 1.768,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1783964700,
+     "pnl_pp": 1.768,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1783964700,
+     "pnl_pp": 1.768,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:MRVL",
+   "entry_ts": 1784131200,
+   "dir": "short",
+   "pattern": "2-1-2d",
+   "trig": 207.13,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1784134200,
+     "pnl_pp": 0.4007,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1784134200,
+     "pnl_pp": 0.4007,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1784134200,
+     "pnl_pp": 0.4007,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1784134200,
+     "pnl_pp": 0.4007,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1784134200,
+     "pnl_pp": 0.4007,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:MRVL",
+   "entry_ts": 1784197200,
+   "dir": "short",
+   "pattern": "2-1-2d",
+   "trig": 200.45,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1784197500,
+     "pnl_pp": 0.2793,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1784197500,
+     "pnl_pp": 0.2793,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1784197500,
+     "pnl_pp": 0.2793,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1784197500,
+     "pnl_pp": 0.2793,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1784197500,
+     "pnl_pp": 0.2793,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:MRVL",
+   "entry_ts": 1784262000,
+   "dir": "short",
+   "pattern": "2-2d",
+   "trig": 181.77,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1784262900,
+     "pnl_pp": 0.6271,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1784262900,
+     "pnl_pp": 0.6271,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1784262900,
+     "pnl_pp": 0.6271,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1784262900,
+     "pnl_pp": 0.6271,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1784262900,
+     "pnl_pp": 0.6271,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:MRVL",
+   "entry_ts": 1784263500,
+   "dir": "short",
+   "pattern": "2-2d",
+   "trig": 181.77,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1784264400,
+     "pnl_pp": 0.5067,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1784264400,
+     "pnl_pp": 0.5067,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1784264400,
+     "pnl_pp": 0.5067,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1784264400,
+     "pnl_pp": 0.5067,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1784264400,
+     "pnl_pp": 0.5067,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:MRVL",
+   "entry_ts": 1785172500,
+   "dir": "short",
+   "pattern": "1-2u-2d",
+   "trig": 185.62,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785200700,
+     "pnl_pp": 1.1151,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1785207900,
+     "pnl_pp": 1.9717,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1785245400,
+     "pnl_pp": 3.9435,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1785245400,
+     "pnl_pp": 4.1051,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1785245400,
+     "pnl_pp": 4.1051,
+     "open": false
+    },
+    "DINF": {
+     "kind": "bf",
+     "exit_ts": 1785245400,
+     "pnl_pp": 4.0894,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:MRVL",
+   "entry_ts": 1785225900,
+   "dir": "short",
+   "pattern": "2-2d",
+   "trig": 180.96,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785236400,
+     "pnl_pp": 0.547,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1785236400,
+     "pnl_pp": 0.547,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:MRVL",
+   "entry_ts": 1785260400,
+   "dir": "short",
+   "pattern": "2-2d",
+   "trig": 175.8,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785269100,
+     "pnl_pp": 1.166,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1785297600,
+     "pnl_pp": 4.7212,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1785297600,
+     "pnl_pp": 4.7212,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1785297600,
+     "pnl_pp": 4.7212,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1785297600,
+     "pnl_pp": 4.7212,
+     "open": false
+    },
+    "DINF": {
+     "kind": "bf",
+     "exit_ts": 1785359400,
+     "pnl_pp": 9.8766,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:MRVL",
+   "entry_ts": 1785290100,
+   "dir": "short",
+   "pattern": "3-2-2d",
+   "trig": 176.09,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785295800,
+     "pnl_pp": 1.9433,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:MRVL",
+   "entry_ts": 1785312600,
+   "dir": "short",
+   "pattern": "2-2d",
+   "trig": 172.06,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785334800,
+     "pnl_pp": 1.575,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1785335100,
+     "pnl_pp": 1.9934,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1785340500,
+     "pnl_pp": 4.1148,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1785340500,
+     "pnl_pp": 4.1148,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1785340500,
+     "pnl_pp": 4.1148,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:MRVL",
+   "entry_ts": 1785506700,
+   "dir": "short",
+   "pattern": "3-2d",
+   "trig": 189.68,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785507000,
+     "pnl_pp": 0.738,
+     "open": false
+    },
+    "D2": {
+     "kind": "open",
+     "exit_ts": null,
+     "pnl_pp": -1.9876,
+     "open": true
+    },
+    "D3": {
+     "kind": "open",
+     "exit_ts": null,
+     "pnl_pp": -1.9876,
+     "open": true
+    },
+    "D4": {
+     "kind": "open",
+     "exit_ts": null,
+     "pnl_pp": -1.9876,
+     "open": true
+    },
+    "D5": {
+     "kind": "open",
+     "exit_ts": null,
+     "pnl_pp": -1.9876,
+     "open": true
+    },
+    "DINF": {
+     "kind": "open",
+     "exit_ts": null,
+     "pnl_pp": -1.9876,
+     "open": true
+    }
+   }
+  },
+  {
+   "symbol": "xyz:MRVL",
+   "entry_ts": 1785507300,
+   "dir": "short",
+   "pattern": "3-2d",
+   "trig": 189.68,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785527700,
+     "pnl_pp": 0.2754,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:MSFT",
+   "entry_ts": 1783954800,
+   "dir": "long",
+   "pattern": "3-2-2u",
+   "trig": 389.93,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783955700,
+     "pnl_pp": 0.2536,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1783959600,
+     "pnl_pp": 0.5306,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1783960800,
+     "pnl_pp": 0.9409,
+     "open": false
+    },
+    "D4": {
+     "kind": "brk",
+     "exit_ts": 1784027400,
+     "pnl_pp": -2.4776,
+     "open": false
+    },
+    "D5": {
+     "kind": "brk",
+     "exit_ts": 1784027400,
+     "pnl_pp": -2.4776,
+     "open": false
+    },
+    "DINF": {
+     "kind": "brk",
+     "exit_ts": 1784027400,
+     "pnl_pp": -2.4776,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:MSFT",
+   "entry_ts": 1785251400,
+   "dir": "long",
+   "pattern": "3-1-2u",
+   "trig": 397.9,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785252300,
+     "pnl_pp": 0.5702,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1785252300,
+     "pnl_pp": 0.6105,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1785350700,
+     "pnl_pp": 0.8718,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1785351000,
+     "pnl_pp": 0.8769,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1785355200,
+     "pnl_pp": 0.9698,
+     "open": false
+    },
+    "DINF": {
+     "kind": "bf",
+     "exit_ts": 1785355200,
+     "pnl_pp": 2.6945,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:MSFT",
+   "entry_ts": 1785253500,
+   "dir": "long",
+   "pattern": "3-1-2u",
+   "trig": 397.9,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785350700,
+     "pnl_pp": 0.2631,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1785350700,
+     "pnl_pp": 0.3032,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:MSFT",
+   "entry_ts": 1785427200,
+   "dir": "long",
+   "pattern": "2-2u",
+   "trig": 450.35,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785427500,
+     "pnl_pp": 0.3662,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1785427500,
+     "pnl_pp": 0.3662,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1785427500,
+     "pnl_pp": 0.3662,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1785427500,
+     "pnl_pp": 0.3662,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1785427500,
+     "pnl_pp": 0.3662,
+     "open": false
+    },
+    "DINF": {
+     "kind": "open",
+     "exit_ts": null,
+     "pnl_pp": 2.973,
+     "open": true
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "entry_ts": 1783324800,
+   "dir": "short",
+   "pattern": "2-2d",
+   "trig": 223.2,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783333200,
+     "pnl_pp": 0.7482,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1783333200,
+     "pnl_pp": 1.1693,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1783333800,
+     "pnl_pp": 1.2679,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1783333800,
+     "pnl_pp": 1.4202,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1783343700,
+     "pnl_pp": 2.0967,
+     "open": false
+    },
+    "DINF": {
+     "kind": "bf",
+     "exit_ts": 1783344000,
+     "pnl_pp": 2.6167,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "entry_ts": 1783343100,
+   "dir": "short",
+   "pattern": "2-2d",
+   "trig": 220.97,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783343400,
+     "pnl_pp": 0.6154,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1783343700,
+     "pnl_pp": 1.1087,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1783344000,
+     "pnl_pp": 1.4391,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1783344000,
+     "pnl_pp": 1.5115,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "entry_ts": 1783356900,
+   "dir": "short",
+   "pattern": "2-1-2d",
+   "trig": 218.45,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783358100,
+     "pnl_pp": 0.9979,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1783387800,
+     "pnl_pp": 5.5344,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1783387800,
+     "pnl_pp": 5.5344,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1783387800,
+     "pnl_pp": 5.5344,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1783387800,
+     "pnl_pp": 5.5344,
+     "open": false
+    },
+    "DINF": {
+     "kind": "bf",
+     "exit_ts": 1783395600,
+     "pnl_pp": 6.1114,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "entry_ts": 1783368000,
+   "dir": "short",
+   "pattern": "1-2u-2d",
+   "trig": 213.26,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783378500,
+     "pnl_pp": 0.6236,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "entry_ts": 1783400400,
+   "dir": "short",
+   "pattern": "2-1-2d",
+   "trig": 203.98,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783400700,
+     "pnl_pp": 0.3823,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1783400700,
+     "pnl_pp": 0.3823,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1783400700,
+     "pnl_pp": 0.3823,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1783400700,
+     "pnl_pp": 0.3823,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1783400700,
+     "pnl_pp": 0.3823,
+     "open": false
+    },
+    "DINF": {
+     "kind": "bf",
+     "exit_ts": 1783431000,
+     "pnl_pp": 1.666,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "entry_ts": 1783401900,
+   "dir": "short",
+   "pattern": "2-1-2d",
+   "trig": 203.98,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783430700,
+     "pnl_pp": 0.3726,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1783430700,
+     "pnl_pp": 0.3726,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1783430700,
+     "pnl_pp": 0.3726,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1783430700,
+     "pnl_pp": 0.3726,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1783430700,
+     "pnl_pp": 0.3726,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "entry_ts": 1783450800,
+   "dir": "short",
+   "pattern": "3-2d",
+   "trig": 196.95,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783465800,
+     "pnl_pp": 1.5794,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1783465800,
+     "pnl_pp": 1.5794,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1783465800,
+     "pnl_pp": 1.5794,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1783465800,
+     "pnl_pp": 1.5794,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1783465800,
+     "pnl_pp": 1.5794,
+     "open": false
+    },
+    "DINF": {
+     "kind": "bf",
+     "exit_ts": 1783499100,
+     "pnl_pp": 4.051,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "entry_ts": 1783944300,
+   "dir": "short",
+   "pattern": "1-2u-2d",
+   "trig": 212.36,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783945500,
+     "pnl_pp": 0.5038,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1783945500,
+     "pnl_pp": 0.5415,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1783950000,
+     "pnl_pp": 1.9071,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1783950900,
+     "pnl_pp": 2.3544,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1783965000,
+     "pnl_pp": 3.122,
+     "open": false
+    },
+    "DINF": {
+     "kind": "bf",
+     "exit_ts": 1784216400,
+     "pnl_pp": 16.4168,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "entry_ts": 1783947000,
+   "dir": "short",
+   "pattern": "1-2u-2d",
+   "trig": 212.36,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783949100,
+     "pnl_pp": 0.4664,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1783949100,
+     "pnl_pp": 0.5041,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "entry_ts": 1783959300,
+   "dir": "short",
+   "pattern": "2-1-2d",
+   "trig": 213.64,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783962900,
+     "pnl_pp": 1.8957,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1783965000,
+     "pnl_pp": 3.1642,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1783965000,
+     "pnl_pp": 3.7024,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1784040000,
+     "pnl_pp": 6.1552,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "entry_ts": 1783977600,
+   "dir": "short",
+   "pattern": "2-1-2d",
+   "trig": 208.54,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783983600,
+     "pnl_pp": 0.8439,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1783986000,
+     "pnl_pp": 1.5632,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1783986000,
+     "pnl_pp": 1.6495,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1784040000,
+     "pnl_pp": 4.1814,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "entry_ts": 1784059200,
+   "dir": "short",
+   "pattern": "3-2d",
+   "trig": 193.79,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1784126400,
+     "pnl_pp": 0.2631,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1784131800,
+     "pnl_pp": 2.1518,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1784132100,
+     "pnl_pp": 3.1219,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1784212500,
+     "pnl_pp": 4.6545,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1784212800,
+     "pnl_pp": 5.3563,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "entry_ts": 1784212500,
+   "dir": "short",
+   "pattern": "3-2d",
+   "trig": 185.24,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1784212800,
+     "pnl_pp": 0.2537,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1784212800,
+     "pnl_pp": 0.9879,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1784214600,
+     "pnl_pp": 2.1971,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "entry_ts": 1784262900,
+   "dir": "short",
+   "pattern": "2-2d",
+   "trig": 164.93,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1784265900,
+     "pnl_pp": 0.2688,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1784265900,
+     "pnl_pp": 0.2688,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1784265900,
+     "pnl_pp": 0.2688,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1784265900,
+     "pnl_pp": 0.2688,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1784265900,
+     "pnl_pp": 0.2688,
+     "open": false
+    },
+    "DINF": {
+     "kind": "brk",
+     "exit_ts": 1784505600,
+     "pnl_pp": -11.7051,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "entry_ts": 1784277000,
+   "dir": "short",
+   "pattern": "1-3d",
+   "trig": 162.36,
+   "arms": {
+    "D1": {
+     "kind": "brk",
+     "exit_ts": 1784505600,
+     "pnl_pp": -12.6202,
+     "open": false
+    },
+    "D2": {
+     "kind": "brk",
+     "exit_ts": 1784505600,
+     "pnl_pp": -12.6202,
+     "open": false
+    },
+    "D3": {
+     "kind": "brk",
+     "exit_ts": 1784505600,
+     "pnl_pp": -12.6202,
+     "open": false
+    },
+    "D4": {
+     "kind": "brk",
+     "exit_ts": 1784505600,
+     "pnl_pp": -12.6202,
+     "open": false
+    },
+    "D5": {
+     "kind": "brk",
+     "exit_ts": 1784505600,
+     "pnl_pp": -12.6202,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "entry_ts": 1785124500,
+   "dir": "short",
+   "pattern": "1-3d",
+   "trig": 194.65,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785159000,
+     "pnl_pp": 0.637,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1785159000,
+     "pnl_pp": 0.7038,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1785159000,
+     "pnl_pp": 0.7808,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1785159000,
+     "pnl_pp": 0.9658,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1785159000,
+     "pnl_pp": 1.3665,
+     "open": false
+    },
+    "DINF": {
+     "kind": "bf",
+     "exit_ts": 1785245400,
+     "pnl_pp": 9.1035,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "entry_ts": 1785160800,
+   "dir": "short",
+   "pattern": "3-2d",
+   "trig": 189.0,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785161400,
+     "pnl_pp": 0.4656,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1785162300,
+     "pnl_pp": 1.2804,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1785163200,
+     "pnl_pp": 2.9999,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1785166500,
+     "pnl_pp": 3.7407,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1785216900,
+     "pnl_pp": 4.9894,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "entry_ts": 1785162300,
+   "dir": "short",
+   "pattern": "3-2d",
+   "trig": 189.0,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785162600,
+     "pnl_pp": 0.4656,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "entry_ts": 1785177000,
+   "dir": "short",
+   "pattern": "1-3d",
+   "trig": 184.61,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785200400,
+     "pnl_pp": 0.9046,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1785204900,
+     "pnl_pp": 1.9392,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1785216900,
+     "pnl_pp": 2.73,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1785218700,
+     "pnl_pp": 2.9034,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "entry_ts": 1785215700,
+   "dir": "short",
+   "pattern": "3-2-2d",
+   "trig": 181.01,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785216600,
+     "pnl_pp": 0.464,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1785216900,
+     "pnl_pp": 0.7955,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "entry_ts": 1785225900,
+   "dir": "short",
+   "pattern": "2-2d",
+   "trig": 180.26,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785236400,
+     "pnl_pp": 1.0151,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1785237000,
+     "pnl_pp": 1.5144,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1785245400,
+     "pnl_pp": 2.0747,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1785245400,
+     "pnl_pp": 2.1468,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1785245700,
+     "pnl_pp": 3.3895,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "entry_ts": 1785245100,
+   "dir": "short",
+   "pattern": "3-2-2d",
+   "trig": 180.15,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785245400,
+     "pnl_pp": 1.5265,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1785245400,
+     "pnl_pp": 2.0149,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "entry_ts": 1785258300,
+   "dir": "short",
+   "pattern": "2-2d",
+   "trig": 168.4,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785279000,
+     "pnl_pp": 2.203,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1785297900,
+     "pnl_pp": 4.0142,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1785297900,
+     "pnl_pp": 4.0142,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1785297900,
+     "pnl_pp": 4.0142,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1785297900,
+     "pnl_pp": 4.0142,
+     "open": false
+    },
+    "DINF": {
+     "kind": "bf",
+     "exit_ts": 1785334800,
+     "pnl_pp": 8.565,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "entry_ts": 1785289800,
+   "dir": "short",
+   "pattern": "2-2d",
+   "trig": 169.09,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785297000,
+     "pnl_pp": 2.259,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "entry_ts": 1785352800,
+   "dir": "short",
+   "pattern": "3-2d",
+   "trig": 154.01,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785354600,
+     "pnl_pp": 5.0386,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1785354600,
+     "pnl_pp": 5.0386,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1785354600,
+     "pnl_pp": 5.0386,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1785354600,
+     "pnl_pp": 5.0386,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1785354600,
+     "pnl_pp": 5.0386,
+     "open": false
+    },
+    "DINF": {
+     "kind": "brk",
+     "exit_ts": 1785456000,
+     "pnl_pp": -30.8617,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "entry_ts": 1785354900,
+   "dir": "short",
+   "pattern": "3-2d",
+   "trig": 154.01,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785356700,
+     "pnl_pp": 0.3475,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1785356700,
+     "pnl_pp": 0.3475,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1785356700,
+     "pnl_pp": 0.3475,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1785356700,
+     "pnl_pp": 0.3475,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1785356700,
+     "pnl_pp": 0.3475,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "entry_ts": 1785526200,
+   "dir": "short",
+   "pattern": "2-2d",
+   "trig": 188.92,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785526800,
+     "pnl_pp": 0.8839,
+     "open": false
+    },
+    "D2": {
+     "kind": "flip",
+     "exit_ts": 1785658800,
+     "pnl_pp": -5.7326,
+     "open": false
+    },
+    "D3": {
+     "kind": "flip",
+     "exit_ts": 1785658800,
+     "pnl_pp": -5.7326,
+     "open": false
+    },
+    "D4": {
+     "kind": "flip",
+     "exit_ts": 1785658800,
+     "pnl_pp": -5.7326,
+     "open": false
+    },
+    "D5": {
+     "kind": "flip",
+     "exit_ts": 1785658800,
+     "pnl_pp": -5.7326,
+     "open": false
+    },
+    "DINF": {
+     "kind": "flip",
+     "exit_ts": 1785658800,
+     "pnl_pp": -5.7326,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:NBIS",
+   "entry_ts": 1785527100,
+   "dir": "short",
+   "pattern": "2-2d",
+   "trig": 188.92,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785535800,
+     "pnl_pp": 0.8682,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHX",
+   "entry_ts": 1783318800,
+   "dir": "short",
+   "pattern": "1-3d",
+   "trig": 1523.3,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783378800,
+     "pnl_pp": 0.8403,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1783378800,
+     "pnl_pp": 1.4509,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1783383000,
+     "pnl_pp": 2.2847,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1783386900,
+     "pnl_pp": 4.1492,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1783387500,
+     "pnl_pp": 4.7925,
+     "open": false
+    },
+    "DINF": {
+     "kind": "bf",
+     "exit_ts": 1783383000,
+     "pnl_pp": 2.2411,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHX",
+   "entry_ts": 1783429200,
+   "dir": "short",
+   "pattern": "1-2u-2d",
+   "trig": 1437.4,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783431000,
+     "pnl_pp": 0.5983,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1783431000,
+     "pnl_pp": 0.8071,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1783431300,
+     "pnl_pp": 1.0019,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1783498500,
+     "pnl_pp": 4.2441,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1783499400,
+     "pnl_pp": 6.5122,
+     "open": false
+    },
+    "DINF": {
+     "kind": "brk",
+     "exit_ts": 1783604100,
+     "pnl_pp": -8.2168,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHX",
+   "entry_ts": 1783431900,
+   "dir": "short",
+   "pattern": "1-2u-2d",
+   "trig": 1437.4,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783432200,
+     "pnl_pp": 0.5983,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1783432200,
+     "pnl_pp": 0.8071,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1783432500,
+     "pnl_pp": 1.0019,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHX",
+   "entry_ts": 1783449600,
+   "dir": "short",
+   "pattern": "1-2u-2d",
+   "trig": 1427.9,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783451400,
+     "pnl_pp": 0.9805,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1783463400,
+     "pnl_pp": 1.5759,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1783466100,
+     "pnl_pp": 2.6404,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHX",
+   "entry_ts": 1783461900,
+   "dir": "short",
+   "pattern": "3-2d",
+   "trig": 1415.0,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783462200,
+     "pnl_pp": 0.3251,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHX",
+   "entry_ts": 1783649100,
+   "dir": "short",
+   "pattern": "2-1-2d",
+   "trig": 1473.6,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783701300,
+     "pnl_pp": 1.527,
+     "open": false
+    },
+    "D2": {
+     "kind": "brk",
+     "exit_ts": 1783881000,
+     "pnl_pp": -1.0316,
+     "open": false
+    },
+    "D3": {
+     "kind": "brk",
+     "exit_ts": 1783881000,
+     "pnl_pp": -1.0316,
+     "open": false
+    },
+    "D4": {
+     "kind": "brk",
+     "exit_ts": 1783881000,
+     "pnl_pp": -1.0316,
+     "open": false
+    },
+    "D5": {
+     "kind": "brk",
+     "exit_ts": 1783881000,
+     "pnl_pp": -1.0316,
+     "open": false
+    },
+    "DINF": {
+     "kind": "brk",
+     "exit_ts": 1783881000,
+     "pnl_pp": -1.0316,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHX",
+   "entry_ts": 1783938300,
+   "dir": "short",
+   "pattern": "1-2u-2d",
+   "trig": 1245.6,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783960500,
+     "pnl_pp": 1.2284,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1783960500,
+     "pnl_pp": 1.5576,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1783960500,
+     "pnl_pp": 1.5576,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1783960500,
+     "pnl_pp": 1.5576,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1783960500,
+     "pnl_pp": 1.5576,
+     "open": false
+    },
+    "DINF": {
+     "kind": "brk",
+     "exit_ts": 1784032200,
+     "pnl_pp": -5.6845,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHX",
+   "entry_ts": 1783966800,
+   "dir": "short",
+   "pattern": "1-3d",
+   "trig": 1235.2,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783970400,
+     "pnl_pp": 1.1902,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1783970400,
+     "pnl_pp": 1.1902,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1783970400,
+     "pnl_pp": 1.1902,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1783970400,
+     "pnl_pp": 1.1902,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1783970400,
+     "pnl_pp": 1.1902,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHX",
+   "entry_ts": 1784111400,
+   "dir": "short",
+   "pattern": "2-1-2d",
+   "trig": 1354.3,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1784120100,
+     "pnl_pp": 0.2732,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1784120100,
+     "pnl_pp": 0.9747,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1784120100,
+     "pnl_pp": 1.0634,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1784124900,
+     "pnl_pp": 2.3113,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1784132100,
+     "pnl_pp": 4.9402,
+     "open": false
+    },
+    "DINF": {
+     "kind": "brk",
+     "exit_ts": 1784652600,
+     "pnl_pp": 2.9981,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHX",
+   "entry_ts": 1784131500,
+   "dir": "short",
+   "pattern": "2-1-2d",
+   "trig": 1298.6,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1784136000,
+     "pnl_pp": 0.3003,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1784132100,
+     "pnl_pp": 0.8625,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1784132100,
+     "pnl_pp": 0.8933,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1784132100,
+     "pnl_pp": 1.4247,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHX",
+   "entry_ts": 1784153100,
+   "dir": "short",
+   "pattern": "2-1-2d",
+   "trig": 1316.1,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1784154000,
+     "pnl_pp": 0.5775,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1784154900,
+     "pnl_pp": 1.3678,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1784155200,
+     "pnl_pp": 1.5653,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1784159100,
+     "pnl_pp": 2.348,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1784160900,
+     "pnl_pp": 3.8982,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHX",
+   "entry_ts": 1784175300,
+   "dir": "short",
+   "pattern": "1-2u-2d",
+   "trig": 1241.1,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1784176500,
+     "pnl_pp": 0.5077,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1784189100,
+     "pnl_pp": 1.0314,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1784241900,
+     "pnl_pp": 5.423,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1784267700,
+     "pnl_pp": 7.6229,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1784267700,
+     "pnl_pp": 7.6229,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHX",
+   "entry_ts": 1784177100,
+   "dir": "short",
+   "pattern": "1-2u-2d",
+   "trig": 1241.1,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1784182200,
+     "pnl_pp": 0.3873,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHX",
+   "entry_ts": 1784182500,
+   "dir": "short",
+   "pattern": "2-2d",
+   "trig": 1241.6,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1784187900,
+     "pnl_pp": 0.38,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHX",
+   "entry_ts": 1784198100,
+   "dir": "short",
+   "pattern": "2-2d",
+   "trig": 1232.3,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1784202900,
+     "pnl_pp": 0.8521,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1784241900,
+     "pnl_pp": 4.7476,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHX",
+   "entry_ts": 1784239800,
+   "dir": "short",
+   "pattern": "2-2d",
+   "trig": 1195.9,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1784241900,
+     "pnl_pp": 1.3547,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHX",
+   "entry_ts": 1785110700,
+   "dir": "short",
+   "pattern": "2-2d",
+   "trig": 1234.9,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785111000,
+     "pnl_pp": 0.442,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1785111000,
+     "pnl_pp": 0.5484,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1785111000,
+     "pnl_pp": 0.5648,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1785111000,
+     "pnl_pp": 1.0559,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1785111000,
+     "pnl_pp": 1.105,
+     "open": false
+    },
+    "DINF": {
+     "kind": "bf",
+     "exit_ts": 1785161400,
+     "pnl_pp": 4.7475,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHX",
+   "entry_ts": 1785170700,
+   "dir": "short",
+   "pattern": "2-1-2d",
+   "trig": 1127.1,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785171600,
+     "pnl_pp": 0.9938,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1785171600,
+     "pnl_pp": 0.9938,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1785171600,
+     "pnl_pp": 0.9938,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1785171600,
+     "pnl_pp": 0.9938,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1785171600,
+     "pnl_pp": 0.9938,
+     "open": false
+    },
+    "DINF": {
+     "kind": "bf",
+     "exit_ts": 1785193200,
+     "pnl_pp": 2.3975,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHX",
+   "entry_ts": 1785200700,
+   "dir": "short",
+   "pattern": "3-1-2d",
+   "trig": 1101.7,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785297000,
+     "pnl_pp": 15.8497,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1785297000,
+     "pnl_pp": 15.8497,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1785297000,
+     "pnl_pp": 15.8497,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1785297000,
+     "pnl_pp": 15.8497,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1785297000,
+     "pnl_pp": 15.8497,
+     "open": false
+    },
+    "DINF": {
+     "kind": "bf",
+     "exit_ts": 1785298500,
+     "pnl_pp": 17.8751,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHX",
+   "entry_ts": 1785313200,
+   "dir": "short",
+   "pattern": "1-2u-2d",
+   "trig": 973.47,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785355500,
+     "pnl_pp": 2.8735,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1785360900,
+     "pnl_pp": 5.747,
+     "open": false
+    },
+    "D3": {
+     "kind": "open",
+     "exit_ts": null,
+     "pnl_pp": -17.6634,
+     "open": true
+    },
+    "D4": {
+     "kind": "open",
+     "exit_ts": null,
+     "pnl_pp": -17.6634,
+     "open": true
+    },
+    "D5": {
+     "kind": "open",
+     "exit_ts": null,
+     "pnl_pp": -17.6634,
+     "open": true
+    },
+    "DINF": {
+     "kind": "open",
+     "exit_ts": null,
+     "pnl_pp": -17.6634,
+     "open": true
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHX",
+   "entry_ts": 1785368400,
+   "dir": "short",
+   "pattern": "2-2d",
+   "trig": 933.51,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785370800,
+     "pnl_pp": 1.9102,
+     "open": false
+    },
+    "D2": {
+     "kind": "open",
+     "exit_ts": null,
+     "pnl_pp": -22.7006,
+     "open": true
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "entry_ts": 1783923000,
+   "dir": "short",
+   "pattern": "3-2d",
+   "trig": 156.31,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783926300,
+     "pnl_pp": 0.2558,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1783926300,
+     "pnl_pp": 0.2558,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1783926300,
+     "pnl_pp": 0.2558,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1783926300,
+     "pnl_pp": 0.2558,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1783926300,
+     "pnl_pp": 0.2558,
+     "open": false
+    },
+    "DINF": {
+     "kind": "flip",
+     "exit_ts": 1784035500,
+     "pnl_pp": -7.4404,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "entry_ts": 1783941600,
+   "dir": "short",
+   "pattern": "1-3d",
+   "trig": 153.01,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783944900,
+     "pnl_pp": 0.7973,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1783946100,
+     "pnl_pp": 1.673,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1783946100,
+     "pnl_pp": 1.673,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1783946100,
+     "pnl_pp": 1.673,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1783946100,
+     "pnl_pp": 1.673,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "entry_ts": 1783945500,
+   "dir": "short",
+   "pattern": "1-3-2d",
+   "trig": 152.4,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783945800,
+     "pnl_pp": 0.2825,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "entry_ts": 1783947000,
+   "dir": "short",
+   "pattern": "1-3-2d",
+   "trig": 152.4,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783957500,
+     "pnl_pp": 0.4002,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1783983900,
+     "pnl_pp": 1.2795,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1783983900,
+     "pnl_pp": 1.2795,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1783983900,
+     "pnl_pp": 1.2795,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1783983900,
+     "pnl_pp": 1.2795,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "entry_ts": 1783958100,
+   "dir": "short",
+   "pattern": "2-2d",
+   "trig": 155.04,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783970700,
+     "pnl_pp": 0.5366,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "entry_ts": 1783971300,
+   "dir": "short",
+   "pattern": "3-2d",
+   "trig": 153.0,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783971600,
+     "pnl_pp": 0.5168,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "entry_ts": 1783972500,
+   "dir": "short",
+   "pattern": "3-2d",
+   "trig": 153.0,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783973700,
+     "pnl_pp": 0.6079,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "entry_ts": 1784052900,
+   "dir": "long",
+   "pattern": "2-1-2u",
+   "trig": 186.42,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1784054400,
+     "pnl_pp": 0.4398,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1784054400,
+     "pnl_pp": 0.4398,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1784054400,
+     "pnl_pp": 0.4398,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1784054400,
+     "pnl_pp": 0.4398,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1784054400,
+     "pnl_pp": 0.4398,
+     "open": false
+    },
+    "DINF": {
+     "kind": "flip",
+     "exit_ts": 1784214600,
+     "pnl_pp": -13.8719,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "entry_ts": 1784055000,
+   "dir": "long",
+   "pattern": "2-1-2u",
+   "trig": 186.42,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1784056500,
+     "pnl_pp": 0.4398,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1784056500,
+     "pnl_pp": 0.4398,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1784056500,
+     "pnl_pp": 0.4398,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1784056500,
+     "pnl_pp": 0.4398,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1784056500,
+     "pnl_pp": 0.4398,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "entry_ts": 1784070000,
+   "dir": "long",
+   "pattern": "2-2u",
+   "trig": 186.52,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1784073600,
+     "pnl_pp": 1.5923,
+     "open": false
+    },
+    "D2": {
+     "kind": "flip",
+     "exit_ts": 1784214600,
+     "pnl_pp": -13.9181,
+     "open": false
+    },
+    "D3": {
+     "kind": "flip",
+     "exit_ts": 1784214600,
+     "pnl_pp": -13.9181,
+     "open": false
+    },
+    "D4": {
+     "kind": "flip",
+     "exit_ts": 1784214600,
+     "pnl_pp": -13.9181,
+     "open": false
+    },
+    "D5": {
+     "kind": "flip",
+     "exit_ts": 1784214600,
+     "pnl_pp": -13.9181,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "entry_ts": 1784086500,
+   "dir": "long",
+   "pattern": "1-3u",
+   "trig": 190.25,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1784088300,
+     "pnl_pp": 0.8147,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "entry_ts": 1784228700,
+   "dir": "short",
+   "pattern": "2-1-2d",
+   "trig": 155.62,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1784231700,
+     "pnl_pp": 0.9638,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1784231700,
+     "pnl_pp": 2.5189,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1784267700,
+     "pnl_pp": 4.0483,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1784267700,
+     "pnl_pp": 4.0483,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1784267700,
+     "pnl_pp": 4.0483,
+     "open": false
+    },
+    "DINF": {
+     "kind": "bf",
+     "exit_ts": 1784295300,
+     "pnl_pp": 6.0669,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "entry_ts": 1784241900,
+   "dir": "short",
+   "pattern": "1-2u-2d",
+   "trig": 153.88,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1784243400,
+     "pnl_pp": 0.9227,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1784244600,
+     "pnl_pp": 1.5661,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "entry_ts": 1784666100,
+   "dir": "long",
+   "pattern": "2-2u",
+   "trig": 172.21,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1784667300,
+     "pnl_pp": 0.3484,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1784667600,
+     "pnl_pp": 0.7026,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1784668800,
+     "pnl_pp": 1.1555,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1784796600,
+     "pnl_pp": 2.5143,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1784796600,
+     "pnl_pp": 2.7292,
+     "open": false
+    },
+    "DINF": {
+     "kind": "bf",
+     "exit_ts": 1784679300,
+     "pnl_pp": 1.8803,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "entry_ts": 1784822700,
+   "dir": "long",
+   "pattern": "1-2d-2u",
+   "trig": 172.94,
+   "arms": {
+    "D1": {
+     "kind": "brk",
+     "exit_ts": 1784901000,
+     "pnl_pp": -8.9812,
+     "open": false
+    },
+    "D2": {
+     "kind": "brk",
+     "exit_ts": 1784901000,
+     "pnl_pp": -8.9812,
+     "open": false
+    },
+    "D3": {
+     "kind": "brk",
+     "exit_ts": 1784901000,
+     "pnl_pp": -8.9812,
+     "open": false
+    },
+    "D4": {
+     "kind": "brk",
+     "exit_ts": 1784901000,
+     "pnl_pp": -8.9812,
+     "open": false
+    },
+    "D5": {
+     "kind": "brk",
+     "exit_ts": 1784901000,
+     "pnl_pp": -8.9812,
+     "open": false
+    },
+    "DINF": {
+     "kind": "brk",
+     "exit_ts": 1784901000,
+     "pnl_pp": -8.9812,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "entry_ts": 1785168600,
+   "dir": "short",
+   "pattern": "2-1-2d",
+   "trig": 140.49,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785171000,
+     "pnl_pp": 0.7971,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1785171000,
+     "pnl_pp": 0.7971,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1785171000,
+     "pnl_pp": 0.7971,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1785171000,
+     "pnl_pp": 0.7971,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1785171000,
+     "pnl_pp": 0.7971,
+     "open": false
+    },
+    "DINF": {
+     "kind": "bf",
+     "exit_ts": 1785203700,
+     "pnl_pp": 1.3914,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "entry_ts": 1785171300,
+   "dir": "short",
+   "pattern": "2-1-2d",
+   "trig": 140.49,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785171900,
+     "pnl_pp": 0.3646,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1785171900,
+     "pnl_pp": 0.3646,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1785171900,
+     "pnl_pp": 0.3646,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1785171900,
+     "pnl_pp": 0.3646,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1785171900,
+     "pnl_pp": 0.3646,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "entry_ts": 1785225600,
+   "dir": "short",
+   "pattern": "2-2d",
+   "trig": 137.02,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785225900,
+     "pnl_pp": 0.4597,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1785225900,
+     "pnl_pp": 0.5692,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1785225900,
+     "pnl_pp": 0.5692,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1785225900,
+     "pnl_pp": 0.5692,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1785225900,
+     "pnl_pp": 0.5692,
+     "open": false
+    },
+    "DINF": {
+     "kind": "bf",
+     "exit_ts": 1785236400,
+     "pnl_pp": 1.5982,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "entry_ts": 1785234300,
+   "dir": "short",
+   "pattern": "3-1-2d",
+   "trig": 136.26,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785235200,
+     "pnl_pp": 0.7191,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1785235200,
+     "pnl_pp": 0.7191,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1785235200,
+     "pnl_pp": 0.7191,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1785235200,
+     "pnl_pp": 0.7191,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1785235200,
+     "pnl_pp": 0.7191,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "entry_ts": 1785236100,
+   "dir": "short",
+   "pattern": "3-1-2d",
+   "trig": 136.26,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785236400,
+     "pnl_pp": 0.7191,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1785236400,
+     "pnl_pp": 0.7191,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1785236400,
+     "pnl_pp": 0.7191,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1785236400,
+     "pnl_pp": 0.7191,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1785236400,
+     "pnl_pp": 0.7191,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "entry_ts": 1785245400,
+   "dir": "short",
+   "pattern": "3-2-2d",
+   "trig": 135.7,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785245700,
+     "pnl_pp": 1.4664,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1785245700,
+     "pnl_pp": 1.4664,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1785245700,
+     "pnl_pp": 1.4664,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1785245700,
+     "pnl_pp": 1.4664,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1785245700,
+     "pnl_pp": 1.4664,
+     "open": false
+    },
+    "DINF": {
+     "kind": "bf",
+     "exit_ts": 1785245700,
+     "pnl_pp": 2.1653,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "entry_ts": 1785260400,
+   "dir": "short",
+   "pattern": "1-2u-2d",
+   "trig": 131.27,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785278700,
+     "pnl_pp": 1.6606,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1785278700,
+     "pnl_pp": 2.1406,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1785278700,
+     "pnl_pp": 2.1406,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1785278700,
+     "pnl_pp": 2.1406,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1785278700,
+     "pnl_pp": 2.1406,
+     "open": false
+    },
+    "DINF": {
+     "kind": "bf",
+     "exit_ts": 1785297900,
+     "pnl_pp": 10.2522,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "entry_ts": 1785287400,
+   "dir": "short",
+   "pattern": "1-2u-2d",
+   "trig": 129.73,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785297000,
+     "pnl_pp": 7.662,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1785297600,
+     "pnl_pp": 8.7874,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1785297600,
+     "pnl_pp": 8.7874,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1785297600,
+     "pnl_pp": 8.7874,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1785297600,
+     "pnl_pp": 8.7874,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "entry_ts": 1785312600,
+   "dir": "short",
+   "pattern": "2-2d",
+   "trig": 126.25,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785359700,
+     "pnl_pp": 3.2395,
+     "open": false
+    },
+    "D2": {
+     "kind": "open",
+     "exit_ts": null,
+     "pnl_pp": -18.8912,
+     "open": true
+    },
+    "D3": {
+     "kind": "open",
+     "exit_ts": null,
+     "pnl_pp": -18.8912,
+     "open": true
+    },
+    "D4": {
+     "kind": "open",
+     "exit_ts": null,
+     "pnl_pp": -18.8912,
+     "open": true
+    },
+    "D5": {
+     "kind": "open",
+     "exit_ts": null,
+     "pnl_pp": -18.8912,
+     "open": true
+    },
+    "DINF": {
+     "kind": "open",
+     "exit_ts": null,
+     "pnl_pp": -18.8912,
+     "open": true
+    }
+   }
+  },
+  {
+   "symbol": "xyz:SKHY",
+   "entry_ts": 1785513900,
+   "dir": "short",
+   "pattern": "2-1-2d",
+   "trig": 145.11,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785527400,
+     "pnl_pp": 0.3169,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:TSLA",
+   "entry_ts": 1783951500,
+   "dir": "short",
+   "pattern": "3-2d",
+   "trig": 394.43,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1783969800,
+     "pnl_pp": 0.5727,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1784133300,
+     "pnl_pp": 0.8187,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1784208600,
+     "pnl_pp": 0.9606,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1784208600,
+     "pnl_pp": 0.9606,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1784208600,
+     "pnl_pp": 0.9606,
+     "open": false
+    },
+    "DINF": {
+     "kind": "bf",
+     "exit_ts": 1784208600,
+     "pnl_pp": 1.0939,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:TSLA",
+   "entry_ts": 1784313600,
+   "dir": "short",
+   "pattern": "3-2d",
+   "trig": 382.0,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1784555400,
+     "pnl_pp": 0.5247,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1784555700,
+     "pnl_pp": 0.6217,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1784555700,
+     "pnl_pp": 0.9706,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1784555700,
+     "pnl_pp": 0.9706,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1784555700,
+     "pnl_pp": 0.9706,
+     "open": false
+    },
+    "DINF": {
+     "kind": "bf",
+     "exit_ts": 1784511600,
+     "pnl_pp": 0.0168,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:TSLA",
+   "entry_ts": 1784828100,
+   "dir": "short",
+   "pattern": "2-2d",
+   "trig": 321.0,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1784835300,
+     "pnl_pp": 0.6508,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1784835300,
+     "pnl_pp": 0.6508,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1784835300,
+     "pnl_pp": 0.6508,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1784835300,
+     "pnl_pp": 0.6508,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1784835300,
+     "pnl_pp": 0.6508,
+     "open": false
+    },
+    "DINF": {
+     "kind": "bf",
+     "exit_ts": 1785247500,
+     "pnl_pp": 5.9395,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:TSLA",
+   "entry_ts": 1784850600,
+   "dir": "short",
+   "pattern": "2-1-2d",
+   "trig": 323.24,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1784860200,
+     "pnl_pp": 0.3307,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1784899800,
+     "pnl_pp": 1.2526,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1784901000,
+     "pnl_pp": 2.2519,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1784901000,
+     "pnl_pp": 2.2519,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1784901000,
+     "pnl_pp": 2.2519,
+     "open": false
+    }
+   }
+  },
+  {
+   "symbol": "xyz:TSLA",
+   "entry_ts": 1785187200,
+   "dir": "short",
+   "pattern": "2-2d",
+   "trig": 308.85,
+   "arms": {
+    "D1": {
+     "kind": "tgt",
+     "exit_ts": 1785193200,
+     "pnl_pp": 0.4594,
+     "open": false
+    },
+    "D2": {
+     "kind": "tgt",
+     "exit_ts": 1785200700,
+     "pnl_pp": 1.0099,
+     "open": false
+    },
+    "D3": {
+     "kind": "tgt",
+     "exit_ts": 1785206700,
+     "pnl_pp": 1.3693,
+     "open": false
+    },
+    "D4": {
+     "kind": "tgt",
+     "exit_ts": 1785206700,
+     "pnl_pp": 1.3693,
+     "open": false
+    },
+    "D5": {
+     "kind": "tgt",
+     "exit_ts": 1785206700,
+     "pnl_pp": 1.3693,
+     "open": false
+    }
+   }
+  }
+ ]
+}

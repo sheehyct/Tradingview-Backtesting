@@ -149,7 +149,10 @@ the TV mirror + re-gate of the new arms.
 > below) and write a verbatim assessment to docs/reviews/tvb23-codex-audit.md.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: REQUESTED
+- Review status: RETURNED -- audit at docs/reviews/tvb23-codex-audit.md
+  (captured 2026-08-12, verdict NEEDS-CHANGES: 3 MEDIUM + 2 LOW; reviewer
+  independently replayed all 13 arms and every committed artifact
+  reproduced). Critical synthesis pending TVB-24 fold-in.
 - Commits to review: `0023852^..9099bad` on `main` (6 commits; RANGE-PIN
   RULE: the caret keeps 0023852 in the diff; sanity-checked -- `git diff
   --name-status 0023852^..9099bad` lists all 37 files the session
@@ -176,8 +179,51 @@ the TV mirror + re-gate of the new arms.
   (7) report language discipline (no promotion, constructed win rates
   flagged, contrasts only); (8) request.security: no executable Pine
   change except the package header comment block (TV-synced, byte-equal).
-- Reviewed by: pending
-- Findings: (blank until docs/reviews/tvb23-codex-audit.md exists)
+- Reviewed by: OpenAI Codex (GPT-5), captured 2026-08-12; folded by TVB-24
+  2026-08-15 with every finding REPRODUCED before adjudication.
+- CRITICAL SYNTHESIS (TVB-24, 2026-08-15): verdict NEEDS-CHANGES accepted.
+  The strongest part of the audit is its confirmation surface: it
+  independently replayed all 5 determinism arms and all 8 new arms and
+  every committed row, rollup, event dump, bar hash, and the occupancy
+  funnel reproduced exactly -- the findings attack evidence contracts,
+  not this round's numbers.
+  - F1 (guards fail-open) AGREED, all three false-PASS paths reproduced
+    exactly (empty replay, deleted produced field, prefix-vs-entry
+    stream, census 85->82 open_mark deletion). Fixed: _determinism_check
+    union-of-fields + row cardinality both directions; entry-stream gate
+    all 15 depth pairs + equal symbol sets + prefix-next-must-be-exit;
+    census guard now checks open count/direction + event linkage.
+    17 adversarial regression tests (tests/test_t1floor_gates.py);
+    committed artifacts re-verified PASS in memory under the hardened
+    gates; committed artifacts NOT regenerated (TVB-20 precedent).
+  - F2 (missing prereg-bound diagnostics; retracement prose outruns the
+    census) AGREED. Delivered post-hoc via
+    analysis/paper/t1floor_diagnostics.py: atr_context_receipt.json
+    (mean 1H ATR% of price spans 0.26% GOLD -> 1.98% SKHY, a 7.6x roster
+    spread -- the fixed-2% chop band was ~8x GOLD's hourly range, which
+    IS the accidental symbol filter, now receipt-grounded) and
+    matched_exit_receipt.json (NEW mechanism reading: on the 37 trades
+    closed in ALL six depth arms, realized P&L rises strictly with depth
+    38.4 -> 66.2pp D1->D5, so the whole-arm shallow-top is an
+    occupancy/open-drag effect, not a per-trade exit effect; boundary:
+    subset excludes deep-arm open runners by construction). Report
+    finding 5 narrowed by dated correction: label-bar-exclusive census
+    cannot order rung-vs-label intrabar or price an alternative exit; the
+    counterfactual needs a pre-registered exit variant.
+  - F3 (correction provenance) AGREED with one argued nuance: the
+    occupancy correction is run-time-gate-TRIGGERED, so it cannot precede
+    the run by construction -- the honest claim is pre-RESULTS-read,
+    which is self-attested. Prereg now carries a dated provenance-status
+    note (only 2fcd13b git-verifiable; other two self-attested); the
+    runner records prereg_blob_sha256 in the manifest for future runs;
+    forward protocol: commit gate-triggered corrections before the clean
+    rerun.
+  - F4/F5 (stale contract text; realized-P&L monotonicity) AGREED, fixed
+    by dated corrections (prereg heading 9->8, superseded entry-book
+    language bracketed, runner docstring reconciled; report now states
+    the D2 dip 83.8 -> 82.0 -> 89.8 -> 98.5 -> 104.0).
+  - DISPUTED: nothing material. Watch item: the audit's "suggested
+    prompt" mutations are all now encoded as regression tests.
 
 ---
 

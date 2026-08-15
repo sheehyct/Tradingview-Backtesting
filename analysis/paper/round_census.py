@@ -18,8 +18,11 @@ analysis/paper/ladder_census.py -- restated machine-readably per receipt):
   known before the label appeared). Labels are the engine's read-only
   first-occurrence stamps (RETRACEMENT / POTENTIAL 3, pine-exact
   predicates, as-built one-sided-flag edge documented in the prereg).
-- Determinism guard (fail-closed): per-symbol closed-trade counts must
-  equal the round's results_by_symbol.jsonl rows for the arm.
+- Determinism guard (fail-closed; hardened 2026-08-15, TVB-23 audit F1):
+  per symbol vs the round's results_by_symbol.jsonl rows for the arm --
+  closed-trade counts equal, OPEN-trade count and direction equal to the
+  row's open_dir (a deleted open_mark now mismatches), no unknown symbols;
+  exit/open_mark events without a matching entry fail event linkage.
 
 Run: uv run python -m analysis.paper.round_census [--arms D1,D2,...]
 """
@@ -48,7 +51,14 @@ def _trade_rows(events: list[dict], bars_dir: str) -> list[dict]:
             # roster scope: the parity symbol is excluded from every rollup
             # and from the committed A1 receipt -- same convention here
             continue
-        ee = entries[(e["sym"], e["entry_ts"])]
+        ee = entries.get((e["sym"], e["entry_ts"]))
+        if ee is None:
+            # fail-closed event linkage (2026-08-15, audit F1): a dump whose
+            # exit/open_mark lost its entry must never census silently
+            raise ValueError(
+                f"census event-linkage broken: {e['action']} {e['sym']} ts={e['ts']} "
+                f"has no matching entry at entry_ts={e['entry_ts']}"
+            )
         rows_5m = _rows(e["sym"], "5m", bars_dir)
         ts_5m = [r[0] for r in rows_5m]
         i_entry = bisect_left(ts_5m, e["entry_ts"])
@@ -135,17 +145,41 @@ def _retrace_aggregates(rows: list[dict]) -> dict:
 
 
 def _determinism(rows: list[dict], arm_id: str, results_path: Path) -> dict:
-    committed: dict[str, int] = {}
+    """Hardened 2026-08-15 (TVB-23 audit F1): closed counts AND open-trade
+    count/direction must match the round rows; unknown symbols mismatch."""
+    committed: dict[str, dict] = {}
     with open(results_path, encoding="utf-8") as f:
         for line in f:
             rec = json.loads(line)
             if rec["arm_id"] == arm_id and rec["symbol"] != PARITY_SYMBOL:
-                committed[rec["symbol"]] = rec["n_trades"]
+                committed[rec["symbol"]] = {
+                    "n_trades": rec["n_trades"],
+                    "open_dir": rec.get("open_dir"),
+                }
     mismatches = []
-    for sym, n in sorted(committed.items()):
-        ours = sum(1 for r in rows if r["symbol"] == sym and r["exit_kind"] != "open")
-        if ours != n:
-            mismatches.append({"symbol": sym, "ours": ours, "rows": n})
+    for sym, exp in sorted(committed.items()):
+        closed = sum(1 for r in rows if r["symbol"] == sym and r["exit_kind"] != "open")
+        opens = [r for r in rows if r["symbol"] == sym and r["exit_kind"] == "open"]
+        if closed != exp["n_trades"]:
+            mismatches.append(
+                {"symbol": sym, "field": "closed", "ours": closed, "rows": exp["n_trades"]}
+            )
+        want_open = 1 if exp["open_dir"] else 0
+        if len(opens) != want_open:
+            mismatches.append(
+                {"symbol": sym, "field": "open", "ours": len(opens), "rows": want_open}
+            )
+        elif opens and opens[0]["dir"] != exp["open_dir"]:
+            mismatches.append(
+                {
+                    "symbol": sym,
+                    "field": "open_dir",
+                    "ours": opens[0]["dir"],
+                    "rows": exp["open_dir"],
+                }
+            )
+    for sym in sorted({r["symbol"] for r in rows} - set(committed)):
+        mismatches.append({"symbol": sym, "field": "(unknown symbol)", "ours": None, "rows": None})
     return {"n_symbols": len(committed), "mismatches": mismatches}
 
 

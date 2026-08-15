@@ -10,7 +10,8 @@
 
 ## Status
 
-- Status: REQUESTED
+- Status: RETURNED (audit file written 2026-08-12; verdict NEEDS-CHANGES,
+  3 MEDIUM + 2 LOW; fold-in pending TVB-24)
   <!-- REQUESTED | RETURNED (audit file written) -->
 - Session under review: TVB-23 -- TVB-22 audit fold-in (pkg_parity pattern
   layer hardened fail-closed after reproducing the NaN/missing-trig false

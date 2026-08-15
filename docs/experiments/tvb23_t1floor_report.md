@@ -37,7 +37,18 @@ counter reconciliation per (arm, symbol), census determinism per arm.
    exit.** Combined: D1 +83.8, D2 +38.5, D3 +51.3, D4 +60.0, D5 +65.4,
    DINF +19.4. Realized P&L rises monotonically with depth (83.8 ->
    104.0 at D5) but open-runner drag (-38.5pp parked on the same three
-   open positions from D3 up) and eroding tail metrics eat it. The
+   open positions from D3 up) and eroding tail metrics eat it.
+   [Correction 2026-08-15, audit F5: realized P&L is NOT monotone either
+   -- the committed rollups read 83.8 (D1), 82.0 (D2), 89.8 (D3), 98.5
+   (D4), 104.0 (D5): a 1.8pp dip at D2 before the D3-D5 rise. The
+   non-monotone COMBINED conclusion stands. Mechanism refinement from the
+   post-hoc matched-entry diagnostic (matched_exit_receipt.json): on the
+   37 trades closed in ALL six depth arms -- identical entries -- realized
+   P&L rises strictly with depth (38.4 -> 66.2pp, D1 -> D5), so deeper
+   targets harvest MORE per matched trade, and the whole-arm shallow-top
+   is an occupancy/book-composition/open-drag effect, not a per-trade exit
+   effect. Boundary: that subset is conditioned on closing in every arm,
+   which excludes the deep arms' open runners by construction.] The
    MAE-tail collapse decays with depth exactly as the seed predicted:
    worst runner 14.95% (D1) -> 28.7-29.7% (D3+), avg MAE 1.47% -> 2.98%.
    DINF (never cap the trade) collapses to +19.4 with the worst average
@@ -63,6 +74,17 @@ counter reconciliation per (arm, symbol), census determinism per arm.
    timing; as an EXIT it would have cut winners before their first rung
    far more often than it would have saved losers. Measured, per the
    pre-registered read; the exit-design lane stays reserved.
+   [Correction 2026-08-15, audit F2: the "would have cut winners" clause
+   is an exit counterfactual this census cannot support -- the
+   before-label rung count is LABEL-BAR EXCLUSIVE (round_census.py), so
+   the intrabar order of rung vs label inside that 5m bar is unresolved,
+   and no alternative exit price or P&L was computed. The supported
+   observation is descriptive: labels are frequent (100% of losers,
+   48-96% of winners on books that hold) and often appear before any
+   progress recorded on an EARLIER 5m bar. Whether a label exit nets
+   positive is decidable only by a pre-registered exit variant (named
+   deferred). The user-prior framing stays directionally supported by the
+   timing distribution; it is not adjudicated.]
 6. **A 98-99% win rate is an exit-construction artifact, not edge.** D1:
    100 of 102 closed trades exit at their frozen floored target
    (+105.4pp) against 2 break exits (-21.6pp). A floor-gated T1-always
@@ -137,3 +159,37 @@ negative cells (1-3d: -8.0pp n=7 in D1) are sign-indeterminate.
 - Per-arm ladder+retracement receipts: census_{arm}.json (roster scope,
   conventions pinned in analysis/paper/round_census.py)
 - Runner + gates: analysis/paper/tier_b_t1floor.py
+- Prereg-bound diagnostics delivered post-hoc (2026-08-15, audit F2):
+  atr_context_receipt.json (per-symbol ATR% of price beside the D1 vs
+  D1ATR veto counters) + matched_exit_receipt.json (matched-entry
+  exits-in-isolation), both from analysis/paper/t1floor_diagnostics.py
+
+## Corrections (2026-08-15, TVB-23 external audit folded)
+
+Dated notices; nothing above was silently rewritten. The audit
+(docs/reviews/tvb23-codex-audit.md, NEEDS-CHANGES) independently replayed
+all 13 arms -- every committed row, rollup, event dump, bar hash, and the
+occupancy funnel reproduced exactly. Its findings target the evidence
+contracts, not this round's numbers:
+
+- GUARDS (F1): the run-time claim that every guard was fail-closed was
+  materially overstated -- the determinism comparison could false-PASS on
+  missing rows/fields, the entry-stream gate accepted any prefix and only
+  compared D1 pairs, and the census guard ignored open_marks. All three
+  families hardened 2026-08-15 (tier_b_t1floor.py, round_census.py) with
+  adversarial regression tests (tests/test_t1floor_gates.py); the
+  committed artifacts re-verified PASS under the hardened gates in
+  memory. Committed artifacts were NOT regenerated (TVB-20 precedent).
+- DIAGNOSTICS (F2): the two prereg-bound diagnostics were missing from
+  the committed round; delivered post-hoc as receipts (index above), with
+  the finding-5 counterfactual narrowed in place.
+- PROVENANCE (F3): of the three dated prereg corrections, only the
+  outside-bar correction (2fcd13b) is git-verifiable as pre-code; the
+  counter-equation and occupancy corrections share their commits with the
+  code/results they govern and are SELF-ATTESTED as pre-results. The run
+  manifest did not hash the prereg content; the runner now records
+  prereg_blob_sha256 for future runs. See the prereg's 2026-08-15
+  provenance note.
+- TEXT (F4/F5): superseded identical-entry-book language and the arm
+  count reconciled in the prereg (dated notes there); the finding-3
+  realized-P&L sentence corrected in place above.

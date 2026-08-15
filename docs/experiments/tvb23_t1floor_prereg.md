@@ -105,7 +105,12 @@ symbol filter); ATR scaling is the named repair.
    membership changes remain a-priori re-commitments from the user's live
    reasoning.
 
-## Arms (9 new + 5 determinism re-runs; declared exhaustively)
+## Arms (8 new + 5 determinism re-runs; declared exhaustively)
+
+[Count corrected 2026-08-15, audit F4: this heading originally said "9
+new"; the table below and the runner always defined eight (D1-D5, DINF,
+A1F, D1ATR). The DINF/A1F split note's "one extra arm" language counted
+from the seed's single endpoint, which is where the nine came from.]
 
 Every new arm: pattern entries (10-setup dictionary, pine-exact, 1H),
 D/W/M gate, T1-floor 0.25% ON, deployed pool knobs (12h ON, n_max 6,
@@ -133,6 +138,17 @@ floor rule is unsatisfiable -- structural skip (existing `no_target`
 counter; vetoes still evaluated first per the 2026-08-09 amendment).
 Consequence: D1..D5 and DINF share ONE entry book exactly; A1F's book is
 A1's minus floor-vetoed and empty-ladder candidates.
+
+[Correction 2026-08-15, audit F4: the two sentences above -- "holds
+entries fixed / varies ONLY exit depth" in the design note and "share ONE
+entry book exactly" here -- restate the superseded gloss that ruling 3's
+dated 2026-08-10 correction already retired: on a one-position book,
+realized entry books DIFFER through occupancy (observed funnel
+137/108/93/89/85/50). What is shared exactly is the candidate rule and
+detector stream; the binding gate is first-divergence-is-exit, all
+depth-arm pairs. The A1F sentence is unaffected. See ruling 3's
+correction for the full statement; the exits-in-isolation read now exists
+as matched_exit_receipt.json.]
 
 Determinism re-runs: A0a, A0b, A1, A2, A3 (tier_b.ARMS verbatim, new
 engine flags inert). Their per-symbol rows must be field-equal to the
@@ -251,6 +267,22 @@ ablation singles; re-targeting of open trades; flip-uncoupling exit
 redesigns; RTH-anchored clock arms; weekend protocol arms; any depth
 promotion (a deployed depth needs a structural reason in its own future
 prereg).
+
+## Correction-provenance status (2026-08-15, audit F3)
+
+Of this document's three dated corrections, only the outside-bar
+POTENTIAL-3 correction is INDEPENDENTLY GIT-VERIFIABLE as pre-code (its
+own commit, 2fcd13b, precedes the engine commit 8c5c126). The
+counter-equation correction shares 8c5c126 with the engine change it
+governs; the occupancy/entry-stream correction shares 8967a07 with the
+runner and all result artifacts, and necessarily embeds observed funnel
+counts because the run-time gate is what triggered it. Both are therefore
+SELF-ATTESTED as written-before-results-were-read; the run manifest
+hashed executed code but not this document, so it cannot arbitrate. The
+chronology claim is downgraded to that limit. Forward protocol (binding
+for future rounds): commit a gate-triggered correction BEFORE the clean
+rerun, and the runner now records prereg_blob_sha256 in the manifest so
+the governing text of any future run is provable.
 
 ## Execution + provenance
 
