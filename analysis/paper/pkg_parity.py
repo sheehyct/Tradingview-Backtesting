@@ -75,7 +75,45 @@ ARM_TWIN = {
         "exit_targets": 2,
         "bf_harvest_exit": False,
     },
+    # TVB-23 arms (prereg step 7; tier_b_t1floor.NEW_ARMS semantics). The
+    # runner's retrace_census stays OFF here: it is a read-only stamp layer,
+    # decision-identical, and the gate joins on decision events. ATR seed
+    # parity note: this gate's twin runs COLD from the chart's first loaded
+    # bar, so its ATR warms from the same aggregated 1H stream the pine
+    # warms from -- seed-exact, unlike the runner's archived-bar seed.
+    "D1": {
+        "entry_mode": "pattern",
+        "arm_tf_s": 3600,
+        "bf_prox_veto_pct": 1.0,
+        "chop_veto_pct": 2.0,
+        "t1_floor_pct": 0.25,
+        "exit_targets": 1,
+        "bf_harvest_exit": False,
+    },
+    "DINF": {
+        "entry_mode": "pattern",
+        "arm_tf_s": 3600,
+        "bf_prox_veto_pct": 1.0,
+        "chop_veto_pct": 2.0,
+        "t1_floor_pct": 0.25,
+    },
+    "D1ATR": {
+        "entry_mode": "pattern",
+        "arm_tf_s": 3600,
+        "bf_prox_veto_atr": 1.0,
+        "chop_veto_atr": 2.0,
+        "atr_window": 14,
+        "t1_floor_pct": 0.25,
+        "exit_targets": 1,
+        "bf_harvest_exit": False,
+    },
 }
+
+
+# Harvest filename prefix per arm generation (scripts/tvb22_pkg_harvest.mjs
+# vs scripts/tvb23_pkg_harvest.mjs).
+def _harvest_prefix(arm: str) -> str:
+    return "tvb22" if arm.startswith("A") else "tvb23"
 
 
 def kind_of(exit_signal: str) -> str:
@@ -321,7 +359,7 @@ def gate(coin: str, arm: str, tw_evs, feed_end: int, closes: dict, n_bars: int, 
 
 
 def compare(coin: str, arm: str) -> dict:
-    port = json.loads((PKG / f"tvb22_{coin}_{arm}_trades.json").read_text())
+    port = json.loads((PKG / f"{_harvest_prefix(arm)}_{coin}_{arm}_trades.json").read_text())
     tw_evs, feed_end, closes, n_bars = twin_events(
         coin, arm, port["chart"]["first_bar_ts"], port["chart"]["mintick"]
     )
@@ -329,11 +367,23 @@ def compare(coin: str, arm: str) -> dict:
 
 
 def main(argv: list[str]) -> int:
-    coins = argv or ["GOOGL", "TSLA", "DRAM"]
+    # optional --arms D1,DINF,D1ATR selects the TVB-23 cells; default stays
+    # the TVB-22 set. The result artifact is named by arm GENERATION so a
+    # TVB-23 gate run can never overwrite the committed TVB-22 pin.
+    arms = ("A1", "A2", "A3")
+    args = list(argv)
+    if "--arms" in args:
+        i = args.index("--arms")
+        arms = tuple(args[i + 1].split(","))
+        del args[i : i + 2]
+    unknown = [a for a in arms if a not in ARM_TWIN]
+    if unknown:
+        raise SystemExit(f"unknown arms {unknown}; known: {sorted(ARM_TWIN)}")
+    coins = args or ["GOOGL", "TSLA", "DRAM"]
     results = []
     all_pass = True
     for coin in coins:
-        for arm in ("A1", "A2", "A3"):
+        for arm in arms:
             r = compare(coin, arm)
             results.append(r)
             all_pass &= r["pass"]
@@ -358,12 +408,14 @@ def main(argv: list[str]) -> int:
                     print(f"  pattern:   {p}")
             for p in r.get("structural_violations", []):
                 print(f"  violation: {p}")
-    out = PKG / "tvb22_parity_result.json"
+    gen = "tvb22" if all(a.startswith("A") for a in arms) else "tvb23"
+    out = PKG / f"{gen}_parity_result.json"
     out.write_text(
         json.dumps(
             {
                 "generated_utc": datetime.now(tz=timezone.utc).isoformat(),
-                "gate": "TVB-22 package-port parity (decision-exact + pattern layer)",
+                "gate": f"{gen.upper()} package-port parity (decision-exact + pattern layer)",
+                "arms": list(arms),
                 "all_pass": all_pass,
                 "results": results,
             },

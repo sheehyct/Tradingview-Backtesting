@@ -55,28 +55,67 @@
 //      every-bar shape broke the strategy's execution budget on deep 5m
 //      charts ("Calculation failed" runtime error at ~20k bars). Loop
 //      bodies stay verbatim; only the guards are new.
+//   H8 TVB-23 mirror (2026-08-15, prereg step 7 -- semantics verbatim from
+//      analysis/paper/engine.py per docs/experiments/tvb23_t1floor_prereg.md):
+//      three new arm-selector entries (D1 / DINF / D1ATR, comma-free labels),
+//      T1-floor entry veto (strict d < floor vs the frozen ladder[0], with
+//      the le0/small/only counter split), Wilder ATR over completed sig-TF
+//      aggregated bars (engine _Atr verbatim: first-bar TR = h-l, SMA seed,
+//      Wilder step) feeding price-unit ATR veto predicates in D1ATR, and the
+//      no-target structural skip extended to ALL floor arms (incl. DINF's
+//      C1-exit shape). The TVB-22 arms are decision-identical to before
+//      (floor/ATR paths are arm-gated off).
 //
-// ARM MAP (docs/experiments/tvb21_tier_b_prereg.md, arms table):
+// ARM MAP (docs/experiments/tvb21_tier_b_prereg.md +
+// docs/experiments/tvb23_t1floor_prereg.md arms tables):
 //   A1 "pattern isolation" = pattern entries (10-setup dictionary, 1H,
 //      pine-exact) + D/W/M gate; NO vetoes; C1 exits UNCHANGED (bf+brk+flip).
 //   A2 "package, T1-always" = as A1 + BF-prox 1% + chop 2% vetoes; exit ALL
 //      at Target 1 + brk + flip (bf-harvest OFF).
 //   A3 "package, 2 targets"  = as A2 but exit at ladder rung 2, falling back
 //      to T1 when the entry snapshot has no rung 2.
+//   D1 "floored package" = A2 + T1-floor 0.25% entry veto.
+//   DINF "floored entries, C1 exits" = fixed vetoes + floor, exits = C1
+//      (bf+brk+flip); the depth-infinity endpoint of the ceiling-map.
+//   D1ATR "floored package, ATR vetoes" = D1 with the fixed-percent vetoes
+//      replaced by price-unit ATR predicates (BF-prox 1.0 x ATR, chop
+//      2.0 x ATR, Wilder 14 on the local 1H aggregation); floor stays the
+//      fixed 0.25% (prereg ruling 1: fee-grounded, not vol-grounded).
 //
 // PINNED CONVENTIONS (mirror the CONTROL + the Tier B pre-reg):
 //   - FILL MODEL: decision-exact. The internal machine enters at
 //     fill = max(trigger + 1 tick, bar open) for longs (min/- for shorts) --
-//     the twin's declared CONSERVATIVE convention -- and exits targets AT the
-//     level; the strategy() cash fills happen at the signal bar's CLOSE
-//     (process_orders_on_close). Event parity is the claim; entry/target
-//     prices carry a known |close - level| residual, like the CONTROL.
-//   - VETOES (A2/A3 only, evaluated against the prospective fill):
+//     the twin's declared CONSERVATIVE-vs-level/open convention (always the
+//     worse of the trigger level and the bar open; NOT a causal-fill claim:
+//     vs the decision-bar close the same fills read favorable on a majority,
+//     see analysis/paper/tier_b_t1floor/entry_audit_receipt.json) -- and
+//     exits targets AT the level; the strategy() cash fills happen at the
+//     signal bar's CLOSE (process_orders_on_close). Event parity is the
+//     claim; entry/target prices carry a known |close - level| residual,
+//     like the CONTROL.
+//   - VETOES (package arms, evaluated against the prospective fill):
 //     BF-proximity: nearest ALIVE harvest-side line across ALL enabled pools,
 //     valued at this bar's OPEN time on the BAR-OPEN alive set, within 1.0%
 //     of fill ((line-fill)/fill <= 0.01 for longs; mirror shorts). No
-//     qualifying line -> no veto. Chop: |fill - gate open| / fill <= 0.02
-//     for ANY of the three D/W/M period opens. 0 disables either veto.
+//     qualifying line -> no veto. Chop (= GATE-OPEN PROXIMITY; the name is
+//     artifact vocabulary, not the M+T reversal-streak state):
+//     |fill - gate open| / fill <= 0.02 for ANY of the three D/W/M period
+//     opens. 0 disables either veto. D1ATR replaces both percent predicates
+//     with PRICE-UNIT ATR forms on the same veto_near/open snapshots:
+//     (line - fill) <= k1 x ATR and |fill - open| <= k2 x ATR, ATR = Wilder
+//     14 over completed sig-TF aggregated bars, veto only once formed.
+//     ATR SEED RESIDUAL (declared): the twin seeds from the last 250
+//     pre-window archived 1h bars; this script seeds from loaded chart
+//     history. Wilder memory decays (13/14)^n, so after the required deep
+//     load the difference is far below tick scale; a knife-edge veto flip
+//     would surface in the parity gate.
+//   - T1-FLOOR (floor arms D1/DINF/D1ATR): d = directional distance from
+//     the prospective fill to the frozen ladder[0] (T1); veto when
+//     d < 0.25% STRICT (d <= 0 = the born-beyond class, 0 < d < floor =
+//     tiny). Evaluated for every candidate with a non-empty snapshot
+//     ladder, alongside the other vetoes, BEFORE the no-target skip; the
+//     empty-ladder structural skip applies in ALL floor arms including
+//     DINF's C1-exit shape (uniform rule, prereg).
 //   - FROZEN TARGET: the ladder is snapshotted AT ENTRY and frozen; A2 exits
 //     at rung 1, A3 at rung 2 (fallback rung 1). Touch = the bar RANGE
 //     CONTAINS the level (low <= tgt <= high), fill AT the level -- the
@@ -112,6 +151,21 @@
 // not "repair" it). Any semantic change to this script or the engine
 // re-opens the claim until the gate is re-run.
 //
+// TVB-23 ARMS (H8, mirrored 2026-08-15; gate PASS same session): the
+// D1 / DINF / D1ATR selector entries passed their OWN 9-cell parity gate
+// (GOOGL/TSLA/DRAM x D1/DINF/D1ATR) on 2026-08-15: 218/218 events matched
+// (zero twin-only / tv-only), offset 0s on every cell, break/flip
+// float-exact, pattern layer clean on all 111 checked entries. Artifact:
+// analysis/reference/pkg_parity/tvb23_parity_result.json; harvest:
+// scripts/tvb23_pkg_harvest.mjs; gate: analysis/paper/pkg_parity.py
+// (--arms D1,DINF,D1ATR). The strategy is now parity-valid for all six
+// arms; the TVB-22 claim above is unchanged. Same scope limits: historical
+// close-cadence decision parity on those cells over TV-harvested feeds
+// with shared cold start; the ATR seed is seed-exact in THIS gate (twin
+// and pine both warm from the same loaded bars; the runner-vs-pine seed
+// residual declared under PINNED CONVENTIONS applies only to the
+// archived-seed replay path).
+//
 // QUICK START
 //   1. Mount on a 5m chart of a 24/7 perp (the twin replays 5m bars; other
 //      chart TFs change the decision cadence and are NOT parity-covered).
@@ -131,9 +185,13 @@ grp_a = 'Package arm'
 // string input value breaks TV's input round-trip (setInputValues ->
 // "Can't parse pine" runtime kill; found TVB-22 while building the
 // parity harvest).
-arm_in = input.string('A1 isolation (pattern entries + control exits)', 'Arm', options = ['A1 isolation (pattern entries + control exits)', 'A2 package (T1 exit)', 'A3 package (T2 exit)'], group = grp_a, tooltip = 'The pre-registered Tier B arm this instance mirrors (docs/experiments/tvb21_tier_b_prereg.md). A1 = pattern-gated entries with the CONTROL exits unchanged (bf+brk+flip), no vetoes. A2 = + BF-proximity and chop entry vetoes; every trade exits at its frozen Target 1 (bf-harvest off). A3 = as A2 but exits at ladder rung 2, falling back to T1 when the entry snapshot has no rung 2.')
+arm_in = input.string('A1 isolation (pattern entries + control exits)', 'Arm', options = ['A1 isolation (pattern entries + control exits)', 'A2 package (T1 exit)', 'A3 package (T2 exit)', 'D1 floored package (T1 exit + fixed vetoes)', 'DINF floored entries (fixed vetoes + C1 exits)', 'D1ATR floored package (T1 exit + ATR vetoes)'], group = grp_a, tooltip = 'The pre-registered arm this instance mirrors (docs/experiments/tvb21_tier_b_prereg.md + docs/experiments/tvb23_t1floor_prereg.md). A1 = pattern-gated entries with the CONTROL exits unchanged (bf+brk+flip), no vetoes. A2 = + BF-proximity and chop entry vetoes; every trade exits at its frozen Target 1 (bf-harvest off). A3 = as A2 but exits at ladder rung 2, falling back to T1 when the snapshot has no rung 2. D1 = A2 + the 0.25% T1-floor entry veto. DINF = floor + fixed vetoes with the C1 exits (bf+brk+flip). D1ATR = D1 with ATR-scaled vetoes instead of fixed percents. TVB-23 arms carry no parity claim until their own 9-cell gate passes.')
 bf_prox_pct = input.float(1.0, 'BF-proximity veto (%)', minval = 0.0, step = 0.25, group = grp_a, tooltip = 'A2/A3 only. Veto a long entry when the nearest ALIVE harvest-side (upper) BF line across all enabled pools, valued at this bar open on the bar-open alive set, sits within this percent of the prospective fill; mirror for shorts. The pre-registered fixed value is 1.0. 0 disables. Inert in A1.')
-chop_pct = input.float(2.0, 'Chop veto (%)', minval = 0.0, step = 0.25, group = grp_a, tooltip = 'A2/A3 only. Veto an entry when the prospective fill is within this percent of ANY of the three D/W/M period opens (the flip levels). The pre-registered fixed value is 2.0 -- known NOT to transfer across symbols (TVB-21 report: 47-100% per-symbol suppression); it is mirrored here deliberately, warts included. 0 disables. Inert in A1.')
+chop_pct = input.float(2.0, 'Chop veto (%)', minval = 0.0, step = 0.25, group = grp_a, tooltip = 'Fixed-percent arms (A2/A3/D1/DINF). Veto an entry when the prospective fill is within this percent of ANY of the three D/W/M period opens (the flip levels; gate-open proximity -- not the M+T reversal-streak chop). The pre-registered fixed value is 2.0 -- known NOT to transfer across symbols (TVB-21 report: 47-100% per-symbol suppression; TVB-23: ATR scaling dissolves the accidental symbol filter). 0 disables. Inert in A1 and D1ATR.')
+t1_floor_pct = input.float(0.25, 'T1 floor (%)', minval = 0.0, step = 0.05, group = grp_a, tooltip = 'Floor arms (D1/DINF/D1ATR) only. Veto an entry when the directional distance from the prospective fill to the frozen Target 1 (ladder rung 1 of the entry snapshot) is STRICTLY below this percent of fill -- kills the born-beyond (distance <= 0) and tiny-target classes. Pre-registered fixed 0.25% = 10x the worst measured xyz round-trip taker (TVB-2); fee-grounded, so it stays fixed even in the ATR-veto arm (prereg ruling 1). 0 disables. Inert in A1/A2/A3.')
+atr_win = input.int(14, 'ATR window (Wilder, sig-TF bars)', minval = 1, group = grp_a, tooltip = 'D1ATR only. Wilder ATR window over COMPLETED signal-TF aggregated bars (the same local 1H aggregation the detector runs on; no request.security). First bar TR = high - low; seed = SMA of the first N true ranges; then Wilder smoothing. The veto layer reads the value as of the last completed sig-TF bar; no veto until the window fills. Pre-registered value 14.')
+bf_prox_atr = input.float(1.0, 'BF-proximity veto (x ATR)', minval = 0.0, step = 0.25, group = grp_a, tooltip = 'D1ATR only. Price-unit form of the BF-proximity veto: veto a long when the nearest alive upper harvest line sits within this many ATRs ABOVE the prospective fill (mirror shorts). Same bar-open alive-set line snapshot as the percent form; only the threshold arithmetic changes. Pre-registered 1.0 (preserves the ruled 1:2 pair shape). 0 disables.')
+chop_atr = input.float(2.0, 'Chop veto (x ATR)', minval = 0.0, step = 0.25, group = grp_a, tooltip = 'D1ATR only. Price-unit form of the gate-open proximity veto: veto when |fill - period open| is within this many ATRs for ANY of the three D/W/M opens. Pre-registered 2.0. 0 disables.')
 
 grp_g = 'Entry gate'
 g1 = input.timeframe('D', 'Gate TF 1', group = grp_g, tooltip = 'Continuity gate: close vs this timeframe period open. Full alignment of all three gates in a direction permits entries that way.')
@@ -194,11 +252,20 @@ c_D = input.color(color.new(#2962ff, 0), 'D', group = grp_v, inline = 'r')
 c_W = input.color(color.new(#e040fb, 0), 'W', group = grp_v, inline = 'r')
 c_M = input.color(color.new(#ff1744, 0), 'M', group = grp_v, inline = 'r')
 
-// arm derivation (H5): exit_targets 0 = C1 exits (A1); 1 = T1-always (A2);
-// 2 = rung 2 with T1 fallback (A3). Vetoes exist only in the package arms.
-int exit_targets = str.startswith(arm_in, 'A2') ? 1 : str.startswith(arm_in, 'A3') ? 2 : 0
+// arm derivation (H5 + H8): exit_targets 0 = C1 exits (A1/DINF); 1 =
+// T1-always (A2/D1/D1ATR); 2 = rung 2 with T1 fallback (A3). Fixed-percent
+// vetoes ride A2/A3/D1/DINF; ATR vetoes ride D1ATR only (engine: mutually
+// exclusive forms); the T1 floor rides the D-family only. D1ATR must be
+// tested before D1 (shared prefix).
+bool arm_d1atr = str.startswith(arm_in, 'D1ATR')
+bool arm_dinf = str.startswith(arm_in, 'DINF')
+bool arm_d1 = not arm_d1atr and str.startswith(arm_in, 'D1')
+int exit_targets = str.startswith(arm_in, 'A2') ? 1 : str.startswith(arm_in, 'A3') ? 2 : arm_d1 or arm_d1atr ? 1 : 0
 bool use_targets = exit_targets > 0
-bool use_vetoes = use_targets
+bool use_floor = arm_d1 or arm_dinf or arm_d1atr
+bool use_atr_vetoes = arm_d1atr
+bool use_pct_vetoes = str.startswith(arm_in, 'A2') or str.startswith(arm_in, 'A3') or arm_d1 or arm_dinf
+bool use_vetoes = use_pct_vetoes or use_atr_vetoes
 
 // ------------------------------- gates ---------------------------------------
 f_open(simple string tf) =>
@@ -231,6 +298,14 @@ var curL = float(na)
 var curO = float(na)
 var curC = float(na)
 
+// H8 (TVB-23): Wilder ATR state over completed sig-TF bars -- engine _Atr
+// verbatim (first-bar TR = h-l, SMA-of-first-N seed, Wilder recursion; the
+// veto layer reads the value as of the last COMPLETED bar). Seed source
+// residual vs the twin is declared in the header.
+var float atr_val = na
+var float atr_prevC = na
+var atr_seed = array.new<float>()
+
 isNew = timeframe.change(sig_tf) or na(curH)
 if isNew
     if not na(curH)
@@ -243,6 +318,15 @@ if isNew
             array.shift(arrL)
             array.shift(arrO)
             array.shift(arrC)
+        // H8: ATR update on the just-completed sig-TF bar (_Atr.push_completed)
+        float a_tr = na(atr_prevC) ? curH - curL : math.max(curH - curL, math.max(math.abs(curH - atr_prevC), math.abs(curL - atr_prevC)))
+        if na(atr_val)
+            array.push(atr_seed, a_tr)
+            if array.size(atr_seed) == atr_win
+                atr_val := array.sum(atr_seed) / atr_win
+        else
+            atr_val := (atr_val * (atr_win - 1) + a_tr) / atr_win
+        atr_prevC := curC
     curH := high
     curL := low
     curO := open
@@ -1041,6 +1125,11 @@ var int vc_prox = 0
 var int vc_chop = 0
 var int vc_both = 0
 var int vc_entries = 0
+// H8 (TVB-23): floor counter split (engine: t1_floor / le0 / small / only)
+var int vc_floor = 0
+var int vc_floor_le0 = 0
+var int vc_floor_small = 0
+var int vc_floor_only = 0
 bool sig_el = false
 bool sig_es = false
 bool sig_xl = false
@@ -1098,11 +1187,19 @@ if pos == 0 and not sig_xl and not sig_xs and sigDir != 0
         // TVB-22 amendment (audit F2): vetoes evaluated for EVERY candidate
         // BEFORE the structural no-target skip (mirrors engine.py; entry
         // behavior unchanged, counters made coherent)
+        // H8 (TVB-23): the pct and ATR veto forms are mutually exclusive by
+        // arm (engine __post_init__); ATR predicates are PRICE-UNIT on the
+        // same veto_near / gate-open snapshots, and veto nothing until the
+        // ATR window has filled (engine: a None value vetoes nothing)
         bool veto_prox = false
-        if use_vetoes and bf_prox_pct > 0 and not na(veto_near)
+        if use_atr_vetoes and bf_prox_atr > 0 and not na(veto_near) and not na(atr_val)
+            veto_prox := sigDir == 1 ? veto_near - pat_fill <= bf_prox_atr * atr_val : pat_fill - veto_near <= bf_prox_atr * atr_val
+        else if use_pct_vetoes and bf_prox_pct > 0 and not na(veto_near)
             veto_prox := sigDir == 1 ? (veto_near - pat_fill) / pat_fill <= bf_prox_pct / 100.0 : (pat_fill - veto_near) / pat_fill <= bf_prox_pct / 100.0
         bool veto_chop = false
-        if use_vetoes and chop_pct > 0
+        if use_atr_vetoes and chop_atr > 0 and not na(atr_val)
+            veto_chop := math.abs(pat_fill - oA) <= chop_atr * atr_val or math.abs(pat_fill - oB) <= chop_atr * atr_val or math.abs(pat_fill - oC) <= chop_atr * atr_val
+        else if use_pct_vetoes and chop_pct > 0
             veto_chop := math.abs(pat_fill - oA) / pat_fill <= chop_pct / 100.0 or math.abs(pat_fill - oB) / pat_fill <= chop_pct / 100.0 or math.abs(pat_fill - oC) / pat_fill <= chop_pct / 100.0
         if veto_prox and veto_chop
             vc_both += 1
@@ -1110,13 +1207,32 @@ if pos == 0 and not sig_xl and not sig_xs and sigDir != 0
             vc_prox += 1
         else if veto_chop
             vc_chop += 1
-        if use_targets and array.size(lad) == 0
-            // a package arm cannot satisfy its exit semantics with no target
-            // in the entry snapshot: structural skip, logged separately
+        // H8 (TVB-23): T1-floor veto (engine _pattern_entry verbatim) --
+        // strict d < floor vs the frozen ladder[0]; evaluated for every
+        // candidate with a non-empty snapshot ladder, BEFORE the no-target
+        // skip; counter split mirrors the engine equation
+        bool veto_floor = false
+        if use_floor and t1_floor_pct > 0 and array.size(lad) > 0
+            float t1v = array.get(lad, 0)
+            float fdist = sigDir == 1 ? (t1v - pat_fill) / pat_fill : (pat_fill - t1v) / pat_fill
+            veto_floor := fdist < t1_floor_pct / 100.0
+            if veto_floor
+                vc_floor += 1
+                if fdist <= 0
+                    vc_floor_le0 += 1
+                else
+                    vc_floor_small += 1
+                if not veto_prox and not veto_chop
+                    vc_floor_only += 1
+        if (use_targets or use_floor) and array.size(lad) == 0
+            // a package/floor arm cannot satisfy its exit (or floor)
+            // semantics with no target in the entry snapshot: structural
+            // skip, logged separately (TVB-23: uniform across ALL floor
+            // arms including DINF's C1-exit shape)
             vc_notgt += 1
             if veto_prox or veto_chop
                 vc_notgt_veto += 1
-        else if not veto_prox and not veto_chop
+        else if not veto_prox and not veto_chop and not veto_floor
             vc_entries += 1
             pos := sigDir
             entry_px := pat_fill
@@ -1203,6 +1319,6 @@ if barstate.islast and show_table
     table.cell(tbl, 0, 2, s_pos + ' | ' + s_gate + (pos != 0 and use_targets and not na(tgt_px) ? ' | T' + str.tostring(tgt_rung) + ' ' + str.tostring(tgt_px, format.mintick) : ''), text_color = color.silver, text_size = size.tiny)
     table.cell(tbl, 0, 3, 'next line dn ' + (na(ctx_lo) ? '--' : str.tostring(ctx_lo, format.mintick)) + ' | up ' + (na(ctx_up) ? '--' : str.tostring(ctx_up, format.mintick)), text_color = color.silver, text_size = size.tiny)
     table.cell(tbl, 0, 4, '12h ' + str.tostring(nalA) + ' | D ' + str.tostring(nalB) + ' | W ' + str.tostring(nalC) + ' | M ' + str.tostring(nalD) + ' alive' + (evA + evB + evC + evD > 0 ? ' | evict-alive ' + str.tostring(evA + evB + evC + evD) : ''), text_color = color.silver, text_size = size.tiny)
-    table.cell(tbl, 0, 5, 'cand ' + str.tostring(vc_cand) + ' | no-tgt ' + str.tostring(vc_notgt) + '(' + str.tostring(vc_notgt_veto) + 'v) | prox ' + str.tostring(vc_prox) + ' | chop ' + str.tostring(vc_chop) + ' | both ' + str.tostring(vc_both) + ' | in ' + str.tostring(vc_entries), text_color = color.silver, text_size = size.tiny)
+    table.cell(tbl, 0, 5, 'cand ' + str.tostring(vc_cand) + ' | no-tgt ' + str.tostring(vc_notgt) + '(' + str.tostring(vc_notgt_veto) + 'v) | prox ' + str.tostring(vc_prox) + ' | chop ' + str.tostring(vc_chop) + ' | both ' + str.tostring(vc_both) + ' | floor ' + str.tostring(vc_floor) + '(' + str.tostring(vc_floor_le0) + '/' + str.tostring(vc_floor_small) + '/' + str.tostring(vc_floor_only) + 'o) | in ' + str.tostring(vc_entries), text_color = color.silver, text_size = size.tiny)
     if warn_tile
         table.cell(tbl, 0, 6, 'WARN: chart TF does not tile a pool base -- approx envelopes', text_color = color.yellow, text_size = size.tiny)
