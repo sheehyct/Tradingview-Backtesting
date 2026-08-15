@@ -1,9 +1,13 @@
 # tradingview-backtesting -- Development Rules
 
 Research workspace for timeframe-continuity (TFO/TFC) gated strategies on 24/7 crypto and HIP-3
-perps. The product is **characterization and bug-finding**, not a deployed strategy. The backtest
-vehicle is a TradingView `strategy()` script driven through the `tradingview` MCP -- there is no
-Python backtest engine here; `analysis/` is post-hoc. Inherits `C:\Strat_Trading_Bot\CLAUDE.md`.
+perps. The product is **characterization and bug-finding**, not a deployed strategy. The research
+engine since TVB-21 is the Python replay twin (`analysis/paper/engine.py` + tier runners) --
+pre-registered arms run there first; the TradingView `strategy()` mirror, driven through the
+`tradingview` MCP, is the parity-gated validation surface and the live/drift instrument, and a TV
+strategy is valid ONLY for arms its parity gate has passed. The rest of `analysis/` is post-hoc.
+(Sentence corrected 2026-08-15; it previously denied the Python engine existed -- stale since
+TVB-21.) Inherits `C:\Strat_Trading_Bot\CLAUDE.md`.
 Governing doc: `docs/ATLAS_Timeframe_Continuity_Charter.md` -- read Section 0 before working
 here; where it and this file overlap, the charter wins.
 

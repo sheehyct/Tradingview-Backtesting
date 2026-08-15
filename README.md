@@ -20,11 +20,15 @@ done here.
 
 ## Architecture
 
-- **Backtest vehicle: TradingView `strategy()` scripts** (in `pine/`), run in the Strategy
-  Tester, driven via the `tradingview` MCP server. The compound logic (trigger + TFO gate +
-  stop + target) lives in one script firing one alert. This is NOT a Python backtest engine.
-- **Analysis layer: Python** (in `analysis/`) -- regime tagging and the distribution/ablation
-  analysis of results exported from the Strategy Tester. Managed by `uv`.
+- **Research engine: the Python replay twin** (`analysis/paper/engine.py` + tier runners) --
+  pre-registered experiment arms run here first, gated by determinism / entry-stream /
+  reconciliation checks against committed artifacts. Managed by `uv`.
+- **Validation + live surface: TradingView `strategy()` scripts** (in `pine/`), run in the
+  Strategy Tester, driven via the `tradingview` MCP server. The compound logic (trigger + TFO
+  gate + stop + target) lives in one script firing one alert; each engine arm earns TV validity
+  through an event-level parity gate, and the TV strategy is valid only for gated arms.
+- **Analysis layer: Python** (rest of `analysis/`) -- regime tagging and the
+  distribution/ablation analysis of results.
 
 ## Layout
 

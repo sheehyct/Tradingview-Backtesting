@@ -322,6 +322,10 @@ class TwinConfig:
     pattern_ext_targets: int = 5  # pine extTargets (ladder = this + 1 levels)
     pattern_pmg_bars: int = 5
     bf_prox_veto_pct: float | None = None  # 1.0 = veto within 1% of nearest alive harvest line
+    # the "chop" veto is GATE-OPEN PROXIMITY (prospective fill near a D/W/M
+    # period open). The name is historical artifact-key vocabulary; it is NOT
+    # the M+T indicator's reversal-streak-since-T1 chop state, which was never
+    # ported (naming collision flagged by the 2026-08-14 assessment, P1-3)
     chop_veto_pct: float | None = None  # 2.0 = veto within 2% of any D/W/M gate open
     exit_targets: int | None = None  # None = C1 exits; 1 = T1-always; 2 = rung 2 (fallback T1)
     bf_harvest_exit: bool = True  # False in package arms: targets replace bf-touch

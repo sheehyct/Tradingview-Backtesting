@@ -1,0 +1,335 @@
+{
+ "generated_utc": "2026-08-15T04:51:35+00:00",
+ "purpose": "entry-layer audit: identity funnel, fill containment, and decision-close fill benchmark over the committed TVB-23 arms (2026-08-14 assessment P0-2/P1-1 fold + TVB-24 containment check)",
+ "conventions": "module docstring analysis/paper/entry_audit.py (the three fill benchmarks; identity tuple; containment scope all symbols, close benchmark roster scope)",
+ "source_hashes": {
+  "events_D1.jsonl": "7801a25e5292bd50",
+  "events_D2.jsonl": "ef537de7645fd1e1",
+  "events_D3.jsonl": "737c7eef3bf3e286",
+  "events_D4.jsonl": "53228ab1688ae3f4",
+  "events_D5.jsonl": "fb2e753734f07850",
+  "events_DINF.jsonl": "8f04f203cabbd49c",
+  "events_A1F.jsonl": "2a4de186f415524f",
+  "events_D1ATR.jsonl": "3fb33c95eacc5ce3"
+ },
+ "per_arm": {
+  "D1": {
+   "n_entries_all_symbols": 137,
+   "n_entries_roster": 102,
+   "identity": {
+    "distinct": 86,
+    "reentered_identities": 16,
+    "max_entries_one_identity": 2
+   },
+   "containment": {
+    "n_checked_all_symbols": 137,
+    "n_outside_entry_bar_range": 3,
+    "outside": [
+     {
+      "symbol": "xyz:DRAM",
+      "parity_symbol": true,
+      "ts": 1783464300,
+      "dir": "short",
+      "price": 60.040989999999994,
+      "bar_low": 60.058,
+      "bar_high": 60.154,
+      "dist_pp": 0.0283
+     },
+     {
+      "symbol": "xyz:DRAM",
+      "parity_symbol": true,
+      "ts": 1784215500,
+      "dir": "short",
+      "price": 53.198989999999995,
+      "bar_low": 53.25,
+      "bar_high": 53.687,
+      "dist_pp": 0.0958
+     },
+     {
+      "symbol": "xyz:SKHX",
+      "parity_symbol": false,
+      "ts": 1784198100,
+      "dir": "short",
+      "price": 1232.2,
+      "bar_low": 1232.4,
+      "bar_high": 1235.2,
+      "dist_pp": 0.0162
+     }
+    ]
+   },
+   "vs_decision_bar_close_roster": {
+    "n": 102,
+    "favorable": 61,
+    "adverse": 41,
+    "mean_signed_pp": 0.0809,
+    "median_signed_pp": 0.0396,
+    "p90_abs_pp": 0.7271,
+    "max_abs_pp": 2.0426,
+    "sum_signed_pp": 8.2503
+   }
+  },
+  "D2": {
+   "n_entries_all_symbols": 108,
+   "n_entries_roster": 85,
+   "identity": {
+    "distinct": 76,
+    "reentered_identities": 9,
+    "max_entries_one_identity": 2
+   },
+   "containment": {
+    "n_checked_all_symbols": 108,
+    "n_outside_entry_bar_range": 2,
+    "outside": [
+     {
+      "symbol": "xyz:DRAM",
+      "parity_symbol": true,
+      "ts": 1784215500,
+      "dir": "short",
+      "price": 53.198989999999995,
+      "bar_low": 53.25,
+      "bar_high": 53.687,
+      "dist_pp": 0.0958
+     },
+     {
+      "symbol": "xyz:SKHX",
+      "parity_symbol": false,
+      "ts": 1784198100,
+      "dir": "short",
+      "price": 1232.2,
+      "bar_low": 1232.4,
+      "bar_high": 1235.2,
+      "dist_pp": 0.0162
+     }
+    ]
+   },
+   "vs_decision_bar_close_roster": {
+    "n": 85,
+    "favorable": 52,
+    "adverse": 33,
+    "mean_signed_pp": 0.1049,
+    "median_signed_pp": 0.0375,
+    "p90_abs_pp": 0.7271,
+    "max_abs_pp": 2.0426,
+    "sum_signed_pp": 8.9199
+   }
+  },
+  "D3": {
+   "n_entries_all_symbols": 93,
+   "n_entries_roster": 77,
+   "identity": {
+    "distinct": 70,
+    "reentered_identities": 7,
+    "max_entries_one_identity": 2
+   },
+   "containment": {
+    "n_checked_all_symbols": 93,
+    "n_outside_entry_bar_range": 1,
+    "outside": [
+     {
+      "symbol": "xyz:DRAM",
+      "parity_symbol": true,
+      "ts": 1784215500,
+      "dir": "short",
+      "price": 53.198989999999995,
+      "bar_low": 53.25,
+      "bar_high": 53.687,
+      "dist_pp": 0.0958
+     }
+    ]
+   },
+   "vs_decision_bar_close_roster": {
+    "n": 77,
+    "favorable": 48,
+    "adverse": 29,
+    "mean_signed_pp": 0.118,
+    "median_signed_pp": 0.0375,
+    "p90_abs_pp": 0.6916,
+    "max_abs_pp": 2.0426,
+    "sum_signed_pp": 9.0849
+   }
+  },
+  "D4": {
+   "n_entries_all_symbols": 89,
+   "n_entries_roster": 73,
+   "identity": {
+    "distinct": 67,
+    "reentered_identities": 6,
+    "max_entries_one_identity": 2
+   },
+   "containment": {
+    "n_checked_all_symbols": 89,
+    "n_outside_entry_bar_range": 1,
+    "outside": [
+     {
+      "symbol": "xyz:DRAM",
+      "parity_symbol": true,
+      "ts": 1784215500,
+      "dir": "short",
+      "price": 53.198989999999995,
+      "bar_low": 53.25,
+      "bar_high": 53.687,
+      "dist_pp": 0.0958
+     }
+    ]
+   },
+   "vs_decision_bar_close_roster": {
+    "n": 73,
+    "favorable": 45,
+    "adverse": 28,
+    "mean_signed_pp": 0.1206,
+    "median_signed_pp": 0.0375,
+    "p90_abs_pp": 0.6916,
+    "max_abs_pp": 2.0426,
+    "sum_signed_pp": 8.8012
+   }
+  },
+  "D5": {
+   "n_entries_all_symbols": 85,
+   "n_entries_roster": 70,
+   "identity": {
+    "distinct": 64,
+    "reentered_identities": 6,
+    "max_entries_one_identity": 2
+   },
+   "containment": {
+    "n_checked_all_symbols": 85,
+    "n_outside_entry_bar_range": 1,
+    "outside": [
+     {
+      "symbol": "xyz:DRAM",
+      "parity_symbol": true,
+      "ts": 1784215500,
+      "dir": "short",
+      "price": 53.198989999999995,
+      "bar_low": 53.25,
+      "bar_high": 53.687,
+      "dist_pp": 0.0958
+     }
+    ]
+   },
+   "vs_decision_bar_close_roster": {
+    "n": 70,
+    "favorable": 43,
+    "adverse": 27,
+    "mean_signed_pp": 0.1175,
+    "median_signed_pp": 0.037,
+    "p90_abs_pp": 0.7295,
+    "max_abs_pp": 2.0426,
+    "sum_signed_pp": 8.223
+   }
+  },
+  "DINF": {
+   "n_entries_all_symbols": 50,
+   "n_entries_roster": 41,
+   "identity": {
+    "distinct": 41,
+    "reentered_identities": 0,
+    "max_entries_one_identity": 1
+   },
+   "containment": {
+    "n_checked_all_symbols": 50,
+    "n_outside_entry_bar_range": 0,
+    "outside": []
+   },
+   "vs_decision_bar_close_roster": {
+    "n": 41,
+    "favorable": 26,
+    "adverse": 15,
+    "mean_signed_pp": 0.1342,
+    "median_signed_pp": 0.0545,
+    "p90_abs_pp": 0.7295,
+    "max_abs_pp": 0.9359,
+    "sum_signed_pp": 5.5013
+   }
+  },
+  "A1F": {
+   "n_entries_all_symbols": 97,
+   "n_entries_roster": 87,
+   "identity": {
+    "distinct": 86,
+    "reentered_identities": 1,
+    "max_entries_one_identity": 2
+   },
+   "containment": {
+    "n_checked_all_symbols": 97,
+    "n_outside_entry_bar_range": 1,
+    "outside": [
+     {
+      "symbol": "xyz:SKHX",
+      "parity_symbol": false,
+      "ts": 1783386600,
+      "dir": "short",
+      "price": 1469.9,
+      "bar_low": 1470.1,
+      "bar_high": 1485.2,
+      "dist_pp": 0.0136
+     }
+    ]
+   },
+   "vs_decision_bar_close_roster": {
+    "n": 87,
+    "favorable": 63,
+    "adverse": 24,
+    "mean_signed_pp": 0.2389,
+    "median_signed_pp": 0.0511,
+    "p90_abs_pp": 0.7791,
+    "max_abs_pp": 5.1723,
+    "sum_signed_pp": 20.783
+   }
+  },
+  "D1ATR": {
+   "n_entries_all_symbols": 106,
+   "n_entries_roster": 89,
+   "identity": {
+    "distinct": 78,
+    "reentered_identities": 11,
+    "max_entries_one_identity": 2
+   },
+   "containment": {
+    "n_checked_all_symbols": 106,
+    "n_outside_entry_bar_range": 2,
+    "outside": [
+     {
+      "symbol": "xyz:DRAM",
+      "parity_symbol": true,
+      "ts": 1783464300,
+      "dir": "short",
+      "price": 60.040989999999994,
+      "bar_low": 60.058,
+      "bar_high": 60.154,
+      "dist_pp": 0.0283
+     },
+     {
+      "symbol": "xyz:DRAM",
+      "parity_symbol": true,
+      "ts": 1784215500,
+      "dir": "short",
+      "price": 53.198989999999995,
+      "bar_low": 53.25,
+      "bar_high": 53.687,
+      "dist_pp": 0.0958
+     }
+    ]
+   },
+   "vs_decision_bar_close_roster": {
+    "n": 89,
+    "favorable": 55,
+    "adverse": 34,
+    "mean_signed_pp": 0.0844,
+    "median_signed_pp": 0.0288,
+    "p90_abs_pp": 0.7295,
+    "max_abs_pp": 1.1248,
+    "sum_signed_pp": 7.5111
+   }
+  }
+ },
+ "d1_evaluation_funnel": {
+  "arm": "D1",
+  "scope": "roster (parity symbol excluded)",
+  "candidate_evaluations": 4111,
+  "distinct_identities": 682,
+  "evaluations_per_identity": 6.03,
+  "identities_evaluated_more_than_once": 569,
+  "max_evaluations_one_identity": 12
+ }
+}
