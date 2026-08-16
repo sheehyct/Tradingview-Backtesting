@@ -69,6 +69,16 @@ def test_gate_stream_collapses_tranche_exits_to_final():
     assert [k[0] for k in full["xyz:T"]] == ["enter", "exit", "exit", "exit"]
 
 
+def test_gate_stream_partial_open_entry_contributes_no_exit():
+    # an open runner whose T1 half banked must NOT count as a stream exit
+    events = [
+        _ev("enter", "xyz:T", 100),
+        _ev("exit", "xyz:T", 200, entry_ts=100, kind="tgt", frac=0.5),
+    ]
+    stream = _gate_stream_events(events, tranche=True)
+    assert [k[0] for k in stream["xyz:T"]] == ["enter"]
+
+
 def _entry_full(sym, ts, price=10.0, ladder=(11.0,)):
     return {
         "action": "enter",

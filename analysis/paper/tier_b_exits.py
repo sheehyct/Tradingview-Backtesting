@@ -439,7 +439,11 @@ def _rollup_arm(arm: dict, sym_results: list[dict]) -> dict:
 
 def _gate_stream_events(events: list[dict], tranche: bool) -> dict[str, list[tuple]]:
     """Per-symbol comparable streams for the entry-stream gate. Tranche arms
-    contribute entries + their FINAL (position-freeing) exit only."""
+    contribute entries + the FINAL (position-freeing) exit of FULLY-RESOLVED
+    entries only: a partially-banked entry still occupies the one-position
+    book, so it contributes its entry alone until its fractions sum to 1.0
+    (the first canonical launch caught exactly this -- an open P1 runner
+    whose T1 half had banked counted as an extra stream exit)."""
     from analysis.paper.tier_b_t1floor import _stream_key
 
     per_sym: dict[str, list[tuple]] = {}
@@ -448,14 +452,15 @@ def _gate_stream_events(events: list[dict], tranche: bool) -> dict[str, list[tup
             if e["action"] in ("enter", "exit"):
                 per_sym.setdefault(e["sym"], []).append(_stream_key(e))
         return per_sym
-    # collapse each entry's exits to the last one (the resolving event)
     finals: dict[tuple, dict] = {}
+    fracs: dict[tuple, float] = {}
     for e in events:
         if e["action"] == "exit":
             k = (e["sym"], e["entry_ts"])
+            fracs[k] = fracs.get(k, 0.0) + e.get("frac", 1.0)
             if k not in finals or e["ts"] >= finals[k]["ts"]:
                 finals[k] = e
-    keep = {id(e) for e in finals.values()}
+    keep = {id(e) for k, e in finals.items() if fracs[k] >= 1.0 - 1e-9}
     for e in events:
         if e["action"] == "enter" or (e["action"] == "exit" and id(e) in keep):
             per_sym.setdefault(e["sym"], []).append(_stream_key(e))
