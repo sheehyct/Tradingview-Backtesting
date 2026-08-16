@@ -35,7 +35,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `{pending push -- pinned after session-end push}` |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `b31c11d^..6597a68` (11 commits, 98 paths: b31c11d audit fold; 2411821 prereg amendment; 047d695 harvest + D13 pin; 007208e engine; 209d2ef runner; 5796da2 + 7f3626e the two forward-protocol gate corrections; 62ff310 canonical run; 40c94ce report; b38e0ad ARM_LEDGER; 6597a68 session-end docs. The range-pin commit after 6597a68 is docs-only routing, out of range. Sanity-checked: `git diff --name-status b31c11d^..6597a68` lists every file the session touched) |
 
 ## Read first (in this order)
 

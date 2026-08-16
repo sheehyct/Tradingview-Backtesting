@@ -134,9 +134,10 @@ PASS, report + ARM_LEDGER. Ten commits pushed.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: `b31c11d^..{head pinned in REVIEW_REQUEST.md after
-  the session-end push}` on `main` (RANGE-PIN RULE: the caret keeps
-  b31c11d in the diff; sanity-check with `git diff --name-status`).
+- Commits to review: `b31c11d^..6597a68` on `main` (11 commits, 98 paths;
+  RANGE-PIN RULE: the caret keeps b31c11d in the diff; sanity-checked
+  with `git diff --name-status`; the pin commit after 6597a68 is
+  docs-only routing, out of range).
 - Scope / what changed: TVB-24 audit fold (F3-F6 code + tests, receipts
   additive-regenerated); the user-ruled prereg amendment; fresh harvest +
   D13 pin; engine TVB-25 exit features behind inert defaults; runner +
