@@ -5,6 +5,160 @@
 
 ---
 
+## Session TVB-25: audit folded + exit round built, run, reported (COMPLETE)
+
+**Date:** 2026-08-16
+**Status:** COMPLETE -- TVB-24 audit folded (F3-F6 fixed same session with
+27 adversarial tests; F1/F2 became a user-ruled prereg amendment via live
+walkthrough), then the exit round executed end to end per the amended
+prereg: fresh harvest, engine extensions, runner, both windows, all gates
+PASS, report + ARM_LEDGER. Ten commits pushed.
+
+### What was accomplished
+
+- TVB-24 AUDIT FOLDED (b31c11d; critical synthesis in the TVB-24 entry's
+  External Review block below): every false-PASS path reproduced BEFORE
+  adjudication. F3 entry-stream/census gates hardened (both-sides-exit
+  divergence; _entry_stream_gate with exact arm set + stream-vs-rec
+  reconciliation -- deviation-with-justification: the audit's roster-init
+  sketch cannot catch its own mutation because AAPL/AMZN/GOLD are
+  legitimate zero-event chop-veto shut-outs; census direction-consistency
+  + injective one-outcome-per-entry). F4 canonical parity artifact
+  protected (only the exact 3x3 writes it; wrapper metadata inside the
+  PASS predicate; harvester arm read-back + strategy_count=1). F5 matched
+  identity binds frozen entry state (price/ladder/boom/pmg/rev/star;
+  tgt_rung excluded -- the only arm-dependent field across 942 shared
+  identities). F6 receipts regenerated ADDITIVELY with provenance hashes
+  (field-diff proof: all numbers byte-identical); pkg_parity seed wording
+  narrowed; the pine header wording deferred to the next TV sync.
+- PREREG AMENDED (2411821, committed before any code; user-ruled in three
+  AskUserQuestion rounds): S0c state+BF arm restores the F1 BF isolation,
+  A0b relabeled exit-family reference; deterministic exit state machine --
+  risk-first pessimistic same-bar race (PROVISIONAL, D9 collision census
+  makes its bite observable), two fill classes (protective = D3
+  gap-through-at-open; profit = containment-only), P2 short-ladder
+  fold-to-runner + same-bar arm-and-fire, i3 = prior-1H opposite extreme
+  frozen at entry + entry-hour-only, X1 arming cases, immutable
+  Signal.stop_anchor with strict-loss-side degeneracy -> ATR fallback;
+  D9-D14 bundle; P2 runner post-retrace = reading A (BF target +
+  breakeven floor).
+- ROUND EXECUTED per the prereg's binding order: (2) fresh harvest +
+  D13 pin Aug 3 -> Aug 16 00:00 UTC (047d695; merge-integrity verified --
+  zero July-window rows changed, only the three 2026-08-04 forming-bar
+  rows completed); (3) engine extensions behind inert defaults (007208e;
+  20 fixtures; 55/55 committed Tier B rows field-equal through the
+  extended engine); (4) runner tier_b_exits.py (209d2ef) with two
+  gate-caught corrections committed BEFORE the clean rerun (5796da2
+  veto-counter modulo rule; 7f3626e partially-banked open entries
+  contribute no stream exit); (5) canonical run 62ff310 -- determinism
+  55+88 rows field-equal, entry-stream gates PASS both families both
+  windows, tranche reconciliation clean; report 40c94ce.
+- FINDINGS (gross, contrasts only, no promotion -- full text in
+  docs/experiments/tvb25_exit_round_report.md): (1) the bare state stop
+  transforms the control through OCCUPANCY, not per-trade exit quality
+  (S0a +194.8 July vs A0b +104.8 whole-arm; loses matched 27.4-vs-34.2;
+  866 vs 172 trades); (2) the BF layer over the state base = +96.2pp
+  (S0c +291.1) but worst-in-family per matched trade -- book
+  composition; (3) the ATR stop (A0bS +214.9, dd 55-vs-122) is the FIRST
+  overlay winning whole-arm AND matched axes -- it amputates the
+  adverse-runner class; (4) every thesis exit loses to plain D1 on July
+  (P1 +32.5 but WINS matched 18.5-vs-8.4; P2 +6.1 loses both axes -- the
+  T1-retrace dump is the suspect; X1 -37.8/dd 119 = the stall-mode cost
+  of extension-only protection; D1S -33.6 vs A0bS +110: STOP VALUE IS
+  BOOK-DEPENDENT); (5) D9 collisions near zero -- the ruled convention
+  does not distort (user's caveat answered). Fresh window: 13 committed
+  arms directionally stable, A1F the lone near-zero negative.
+- ARM_LEDGER (b38e0ad + refinement; USER REQUEST, standing): every arm in
+  plain trading terms + numbers + What-Claude-notices; binding CLAUDE.md
+  Reporting rule -- ledger updated every round, design-session arm
+  restatements user-confirmed before prereg, AskUserQuestion options in
+  trader language (or dual). User clarified their 50/30/10 phrasing was a
+  hypothetical example, not a mis-recall (record corrected).
+
+### Context for next session
+
+- TVB-25 review REQUESTED (range covers amendment coherence, the engine
+  race vs the amendment, runner gates incl. the final-exit stream
+  convention, the two forward-protocol corrections, report claims vs
+  artifacts). Fold before new work.
+- Month-end extension through Aug 31 under the same prereg (after the
+  month completes).
+- No new arm is TV-valid; mirroring per arm on demand with its own gate.
+- The P2 per-trade underperformance is a USER-OWNED design question; any
+  refinement is a new a-priori variant.
+
+### Files created/modified
+
+- New: analysis/paper/tier_b_exits.py + analysis/paper/tier_b_exits/ (40
+  artifacts: events x 33 arm-windows, results, matched-entry receipts,
+  manifest), tests/test_tvb25_exits.py (20), tests/test_tier_b_exits.py
+  (6), docs/experiments/tvb25_exit_round_report.md, docs/ARM_LEDGER.md,
+  docs/reviews/tvb24-codex-audit.md.
+- Modified: analysis/paper/{engine,patterns}.py (TVB-25 features, inert
+  defaults), analysis/paper/{tier_b_t1floor,round_census,pkg_parity,
+  t1floor_diagnostics,entry_audit}.py (audit fold), the three t1floor
+  receipts (additive provenance), scripts/tvb23_pkg_harvest.mjs
+  (read-back), tests/test_{t1floor_gates,pkg_parity,t1floor_diagnostics}.py,
+  docs/experiments/tvb25_exit_round_prereg.md (amendment + pins),
+  analysis/paper/bars/ (33 files, fresh harvest), CLAUDE.md (ledger
+  rule), HANDOFF + REVIEW_REQUEST + .session_startup_prompt.md.
+- Suite: 258 passed, 2 skipped (53 new tests); ruff clean.
+
+### Open
+
+- [ ] Fold the TVB-25 external review when returned
+      (docs/reviews/tvb25-codex-audit.md)
+- [ ] Month-end fresh-window extension through 2026-08-31 24:00 UTC under
+      the same prereg (harvest -> pin -> rerun)
+- [ ] P2 T1-retrace per-trade underperformance: user decides whether a
+      refined a-priori variant enters a future round
+- [ ] TV mirror per arm on demand + per-arm parity gates; package pine
+      header "seed-exact" wording fix at the next TV sync
+- [ ] Assessment owner decisions: kernel-vs-Pine charter question;
+      1m/trade archiving start; spine CLAUDE.md project-map row (outside
+      this repo)
+- [ ] Greenlit repairs bundle (TVB-18, carried): F2 roster receipts +
+      fail-closed, F3 5m-lifecycle warm-up regression, F4 eviction
+      telemetry split, freeze-boundary invariant, SKHX tv_symbol/mintick
+      backfill
+- [ ] Nudge the M+T collaborator: PMG+ prefix structurally unreachable
+      (carried from TVB-21)
+- [ ] jackson MCP indicator_set_inputs kills Pine user scripts (carried;
+      fix in tradingview-mcp-jackson)
+- [ ] tvb8/tvb9 external reviews still unreturned (standing)
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb25-codex-audit.md.
+> See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: `b31c11d^..{head pinned in REVIEW_REQUEST.md after
+  the session-end push}` on `main` (RANGE-PIN RULE: the caret keeps
+  b31c11d in the diff; sanity-check with `git diff --name-status`).
+- Scope / what changed: TVB-24 audit fold (F3-F6 code + tests, receipts
+  additive-regenerated); the user-ruled prereg amendment; fresh harvest +
+  D13 pin; engine TVB-25 exit features behind inert defaults; runner +
+  two forward-protocol gate corrections; canonical run artifacts; report;
+  ARM_LEDGER + CLAUDE.md practice rule.
+- Focus areas (scrutinize these): (1) amendment vs rulings coherence and
+  whether an independent implementer can now derive one event stream;
+  (2) engine race vs the amendment (order, two fill classes, i3
+  level/scope/degenerate, stop freeze + degeneracy, P2 fold/arm-and-fire/
+  reading-A breakeven, X1 arming, D14 inclusive state stop) and the
+  inert-defaults claim (55/88-row field equality); (3) runner gates: the
+  final-exit stream convention for tranche arms, family anchors (A0b
+  in-memory, committed D1), tranche reconciliation, the modulo-rule fix;
+  (4) report + ledger claims vs committed artifacts (esp. matched-entry
+  numbers and every occupancy reading); (5) D10 fee math; (6) harvest
+  merge integrity (the three completed forming bars); (7) request.security:
+  no pine changes this session -- verify none slipped in.
+- Reviewed by: pending
+- Findings: (blank until docs/reviews/tvb25-codex-audit.md exists)
+
+---
+
 ## Session TVB-24: both reviews folded + TV mirror parity-gated PASS (COMPLETE)
 
 **Date:** 2026-08-15 (autonomous overnight; user in and out)

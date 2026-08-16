@@ -81,7 +81,8 @@ Mechanics where a reasonable default is wrong:
   bare cell codes in user-facing text. `docs/ARM_LEDGER.md` is the standing translation (every
   arm in plain trading terms + numbers + cross-arm observations): update it with EVERY round,
   and in design sessions restate each proposed arm in its vocabulary, confirmed with the user,
-  BEFORE the prereg is committed (user request 2026-08-16).
+  BEFORE the prereg is committed. Decision questions (AskUserQuestion) phrase every option in
+  trader language too -- or dual (trader terms + code) (user requests 2026-08-16).
 
 ## Skills
 

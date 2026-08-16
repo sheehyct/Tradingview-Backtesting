@@ -145,8 +145,9 @@ practice (max 6 bars in any arm-window so far).
   too (-3.8 vs +8.4 July). On this sample the middles wait too long and
   the retrace rule sells them at the worst permitted price; the
   machinery is faithful to the rulings -- the profile itself
-  underperformed. NOTE the drift hazard this ledger exists for: this is
-  40/20/20/10 + runner, per the 2026-08-15 rulings -- not 50/30/10.
+  underperformed. The ruled fractions are 40/20/20/10 + a 10% runner
+  (2026-08-15) -- always check this card before quoting the profile from
+  memory; nearby variants are easy to conflate.
 - **X1 -- "no targets; only start harvesting once the trade proves
   extension (rung 3)."** July -37.8, drawdown 119 -- the worst cell of
   the round. The 43%-of-trades stall mode never reaches rung 3 and rides
