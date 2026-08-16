@@ -202,3 +202,123 @@ sizing, dollar P/L, leverage, margin) and the $50-or-less canary wallet;
 flip-uncoupling redesign; kernel-vs-Pine charter question; 15m/30m
 signal-TF arms; RTH-anchored clock arms; weekend protocol arms; any
 promotion of an arm, profile, depth, or threshold.
+
+## Amendment 2026-08-16 (TVB-24 audit F1/F2 fold; user-ruled, before code)
+
+The TVB-24 Codex audit (docs/reviews/tvb24-codex-audit.md, RETURNED
+2026-08-16) confirmed two defects in THIS document: F1 HIGH -- the
+S0a/S0b-vs-A0b contrast replaces the whole exit family (A0b inherits
+BF+brk+flip; the engine has no state-stop field), so it cannot isolate the
+BF layer; F2 MEDIUM -- the exit state machine underdetermines same-bar
+collisions and several arm mechanics. Every ruling below was made by the
+USER in a live walkthrough (2026-08-16, three AskUserQuestion rounds);
+items D9-D14 are Claude declarations approved as a bundle. Nothing above
+this line is rewritten. No code existed when this amendment was committed.
+
+### A. F1 repair -- BF isolation restored, reference relabeled
+
+- NEW ARM **S0c "state+BF"** = state stop + BF harvest touch (no flip, no
+  brk), on the same control 1H-breakout entry family. The round is now
+  **10 new arms**.
+- Contrast statements REPLACE the first ladder-bottom bullet: S0c - S0a =
+  the BF exit layer's standalone price on the state-stop base; S0b - S0a =
+  the flip backstop's standalone price; **A0b is an exit-family REFERENCE**
+  -- S-family vs A0b is a family contrast and never component attribution.
+- **D12** (naming + occupancy): S0a's "C0-pure" label is RETIRED -- S0a
+  implements the USER-RULED 2-against variant of charter 3.5 (a completed
+  1H bar breaking the prior hour's opposite extreme; a NEUTRAL 1H close
+  does NOT exit -- deliberately narrower than the charter's
+  neutral-or-opposite example). "Identical stream/costs" in the arms table
+  is corrected to: identical candidate/trigger rule; realized entry
+  streams may diverge through one-position occupancy (the TVB-23 lesson).
+  The matched-entry diagnostic and the entry-stream gates EXTEND to
+  S0a/S0b/S0c/A0b.
+
+### B. F2 repair -- the deterministic exit state machine
+
+- **Same-bar collision precedence** (NEW arms only; TVB-22/23 arms keep
+  their parity-pinned incumbent race): within one 5m bar, exits are
+  evaluated in this order, first hit wins, and any risk exit closes ALL
+  remaining tranches at its trigger (D5):
+  1. intrabar-3 (invalidation before stop, skill 5.4)
+  2. structural/ATR stop
+  3. protective retrace levels (P2 T1-retrace middle exit, runner
+     breakeven, armed floor)
+  4. tranche profit targets, in ladder order (T2 before T3 ...)
+  5. BF harvest touch
+  6. brk
+  7. flip
+  8. state stop (close-evaluated, hour-completing bar)
+  PROVISIONAL by user ruling: this is the pessimistic (risk-first)
+  convention; if the D9 collision census shows it biting materially, the
+  named alternatives (skill-5.4 target-first order; incumbent
+  profit-first order) are revisited by a further dated amendment -- never
+  silently.
+- **Two fill classes.** PROTECTIVE levels (structural/ATR stop, P2
+  retrace floor, T1-retrace middle exit, runner breakeven) follow D3:
+  fill AT the level on containment touch (l <= level <= h); a bar wholly
+  beyond fills at that bar's OPEN (gap-through MUST fill). PROFIT levels
+  (tranche banks T2-T5, P1's T1, BF touch) fill on containment touch
+  ONLY and are never gap-credited -- a gapped-past target stays unfilled
+  and waits. Close-evaluated exits (i3, brk, flip, state stop) fill at
+  the evaluating 5m close.
+- **P2 short ladder** (fewer than 5 frozen rungs): each missing rung's
+  fraction FOLDS INTO THE RUNNER (less mapped structure = more runner --
+  the profile's own spirit). The floor arms after the FIRST executed
+  bank; a ladder with no bankable rung leaves 90% runner and the floor
+  never arms. There is NO skip rule -- a P2-specific skip would desync
+  its entry book from D1 and break the matched-entry design.
+- **P2 same-bar arm chain:** arm-and-fire. A single 5m bar containing
+  both the T2 bank and a T1 containment touch banks T2 AND exits the
+  middles at T1 on that bar (one pessimism rule everywhere; D9 counts
+  these bars).
+- **Intrabar-3 pinned (D6):** the level is the PRIOR 1H bar's opposite
+  extreme -- the price whose strict break makes the entry hour a Type 3
+  -- captured immutably at entry. ACTIVE ONLY until the entry hour
+  completes (a later break is ordinary 2-against territory, the state
+  stop's job). Exit at the 5m close of the breaking bar. Degenerate case:
+  the entry 5m bar itself completes the 3 -> exit at that same bar's
+  close.
+- **X1 pinned:** (a) a frozen ladder with fewer than 3 rungs NEVER arms
+  -- exits are brk/flip only (declared structural consequence: the short
+  ladder is the stall mode where the harvest was not earned); (b)
+  rung-3 reach and a BF touch on the SAME 5m bar arm-and-fire, evaluated
+  in the ruled race order; (c) "the BF line" is the engine's live v6.1
+  alive-line set at touch time -- never an entry snapshot; a line retired
+  before arming simply means no BF exit until another qualifies.
+- **Structural stop discipline:** the anchor is captured ONCE, at the
+  FIRST detection of the signal identity, into a new immutable
+  `Signal.stop_anchor` field with its source-bar index recorded (distinct
+  from the detector's ladder `anchor`/`anchor2` locals). Setup bars are
+  closed, so re-detections of a persisting signal must never drift the
+  anchor -- asserted in code. DEGENERATE = non-finite, equal to the entry
+  fill, or on the profit side of it (for a long the stop must sit
+  STRICTLY BELOW the fill; mirror shorts) -> ATR fallback (D2), counted
+  per arm. The 1-3 and compound 1-3-1-2 rows of the stop table are
+  relabeled **"chosen experimental anchor"** (the skill permits
+  trap/inside-extreme alternatives there; the table's choice is declared,
+  not uniquely canonical).
+
+### C. Declarations D9-D14 (Claude-flagged, user-approved as a bundle)
+
+- **D9** Collision census: per arm, the count of exit bars on which more
+  than one exit class was simultaneously satisfiable, reported beside the
+  exit-kind splits -- operationalizes the "flag it if it does not work as
+  intended" caveat on the risk-first convention.
+- **D10** Partial-fee formula (reporting-only, rides D7): entry fee
+  (taker 0.0125%) on the FULL position at entry; each tranche exit
+  charged on its exited fraction; a window-end open fraction carries its
+  entry-fee share only (flagged); per-tranche P&L position-fraction-
+  weighted; full-precision floats, rounding only at reporting (4dp).
+- **D11** Floor vocabulary: P1's "no floor" (D4) means no post-bank
+  RETRACE floor. P1, P2, and X1 all inherit D1's 0.25% entry-distance
+  floor VETO as part of the shared package entry config (it is an entry
+  filter, not an exit).
+- **D12** In section A above.
+- **D13** The fresh window's "latest complete UTC day" endpoint is
+  resolved at harvest time and PINNED (exact end timestamp + bar hashes
+  recorded) before any run.
+- **D14** State stop inclusive reading: ANY completed hour whose range
+  broke the prior hour's opposite extreme against the position triggers
+  it -- a Type-3 hour included, since it did break that extreme -- and
+  fills at that hour's close (the completing 5m bar's close print).
