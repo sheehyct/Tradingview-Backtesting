@@ -50,6 +50,7 @@ every pre-existing code path bit-identical.
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
@@ -342,6 +343,18 @@ class TwinConfig:
     chop_veto_atr: float | None = None  # k: veto within k x ATR of any D/W/M gate open
     atr_window: int = 14  # Wilder window over completed signal-TF bars
     retrace_census: bool = False  # read-only M+T position-health first-label stamps
+    # --- TVB-25 exit round (docs/experiments/tvb25_exit_round_prereg.md +
+    # the 2026-08-16 amendment). Defaults inert: with every field OFF the
+    # incumbent race runs verbatim and existing arms stay bit-identical.
+    # When ANY is on, _position_step dispatches to the amendment's ruled
+    # race: i3 -> stop -> protective -> targets -> BF -> brk -> flip ->
+    # state stop (risk exits close ALL remaining tranches, D5).
+    state_stop: bool = False  # C0 2-against at 1H close (amendment D14 inclusive)
+    intrabar3_exit: bool = False  # i3 invalidation, entry hour only (amendment)
+    stop_mode: str | None = None  # None | "structural" (per-setup + ATR fallback) | "atr"
+    stop_atr_mult: float = 3.0  # D2: 3 x Wilder ATR(14, 1H), frozen at entry
+    tranche_profile: str | None = None  # None | "P1" | "P2" (amendment fold-to-runner)
+    bf_arm_rung: int | None = None  # X1: BF harvest armed once rung N reached post-entry
 
 
 class _Atr:
@@ -419,6 +432,30 @@ class Twin:
     atr: _Atr | None = None
     first_retrace_ts: int | None = None
     first_p3_ts: int | None = None
+    # --- TVB-25 exit-round position state (amendment 2026-08-16); all None/
+    # inert unless the matching TwinConfig feature is on.
+    tranches: list | None = None  # pending profit tranches [{frac, level, label}]
+    runner_frac: float | None = None
+    floor_armed: bool = False  # P2: arms on the first executed bank
+    retrace_done: bool = False
+    runner_be_px: float | None = None  # P2 post-retrace breakeven floor
+    bf_armed: bool = True  # X1: False from entry until rung reach
+    arm_rung_level: float | None = None  # X1 frozen arming rung
+    i3_level: float | None = None
+    i3_key: int | None = None  # signal-TF key of the entry hour
+    stop_px: float | None = None
+    stop_kind: str | None = None  # "structural" | "atr"
+    exit_counters: dict = field(
+        default_factory=lambda: {
+            "collision_bars": 0,
+            "stop_degenerate_anchor": 0,
+            "stop_atr_unavailable": 0,
+            "i3_degenerate": 0,
+        }
+    )
+    _anchor_freeze: dict = field(default_factory=dict)
+    _anchor_freeze_key: int | None = None
+    t1_px: float | None = None  # P2 frozen T1 (retrace trigger)
     veto_counts: dict = field(
         default_factory=lambda: {
             "candidates": 0,
@@ -454,8 +491,20 @@ class Twin:
             raise ValueError("bf_prox_veto_pct and bf_prox_veto_atr are mutually exclusive")
         if self.cfg.chop_veto_pct is not None and self.cfg.chop_veto_atr is not None:
             raise ValueError("chop_veto_pct and chop_veto_atr are mutually exclusive")
+        if self.cfg.stop_mode not in (None, "structural", "atr"):
+            raise ValueError(f"unknown stop_mode {self.cfg.stop_mode!r}")
+        if self.cfg.tranche_profile not in (None, "P1", "P2"):
+            raise ValueError(f"unknown tranche_profile {self.cfg.tranche_profile!r}")
+        if self.cfg.tranche_profile is not None and self.cfg.exit_targets is not None:
+            raise ValueError("tranche_profile replaces exit_targets; set exit_targets=None")
+        if self.cfg.bf_arm_rung is not None and not self.cfg.bf_harvest_exit:
+            raise ValueError("bf_arm_rung gates the BF harvest exit; enable bf_harvest_exit")
+        if self.cfg.state_stop and self.cfg.arm_tf_s != 3600:
+            raise ValueError("state_stop is the C0 2-against at 1H close; arm_tf_s must be 3600")
         if (
-            self.cfg.bf_prox_veto_atr is not None or self.cfg.chop_veto_atr is not None
+            self.cfg.bf_prox_veto_atr is not None
+            or self.cfg.chop_veto_atr is not None
+            or self.cfg.stop_mode is not None
         ) and self.atr is None:
             self.atr = _Atr(self.cfg.pattern_tf_s, self.cfg.atr_window)
         if self.cfg.entry_mode == "pattern" and self.pattern is None:
@@ -530,17 +579,19 @@ class Twin:
         o: float | None = None,
         sig=None,
         prox_vals=None,
+        hour_end: bool = False,
     ) -> list[dict]:
         """Exit race then entry, Pine order (:432-473). Mutates position.
 
         o/sig/prox_vals are the TVB-21 pattern-arm inputs (bar open, live
         pattern Signal, bar-open alive harvest-line values); all None on the
-        default arm path.
+        default arm path. hour_end marks the arm-TF-completing bar (TVB-25
+        state stop, D14); the default False keeps direct callers inert.
         """
         cfg = self.cfg
         events: list[dict] = []
 
-        def close_out(direction: str, kind: str, price: float, line_tf=None, line_n=None):
+        def close_out(direction: str, kind: str, price: float, line_tf=None, line_n=None, **extra):
             sign = 1.0 if direction == "long" else -1.0
             ev = {
                 "ts": ts,
@@ -555,6 +606,7 @@ class Twin:
                 "entry_px": self.entry_px,
                 "pnl_pct": sign * (price - self.entry_px) / self.entry_px * 100.0,
             }
+            ev.update(extra)  # TVB-25 fields only; empty on pre-existing paths
             if cfg.retrace_census:
                 # TVB-23 census stamps ride the exit event only under the
                 # flag so the default event shape (golden-pinned) is untouched
@@ -564,74 +616,385 @@ class Twin:
             self.pos, self.entry_px, self.entry_ts = 0, None, None
             self.tgt_px = self.tgt_rung = None
             self.first_retrace_ts = self.first_p3_ts = None
+            self._clear_tvb25_state()
 
-        if cfg.bf_harvest_exit:
-            if self.pos == -1 and xs is not None:
-                close_out("short", "bf", xs[0], xs_tf, xs[1])
-            if self.pos == 1 and xl is not None:
-                close_out("long", "bf", xl[0], xl_tf, xl[1])
-        elif cfg.exit_targets is not None:
-            # TVB-21 package arms: the frozen entry-snapshot target occupies
-            # the bf slot; touch exits AT the level (bf-touch convention).
-            # TVB-22 amendment (audit F1, user-ruled): touch = the bar RANGE
-            # CONTAINS the level, never a one-sided reach -- a born-beyond
-            # trade exits at the first bar that actually trades the level,
-            # and a bar wholly beyond the level does not exit (gap-past
-            # edge, same as the C1 bf containment touch).
-            if self.pos == 1 and self.tgt_px is not None and l <= self.tgt_px <= h:
-                close_out("long", "tgt", self.tgt_px, None, self.tgt_rung)
-            elif self.pos == -1 and self.tgt_px is not None and l <= self.tgt_px <= h:
-                close_out("short", "tgt", self.tgt_px, None, self.tgt_rung)
-        if cfg.brk_exit and self.pos == 1 and brk_lo is not None:
-            close_out("long", "brk", c, brk_lo_tf)
-        if cfg.brk_exit and self.pos == -1 and brk_up is not None:
-            close_out("short", "brk", c, brk_up_tf)
-        if self.pos == 1 and cfg.flip_backstop and gate_dn:
-            close_out("long", "flip", c)
-        if self.pos == -1 and cfg.flip_backstop and gate_up:
-            close_out("short", "flip", c)
+        tvb25 = (
+            cfg.state_stop
+            or cfg.intrabar3_exit
+            or cfg.stop_mode is not None
+            or cfg.tranche_profile is not None
+            or cfg.bf_arm_rung is not None
+        )
+        if tvb25:
+            self._tvb25_exit_race(
+                ts,
+                o,
+                h,
+                l,
+                c,
+                xs,
+                xs_tf,
+                xl,
+                xl_tf,
+                brk_lo,
+                brk_lo_tf,
+                brk_up,
+                brk_up_tf,
+                gate_up,
+                gate_dn,
+                hour_end,
+                events,
+                close_out,
+            )
+        else:
+            # incumbent Pine race (parity-pinned; TVB-22/23 arms + controls)
+            if cfg.bf_harvest_exit:
+                if self.pos == -1 and xs is not None:
+                    close_out("short", "bf", xs[0], xs_tf, xs[1])
+                if self.pos == 1 and xl is not None:
+                    close_out("long", "bf", xl[0], xl_tf, xl[1])
+            elif cfg.exit_targets is not None:
+                # TVB-21 package arms: the frozen entry-snapshot target occupies
+                # the bf slot; touch exits AT the level (bf-touch convention).
+                # TVB-22 amendment (audit F1, user-ruled): touch = the bar RANGE
+                # CONTAINS the level, never a one-sided reach -- a born-beyond
+                # trade exits at the first bar that actually trades the level,
+                # and a bar wholly beyond the level does not exit (gap-past
+                # edge, same as the C1 bf containment touch).
+                if self.pos == 1 and self.tgt_px is not None and l <= self.tgt_px <= h:
+                    close_out("long", "tgt", self.tgt_px, None, self.tgt_rung)
+                elif self.pos == -1 and self.tgt_px is not None and l <= self.tgt_px <= h:
+                    close_out("short", "tgt", self.tgt_px, None, self.tgt_rung)
+            if cfg.brk_exit and self.pos == 1 and brk_lo is not None:
+                close_out("long", "brk", c, brk_lo_tf)
+            if cfg.brk_exit and self.pos == -1 and brk_up is not None:
+                close_out("short", "brk", c, brk_up_tf)
+            if self.pos == 1 and cfg.flip_backstop and gate_dn:
+                close_out("long", "flip", c)
+            if self.pos == -1 and cfg.flip_backstop and gate_up:
+                close_out("short", "flip", c)
         exited = bool(events)
 
         if self.pos == 0 and not exited:
-            if cfg.entry_mode == "pattern":
-                if sig is not None and (
-                    (sig.dir == 1 and cfg.allow_long and gate_up)
-                    or (sig.dir == -1 and cfg.allow_short and gate_dn)
-                ):
-                    self._pattern_entry(ts, o, sig, prox_vals, events)
-            elif (
-                cfg.allow_long
-                and gate_up
-                and self.prev_ah is not None
-                and h >= self.prev_ah + cfg.mintick
-            ):
-                self.pos, self.entry_px, self.entry_ts = 1, self.prev_ah + cfg.mintick, ts
-                events.append(
-                    {
-                        "ts": ts,
-                        "sym": cfg.symbol,
-                        "action": "enter",
-                        "dir": "long",
-                        "price": self.entry_px,
-                    }
+            self._entry_step(ts, o, h, l, gate_up, gate_dn, sig, prox_vals, events)
+            if (
+                cfg.intrabar3_exit
+                and self.pos != 0
+                and self.i3_level is not None
+                and (
+                    self.i3_level - l >= cfg.mintick
+                    if self.pos == 1
+                    else h - self.i3_level >= cfg.mintick
                 )
-            elif (
-                cfg.allow_short
-                and gate_dn
-                and self.prev_al is not None
-                and l <= self.prev_al - cfg.mintick
             ):
-                self.pos, self.entry_px, self.entry_ts = -1, self.prev_al - cfg.mintick, ts
-                events.append(
-                    {
-                        "ts": ts,
-                        "sym": cfg.symbol,
-                        "action": "enter",
-                        "dir": "short",
-                        "price": self.entry_px,
-                    }
+                # amendment degenerate case: the ENTRY 5m bar itself completes
+                # the Type 3 -- exit at this bar's close, flagged and counted
+                self.exit_counters["i3_degenerate"] += 1
+                frac = (
+                    {"frac": 1.0, "tranche": "all"}
+                    if (self.tranches is not None or self.runner_frac is not None)
+                    else {}
                 )
+                close_out("long" if self.pos == 1 else "short", "i3", c, i3_degenerate=True, **frac)
         return events
+
+    def _entry_step(self, ts, o, h, l, gate_up, gate_dn, sig, prox_vals, events) -> None:  # noqa: E741
+        """Entry from flat (extracted verbatim from the Pine-order race)."""
+        cfg = self.cfg
+        if cfg.entry_mode == "pattern":
+            if sig is not None and (
+                (sig.dir == 1 and cfg.allow_long and gate_up)
+                or (sig.dir == -1 and cfg.allow_short and gate_dn)
+            ):
+                self._pattern_entry(ts, o, sig, prox_vals, events)
+        elif (
+            cfg.allow_long
+            and gate_up
+            and self.prev_ah is not None
+            and h >= self.prev_ah + cfg.mintick
+        ):
+            self.pos, self.entry_px, self.entry_ts = 1, self.prev_ah + cfg.mintick, ts
+            events.append(
+                {
+                    "ts": ts,
+                    "sym": cfg.symbol,
+                    "action": "enter",
+                    "dir": "long",
+                    "price": self.entry_px,
+                }
+            )
+            if cfg.stop_mode is not None:
+                self._tvb25_freeze_control_entry(events)
+        elif (
+            cfg.allow_short
+            and gate_dn
+            and self.prev_al is not None
+            and l <= self.prev_al - cfg.mintick
+        ):
+            self.pos, self.entry_px, self.entry_ts = -1, self.prev_al - cfg.mintick, ts
+            events.append(
+                {
+                    "ts": ts,
+                    "sym": cfg.symbol,
+                    "action": "enter",
+                    "dir": "short",
+                    "price": self.entry_px,
+                }
+            )
+            if cfg.stop_mode is not None:
+                self._tvb25_freeze_control_entry(events)
+
+    def _clear_tvb25_state(self) -> None:
+        self.tranches = self.runner_frac = None
+        self.floor_armed = self.retrace_done = False
+        self.runner_be_px = None
+        self.bf_armed = True
+        self.arm_rung_level = None
+        self.i3_level = self.i3_key = None
+        self.stop_px = self.stop_kind = None
+        self.t1_px = None
+
+    def _clear_position(self) -> None:
+        self.pos, self.entry_px, self.entry_ts = 0, None, None
+        self.tgt_px = self.tgt_rung = None
+        self.first_retrace_ts = self.first_p3_ts = None
+        self._clear_tvb25_state()
+
+    def _tvb25_exit_race(
+        self,
+        ts,
+        o,
+        h,
+        l,  # noqa: E741
+        c,
+        xs,
+        xs_tf,
+        xl,
+        xl_tf,
+        brk_lo,
+        brk_lo_tf,
+        brk_up,
+        brk_up_tf,
+        gate_up,
+        gate_dn,
+        hour_end,
+        events,
+        close_out,
+    ) -> None:
+        """TVB-25 ruled exit race (prereg 2026-08-16 amendment).
+
+        Order: i3 -> structural/ATR stop -> protective retrace levels ->
+        tranche/target profits (ladder order) -> BF harvest -> brk -> flip
+        -> state stop. Risk exits close ALL remaining tranches at their
+        trigger (D5). Fill classes: protective levels fill at the level on
+        containment, at the bar OPEN on gap-through (D3); profit levels are
+        containment-only; close-evaluated exits fill at the 5m close. The
+        relative order of tgt/bf/brk/flip matches the incumbent race, so an
+        overlay arm minus its overlay is decision-identical to its base.
+        D9: bars with >= 2 simultaneously satisfiable exit classes are
+        counted (bar-start satisfiability) into exit_counters.
+        """
+        cfg = self.cfg
+        if self.pos == 0:
+            return
+        d = self.pos
+        direction = "long" if d == 1 else "short"
+        sign = 1.0 if d == 1 else -1.0
+        tick = cfg.mintick
+
+        def frac_exit(kind, price, frac, tranche=None, line_tf=None, line_n=None, **extra):
+            ev = {
+                "ts": ts,
+                "sym": cfg.symbol,
+                "action": "exit",
+                "dir": direction,
+                "kind": kind,
+                "price": price,
+                "line_tf": line_tf,
+                "line_N": line_n,
+                "entry_ts": self.entry_ts,
+                "entry_px": self.entry_px,
+                "pnl_pct": sign * (price - self.entry_px) / self.entry_px * 100.0,
+                "frac": frac,
+            }
+            if tranche is not None:
+                ev["tranche"] = tranche
+            ev.update(extra)
+            if cfg.retrace_census:
+                ev["first_retrace_ts"] = self.first_retrace_ts
+                ev["first_p3_ts"] = self.first_p3_ts
+            events.append(ev)
+
+        def remaining():
+            if self.tranches is None and self.runner_frac is None:
+                return None  # whole-position arm
+            return sum(t["frac"] for t in (self.tranches or [])) + (self.runner_frac or 0.0)
+
+        def full_exit(kind, price, line_tf=None, line_n=None, **extra):
+            rem = remaining()
+            if rem is None:
+                close_out(direction, kind, price, line_tf, line_n, **extra)
+            else:
+                frac_exit(kind, price, rem, tranche="all", line_tf=line_tf, line_n=line_n, **extra)
+                self._clear_position()
+
+        def maybe_flat():
+            if (
+                (self.tranches is not None or self.runner_frac is not None)
+                and not (self.tranches or [])
+                and not (self.runner_frac or 0.0)
+            ):
+                self._clear_position()
+
+        def fire_retrace(fill):
+            for t in list(self.tranches or []):
+                frac_exit("floor", fill, t["frac"], tranche=t["label"])
+            self.tranches = []
+            self.retrace_done = True
+            self.runner_be_px = self.entry_px
+            maybe_flat()
+
+        # X1 arming update (reach convention, entry bar excluded) BEFORE the
+        # race so a rung-reach + BF-touch bar can arm-and-fire (amendment)
+        if (
+            cfg.bf_arm_rung is not None
+            and not self.bf_armed
+            and self.arm_rung_level is not None
+            and ts > self.entry_ts
+            and ((d == 1 and h >= self.arm_rung_level) or (d == -1 and l <= self.arm_rung_level))
+        ):
+            self.bf_armed = True
+
+        # --- D9 collision census: per-class satisfiability at bar start
+        i3_hit = (
+            cfg.intrabar3_exit
+            and self.i3_level is not None
+            and self.pattern is not None
+            and self.pattern.key == self.i3_key
+            and (self.i3_level - l >= tick if d == 1 else h - self.i3_level >= tick)
+        )
+        stop_hit = self.stop_px is not None and (l <= self.stop_px if d == 1 else h >= self.stop_px)
+        prot_hit = False
+        if self.floor_armed and not self.retrace_done and self.t1_px is not None:
+            prot_hit = l <= self.t1_px if d == 1 else h >= self.t1_px
+        if not prot_hit and self.runner_be_px is not None and (self.runner_frac or 0.0) > 0:
+            prot_hit = l <= self.runner_be_px if d == 1 else h >= self.runner_be_px
+        if self.tranches:
+            tgt_hit = any(l <= t["level"] <= h for t in self.tranches)
+        else:
+            tgt_hit = (
+                cfg.exit_targets is not None and self.tgt_px is not None and l <= self.tgt_px <= h
+            )
+        bf_cand, bf_tf = (xl, xl_tf) if d == 1 else (xs, xs_tf)
+        bf_hit = (
+            cfg.bf_harvest_exit
+            and self.bf_armed
+            and bf_cand is not None
+            and (self.runner_frac is None or self.runner_frac > 0)
+        )
+        brk_cand, brk_tf = (brk_lo, brk_lo_tf) if d == 1 else (brk_up, brk_up_tf)
+        brk_hit = cfg.brk_exit and brk_cand is not None
+        flip_hit = cfg.flip_backstop and (gate_dn if d == 1 else gate_up)
+        state_hit = bool(
+            cfg.state_stop
+            and hour_end
+            and self.prev_ah is not None
+            and (self.prev_al - self.a_lo >= tick if d == 1 else self.a_hi - self.prev_ah >= tick)
+        )
+        n_hit = sum((i3_hit, stop_hit, prot_hit, tgt_hit, bf_hit, brk_hit, flip_hit, state_hit))
+        if n_hit >= 2:
+            self.exit_counters["collision_bars"] += 1
+
+        # 1) intrabar-3 invalidation (before the stop, skill 5.4)
+        if self.pos != 0 and i3_hit:
+            full_exit("i3", c)
+        # 2) structural/ATR stop -- protective fill class (D3)
+        if self.pos != 0 and stop_hit:
+            gap = h < self.stop_px if d == 1 else l > self.stop_px
+            full_exit("stop", o if gap else self.stop_px, stop_kind=self.stop_kind)
+        # 3) protective retrace levels armed at bar start (P2)
+        if (
+            self.pos != 0
+            and self.floor_armed
+            and not self.retrace_done
+            and self.t1_px is not None
+            and (l <= self.t1_px if d == 1 else h >= self.t1_px)
+        ):
+            gap = h < self.t1_px if d == 1 else l > self.t1_px
+            fire_retrace(o if gap else self.t1_px)
+        if (
+            self.pos != 0
+            and self.runner_be_px is not None
+            and (self.runner_frac or 0.0) > 0
+            and (l <= self.runner_be_px if d == 1 else h >= self.runner_be_px)
+        ):
+            gap = h < self.runner_be_px if d == 1 else l > self.runner_be_px
+            frac_exit("be", o if gap else self.runner_be_px, self.runner_frac, tranche="runner")
+            self.runner_frac = 0.0
+            maybe_flat()
+        # 4) profit targets, ladder order (containment-only fills); the P2
+        #    floor arms on the FIRST executed bank
+        newly_armed = False
+        if self.pos != 0 and self.tranches:
+            for t in list(self.tranches):
+                if l <= t["level"] <= h:
+                    frac_exit("tgt", t["level"], t["frac"], tranche=t["label"])
+                    self.tranches.remove(t)
+                    if cfg.tranche_profile == "P2" and not self.floor_armed:
+                        self.floor_armed = True
+                        newly_armed = True
+            maybe_flat()
+        elif (
+            self.pos != 0
+            and cfg.exit_targets is not None
+            and self.tgt_px is not None
+            and l <= self.tgt_px <= h
+        ):
+            close_out(direction, "tgt", self.tgt_px, None, self.tgt_rung)
+        # 4b) amendment arm-and-fire: a bar that banked the first tranche AND
+        #     contains T1 fires the just-armed retrace on the SAME bar; a
+        #     contained breakeven touch exits the runner on that bar too
+        if (
+            self.pos != 0
+            and newly_armed
+            and not self.retrace_done
+            and self.t1_px is not None
+            and l <= self.t1_px <= h
+        ):
+            fire_retrace(self.t1_px)
+        if (
+            self.pos != 0
+            and self.runner_be_px is not None
+            and (self.runner_frac or 0.0) > 0
+            and l <= self.runner_be_px <= h
+        ):
+            frac_exit("be", self.runner_be_px, self.runner_frac, tranche="runner")
+            self.runner_frac = 0.0
+            maybe_flat()
+        # 5) BF harvest touch (runner-scoped on tranche arms; X1 arming gate)
+        if self.pos != 0 and bf_hit:
+            if self.tranches is None and self.runner_frac is None:
+                close_out(direction, "bf", bf_cand[0], bf_tf, bf_cand[1])
+            elif (self.runner_frac or 0.0) > 0:
+                frac_exit(
+                    "bf",
+                    bf_cand[0],
+                    self.runner_frac,
+                    tranche="runner",
+                    line_tf=bf_tf,
+                    line_n=bf_cand[1],
+                )
+                self.runner_frac = 0.0
+                maybe_flat()
+        # 6) brk -- full-position risk exit (D5)
+        if self.pos != 0 and brk_hit:
+            full_exit("brk", c, line_tf=brk_tf)
+        # 7) flip backstop
+        if self.pos != 0 and flip_hit:
+            full_exit("flip", c)
+        # 8) state stop (close-evaluated on the hour-completing bar, D14)
+        if self.pos != 0 and state_hit:
+            full_exit("state", c)
 
     def _pattern_entry(self, ts: int, o: float, sig, prox_vals, events: list) -> None:
         """TVB-21 pattern-arm entry: vetoes, then fill (pre-reg mechanics).
@@ -703,7 +1066,11 @@ class Twin:
                 vc["t1_floor_le0" if d <= 0 else "t1_floor_small"] += 1
                 if not (veto_prox or veto_chop):
                     vc["t1_floor_only"] += 1
-        if (cfg.exit_targets is not None or cfg.t1_floor_pct is not None) and not sig.ladder:
+        if (
+            cfg.exit_targets is not None
+            or cfg.t1_floor_pct is not None
+            or cfg.tranche_profile is not None
+        ) and not sig.ladder:
             # A package arm cannot satisfy its exit semantics with no target
             # in the entry snapshot -- and a floor arm has no Target 1 to
             # measure (TVB-23: uniform structural skip across all floor
@@ -739,6 +1106,103 @@ class Twin:
                 "tgt_rung": rung,
             }
         )
+        if (
+            cfg.stop_mode is not None
+            or cfg.intrabar3_exit
+            or cfg.tranche_profile is not None
+            or cfg.bf_arm_rung is not None
+        ):
+            # TVB-25 entry-time state freezing (amendment 2026-08-16);
+            # unreachable on pre-existing arms (all new fields inert)
+            self._tvb25_freeze_pattern_entry(sig, fill, events)
+
+    def _tvb25_freeze_pattern_entry(self, sig, fill: float, events: list) -> None:
+        """Freeze the TVB-25 exit state at a pattern entry (amendment).
+
+        Structural stops use the identity-frozen first-detection anchor
+        (replay_bar maintains _anchor_freeze); a degenerate anchor -- None,
+        non-finite, equal to the fill, or on the profit side -- falls back
+        to the ATR stop (D2), counted. i3 freezes the prior completed
+        signal-TF bar's opposite extreme (the Type-3 completion level).
+        Tranche plans follow the amendment's fold-to-runner rule.
+        """
+        cfg = self.cfg
+        d = sig.dir
+        ev = events[-1]
+        if cfg.stop_mode is not None:
+            anchor = src = None
+            if cfg.stop_mode == "structural":
+                ident = (self.pattern.key, sig.dir, sig.name)
+                anchor, src = self._anchor_freeze.get(ident, (sig.stop_anchor, sig.stop_src))
+            degenerate = (
+                anchor is None
+                or not math.isfinite(anchor)
+                or (anchor >= fill if d == 1 else anchor <= fill)
+            )
+            if cfg.stop_mode == "structural" and anchor is not None and degenerate:
+                self.exit_counters["stop_degenerate_anchor"] += 1
+            if cfg.stop_mode == "structural" and not degenerate:
+                self.stop_px, self.stop_kind = anchor, "structural"
+                ev["stop_src"] = src
+            else:
+                a = self.atr.value if self.atr is not None else None
+                if a is None:
+                    # D2: no stop until the ATR window fills (counted)
+                    self.exit_counters["stop_atr_unavailable"] += 1
+                    self.stop_px = self.stop_kind = None
+                else:
+                    self.stop_px = (
+                        fill - cfg.stop_atr_mult * a if d == 1 else fill + cfg.stop_atr_mult * a
+                    )
+                    self.stop_kind = "atr"
+            ev["stop_px"], ev["stop_kind"] = self.stop_px, self.stop_kind
+        if cfg.intrabar3_exit:
+            arr = self.pattern.arr_l if d == 1 else self.pattern.arr_h
+            self.i3_level = arr[-1] if arr else None
+            self.i3_key = self.pattern.key
+            ev["i3_level"] = self.i3_level
+        if cfg.tranche_profile == "P1":
+            # P1 two-piece: 50% at frozen T1, 50% runner to the BF touch
+            self.tranches = [{"frac": 0.5, "level": sig.ladder[0], "label": "T1"}]
+            self.runner_frac = 0.5
+        elif cfg.tranche_profile == "P2":
+            # P2 runner profile: skip T1; bank 40/20/20/10 at T2-T5; missing
+            # rungs FOLD INTO THE RUNNER (amendment); 10% base runner; the
+            # floor arms on the first executed bank (T1 retrace machinery)
+            fracs = ((1, 0.40), (2, 0.20), (3, 0.20), (4, 0.10))
+            self.tranches = [
+                {"frac": f, "level": sig.ladder[i], "label": f"T{i + 1}"}
+                for i, f in fracs
+                if i < len(sig.ladder)
+            ]
+            self.runner_frac = 0.10 + sum(f for i, f in fracs if i >= len(sig.ladder))
+            self.t1_px = sig.ladder[0]
+        if cfg.tranche_profile is not None:
+            ev["tranches"] = [dict(t) for t in self.tranches] + [
+                {"frac": self.runner_frac, "label": "runner"}
+            ]
+        if cfg.bf_arm_rung is not None:
+            self.bf_armed = False
+            idx = cfg.bf_arm_rung - 1
+            self.arm_rung_level = sig.ladder[idx] if len(sig.ladder) > idx else None
+            ev["bf_arm_level"] = self.arm_rung_level
+
+    def _tvb25_freeze_control_entry(self, events: list) -> None:
+        """ATR stop for a control entry (prereg stop table: controls -> D2)."""
+        cfg = self.cfg
+        ev = events[-1]
+        a = self.atr.value if self.atr is not None else None
+        if a is None:
+            self.exit_counters["stop_atr_unavailable"] += 1
+            self.stop_px = self.stop_kind = None
+        else:
+            self.stop_px = (
+                self.entry_px - cfg.stop_atr_mult * a
+                if self.pos == 1
+                else self.entry_px + cfg.stop_atr_mult * a
+            )
+            self.stop_kind = "atr"
+        ev["stop_px"], ev["stop_kind"] = self.stop_px, self.stop_kind
 
     def replay_bar(self, ts: int, o: float, h: float, l: float, c: float, bar_s: int = 300):
         """Phase B: one closed chart bar through the full v6 pass."""
@@ -766,6 +1230,24 @@ class Twin:
         sig = self.pattern.update(ts, o, h, l, c) if self.pattern is not None else None
         if self.atr is not None:
             self.atr.update(ts, h, l, c)
+        if self.cfg.stop_mode == "structural" and self.pattern is not None:
+            # TVB-25 amendment: freeze the stop anchor at the FIRST detection
+            # of each signal identity; identities die with the signal-TF bar.
+            # Closed-bar anchors must never drift across re-detections
+            # (asserted); the 1-3 rows anchor the DEVELOPING bar and keep
+            # their first-detection snapshot by construction.
+            if self._anchor_freeze_key != self.pattern.key:
+                self._anchor_freeze_key = self.pattern.key
+                self._anchor_freeze.clear()
+            if sig is not None:
+                ident = (self.pattern.key, sig.dir, sig.name)
+                held = self._anchor_freeze.get(ident)
+                if held is None:
+                    self._anchor_freeze[ident] = (sig.stop_anchor, sig.stop_src)
+                elif held[1] != "developing" and held[0] != sig.stop_anchor:
+                    raise AssertionError(
+                        f"stop anchor drift for {ident}: {held[0]} -> {sig.stop_anchor}"
+                    )
         # TVB-23 read-only retracement census (prereg ruling 5): evaluated
         # on the bar-start position BEFORE the position step, so the entry
         # bar is structurally excluded (no position stands yet) and the
@@ -823,6 +1305,7 @@ class Twin:
             o=o,
             sig=sig,
             prox_vals=prox_vals,
+            hour_end=(ts + bar_s) % self.cfg.arm_tf_s == 0,
         )
         # roll the arm snapshot LAST (corrected clock, :475-478)
         if (ts + bar_s) % self.cfg.arm_tf_s == 0:

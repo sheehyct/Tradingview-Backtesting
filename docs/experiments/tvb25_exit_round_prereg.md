@@ -323,6 +323,14 @@ this line is rewritten. No code existed when this amendment was committed.
   it -- a Type-3 hour included, since it did break that extreme -- and
   fills at that hour's close (the completing 5m bar's close print).
 
+### Ruling clarification 2026-08-16 (user-ruled, before engine code)
+
+P2 runner after the T1-retrace event = reading A: the runner KEEPS riding
+toward the BF harvest touch with a breakeven floor at the entry price --
+both levels live, protective-first on collision (the classic runner with
+breakeven protection). The literal exits-at-breakeven-only reading was
+rejected.
+
 ### D13 pin (2026-08-16 harvest, before any run)
 
 Fresh window = **2026-08-03 00:00:00 UTC -> 2026-08-16 00:00:00 UTC**

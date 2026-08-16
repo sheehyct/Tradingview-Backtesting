@@ -89,6 +89,11 @@ class Signal:
     boom: bool  # 3-2 whose outside bar passes the shape rule
     pmg: bool  # reversal fired into a matching PMG run
     ladder: list = field(default_factory=list)  # T1 first, strictly monotone
+    # TVB-25 structural stop layer (prereg table + 2026-08-16 amendment).
+    # Computed per detection from the skill 5.2 anchors; the ENGINE freezes
+    # the first-detection value per identity. None -> ATR fallback (D2).
+    stop_anchor: float | None = None
+    stop_src: str | None = None  # "closed[-1]" | "closed[-2]" | "developing"
 
 
 def _is_hammer(o: float, h: float, l: float, c: float) -> bool:  # noqa: E741
@@ -342,6 +347,42 @@ class PatternDetector:
         if sig_dir == 0:
             return None
 
+        # TVB-25 structural stop anchor (prereg per-setup table; 2026-08-16
+        # amendment). Keyed on the base zipcode BEFORE the PMG+ prefix. The
+        # 1-3 rows anchor on the DEVELOPING bar's own extreme (the 3 itself)
+        # -- the prereg's declared "chosen experimental anchor"; the engine
+        # freezes the first-detection value. Setups outside the table get
+        # None (ATR fallback, D2).
+        stop_map = (
+            {
+                "1-2d-2u": (L1, "closed[-1]"),
+                "2-2u": (L1, "closed[-1]"),
+                "1-3u": (cur_l, "developing"),
+                "1-3-2u": (L1, "closed[-1]"),
+                "3-2u": (L1, "closed[-1]"),
+                "3-2-2u": (L2, "closed[-2]"),
+                "3-1-2u": (L2, "closed[-2]"),
+                "2-1-2u": (L2, "closed[-2]"),
+                "1-3-1-2u": (L2, "closed[-2]"),
+            }
+            if sig_dir == 1
+            else {
+                "1-2u-2d": (H1, "closed[-1]"),
+                "2-2d": (H1, "closed[-1]"),
+                "1-3d": (cur_h, "developing"),
+                "1-3-2d": (H1, "closed[-1]"),
+                "3-2d": (H1, "closed[-1]"),
+                "3-2-2d": (H2, "closed[-2]"),
+                "3-1-2d": (H2, "closed[-2]"),
+                "2-1-2d": (H2, "closed[-2]"),
+                "1-3-1-2d": (H2, "closed[-2]"),
+            }
+        )
+        stop_anchor = stop_src = None
+        hit = stop_map.get(name)
+        if hit is not None and hit[0] is not None:
+            stop_anchor, stop_src = hit
+
         pmg_hit = is_rev and (sig_dir == 1 and bull_pmg or sig_dir == -1 and bear_pmg)
         if pmg_hit:
             name = "PMG+" + name
@@ -399,4 +440,6 @@ class PatternDetector:
             boom=boom,
             pmg=pmg_hit,
             ladder=ladder,
+            stop_anchor=stop_anchor,
+            stop_src=stop_src,
         )
