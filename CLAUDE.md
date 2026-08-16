@@ -78,7 +78,10 @@ Mechanics where a reasonable default is wrong:
 - Research only -- no broker is attached to TradingView; `replay_trade` is simulation by
   implementation.
 - Reporting: expand configs into words, lead with the finding, then mechanism, then numbers. No
-  bare cell codes in user-facing text.
+  bare cell codes in user-facing text. `docs/ARM_LEDGER.md` is the standing translation (every
+  arm in plain trading terms + numbers + cross-arm observations): update it with EVERY round,
+  and in design sessions restate each proposed arm in its vocabulary, confirmed with the user,
+  BEFORE the prereg is committed (user request 2026-08-16).
 
 ## Skills
 
