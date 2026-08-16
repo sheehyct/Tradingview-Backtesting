@@ -489,7 +489,11 @@ def _committed_stream(arm_id: str) -> tuple[dict[str, list[tuple]], dict[str, di
 def _determinism_vs(recs: list[dict], committed_path: Path, arm_ids: set[str]) -> list[dict]:
     """Field-equality of replayed rows vs a committed by-symbol file
     (union-of-fields both directions; the TVB-24-hardened shape),
-    restricted to arm_ids."""
+    restricted to arm_ids. veto_counts keeps the declared modulo rule
+    (tier_b_t1floor._strip_new_zero_keys): keys the committed row predates
+    are tolerated iff zero-valued."""
+    from analysis.paper.tier_b_t1floor import _strip_new_zero_keys
+
     committed: dict[tuple, dict] = {}
     with open(committed_path, encoding="utf-8") as f:
         for line in f:
@@ -506,7 +510,11 @@ def _determinism_vs(recs: list[dict], committed_path: Path, arm_ids: set[str]) -
             mismatches.append({"arm": key[0], "symbol": key[1], "field": "(row missing)"})
             continue
         for fld in sorted(set(base) | set(rec)):
-            if rec.get(fld, "(missing)") != base.get(fld, "(missing)"):
+            ours = rec.get(fld, "(missing)")
+            theirs = base.get(fld, "(missing)")
+            if fld == "veto_counts" and isinstance(ours, dict) and isinstance(theirs, dict):
+                ours = _strip_new_zero_keys(ours, theirs)
+            if ours != theirs:
                 mismatches.append({"arm": key[0], "symbol": key[1], "field": fld})
     for key in produced:
         if key not in committed:
