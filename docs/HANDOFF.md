@@ -149,7 +149,8 @@ TV mirror built, saved, and 9-cell parity gate PASS. Three commits pushed.
 > below) and write a verbatim assessment to docs/reviews/tvb24-codex-audit.md.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: REQUESTED
+- Review status: RETURNED (2026-08-16, docs/reviews/tvb24-codex-audit.md;
+  NEEDS-CHANGES -- critical synthesis to be written by TVB-25)
 - Commits to review: `674c7f6^..e92e59c` on `main` (6 commits incl. the TVB-25 prereg e92e59c: 674c7f6
   audit fold; 33c7138 assessment fold; b58688e TV mirror + gate PASS;
   130013e session-end docs. RANGE-PIN RULE: the caret keeps 674c7f6 in
@@ -171,8 +172,59 @@ TV mirror built, saved, and 9-cell parity gate PASS. Three commits pushed.
   ATR seed-exactness claim for the gate twin); (5) dated corrections
   never silently rewrite (prereg/report); (6) request.security: no new
   calls; pine change is the H8 logic + header (TV-synced, sha-verified).
-- Reviewed by: pending
-- Findings: (blank until docs/reviews/tvb24-codex-audit.md exists)
+- Reviewed by: OpenAI Codex (GPT-5), returned 2026-08-15/16
+- Findings: NEEDS-CHANGES -- 1 HIGH + 4 MEDIUM + 1 LOW. CRITICAL SYNTHESIS
+  (written by TVB-25, 2026-08-16; every finding reproduced BEFORE
+  adjudication):
+  - The committed TVB-24 evidence is NOT disputed: the reviewer
+    independently re-ran the 9-cell parity gate (9/9, same 218 events) and
+    recomputed all five diagnostic receipts to the published values. The
+    verdict targets forward-looking contracts (the TVB-25 prereg and the
+    residual gate false-PASS paths), not the results.
+  - F3/F4/F5/F6 AGREED and FIXED by TVB-25 same session, all false-PASS
+    paths reproduced first: (F3) exit-vs-entry first divergence, one
+    symbol deleted from ALL six arms, a whole arm missing, and a census
+    direction flip all passed the old gates -- hardened with a
+    both-sides-exit divergence rule, an extracted _entry_stream_gate
+    (exact arm set + stream-vs-rec reconciliation + roster scope), and
+    census direction-consistency + injective one-outcome-per-entry
+    linkage. DEVIATION with justification: the audit's roster-initialized
+    stream-map sketch would NOT catch its own mutation -- three roster
+    symbols (AAPL/AMZN/GOLD) are legitimately zero-event chop-veto
+    shut-outs, so empty-vs-empty streams still compare equal; anchoring
+    each arm's stream against its own per-symbol replay rows
+    (n_trades/open_dir) does catch it. (F4) a 1-cell smoke run reproduced
+    targeting the canonical artifact; now only the exact 3x3 writes
+    {gen}_parity_result.json (subsets write scope-named smoke files),
+    wrapper metadata is validated inside compare(), and the harvester
+    reads the arm input back and rejects strategy_count != 1. (F5) the 41
+    all-six identities verified equal on entry price + ladder (the
+    committed exits-in-isolation read is supported by the data); the
+    matched contract now binds frozen entry state
+    (price/ladder/boom/pmg/rev/star), with tgt_rung excluded by declared
+    reason (per-arm target config -- the ONLY differing field across the
+    942 shared identities); duplicates fail closed. (F6) the three
+    receipts regenerated ADDITIVELY with provenance hashes
+    (bars/roster/minticks/executed code) -- field diff proves every
+    numerical field byte-identical, only provenance/matched_entry_state/
+    timestamps/conventions added or changed; the pkg_parity ATR comment
+    narrowed to observed-decision-parity language. The package pine's
+    header wording (seed-exact, ~line 164) is DEFERRED to the next TV
+    sync so a comment edit does not drift the sha-verified mirror.
+    27 new adversarial regression tests; suite 232 passed / 2 skipped.
+  - F1 (HIGH) + F2 (MEDIUM) target the TVB-25 prereg and are USER-RULING
+    territory. Factual basis CONFIRMED: A0b's twin override is arm
+    cadence only -- it inherits BF harvest + brk + flip and TwinConfig
+    has no state-stop field, so S0a/S0b-vs-A0b is an exit-FAMILY
+    replacement, not a BF isolation; and the exit state machine's
+    same-bar collision precedence, P2 short-ladder/gap cases, X1 arming
+    snapshot, intrabar-3 level freeze, stop_anchor immutability, and
+    partial-position fee formula are genuinely underdetermined. Both go
+    to a design session before any TVB-25 code (dated prereg amendment).
+  - Shading, not dispute: the audit reads S0a's 2-against state stop as
+    a charter-3.5 naming mismatch; that form was the user's explicit
+    design-session ruling, so the fix is labeling it as the ruled
+    variant, not correcting an error.
 
 ---
 

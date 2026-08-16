@@ -202,6 +202,10 @@ def main() -> None:
         for a in ARM_IDS
     }
 
+    # provenance (2026-08-16, TVB-24 audit F6): shared helper hashes bars,
+    # roster/minticks, and executed code; this module's own blob is added
+    from analysis.paper.t1floor_diagnostics import _provenance
+
     per_arm = {a: entry_stats(a, args.bars_dir, minticks) for a in ARM_IDS}
     receipt = {
         "generated_utc": datetime.now(tz=timezone.utc).isoformat(timespec="seconds"),
@@ -212,6 +216,7 @@ def main() -> None:
         "fill benchmarks; identity tuple; containment scope all symbols, close "
         "benchmark roster scope)",
         "source_hashes": src_hashes,
+        "provenance": _provenance(args.bars_dir, (Path(__file__).resolve(),)),
         "per_arm": per_arm,
         "d1_evaluation_funnel": None if args.skip_funnel else d1_evaluation_funnel(args.bars_dir),
     }

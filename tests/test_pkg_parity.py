@@ -20,10 +20,21 @@ The committed nine-cell artifact must keep passing with identical counts
 import copy
 import json
 import math
+from pathlib import Path
 
 import pytest
 
-from analysis.paper.pkg_parity import PKG, compare, gate, twin_events, validate_events
+from analysis.paper.pkg_parity import (
+    CANONICAL_ARMS,
+    CANONICAL_COINS,
+    PKG,
+    compare,
+    gate,
+    main,
+    twin_events,
+    validate_events,
+    validate_port_wrapper,
+)
 
 # --- synthetic pattern world --------------------------------------------------
 # Two-bar stream: pattern entry fills at bar 1000 close 10.0, break exit at bar
@@ -143,3 +154,54 @@ def test_committed_googl_a1_artifact_false_passed_prefix_defect_shape():
     r = gate("GOOGL", "A1", evs, feed_end, closes, n_bars, port)
     assert r["pass"] is False
     assert any("not a finite number" in v for v in r["structural_violations"])
+
+
+# --- TVB-24 audit F4: wrapper metadata inside the executable PASS predicate --
+
+
+def test_all_committed_dumps_validate_wrapper():
+    for gen, arms in CANONICAL_ARMS.items():
+        for coin in CANONICAL_COINS:
+            for arm in arms:
+                port = json.loads((PKG / f"{gen}_{coin}_{arm}_trades.json").read_text())
+                assert validate_port_wrapper(coin, arm, port) == [], (gen, coin, arm)
+
+
+@pytest.mark.parametrize(
+    "mutate, needle",
+    [
+        (lambda p: p.update(coin="TSLA"), "coin"),
+        (lambda p: p.update(arm="DINF"), "arm"),
+        (lambda p: p.update(arm_input="DINF floored package"), "arm_input"),
+        (lambda p: p["chart"].update(interval="60"), "interval"),
+        (lambda p: p["chart"].update(pro_symbol="HIP3XYZ:TSLAUSDC.P"), "pro_symbol"),
+        (lambda p: p["chart"]["history_termination"].update(state="max_rounds"), "history"),
+        (lambda p: p["chart"].update(mintick=None), "mintick"),
+        (lambda p: p["chart"].update(mintick=0.0), "mintick"),
+        (lambda p: p.update(strategy_count=2), "strategy_count"),
+        (lambda p: p.update(total_trades=99), "total_trades"),
+    ],
+)
+def test_wrapper_mutations_fail_closed(mutate, needle):
+    port = json.loads((PKG / "tvb23_GOOGL_D1_trades.json").read_text())
+    mutate(port)
+    problems = validate_port_wrapper("GOOGL", "D1", port)
+    assert any(needle in p for p in problems), problems
+
+
+def test_one_cell_smoke_cannot_write_canonical_artifact(monkeypatch):
+    # TVB-24 audit F4 main-level regression: a passing 1-cell run returns 0
+    # but must target a scope-named smoke artifact, never the 9-cell pin
+    written = {}
+
+    def fake_write_text(self, text, *args, **kwargs):
+        written[str(self)] = text
+        return len(text)
+
+    monkeypatch.setattr(Path, "write_text", fake_write_text)
+    rc = main(["--arms", "D1", "GOOGL"])
+    assert rc == 0
+    assert len(written) == 1
+    target = next(iter(written))
+    assert target.endswith("tvb23_parity_smoke_D1_GOOGL.json")
+    assert not target.endswith("tvb23_parity_result.json")

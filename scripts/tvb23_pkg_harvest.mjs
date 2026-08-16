@@ -145,7 +145,16 @@ function setArmExpr(armValue) {
       }
       if (!hit) return { error: 'arm input not found among ' + cur.length + ' inputs' };
       st.setInputValues([{ id: hit, value: ${JSON.stringify(armValue)} }]);
-      return { ok: 1, input_id: hit, entity_id: target.id };
+      // read the input BACK after setting (TVB-24 audit F4): the dump must
+      // prove the arm actually applied, not just that a set call returned
+      var after = st.getInputValues(), got = null;
+      for (var k = 0; k < after.length; k++) {
+        if (after[k].id === hit) { got = String(after[k].value); }
+      }
+      if (got !== ${JSON.stringify(armValue)}) {
+        return { error: 'arm input read-back mismatch: ' + got };
+      }
+      return { ok: 1, input_id: hit, entity_id: target.id, value_after: got };
     } catch(e){ return { error: e.message }; }
   })()`;
 }
@@ -245,6 +254,14 @@ try {
       const dump = await settledTrades();
       if (dump.error) {
         log({ ev: 'trades_failed', coin, arm: arm.tag, error: dump.error });
+        failures += 1;
+        continue;
+      }
+      if (dump.strategy_count !== 1) {
+        // exactly one computed copy of the package strategy may be mounted
+        // (TVB-24 audit F4): with duplicates the dump's first-match pick is
+        // ambiguous, so the cell fails instead of harvesting a guess
+        log({ ev: 'strategy_count_bad', coin, arm: arm.tag, count: dump.strategy_count });
         failures += 1;
         continue;
       }

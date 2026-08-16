@@ -448,20 +448,108 @@ def _stream_key(e: dict) -> tuple:
 
 def _first_divergence_is_exit(a: list[tuple], b: list[tuple]) -> bool:
     """True iff the streams are equal OR their first differing event is an
-    exit on at least one side -- entries may only diverge DOWNSTREAM of an
+    exit on BOTH sides -- entries may only diverge DOWNSTREAM of an
     exit divergence (position-occupancy effect on a one-position book;
     deeper exits hold longer). Hardened 2026-08-15 (TVB-23 audit F1): a
     strict prefix passes ONLY if the longer stream's next event is an exit.
     Two arms flat at the same point face the identical candidate rule, so a
     prefix continuing with an ENTRY (including an empty stream against an
-    entry-opening one) is a mechanics violation and fails."""
+    entry-opening one) is a mechanics violation and fails. Hardened again
+    2026-08-16 (TVB-24 audit F3): when BOTH streams have an event at the
+    first difference, both must be exits -- up to the divergence the arms
+    hold the identical position, so the still-holding side's next event
+    cannot legitimately be an entry; an exit opposite an entry can mask a
+    deleted or substituted exit. The committed round satisfies the
+    stricter rule."""
     for x, y in zip(a, b):
         if x != y:
-            return x[0] == "exit" or y[0] == "exit"
+            return x[0] == "exit" and y[0] == "exit"
     if len(a) == len(b):
         return True
     longer = a if len(a) > len(b) else b
     return longer[min(len(a), len(b))][0] == "exit"
+
+
+def _entry_stream_gate(
+    arm_streams: dict[str, dict[str, list[tuple]]],
+    arm_recs: dict[str, dict[str, dict]],
+    expected_arms: tuple[str, ...],
+    replayed_syms: set[str],
+) -> list[dict]:
+    """Fail-closed entry-stream gate (hardened 2026-08-16, TVB-24 audit F3).
+
+    (a) exact arm set: every expected depth arm must be present -- a missing
+        whole arm fails instead of silently shrinking the pair matrix;
+    (b) stream-vs-rec reconciliation per arm+symbol: enter/exit counts in
+        the comparison stream must equal the replay rec's n_trades/open_dir.
+        This anchors the streams to the authoritative per-symbol rows, so a
+        symbol whose events are deleted from EVERY arm still fails. (The
+        audit sketched roster-initialized stream maps instead; that would
+        NOT catch this mutation, because three roster symbols legitimately
+        have zero events in every depth arm -- the chop-veto shut-outs --
+        and empty-vs-empty streams compare equal.)
+    (c) equal symbol sets across arms, and rec scope == replayed roster;
+    (d) all arm pairs, per symbol, under _first_divergence_is_exit.
+    """
+    fails: list[dict] = []
+    missing_arms = sorted(set(expected_arms) - set(arm_streams))
+    if missing_arms:
+        fails.append({"reason": "expected depth arm missing", "arms": missing_arms})
+    checked = [a for a in expected_arms if a in arm_streams]
+    for a in checked:
+        recs = arm_recs.get(a, {})
+        rec_syms = set(recs)
+        stream_syms = set(arm_streams[a])
+        if not stream_syms <= rec_syms:
+            fails.append(
+                {
+                    "arm": a,
+                    "reason": "stream symbol without a replay rec",
+                    "symbol": sorted(stream_syms - rec_syms),
+                }
+            )
+        if rec_syms != replayed_syms:
+            fails.append(
+                {
+                    "arm": a,
+                    "reason": "rec symbol scope != replayed roster",
+                    "symbol": sorted(rec_syms ^ replayed_syms),
+                }
+            )
+        for sym in sorted(rec_syms & replayed_syms):
+            evs = arm_streams[a].get(sym, [])
+            n_enter = sum(1 for k in evs if k[0] == "enter")
+            n_exit = sum(1 for k in evs if k[0] == "exit")
+            want_closed = recs[sym]["n_trades"]
+            want_open = 1 if recs[sym].get("open_dir") else 0
+            if n_exit != want_closed or n_enter != want_closed + want_open:
+                fails.append(
+                    {
+                        "arm": a,
+                        "symbol": sym,
+                        "reason": "stream-vs-rec count mismatch",
+                        "stream": {"enter": n_enter, "exit": n_exit},
+                        "rec": {"n_trades": want_closed, "open": want_open},
+                    }
+                )
+    if len(checked) > 1:
+        sym_sets = {a: set(arm_streams[a]) for a in checked}
+        for other in checked[1:]:
+            if sym_sets[other] != sym_sets[checked[0]]:
+                fails.append(
+                    {
+                        "arms": (checked[0], other),
+                        "symbol": sorted(sym_sets[other] ^ sym_sets[checked[0]]),
+                        "reason": "symbol set mismatch",
+                    }
+                )
+        for a, b in combinations(checked, 2):
+            for sym in sorted(sym_sets[a] | sym_sets[b]):
+                if not _first_divergence_is_exit(
+                    arm_streams[a].get(sym, []), arm_streams[b].get(sym, [])
+                ):
+                    fails.append({"arms": (a, b), "symbol": sym})
+    return fails
 
 
 def main() -> None:
@@ -538,6 +626,7 @@ def main() -> None:
     sym_rows: list[dict] = []
     rollups: list[dict] = []
     arm_streams: dict[str, dict[str, list[tuple]]] = {}
+    arm_recs: dict[str, dict[str, dict]] = {}
     entry_counts: dict[str, int] = {}
     recon_fail = []
     for arm in new_arms:
@@ -553,6 +642,7 @@ def main() -> None:
                 if e["action"] in ("enter", "exit"):
                     streams.setdefault(e["sym"], []).append(_stream_key(e))
         arm_streams[arm["arm_id"]] = streams
+        arm_recs[arm["arm_id"]] = {r["rec"]["symbol"]: r["rec"] for r in results}
         entry_counts[arm["arm_id"]] = sum(
             1 for evs in streams.values() for k in evs if k[0] == "enter"
         )
@@ -574,31 +664,19 @@ def main() -> None:
     # event streams must be identical until a first divergence that is an
     # EXIT -- entries diverge only downstream of exit divergences (the
     # one-position occupancy effect). The per-arm entry funnel is reported.
-    checked = [a for a in ENTRY_BOOK_ARMS if a in arm_streams]
-    stream_fail = []
-    if len(checked) > 1:
-        # hardened 2026-08-15 (TVB-23 audit F1): ALL depth-arm pairs, equal
-        # symbol sets, and the prefix rule inside _first_divergence_is_exit
-        sym_sets = {a: set(arm_streams[a]) for a in checked}
-        for other in checked[1:]:
-            if sym_sets[other] != sym_sets[checked[0]]:
-                stream_fail.append(
-                    {
-                        "arms": (checked[0], other),
-                        "symbol": sorted(sym_sets[other] ^ sym_sets[checked[0]]),
-                        "reason": "symbol set mismatch",
-                    }
-                )
-        for a, b in combinations(checked, 2):
-            for sym in sorted(sym_sets[a] | sym_sets[b]):
-                if not _first_divergence_is_exit(
-                    arm_streams[a].get(sym, []), arm_streams[b].get(sym, [])
-                ):
-                    stream_fail.append({"arms": (a, b), "symbol": sym})
+    # Hardened 2026-08-15 (TVB-23 audit F1) + 2026-08-16 (TVB-24 audit F3):
+    # exact arm set, stream-vs-rec reconciliation, equal symbol sets, all
+    # pairs, both-sides-exit divergence -- see _entry_stream_gate.
+    requested = {a["arm_id"] for a in new_arms}
+    expected_arms = tuple(a for a in ENTRY_BOOK_ARMS if a in requested or not smoke)
+    stream_fail = _entry_stream_gate(
+        arm_streams, arm_recs, expected_arms, {e["name"] for e in symbols}
+    )
     if stream_fail:
         for m in stream_fail[:10]:
-            print(f"  stream divergence not at an exit: {m}")
-        raise SystemExit("ENTRY-STREAM GATE FAILED (non-exit first divergence)")
+            print(f"  entry-stream gate: {m}")
+        raise SystemExit("ENTRY-STREAM GATE FAILED")
+    checked = [a for a in expected_arms if a in arm_streams]
     if len(checked) > 1:
         funnel = {a: entry_counts[a] for a in checked}
         print(f"entry-stream gate PASS across {checked}; entry funnel {funnel}", flush=True)

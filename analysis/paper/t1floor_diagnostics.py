@@ -110,6 +110,33 @@ def _round_rows() -> list[dict]:
     return [json.loads(ln) for ln in p.read_text(encoding="utf-8").splitlines() if ln.strip()]
 
 
+def _provenance(bars_dir: str, extra_code: tuple[Path, ...] = ()) -> dict:
+    """Receipt provenance (2026-08-16, TVB-24 audit F6): hash every derived
+    input -- archived bars, the roster (with minticks), and the executed
+    code blobs -- so a receipt proves which inputs produced it, not only
+    which event artifacts it read."""
+    roster_path = REPO / "analysis" / "paper" / "roster_week1.json"
+    roster = json.loads(roster_path.read_text())
+    bar_hashes = {}
+    for e in roster["symbols"]:
+        for iv in ("5m", "1h", "1d"):
+            p = Path(bars_dir) / f"{e['name'].replace(':', '_')}_{iv}.json"
+            bar_hashes[p.name] = hashlib.sha256(p.read_bytes()).hexdigest()[:16]
+    code = (
+        Path(__file__).resolve(),
+        REPO / "analysis" / "paper" / "engine.py",
+        REPO / "analysis" / "paper" / "patterns.py",
+        REPO / "analysis" / "paper" / "sweep_tier_a.py",
+        *extra_code,
+    )
+    return {
+        "bar_file_sha256": bar_hashes,
+        "roster_sha256": hashlib.sha256(roster_path.read_bytes()).hexdigest()[:16],
+        "roster_minticks": {e["name"]: e.get("tv_mintick") for e in roster["symbols"]},
+        "executed_blobs": {p.name: hashlib.sha256(p.read_bytes()).hexdigest()[:16] for p in code},
+    }
+
+
 def atr_context(bars_dir: str) -> dict:
     rows = {(r["arm_id"], r["symbol"]): r for r in _round_rows()}
     symbols = sorted({s for a, s in rows if a == "D1"})
@@ -134,17 +161,37 @@ def atr_context(bars_dir: str) -> dict:
     return per_symbol
 
 
-def _arm_trades(arm: str) -> dict[tuple, dict]:
-    """entry identity -> outcome, roster scope. Every exit/open_mark links to
-    its entry; a broken linkage raises (fail-closed)."""
+# Frozen entry-time state bound by the matched-identity contract (2026-08-16,
+# TVB-24 audit F5): fill price, the frozen target ladder, and the pattern
+# feature flags must be equal across arms for a matched identity, or the
+# exits-in-isolation attribution is invalid. tgt_rung is deliberately NOT
+# bound: each depth arm stamps its own target-depth config at entry, so it is
+# arm-dependent by construction (verified: the ONLY entry field that differs
+# across the committed arms' 942 shared identities).
+FROZEN_ENTRY_FIELDS = ("price", "ladder", "boom", "pmg", "rev", "star")
+
+
+def _arm_trades(arm: str) -> tuple[dict[tuple, dict], dict[tuple, dict]]:
+    """entry identity -> (outcome, frozen entry state), roster scope. Every
+    exit/open_mark links to its entry; a broken linkage, a duplicated raw
+    identity, or a duplicated outcome raises (fail-closed; audit F5 --
+    dict accumulation previously collapsed duplicates silently)."""
     p = ROUND_DIR / f"events_{arm}.jsonl"
     events = [json.loads(ln) for ln in p.read_text(encoding="utf-8").splitlines() if ln.strip()]
+    raw_ids = [
+        (e["sym"], e["ts"]) for e in events if e["action"] == "enter" and e["sym"] != PARITY_SYMBOL
+    ]
+    if len(raw_ids) != len(set(raw_ids)):
+        dupes = sorted({k for k in raw_ids if raw_ids.count(k) > 1})
+        raise ValueError(f"{arm}: duplicate raw entry identities {dupes[:3]}")
     entries = {
         (e["sym"], e["ts"]): e
         for e in events
         if e["action"] == "enter" and e["sym"] != PARITY_SYMBOL
     }
     out: dict[tuple, dict] = {}
+    frozen: dict[tuple, dict] = {}
+    n_outcomes = 0
     for e in events:
         if e["action"] not in ("exit", "open_mark") or e["sym"] == PARITY_SYMBOL:
             continue
@@ -152,6 +199,10 @@ def _arm_trades(arm: str) -> dict[tuple, dict]:
         if ee is None:
             raise ValueError(f"{arm}: {e['action']} without entry at {e['sym']} {e['entry_ts']}")
         key = (e["sym"], e["entry_ts"], e["dir"], ee.get("pattern"), ee.get("trig"))
+        if key in out:
+            raise ValueError(f"{arm}: duplicate outcome for identity {key}")
+        n_outcomes += 1
+        frozen[key] = {f: ee.get(f) for f in FROZEN_ENTRY_FIELDS}
         if e["action"] == "exit":
             out[key] = {
                 "kind": e["kind"],
@@ -164,13 +215,27 @@ def _arm_trades(arm: str) -> dict[tuple, dict]:
             mtm = sign * (e["price"] - e["entry_px"]) / e["entry_px"] * 100.0
             out[key] = {"kind": "open", "exit_ts": None, "pnl_pp": round(mtm, 4), "open": True}
     n_entries = len(entries)
-    if n_entries != len(out):
-        raise ValueError(f"{arm}: {n_entries} entries but {len(out)} outcomes")
-    return out
+    if n_entries != n_outcomes or n_entries != len(out):
+        raise ValueError(f"{arm}: {n_entries} entries but {n_outcomes} outcomes")
+    return out, frozen
 
 
 def matched_exits() -> dict:
-    trades = {arm: _arm_trades(arm) for arm in DEPTH_ARMS}
+    pairs = {arm: _arm_trades(arm) for arm in DEPTH_ARMS}
+    trades = {arm: p[0] for arm, p in pairs.items()}
+    frozen = {arm: p[1] for arm, p in pairs.items()}
+    # matched-identity contract (audit F5): every identity shared by two or
+    # more arms must carry the SAME frozen entry state, or the exits-only
+    # attribution is invalid -- fail closed, never aggregate past it
+    n_state_checked = 0
+    for a, b in combinations(DEPTH_ARMS, 2):
+        for key in set(trades[a]) & set(trades[b]):
+            n_state_checked += 1
+            if frozen[a][key] != frozen[b][key]:
+                raise ValueError(
+                    f"matched identity {key} differs in frozen entry state between "
+                    f"{a} and {b}: {frozen[a][key]} vs {frozen[b][key]}"
+                )
     all_keys = sorted(set().union(*(set(t) for t in trades.values())))
     matrix = {
         f"{a}&{b}": len(set(trades[a]) & set(trades[b])) for a, b in combinations(DEPTH_ARMS, 2)
@@ -217,6 +282,13 @@ def matched_exits() -> dict:
 
     return {
         "per_arm_trades": {a: len(trades[a]) for a in DEPTH_ARMS},
+        "matched_entry_state": {
+            "fields_bound": list(FROZEN_ENTRY_FIELDS),
+            "tgt_rung_excluded": "arm-dependent by construction (per-arm "
+            "target-depth config stamped at entry)",
+            "pairwise_identities_checked": n_state_checked,
+            "mismatches": 0,
+        },
         "pairwise_matched_counts": matrix,
         "n_matched_all6": len(all6),
         "n_matched_all6_closed_everywhere": len(all6_closed),
@@ -242,6 +314,7 @@ def main() -> None:
     src_hashes["results_by_symbol.jsonl"] = hashlib.sha256(
         (ROUND_DIR / "results_by_symbol.jsonl").read_bytes()
     ).hexdigest()[:16]
+    prov = _provenance(args.bars_dir)
 
     atr_receipt = {
         "generated_utc": stamp,
@@ -250,6 +323,7 @@ def main() -> None:
         "conventions": "module docstring analysis/paper/t1floor_diagnostics.py; "
         "ATR math engine-verbatim (_Atr), completed 1H bars only, runner seed slice",
         "source_hashes": src_hashes,
+        "provenance": prov,
         "per_symbol": atr_context(args.bars_dir),
     }
     (out_dir / "atr_context_receipt.json").write_text(json.dumps(atr_receipt, indent=1) + "\n")
@@ -261,11 +335,14 @@ def main() -> None:
         "matched-entry per-trade exit comparison across D1..D5+DINF "
         "(exits in isolation on the closed-in-all-six subset)",
         "conventions": "module docstring analysis/paper/t1floor_diagnostics.py; "
-        "entry identity (sym, entry_ts, dir, pattern, trig); identity matching is a "
-        "superset of strict stream-prefix matching; roster scope (parity symbol "
-        "excluded); open positions marked from open_mark price, flagged, and "
-        "excluded from the exits-in-isolation aggregate",
+        "entry identity (sym, entry_ts, dir, pattern, trig) with frozen entry "
+        "state (price/ladder/boom/pmg/rev/star) asserted equal across arms "
+        "(audit F5; tgt_rung arm-dependent by construction, excluded); identity "
+        "matching is a superset of strict stream-prefix matching; roster scope "
+        "(parity symbol excluded); open positions marked from open_mark price, "
+        "flagged, and excluded from the exits-in-isolation aggregate",
         "source_hashes": src_hashes,
+        "provenance": prov,
         **me,
     }
     (out_dir / "matched_exit_receipt.json").write_text(json.dumps(me_receipt, indent=1) + "\n")

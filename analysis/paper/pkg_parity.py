@@ -77,10 +77,13 @@ ARM_TWIN = {
     },
     # TVB-23 arms (prereg step 7; tier_b_t1floor.NEW_ARMS semantics). The
     # runner's retrace_census stays OFF here: it is a read-only stamp layer,
-    # decision-identical, and the gate joins on decision events. ATR seed
-    # parity note: this gate's twin runs COLD from the chart's first loaded
-    # bar, so its ATR warms from the same aggregated 1H stream the pine
-    # warms from -- seed-exact, unlike the runner's archived-bar seed.
+    # decision-identical, and the gate joins on decision events. ATR warm-up
+    # note (narrowed 2026-08-16, TVB-24 audit F6): this gate's twin runs
+    # COLD from the chart's first loaded bar, so its ATR warms over the same
+    # NOMINAL 1H aggregation span as the pine; the 9/9 decision parity is
+    # observed evidence of same-seed behavior, but the dump persists neither
+    # TV's bar values nor an ATR trace, so literal seed identity is not
+    # provable from the artifact. The runner's archived-bar seed differs.
     "D1": {
         "entry_mode": "pattern",
         "arm_tf_s": 3600,
@@ -110,6 +113,12 @@ ARM_TWIN = {
 }
 
 
+# The canonical 3x3 gate matrix per arm generation, in artifact order. Only
+# an exact-match run may write {gen}_parity_result.json (audit F4).
+CANONICAL_COINS = ("GOOGL", "TSLA", "DRAM")
+CANONICAL_ARMS = {"tvb22": ("A1", "A2", "A3"), "tvb23": ("D1", "DINF", "D1ATR")}
+
+
 # Harvest filename prefix per arm generation (scripts/tvb22_pkg_harvest.mjs
 # vs scripts/tvb23_pkg_harvest.mjs).
 def _harvest_prefix(arm: str) -> str:
@@ -125,6 +134,46 @@ def kind_of(exit_signal: str) -> str:
 
 def key(e: dict) -> tuple:
     return (e["ts"], e["action"], e["dir"], e["kind"] if e["action"] == "exit" else "entry")
+
+
+def validate_port_wrapper(coin: str, arm: str, port: dict) -> list[str]:
+    """Fail-closed dump-metadata validation (2026-08-16, TVB-24 audit F4):
+    the harvested dump must BE the requested cell before any event join --
+    coin/arm identity, the arm-selector input actually applied, the exact
+    symbol and 5m interval, full-history floor termination, a usable
+    mintick, exactly one computed strategy, and trade-count reconciliation.
+    Previously these fields were recorded by the harvester but sat outside
+    the executable PASS predicate."""
+    problems = []
+    chart = port.get("chart") or {}
+    tv_sym = f"HIP3XYZ:{coin}USDC.P"
+    for name, got, want in (
+        ("coin", port.get("coin"), coin),
+        ("arm", port.get("arm"), arm),
+        ("roster_symbol", port.get("roster_symbol"), f"xyz:{coin}"),
+        ("tv_symbol", port.get("tv_symbol"), tv_sym),
+        ("chart.pro_symbol", chart.get("pro_symbol"), tv_sym),
+    ):
+        if got != want:
+            problems.append(f"wrapper: {name} is {got!r}, expected {want!r}")
+    if str(chart.get("interval")) != "5":
+        problems.append(f"wrapper: chart interval {chart.get('interval')!r}, expected '5'")
+    hist = chart.get("history_termination")
+    state = hist.get("state") if isinstance(hist, dict) else hist
+    if state != "floor":
+        problems.append(f"wrapper: history termination {state!r}, expected 'floor'")
+    mintick = chart.get("mintick")
+    if not isinstance(mintick, (int, float)) or not math.isfinite(mintick) or mintick <= 0:
+        problems.append(f"wrapper: mintick {mintick!r} is not a finite positive number")
+    if port.get("strategy_count") != 1:
+        problems.append(f"wrapper: strategy_count {port.get('strategy_count')!r}, expected 1")
+    n_rows = len(port.get("trades") or [])
+    if port.get("total_trades") != n_rows:
+        problems.append(f"wrapper: total_trades {port.get('total_trades')!r} != {n_rows} rows")
+    arm_input = str(port.get("arm_input") or "")
+    if not arm_input.startswith(arm + " "):
+        problems.append(f"wrapper: arm_input {arm_input!r} does not begin with {arm + ' '!r}")
+    return problems
 
 
 def validate_trades(trades: list[dict]) -> list[str]:
@@ -360,6 +409,9 @@ def gate(coin: str, arm: str, tw_evs, feed_end: int, closes: dict, n_bars: int, 
 
 def compare(coin: str, arm: str) -> dict:
     port = json.loads((PKG / f"{_harvest_prefix(arm)}_{coin}_{arm}_trades.json").read_text())
+    wrapper = validate_port_wrapper(coin, arm, port)
+    if wrapper:
+        return {"coin": coin, "arm": arm, "structural_violations": wrapper, "pass": False}
     tw_evs, feed_end, closes, n_bars = twin_events(
         coin, arm, port["chart"]["first_bar_ts"], port["chart"]["mintick"]
     )
@@ -408,8 +460,21 @@ def main(argv: list[str]) -> int:
                     print(f"  pattern:   {p}")
             for p in r.get("structural_violations", []):
                 print(f"  violation: {p}")
+    # Canonical-artifact protection (2026-08-16, TVB-24 audit F4): only the
+    # exact declared 3x3 matrix may write the canonical generation artifact.
+    # Any subset/reordering is a smoke run and writes a scope-named file, so
+    # a passing 1-cell run can never replace the committed 9-cell pin.
     gen = "tvb22" if all(a.startswith("A") for a in arms) else "tvb23"
-    out = PKG / f"{gen}_parity_result.json"
+    canonical = tuple(coins) == CANONICAL_COINS and tuple(arms) == CANONICAL_ARMS[gen]
+    if canonical:
+        out = PKG / f"{gen}_parity_result.json"
+    else:
+        out = PKG / f"{gen}_parity_smoke_{'-'.join(arms)}_{'-'.join(coins)}.json"
+        print(
+            "SMOKE SCOPE: not the canonical "
+            f"{CANONICAL_ARMS[gen]} x {CANONICAL_COINS} matrix -- "
+            "writing a scope-named artifact, canonical pin untouched"
+        )
     out.write_text(
         json.dumps(
             {

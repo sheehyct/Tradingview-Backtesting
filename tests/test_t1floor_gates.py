@@ -26,6 +26,7 @@ from analysis.paper.tier_b_t1floor import (
     ENTRY_BOOK_ARMS,
     TIER_B_BY_SYMBOL,
     _determinism_check,
+    _entry_stream_gate,
     _first_divergence_is_exit,
     _stream_key,
 )
@@ -43,6 +44,32 @@ def _committed_rows() -> list[dict]:
 def _events(arm: str) -> list[dict]:
     p = ROUND_DIR / f"events_{arm}.jsonl"
     return [json.loads(ln) for ln in p.read_text(encoding="utf-8").splitlines() if ln.strip()]
+
+
+def _committed_streams() -> dict[str, dict[str, list[tuple]]]:
+    streams: dict[str, dict[str, list[tuple]]] = {}
+    for arm in ENTRY_BOOK_ARMS:
+        per_sym: dict[str, list[tuple]] = {}
+        for e in _events(arm):
+            if e["action"] in ("enter", "exit"):
+                per_sym.setdefault(e["sym"], []).append(_stream_key(e))
+        streams[arm] = per_sym
+    return streams
+
+
+def _committed_recs() -> dict[str, dict[str, dict]]:
+    recs: dict[str, dict[str, dict]] = {a: {} for a in ENTRY_BOOK_ARMS}
+    with open(ROUND_DIR / "results_by_symbol.jsonl", encoding="utf-8") as f:
+        for ln in f:
+            row = json.loads(ln)
+            if row["arm_id"] in recs:
+                recs[row["arm_id"]][row["symbol"]] = row
+    return recs
+
+
+def _roster_syms() -> set[str]:
+    roster = json.loads((REPO / "analysis" / "paper" / "roster_week1.json").read_text())
+    return {e["name"] for e in roster["symbols"]}
 
 
 # --- determinism comparison ------------------------------------------------
@@ -134,23 +161,50 @@ def test_prefix_continuing_with_entry_fails():
     assert not _first_divergence_is_exit([_ENTER, _EXIT], [_ENTER, _EXIT, next_enter])
 
 
-def test_committed_depth_streams_pass_all_pairs():
-    # in-memory re-verification of the committed round under the hardened
-    # rule: all 15 depth-arm pairs, equal symbol sets, prefix rule
-    from itertools import combinations
+def test_divergence_exit_vs_entry_fails():
+    # TVB-24 audit F3: an exit opposite an ENTRY at the first difference can
+    # be a deleted/substituted exit -- up to the divergence both arms hold
+    # the identical position, so the non-exiting side cannot legally enter
+    other_enter = ("enter", 3, "short", "2-2d", 2.0)
+    assert not _first_divergence_is_exit([_ENTER, _EXIT], [_ENTER, other_enter])
 
-    streams: dict[str, dict[str, list[tuple]]] = {}
+
+def test_entry_stream_gate_committed_passes():
+    # in-memory re-verification of the committed round under the hardened
+    # gate: exact arm set, stream-vs-rec reconciliation, equal symbol sets,
+    # all 15 pairs, both-sides-exit divergence rule
+    fails = _entry_stream_gate(
+        _committed_streams(), _committed_recs(), ENTRY_BOOK_ARMS, _roster_syms()
+    )
+    assert fails == []
+
+
+def test_entry_stream_gate_symbol_removed_from_all_arms_fails():
+    # TVB-24 audit F3: deleting one symbol's events from EVERY arm keeps all
+    # cross-arm symbol sets equal; the stream-vs-rec reconciliation catches it
+    streams = _committed_streams()
     for arm in ENTRY_BOOK_ARMS:
-        per_sym: dict[str, list[tuple]] = {}
-        for e in _events(arm):
-            if e["action"] in ("enter", "exit"):
-                per_sym.setdefault(e["sym"], []).append(_stream_key(e))
-        streams[arm] = per_sym
-    sym_sets = {a: set(streams[a]) for a in ENTRY_BOOK_ARMS}
-    assert all(sym_sets[a] == sym_sets["D1"] for a in ENTRY_BOOK_ARMS)
-    for a, b in combinations(ENTRY_BOOK_ARMS, 2):
-        for sym in sym_sets[a]:
-            assert _first_divergence_is_exit(streams[a][sym], streams[b][sym]), (a, b, sym)
+        assert "xyz:DRAM" in streams[arm]
+        del streams[arm]["xyz:DRAM"]
+    fails = _entry_stream_gate(streams, _committed_recs(), ENTRY_BOOK_ARMS, _roster_syms())
+    assert any(f.get("reason") == "stream-vs-rec count mismatch" for f in fails)
+
+
+def test_entry_stream_gate_whole_arm_missing_fails():
+    # TVB-24 audit F3: a missing whole arm previously shrank the pair matrix
+    streams = _committed_streams()
+    del streams["D3"]
+    fails = _entry_stream_gate(streams, _committed_recs(), ENTRY_BOOK_ARMS, _roster_syms())
+    assert any(f.get("reason") == "expected depth arm missing" for f in fails)
+
+
+def test_entry_stream_gate_partial_symbol_deletion_fails():
+    # deleting one symbol's events from ONE arm must fail at least via the
+    # symbol-set or reconciliation checks
+    streams = _committed_streams()
+    del streams["D2"]["xyz:GOOGL"]
+    fails = _entry_stream_gate(streams, _committed_recs(), ENTRY_BOOK_ARMS, _roster_syms())
+    assert fails
 
 
 # --- census determinism guard ----------------------------------------------
@@ -165,12 +219,55 @@ def test_census_committed_d2_passes():
 
 
 def test_census_open_mark_deletion_fails():
-    # the audit's reproduction: 85 rows with three opens -> 82 with none
+    # TVB-23 audit F1 reproduction, superseded 2026-08-16 by the injective
+    # linkage check: deleting the open_marks leaves their entries with zero
+    # outcomes, so _trade_rows now fails closed BEFORE _determinism sees it
     events = [e for e in _events("D2") if e["action"] != "open_mark"]
-    rows = rc._trade_rows(events, BARS_DIR)
-    assert len(rows) == 82
-    check = rc._determinism(rows, "D2", ROUND_DIR / "results_by_symbol.jsonl")
-    assert len([m for m in check["mismatches"] if m["field"] == "open"]) == 3
+    with pytest.raises(ValueError, match="non-injective"):
+        rc._trade_rows(events, BARS_DIR)
+
+
+def test_census_direction_flip_raises():
+    # TVB-24 audit F3: a closed roster exit with its direction flipped kept
+    # linked rows and an empty mismatch list; the entry-vs-outcome direction
+    # consistency check now fails closed
+    events = _events("D2")
+    ex = next(e for e in events if e["action"] == "exit" and e["sym"] != rc.PARITY_SYMBOL)
+    ex["dir"] = "short" if ex["dir"] == "long" else "long"
+    with pytest.raises(ValueError, match="direction mismatch"):
+        rc._trade_rows(events, BARS_DIR)
+
+
+def test_census_duplicated_outcome_raises():
+    # TVB-24 audit F3: duplicating a real outcome must not census silently
+    events = _events("D2")
+    ex = next(e for e in events if e["action"] == "exit" and e["sym"] != rc.PARITY_SYMBOL)
+    with pytest.raises(ValueError, match="non-injective"):
+        rc._trade_rows(events + [dict(ex)], BARS_DIR)
+
+
+def test_census_substituted_exit_raises():
+    # TVB-24 audit F3: rewiring an exit onto another trade's entry keeps the
+    # aggregate closed count unchanged; injectivity catches the orphaned
+    # entry (0 outcomes) and the double-linked one (2 outcomes)
+    events = _events("D2")
+    # same symbol AND same direction, so the direction-consistency check
+    # passes and the injectivity check is what fires
+    by_key: dict[tuple, list[dict]] = {}
+    for e in events:
+        if e["action"] == "exit" and e["sym"] != rc.PARITY_SYMBOL:
+            by_key.setdefault((e["sym"], e["dir"]), []).append(e)
+    exits = next(v for v in by_key.values() if len(v) >= 2)
+    exits[0]["entry_ts"] = exits[1]["entry_ts"]
+    with pytest.raises(ValueError, match="non-injective"):
+        rc._trade_rows(events, BARS_DIR)
+
+
+def test_census_duplicate_entry_raises():
+    events = _events("D2")
+    en = next(e for e in events if e["action"] == "enter")
+    with pytest.raises(ValueError, match="duplicate entry"):
+        rc._trade_rows(events + [dict(en)], BARS_DIR)
 
 
 def test_census_broken_event_linkage_raises():

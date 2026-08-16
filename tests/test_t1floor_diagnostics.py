@@ -106,3 +106,103 @@ def test_committed_receipts_match_recomputation():
     me = matched_exits()
     assert me_receipt["exits_in_isolation_closed_all6"] == me["exits_in_isolation_closed_all6"]
     assert me_receipt["n_matched_all6"] == me["n_matched_all6"]
+
+
+# --- TVB-24 audit F5: the matched identity binds frozen entry state ---------
+
+import pytest  # noqa: E402
+
+from analysis.paper import t1floor_diagnostics as t1d  # noqa: E402
+
+SYN_ENTRY = {
+    "action": "enter",
+    "sym": "xyz:TEST",
+    "ts": 1000,
+    "dir": "long",
+    "pattern": "2-2u",
+    "trig": 10.0,
+    "price": 10.01,
+    "ladder": [10.5, 11.0],
+    "boom": 0,
+    "pmg": 0,
+    "rev": 0,
+    "star": 0,
+    "tgt_rung": 1,
+}
+SYN_EXIT = {
+    "action": "exit",
+    "sym": "xyz:TEST",
+    "ts": 2000,
+    "entry_ts": 1000,
+    "dir": "long",
+    "kind": "tgt",
+    "pnl_pct": 1.5,
+}
+
+
+def _syn_round(tmp_path, per_arm_mutator=None):
+    """One identity, closed, in every depth arm; mutator edits one arm."""
+    for arm in t1d.DEPTH_ARMS:
+        entry = json.loads(json.dumps(SYN_ENTRY))
+        events = [entry, dict(SYN_EXIT)]
+        if per_arm_mutator:
+            per_arm_mutator(arm, entry, events)
+        p = tmp_path / f"events_{arm}.jsonl"
+        p.write_text("\n".join(json.dumps(e) for e in events) + "\n", encoding="utf-8")
+
+
+def test_matched_state_committed_binding_reported():
+    st = matched_exits()["matched_entry_state"]
+    assert st["fields_bound"] == list(t1d.FROZEN_ENTRY_FIELDS)
+    assert st["mismatches"] == 0
+    assert st["pairwise_identities_checked"] == 942  # committed shared identities
+
+
+def test_synthetic_round_passes(tmp_path, monkeypatch):
+    _syn_round(tmp_path)
+    monkeypatch.setattr(t1d, "ROUND_DIR", tmp_path)
+    me = t1d.matched_exits()
+    assert me["n_matched_all6"] == 1
+    assert me["n_matched_all6_closed_everywhere"] == 1
+
+
+@pytest.mark.parametrize("field, value", [("price", 10.11), ("ladder", [10.6, 11.0])])
+def test_matched_frozen_state_mutation_raises(tmp_path, monkeypatch, field, value):
+    _syn_round(
+        tmp_path, lambda arm, entry, evs: entry.update({field: value}) if arm == "D3" else None
+    )
+    monkeypatch.setattr(t1d, "ROUND_DIR", tmp_path)
+    with pytest.raises(ValueError, match="frozen entry state"):
+        t1d.matched_exits()
+
+
+def test_tgt_rung_difference_is_tolerated(tmp_path, monkeypatch):
+    # arm-dependent by construction: each depth arm stamps its own target
+    # config; a tgt_rung difference must NOT fail the matched contract
+    _syn_round(
+        tmp_path, lambda arm, entry, evs: entry.update({"tgt_rung": 5}) if arm == "D5" else None
+    )
+    monkeypatch.setattr(t1d, "ROUND_DIR", tmp_path)
+    assert t1d.matched_exits()["n_matched_all6"] == 1
+
+
+def test_duplicate_raw_entry_identity_raises(tmp_path, monkeypatch):
+    def dup_entry(arm, entry, events):
+        if arm == "D1":
+            events.append(json.loads(json.dumps(SYN_ENTRY)))
+
+    _syn_round(tmp_path, dup_entry)
+    monkeypatch.setattr(t1d, "ROUND_DIR", tmp_path)
+    with pytest.raises(ValueError, match="duplicate raw entry"):
+        t1d.matched_exits()
+
+
+def test_duplicate_outcome_raises(tmp_path, monkeypatch):
+    def dup_exit(arm, entry, events):
+        if arm == "D1":
+            events.append(dict(SYN_EXIT))
+
+    _syn_round(tmp_path, dup_exit)
+    monkeypatch.setattr(t1d, "ROUND_DIR", tmp_path)
+    with pytest.raises(ValueError, match="duplicate outcome"):
+        t1d.matched_exits()

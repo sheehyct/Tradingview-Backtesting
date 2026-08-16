@@ -1,7 +1,7 @@
 {
- "generated_utc": "2026-08-15T04:47:34+00:00",
+ "generated_utc": "2026-08-16T11:29:32+00:00",
  "purpose": "TVB-23 prereg-bound diagnostic delivered post-hoc (audit F2): matched-entry per-trade exit comparison across D1..D5+DINF (exits in isolation on the closed-in-all-six subset)",
- "conventions": "module docstring analysis/paper/t1floor_diagnostics.py; entry identity (sym, entry_ts, dir, pattern, trig); identity matching is a superset of strict stream-prefix matching; roster scope (parity symbol excluded); open positions marked from open_mark price, flagged, and excluded from the exits-in-isolation aggregate",
+ "conventions": "module docstring analysis/paper/t1floor_diagnostics.py; entry identity (sym, entry_ts, dir, pattern, trig) with frozen entry state (price/ladder/boom/pmg/rev/star) asserted equal across arms (audit F5; tgt_rung arm-dependent by construction, excluded); identity matching is a superset of strict stream-prefix matching; roster scope (parity symbol excluded); open positions marked from open_mark price, flagged, and excluded from the exits-in-isolation aggregate",
  "source_hashes": {
   "events_D1.jsonl": "7801a25e5292bd50",
   "events_D2.jsonl": "ef537de7645fd1e1",
@@ -11,6 +11,63 @@
   "events_DINF.jsonl": "8f04f203cabbd49c",
   "results_by_symbol.jsonl": "09e01551dff83428"
  },
+ "provenance": {
+  "bar_file_sha256": {
+   "xyz_MRVL_5m.json": "c5ad8359993e0afd",
+   "xyz_MRVL_1h.json": "f1af88118977e9bd",
+   "xyz_MRVL_1d.json": "064edaf0a653bcf6",
+   "xyz_GOOGL_5m.json": "ec1e20c9c26b2a10",
+   "xyz_GOOGL_1h.json": "29e94d88c7bcb3e0",
+   "xyz_GOOGL_1d.json": "9e89fffeba7a23f0",
+   "xyz_AMZN_5m.json": "ae4f06dd8dfb9b94",
+   "xyz_AMZN_1h.json": "7b80cd42ffb3b1d4",
+   "xyz_AMZN_1d.json": "ac8561f67a374fc2",
+   "xyz_MSFT_5m.json": "1c561c65461b2429",
+   "xyz_MSFT_1h.json": "1edfafad5911de54",
+   "xyz_MSFT_1d.json": "53a412b9868c9702",
+   "xyz_GOLD_5m.json": "a5e0a7242aa55f73",
+   "xyz_GOLD_1h.json": "49e7f5f90787211e",
+   "xyz_GOLD_1d.json": "54f5207693636c6d",
+   "xyz_AAPL_5m.json": "0ef2d8440defcfe4",
+   "xyz_AAPL_1h.json": "7a52ea16920fd9ed",
+   "xyz_AAPL_1d.json": "35c8fb4fd57eed43",
+   "xyz_SKHX_5m.json": "457be491a3762f11",
+   "xyz_SKHX_1h.json": "da6fa9df75064c45",
+   "xyz_SKHX_1d.json": "3b1f27a8530e32f1",
+   "xyz_SKHY_5m.json": "4f979c21bb9e15f4",
+   "xyz_SKHY_1h.json": "7c368abbdf62f29a",
+   "xyz_SKHY_1d.json": "bfd3b4219b51c628",
+   "xyz_NBIS_5m.json": "ae8d932727bf386e",
+   "xyz_NBIS_1h.json": "a34f4134e5653ddb",
+   "xyz_NBIS_1d.json": "263a42199b04b738",
+   "xyz_TSLA_5m.json": "ff6630cc737459b3",
+   "xyz_TSLA_1h.json": "3761904d08c6deeb",
+   "xyz_TSLA_1d.json": "bb5afdc794032d86",
+   "xyz_DRAM_5m.json": "bfd57a76018ae375",
+   "xyz_DRAM_1h.json": "3bab1182ec48d15f",
+   "xyz_DRAM_1d.json": "86e3d3377788e1e9"
+  },
+  "roster_sha256": "706aeca51c78a7da",
+  "roster_minticks": {
+   "xyz:MRVL": 0.0001,
+   "xyz:GOOGL": 0.001,
+   "xyz:AMZN": 0.001,
+   "xyz:MSFT": 0.001,
+   "xyz:GOLD": 0.01,
+   "xyz:AAPL": 0.001,
+   "xyz:SKHX": 0.1,
+   "xyz:SKHY": 0.0001,
+   "xyz:NBIS": 0.0001,
+   "xyz:TSLA": 0.001,
+   "xyz:DRAM": 1e-05
+  },
+  "executed_blobs": {
+   "t1floor_diagnostics.py": "9ddca4287bd8251e",
+   "engine.py": "07ed69e463bfaa35",
+   "patterns.py": "e63c02f3f03ebf8a",
+   "sweep_tier_a.py": "e3ba3f7a694abd77"
+  }
+ },
  "per_arm_trades": {
   "D1": 102,
   "D2": 85,
@@ -18,6 +75,19 @@
   "D4": 73,
   "D5": 70,
   "DINF": 41
+ },
+ "matched_entry_state": {
+  "fields_bound": [
+   "price",
+   "ladder",
+   "boom",
+   "pmg",
+   "rev",
+   "star"
+  ],
+  "tgt_rung_excluded": "arm-dependent by construction (per-arm target-depth config stamped at entry)",
+  "pairwise_identities_checked": 942,
+  "mismatches": 0
  },
  "pairwise_matched_counts": {
   "D1&D2": 85,

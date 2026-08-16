@@ -10,7 +10,10 @@
 
 ## Status
 
-- Status: REQUESTED
+- Status: RETURNED (2026-08-16 -- docs/reviews/tvb24-codex-audit.md written;
+  NEEDS-CHANGES: 1 HIGH + 4 MEDIUM + 1 LOW; committed TVB-24 numbers
+  reproduced by the reviewer, findings target the TVB-25 prereg contracts
+  + residual gate false-PASS paths)
   <!-- REQUESTED | RETURNED (audit file written) -->
 - Session under review: TVB-24 -- both pending reviews folded + TV mirror
   parity-gated. (1) TVB-23 Codex audit fold: all five findings reproduced

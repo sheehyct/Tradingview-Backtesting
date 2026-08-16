@@ -44,7 +44,17 @@ ARM_IDS = ("D1", "D2", "D3", "D4", "D5", "DINF", "A1F", "D1ATR")
 
 
 def _trade_rows(events: list[dict], bars_dir: str) -> list[dict]:
-    entries = {(e["sym"], e["ts"]): e for e in events if e["action"] == "enter"}
+    entries: dict[tuple, dict] = {}
+    for e in events:
+        if e["action"] != "enter":
+            continue
+        k = (e["sym"], e["ts"])
+        if k in entries:
+            # fail-closed (2026-08-16, TVB-24 audit F3): duplicate entry
+            # identities must never collapse silently into one dict slot
+            raise ValueError(f"census duplicate entry event at {k}")
+        entries[k] = e
+    outcomes: dict[tuple, int] = {}
     rows: list[dict] = []
     for e in events:
         if e["action"] not in ("exit", "open_mark") or e["sym"] == PARITY_SYMBOL:
@@ -59,6 +69,14 @@ def _trade_rows(events: list[dict], bars_dir: str) -> list[dict]:
                 f"census event-linkage broken: {e['action']} {e['sym']} ts={e['ts']} "
                 f"has no matching entry at entry_ts={e['entry_ts']}"
             )
+        if ee["dir"] != e["dir"]:
+            # fail-closed (2026-08-16, TVB-24 audit F3): an outcome whose
+            # direction disagrees with its entry is a mutated event stream
+            raise ValueError(
+                f"census direction mismatch: {e['action']} {e['sym']} ts={e['ts']} "
+                f"is {e['dir']} but its entry at {e['entry_ts']} is {ee['dir']}"
+            )
+        outcomes[(e["sym"], e["entry_ts"])] = outcomes.get((e["sym"], e["entry_ts"]), 0) + 1
         rows_5m = _rows(e["sym"], "5m", bars_dir)
         ts_5m = [r[0] for r in rows_5m]
         i_entry = bisect_left(ts_5m, e["entry_ts"])
@@ -88,6 +106,18 @@ def _trade_rows(events: list[dict], bars_dir: str) -> list[dict]:
                 else None
             )
         rows.append(row)
+    # injective linkage (2026-08-16, TVB-24 audit F3): on a one-position book
+    # every roster entry has EXACTLY one outcome (exit XOR open_mark). A
+    # duplicated outcome, or an exit rewired onto another trade's entry
+    # (leaving its own entry outcome-less), fails here instead of passing on
+    # unchanged aggregate counts.
+    bad = {
+        k: outcomes.get(k, 0)
+        for k, ee in entries.items()
+        if ee["sym"] != PARITY_SYMBOL and outcomes.get(k, 0) != 1
+    }
+    if bad:
+        raise ValueError(f"census non-injective entry->outcome linkage: {bad}")
     return rows
 
 
