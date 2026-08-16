@@ -322,3 +322,14 @@ this line is rewritten. No code existed when this amendment was committed.
   broke the prior hour's opposite extreme against the position triggers
   it -- a Type-3 hour included, since it did break that extreme -- and
   fills at that hour's close (the completing 5m bar's close print).
+
+### D13 pin (2026-08-16 harvest, before any run)
+
+Fresh window = **2026-08-03 00:00:00 UTC -> 2026-08-16 00:00:00 UTC**
+(latest complete UTC day at harvest time = 2026-08-15). Harvested via
+analysis.paper.archive, full roster x 5m/1h/1d, all 33 fetches hit the
+HL floor; bar hashes = the harvest commit itself (files tracked).
+Merge-integrity check run before commit: zero July-window rows changed,
+zero rows dropped, zero 5m continuity holes; exactly one post-window row
+revised per file (the 2026-08-04 00:00-00:50 UTC bars captured while
+FORMING by the 2026-08-04 00:45Z archive run, now completed values).
