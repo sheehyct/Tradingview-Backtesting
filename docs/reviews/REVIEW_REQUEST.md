@@ -10,29 +10,27 @@
 
 ## Status
 
-- Status: RETURNED (audit file written 2026-08-16; verdict NEEDS-CHANGES,
-  1 HIGH + 4 MEDIUM + 2 LOW; FOLDED by TVB-26 same day -- all seven
-  findings reproduced then fixed, two user rulings (D14 entry-hour
-  literal-inclusive; risk-first stands on the corrected census),
-  canonical artifacts regenerated under amendment 2026-08-16b; critical
-  synthesis in docs/HANDOFF.md)
+- Status: REQUESTED
   <!-- REQUESTED | RETURNED (audit file written) -->
-- Session under review: TVB-25 -- TVB-24 audit folded + the exit round
-  built, run, and reported in one session. (1) Audit fold: F3-F6 fixed
-  with every false-PASS path reproduced first (entry-stream gate with
-  stream-vs-rec reconciliation; canonical parity artifact protection +
-  wrapper validation; matched-identity frozen-state binding; additive
-  receipt provenance with field-diff proof). (2) F1/F2 became a dated
-  prereg AMENDMENT ruled live by the user (S0c arm, risk-first collision
-  race + two fill classes, P2/X1/i3/stop mechanics pinned, D9-D14). (3)
-  The round executed per the prereg's binding order: fresh harvest with
-  the D13 window pin, engine extensions behind inert defaults, the
-  tier_b_exits.py runner (two gate-caught corrections committed BEFORE
-  the clean rerun, forward protocol), canonical run with all gates PASS
-  on both windows, report, and the new plain-language ARM_LEDGER.
+- Session under review: TVB-26 -- the TVB-25 external audit folded IN
+  FULL the same day it returned (NEEDS-CHANGES, 1 HIGH + 4 MEDIUM +
+  2 LOW; zero disputes). (1) All seven findings reproduced in-repo
+  BEFORE adjudication (F1 worse than the audit's lower bounds). (2) Two
+  dated USER RULINGS: D14 entry-hour literal-inclusive (the entry hour
+  counts; same-bar state_degenerate scratches) and, after the corrected
+  census, risk-first STANDS. (3) Engine/runner repairs committed before
+  the rerun: D9 census transition-accumulated + collision_pairs;
+  zero-duration episode support end-to-end; DECLARED gate expectations;
+  stop_src_ts. (4) Canonical artifacts REGENERATED under prereg
+  amendment 2026-08-16b with a field-diff receipt (only S0 streams
+  changed, by exactly the ruled scratches; stop arms additive-only;
+  matched receipts unchanged to the 4th decimal). (5) Report + ledger
+  corrected (Finding 5 retracted-in-place and rewritten; axis/units/
+  comparator-universe fixes). (6) HANDOFF critical synthesis + archive
+  split (TVB-18..21 moved verbatim to docs/session_archive/).
 - SCOPE: standard.
 - Requested: 2026-08-16
-- Write the audit to: `docs/reviews/tvb25-codex-audit.md` (copy
+- Write the audit to: `docs/reviews/tvb26-codex-audit.md` (copy
   `docs/reviews/_TEMPLATE.md`)
 - NOTE: tvb8/tvb9 remain unreturned (standing note).
 
@@ -40,65 +38,59 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `b31c11d^..6597a68` (11 commits, 98 paths: b31c11d audit fold; 2411821 prereg amendment; 047d695 harvest + D13 pin; 007208e engine; 209d2ef runner; 5796da2 + 7f3626e the two forward-protocol gate corrections; 62ff310 canonical run; 40c94ce report; b38e0ad ARM_LEDGER; 6597a68 session-end docs. The range-pin commit after 6597a68 is docs-only routing, out of range. Sanity-checked: `git diff --name-status b31c11d^..6597a68` lists every file the session touched) |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `53599c4^..{pending push}` (RANGE-PIN RULE: the caret keeps 53599c4 in the diff; the concrete head is pinned here by the session-end push follow-up; sanity-check with `git diff --name-status`). Session commits: 53599c4 audit recorded + status flips; 4631dbd prereg amendment 2026-08-16b (before code); cea3372 engine/runner repairs + 7 tests; 0c95a60 regenerated canonical artifacts; 871ca78 report/ledger corrections; 3da1e20 critical synthesis; then the session-end docs commit(s). |
 
 ## Read first (in this order)
 
-1. `CLAUDE.md` (new binding Reporting rule: ARM_LEDGER practice); charter
-   Section 0.
-2. `docs/HANDOFF.md` -- the TVB-25 entry at top, INCLUDING the TVB-24
-   audit critical synthesis inside the TVB-24 entry's External Review
-   block (written this session).
-3. `docs/experiments/tvb25_exit_round_prereg.md` -- the ruled base text
-   AND the 2026-08-16 amendment + pins (verify nothing above the
-   amendment was silently rewritten; git diff shows the exact edits).
-4. `docs/reviews/tvb24-codex-audit.md` (the audit folded this session).
-5. `analysis/paper/engine.py` (TVB-25 features: the ruled race, fill
-   classes, state stop, i3, stops, tranches) + `analysis/paper/patterns.py`
-   (stop-anchor table) + `tests/test_tvb25_exits.py`.
-6. `analysis/paper/tier_b_exits.py` + `tests/test_tier_b_exits.py` +
-   `analysis/paper/tier_b_exits/` (manifest, results, matched-entry
-   receipts, event streams).
-7. `docs/experiments/tvb25_exit_round_report.md` + `docs/ARM_LEDGER.md`.
-8. Audit-fold code: `analysis/paper/tier_b_t1floor.py` (_entry_stream_gate,
-   both-sides-exit rule), `analysis/paper/round_census.py` (injective
-   linkage), `analysis/paper/pkg_parity.py` (canonical protection +
-   wrapper validation), `analysis/paper/t1floor_diagnostics.py` +
-   `analysis/paper/entry_audit.py` (frozen-state contract, provenance),
-   `scripts/tvb23_pkg_harvest.mjs` (arm read-back), and the three test
-   files extended for them.
+1. `CLAUDE.md`; charter Section 0.
+2. `docs/reviews/tvb25-codex-audit.md` (the audit being folded) and the
+   critical synthesis in the TVB-25 entry's External Review block in
+   `docs/HANDOFF.md` (written this session).
+3. `docs/experiments/tvb25_exit_round_prereg.md` -- the amendment
+   2026-08-16b section AND the risk-first revisit outcome (verify
+   nothing above it was silently rewritten; git diff shows the exact
+   edits).
+4. `analysis/paper/engine.py` (the D9 census rewrite around
+   `_tvb25_exit_race`; the D14 post-entry block in `_position_step`;
+   the stop_src_ts freeze) + `analysis/paper/patterns.py`.
+5. `analysis/paper/tier_b_exits.py` (zero-duration guards on both
+   episode paths; `_expected_family_arms`; collision_pairs plumbing) +
+   `tests/test_tvb25_exits.py` + `tests/test_tier_b_exits.py`.
+6. `analysis/paper/tier_b_exits/` (regenerated: manifest, rollups,
+   events, matched receipts).
+7. `docs/experiments/tvb25_exit_round_report.md` (corrected) +
+   `docs/ARM_LEDGER.md`.
 
 ## Focus areas (scrutinize these)
 
-1. Amendment coherence: can an independent implementer now derive ONE
-   exact event stream from the prereg + amendment (collision order, two
-   fill classes, P2 fold-to-runner / arm-and-fire / reading-A breakeven,
-   X1 arming, i3 level+scope+degenerate, stop_anchor immutability and
-   degeneracy, D14 inclusive state stop)? Does the ENGINE match the
-   amendment clause by clause?
-2. Inert defaults: the 55 Tier B + 88 T1-floor committed rows replayed
-   field-equal through the extended engine -- verify the claim and try
-   mutations the fixtures missed (the new race must not perturb any
-   default-path decision; the incumbent tgt/bf/brk/flip relative order is
-   claimed preserved inside the new race so overlay-minus-overlay equals
-   base).
-3. Runner gates: the tranche final-exit stream convention (partially
-   banked OPEN entries contribute no exit -- is that fail-closed against
-   deleted final exits?); family anchors (A0b replayed in-memory, D1 from
-   committed events); tranche fraction reconciliation; the veto-counter
-   modulo-rule fix (is it exactly the declared TVB-23 rule, no wider?).
-4. The two forward-protocol corrections: were they genuinely committed
-   before the clean rerun, and are their regression tests adversarial?
-5. Report + ledger vs artifacts: recompute the headline contrasts (S0a/
-   S0c/A0bS vs A0b; P1/P2/X1/D1i3/D1S/PX vs D1; matched-entry aggregates)
-   and check every occupancy-vs-per-trade claim against the matched
-   receipts; D10 fee math; the D9 near-zero collision claim.
-6. Harvest integrity: the merge-check claim (zero July-window rows
-   changed; exactly the three 2026-08-04 forming-bar rows completed);
-   the D13 pin language.
-7. Language discipline: dated amendment only (no silent rewrites above
-   it); no promotion anywhere; extreme numbers framed as questions;
-   survivor-shape boundaries declared on every matched read.
+1. D9 correctness: independently reconstruct the collision census from
+   ordered per-bar eligibility (the prior audit's suggested check) and
+   compare to the stored counters AND collision_pairs. Verify the claim
+   that every prot+tgt bar is the order-forced arm-and-fire chain (zero
+   already-armed-floor collisions) -- that claim carried the user's
+   risk-first ruling.
+2. D14 implementation vs the dated ruling: post-entry check placement
+   (race runs flat, so the entry bar needs its own check), i3-before-
+   state order on a shared entry bar, strict-break boundary, and the
+   mid-hour-consistency argument (pre-entry same-hour breaks already
+   counted for mid-hour entries) -- is that argument TRUE in the
+   committed streams?
+3. The regeneration field-diff claims: non-S0 non-stop event streams
+   byte-identical; D1S/PX additive stop_src_ts only (all old fields
+   byte-equal); S0 deltas exactly the ruled scratches (14/14/15 July,
+   6 roster fresh); matched-entry receipts unchanged to the 4th decimal.
+4. Gate expectation: mutate at the caller boundary (remove a produced
+   arm) under canonical AND smoke paths; verify the veto_counts modulo
+   rule stayed exact-scope (new-zero-only, veto_counts only).
+5. Zero-duration episodes: P&L retained, MFE/MAE/give-back excluded,
+   BOTH runner episode paths guarded; would the month-end extension
+   survive an i3_degenerate or state_degenerate event end-to-end?
+6. Recompute the corrected report/ledger numbers: S-family July/fresh,
+   matched sums AND means, the ~+19pp fresh S0a-vs-A0b combined gap,
+   the scoped P1 per-trade claim vs the D5 receipt.
+7. Language discipline: amendment 2026-08-16b dated and append-only;
+   Finding 5 retraction named in place; no promotion anywhere; the
+   HANDOFF archive split moved entries VERBATIM.
 8. request.security: NO pine file changed this session -- verify none
    did.
 
@@ -107,7 +99,7 @@ are research instruments, never deployment claims).
 
 ## Output contract
 
-- Verbatim audit -> `docs/reviews/tvb25-codex-audit.md` (template:
+- Verbatim audit -> `docs/reviews/tvb26-codex-audit.md` (template:
   `docs/reviews/_TEMPLATE.md`, skeptic preamble included).
 - Be concrete; cite `file:line`. Never paste a secret/IP/account value.
 - The critical synthesis is written by the NEXT session into `docs/HANDOFF.md`.
