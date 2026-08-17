@@ -106,8 +106,9 @@ PASS, report + ARM_LEDGER. Ten commits pushed.
 
 ### Open
 
-- [ ] Fold the TVB-25 external review when returned
-      (docs/reviews/tvb25-codex-audit.md)
+- [x] Fold the TVB-25 external review when returned
+      (docs/reviews/tvb25-codex-audit.md) -- DONE TVB-26 2026-08-16
+      (all seven findings folded; two user rulings; canonical rerun)
 - [ ] Month-end fresh-window extension through 2026-08-31 24:00 UTC under
       the same prereg (harvest -> pin -> rerun)
 - [ ] P2 T1-retrace per-trade underperformance: user decides whether a
@@ -134,8 +135,54 @@ PASS, report + ARM_LEDGER. Ten commits pushed.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: RETURNED (2026-08-16, docs/reviews/tvb25-codex-audit.md;
-  verdict NEEDS-CHANGES, 1 HIGH + 4 MEDIUM + 2 LOW; critical synthesis to be
-  written here by TVB-26 after the fold)
+  verdict NEEDS-CHANGES, 1 HIGH + 4 MEDIUM + 2 LOW) -- FOLDED by TVB-26
+  same day, critical synthesis below.
+- CRITICAL SYNTHESIS (TVB-26, 2026-08-16): the audit is accepted IN FULL
+  -- all seven findings reproduced in-repo before adjudication, zero
+  disputes. The reviewer had independently replayed the entire
+  evidentiary base first (55+88 inert-default rows, rollups, receipts,
+  hashes, fees, tranche fractions), so the findings attack the
+  DIAGNOSTIC/CONTRACT layer, not the P&L: that framing held up exactly.
+  - F1 (HIGH, D9 census) reproduced WORSE than the audit's lower bounds
+    (executed multi-class bars all-symbols: P2 July 21, PX 24; the
+    audit's 14/16 were roster-scoped -- scope note, not a dispute).
+    Root cause confirmed at engine bar-start snapshot vs the target
+    loop's mid-bar floor arming. Repaired to transition-accumulated
+    satisfiability + a collision_pairs decomposition; the arm-and-fire
+    fixture now asserts the counter. Corrected census: P2 18/11
+    july/fresh, PX 25/12 -- and the decomposition shows every prot+tgt
+    bar is the order-FORCED bank->floor chain (zero already-armed
+    collisions); order-sensitive bars are 3-6 per arm-window. USER
+    RULING on the corrected census: risk-first STANDS (prereg dated
+    note). The retracted "max 6 / no revisit" Finding 5 is rewritten
+    in place with the retraction named.
+  - F3 (D14 entry-hour) reproduced exactly (14/14/15 July; the audit's
+    fresh 6 = roster scope of our 8). Key fact surfaced during the fold:
+    mid-hour entries ALREADY counted pre-entry same-hour breaks, so only
+    the literal-inclusive reading closes the gap without rewriting
+    committed behavior. USER RULING: literal-inclusive -- the entry hour
+    counts; engine post-entry check + state_degenerate counter +
+    long/short/one-tick boundary tests.
+  - F2/F4/F6/F7 all confirmed by inspection or replay and fixed:
+    zero-duration episodes guarded on both runner episode paths +
+    end-to-end regression; gate expectation is now DECLARED (full family
+    canonical, requested+anchors smoke) with a caller-boundary mutation
+    test + the modulo rule pinned exact-scope; prereg corrected 90%->100%
+    no-bank runner + stop_src_ts absolute source timestamp implemented
+    (frozen, drift-asserted, on entry events); D13 note corrected to
+    31/33 files at two timestamps (git-verified).
+  - F5 (report/ledger axes) verified to the decimal (A0b fresh combined
+    +76.4784 vs the quoted realized +55.7; matched means +0.71 vs +0.32)
+    and corrected: sums labeled as sums with means beside them, the P1
+    best-per-trade claim scoped against the D5 receipt's +1.79/trade on
+    its own universe, the C0 label removed per D12.
+  - Canonical artifacts REGENERATED under amendment 2026-08-16b with a
+    field-diff receipt: every non-S0 non-stop event stream byte-identical;
+    D1S/PX additive stop_src_ts only; S0 arms changed by exactly the
+    ruled D14 scratches (July S0a +194.8 -> +195.3, 866 -> 877 trades);
+    matched-entry receipts unchanged to the fourth decimal. No research
+    conclusion flipped; the round's contrast readings all survive with
+    corrected instruments.
 - Commits to review: `b31c11d^..6597a68` on `main` (11 commits, 98 paths;
   RANGE-PIN RULE: the caret keeps b31c11d in the diff; sanity-checked
   with `git diff --name-status`; the pin commit after 6597a68 is
@@ -157,8 +204,13 @@ PASS, report + ARM_LEDGER. Ten commits pushed.
   numbers and every occupancy reading); (5) D10 fee math; (6) harvest
   merge integrity (the three completed forming bars); (7) request.security:
   no pine changes this session -- verify none slipped in.
-- Reviewed by: pending
-- Findings: (blank until docs/reviews/tvb25-codex-audit.md exists)
+- Reviewed by: OpenAI Codex CLI (GPT-5), returned 2026-08-16
+- Findings: 1 HIGH (D9 census undercount -- P2/PX arm-and-fire bars
+  invisible to the bar-start snapshot) + 4 MEDIUM (i3-degenerate runner
+  abort; D14 entry-hour ordering unruled; gate wrapper defeated the
+  exact-arm-set check; report/ledger axis + units errors) + 2 LOW (P2
+  90%-vs-100% prose + missing stop-source record; D13 merge-note count).
+  All folded same day by TVB-26 -- see the synthesis above.
 
 ---
 

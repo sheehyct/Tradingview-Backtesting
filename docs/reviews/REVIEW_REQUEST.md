@@ -11,7 +11,11 @@
 ## Status
 
 - Status: RETURNED (audit file written 2026-08-16; verdict NEEDS-CHANGES,
-  1 HIGH + 4 MEDIUM + 2 LOW; fold in progress TVB-26)
+  1 HIGH + 4 MEDIUM + 2 LOW; FOLDED by TVB-26 same day -- all seven
+  findings reproduced then fixed, two user rulings (D14 entry-hour
+  literal-inclusive; risk-first stands on the corrected census),
+  canonical artifacts regenerated under amendment 2026-08-16b; critical
+  synthesis in docs/HANDOFF.md)
   <!-- REQUESTED | RETURNED (audit file written) -->
 - Session under review: TVB-25 -- TVB-24 audit folded + the exit round
   built, run, and reported in one session. (1) Audit fold: F3-F6 fixed
