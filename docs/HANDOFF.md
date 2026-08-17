@@ -126,10 +126,10 @@ amendment 2026-08-16b, report + ledger corrected. Seven commits pushed.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: `53599c4^..{pending push}` on `main` (RANGE-PIN
-  RULE: the caret keeps 53599c4 in the diff; concrete head pinned in
-  docs/reviews/REVIEW_REQUEST.md after the session-end push;
-  sanity-check with `git diff --name-status`).
+- Commits to review: `53599c4^..7f91c9c` on `main` (7 commits, 30 paths;
+  RANGE-PIN RULE: the caret keeps 53599c4 in the diff; sanity-checked
+  with `git diff --name-status`; the pin commit after 7f91c9c is
+  docs-only routing, out of range).
 - Scope / what changed: the TVB-25 audit fold -- reproductions, two user
   rulings (D14 entry-hour; risk-first stands), D9 census repair +
   collision_pairs, zero-duration episode support, declared gate

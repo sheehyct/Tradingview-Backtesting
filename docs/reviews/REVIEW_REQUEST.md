@@ -38,7 +38,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `53599c4^..{pending push}` (RANGE-PIN RULE: the caret keeps 53599c4 in the diff; the concrete head is pinned here by the session-end push follow-up; sanity-check with `git diff --name-status`). Session commits: 53599c4 audit recorded + status flips; 4631dbd prereg amendment 2026-08-16b (before code); cea3372 engine/runner repairs + 7 tests; 0c95a60 regenerated canonical artifacts; 871ca78 report/ledger corrections; 3da1e20 critical synthesis; then the session-end docs commit(s). |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `53599c4^..7f91c9c` (7 commits, 30 paths: 53599c4 audit recorded + status flips; 4631dbd prereg amendment 2026-08-16b, before code; cea3372 engine/runner repairs + 7 tests; 0c95a60 regenerated canonical artifacts; 871ca78 report/ledger corrections; 3da1e20 critical synthesis; 7f91c9c session-end docs + HANDOFF archive split. RANGE-PIN RULE: the caret keeps 53599c4 in the diff; sanity-checked: `git diff --name-status 53599c4^..7f91c9c` lists every file the session touched. The pin commit after 7f91c9c is docs-only routing, out of range.) |
 
 ## Read first (in this order)
 
