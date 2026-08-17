@@ -10,7 +10,8 @@
 
 ## Status
 
-- Status: REQUESTED
+- Status: RETURNED (audit file written 2026-08-16; verdict NEEDS-CHANGES,
+  1 HIGH + 4 MEDIUM + 2 LOW; fold in progress TVB-26)
   <!-- REQUESTED | RETURNED (audit file written) -->
 - Session under review: TVB-25 -- TVB-24 audit folded + the exit round
   built, run, and reported in one session. (1) Audit fold: F3-F6 fixed

@@ -133,7 +133,9 @@ PASS, report + ARM_LEDGER. Ten commits pushed.
 > below) and write a verbatim assessment to docs/reviews/tvb25-codex-audit.md.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: REQUESTED
+- Review status: RETURNED (2026-08-16, docs/reviews/tvb25-codex-audit.md;
+  verdict NEEDS-CHANGES, 1 HIGH + 4 MEDIUM + 2 LOW; critical synthesis to be
+  written here by TVB-26 after the fold)
 - Commits to review: `b31c11d^..6597a68` on `main` (11 commits, 98 paths;
   RANGE-PIN RULE: the caret keeps b31c11d in the diff; sanity-checked
   with `git diff --name-status`; the pin commit after 6597a68 is
