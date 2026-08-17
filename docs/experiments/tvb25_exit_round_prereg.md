@@ -396,3 +396,15 @@ rewritten; the canonical artifacts are regenerated under this text.
   set is DECLARED -- the full family on canonical runs, the requested
   subset plus anchors on smoke runs -- never derived from produced
   streams.
+
+**Revisit outcome (2026-08-16, USER-RULED after the corrected census):
+the risk-first convention STANDS.** Corrected collision counts (roster
+scope): P2 18/11 (july/fresh), PX 25/12, A0bS 5/4, P1 1/1, S0b 1/1, S0c
+1/0. Decomposition: every prot+tgt bar (18+19+10+9 across the tranche
+arm-windows) is the bank->floor ARM-AND-FIRE chain, where the order is
+structurally forced (the floor does not exist until the bank arms it) --
+zero already-armed-floor collisions; the genuinely order-sensitive bars
+(stop vs bf/brk/flip on A0bS, i3 vs stop and prot vs stop on PX, bf vs
+state on S0c) are 3-6 per arm-window, and the ruled order books the
+worse fill there by design. The named alternatives are NOT priced; the
+census + collision_pairs ride every future run as the watchdog.

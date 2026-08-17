@@ -18,6 +18,14 @@ nowhere else.**
   Two gate-caught runner corrections were committed BEFORE the clean run
   (forward protocol): the veto-counter modulo rule, and partially-banked
   open entries contributing a phantom stream exit.
+- REGENERATED 2026-08-16 under prereg amendment 2026-08-16b (TVB-25
+  external-audit fold): the D14 entry-hour ruling applied (S0 arms gain
+  same-bar state exits on entry-hour 2-against breaks), the D9 collision
+  census repaired (transition-accumulated; the original counters
+  understated P2/PX collisions and the first version of Finding 5 was
+  WRONG), stop-arm entries gain the stop_src_ts audit field. Field-diff
+  receipt: every other event stream is byte-identical to the first run;
+  matched-entry receipts unchanged to the fourth decimal.
 - Windows: July = 2026-07-06 -> 2026-08-03 (the committed comparator
   window); fresh = 2026-08-03 -> 2026-08-16 00:00 UTC (D13 pin).
 - Comparators (committed, not regenerated): A0b combined +104.8 (realized
@@ -27,29 +35,38 @@ nowhere else.**
 ## Finding 1 -- the ladder bottom: a bare state stop transforms the
 ## control's SHAPE through occupancy, not through per-trade exit quality
 
-S0a is the charter's never-run C0 rung mechanized: control 1H-breakout
-entries whose ONLY exit is the ruled 2-against state stop (a completed
-hour breaking the prior hour's opposite extreme, exit at that hour's
-close). On July it books +194.8 combined against the A0b reference's
-+104.8, with max drawdown 37.8 against 122.2 -- and it does it with 866
-trades against A0b's 172, a five-fold churn.
+S0a is the user-ruled 2-against state stop on the control's 1H-breakout
+entries: the ONLY exit is a completed hour breaking the prior hour's
+opposite extreme, filled at that hour's close (per amendment D12 this is
+deliberately NARROWER than the charter 3.5 example -- the C0-pure label
+is retired, and S0a is not the charter's C0 rung). Under the 2026-08-16b
+entry-hour ruling the entry hour itself counts: 14 July entries (6
+fresh, roster scope) land on an hour-completing bar whose hour had
+already broken the opposite extreme and become one-bar scratches
+(state_degenerate, counted). On July S0a books +195.3 combined against
+the A0b reference's +104.8, with max drawdown 37.8 against 122.2 -- and
+it does it with 877 trades against A0b's 172, a five-fold churn.
 
 The matched-entry receipt says WHERE that comes from, and it is not exit
 quality: on the 39 identities closed in every control-family arm, S0a's
-exits collect +27.4 where A0b's collect +34.2 -- per matched trade the
-state stop is WORSE than the C1 exit stack. The whole-arm reversal is the
-one-position book being freed every 2-against hour and recycled into the
-next trigger. This is the same occupancy mechanism the TVB-23/24
-matched-exit receipt isolated on the depth arms, now appearing on the
-control family. Fresh window, same shape, sharper: matched S0a +1.9 vs
-A0b +25.7 per-trade, whole-arm S0a +96.1 vs +55.7. Structural tag: the
-occupancy mechanism is structural (it follows from the one-position book
-and exit speed); the SIGN of the whole-arm advantage is sample-local.
+exits sum to +27.4pp where A0b's sum to +34.2pp (means +0.70 vs +0.88
+per trade) -- per matched trade the state stop is WORSE than the C1 exit
+stack. The whole-arm reversal is the one-position book being freed every
+2-against hour and recycled into the next trigger. This is the same
+occupancy mechanism the TVB-23/24 matched-exit receipt isolated on the
+depth arms, now appearing on the control family. Fresh window, same
+shape, sharper: matched S0a +1.9 vs A0b +25.7 summed over 24 identities
+(means +0.08 vs +1.07), whole-arm S0a +95.9 vs A0b +76.5 combined (the
+first version of this report compared S0a's combined against A0b's
+REALIZED +55.7 -- an axis error the external audit caught; the true
+occupancy gap fresh is ~+19pp, not +40). Structural tag: the occupancy
+mechanism is structural (it follows from the one-position book and exit
+speed); the SIGN of the whole-arm advantage is sample-local.
 
 Fees do not dissolve it at the real taker rate (D10 columns): July S0a
-net +172.6 after 21.7pp of fees. The flip backstop is priced near inert
-on this book: S0b minus S0a = +2.5pp July, +1.2 fresh (five/three flip
-events). Extreme-number flag: +194.8 on a minimal exit is a QUESTION --
+net +172.7 after 21.9pp of fees. The flip backstop is priced near inert
+on this book: S0b minus S0a = +2.4pp July, +1.2 fresh (five/three flip
+events). Extreme-number flag: +195.3 on a minimal exit is a QUESTION --
 the state stop exits every adverse hour near its close, which on this
 sample systematically dodged the overnight adverse runners; a regime
 where 2-against hours precede continuation rather than mean-reversion
@@ -59,13 +76,13 @@ inverts it.
 ## (the repaired F1 contrast), but almost entirely as book composition
 
 S0c = state stop + BF harvest touch, the amendment's matched arm. July
-+291.1 combined vs S0a's +194.8: the BF layer's standalone price on the
-state-stop base is +96.2pp gross -- the largest single-layer delta this
-program has measured. Fresh: +131.8 vs +96.1 (+35.7). Mechanism: 109 BF
-touches collect +196.6 while S0c's remaining state exits collect only
-+93.8 (S0a's state exits alone: +194.2) -- the BF touch consumes the big
++291.4 combined vs S0a's +195.3: the BF layer's standalone price on the
+state-stop base is +96.1pp gross -- the largest single-layer delta this
+program has measured. Fresh: +131.6 vs +95.9 (+35.7). Mechanism: 108 BF
+touches collect +195.6 while S0c's remaining state exits collect only
++95.2 (S0a's state exits alone: +194.7) -- the BF touch consumes the big
 winners BEFORE their state exit would, and frees the book earlier still
-(971 trades). The layers do not add; they re-compose the book.
+(982 trades). The layers do not add; they re-compose the book.
 
 The matched receipt cuts the other way and must be said in the same
 breath: on the 39 matched-closed control identities S0c is the WORST arm
@@ -103,23 +120,30 @@ Against D1's +83.8 combined (its exits: 91-97 target fills at rung 1):
   banked halves and harvests are fine (+27.3 tgt, +74.2 bf) but the
   runner halves ride brk/flip losses (-51.2 combined) and hold the book
   (37 closed entries vs D1's 102). Yet on the 26 matched-closed package
-  identities P1 collects +18.5 vs D1's +8.4 -- per matched trade the
-  two-piece profile BEATS the full T1 exit; the whole-arm loss is again
-  occupancy. Fresh: matched +13.8 vs +12.9, whole-arm +20.9 vs +28.4.
+  identities P1 SUMS +18.5pp vs D1's +8.4pp (means +0.71 vs +0.32 per
+  trade) -- within THIS family comparison the two-piece profile beats
+  the full T1 exit per matched trade; the whole-arm loss is again
+  occupancy. Comparator boundary: this ranks P1 against D1 and the other
+  package-family arms on the exit round's matched set ONLY -- the
+  TVB-23 depth receipt (a different matched universe) has D5 at
+  +1.79pp mean per matched trade, so deeper targets still out-earn P1
+  per trade on their own receipt. Fresh: matched +13.8 vs +12.9 summed
+  over 15 (means +0.92 vs +0.86), whole-arm +20.9 vs +28.4.
 - P2 (the user's runner profile): July +6.1 combined. The machinery
   works as ruled -- 51 banks, 49 floor exits at T1 collecting +6.0, 26
   breakeven exits collecting zero by construction, 17 BF harvests
   (+74.4) -- but brk/flip on the residues (-86.2) and deep occupancy
-  (maxDD 73.4) consume it. Matched: -3.8 vs D1 +8.4; this profile loses
-  on BOTH axes in July. Fresh: +3.3 whole-arm, matched +3.8 vs +12.9.
+  (maxDD 73.4) consume it. Matched: -3.8 vs D1 +8.4 summed (means -0.15
+  vs +0.32); this profile loses on BOTH axes in July. Fresh: +3.4
+  whole-arm, matched +3.8 vs +12.9 summed over 15.
 - X1 (no targets, BF armed only at rung 3): July -37.8 combined, maxDD
   119.0 -- the worst cell in the round. The stall mode (never reaches
   rung 3) rides unprotected into brk -47.9 and flip -31.8; only 11
   trades ever armed and harvested (+55.5). The bimodality boundary D1
   encoded is real, and this arm demonstrates its cost the hard way:
   protecting ONLY the run mode abandons the 43%-stall mode entirely.
-  Matched: -24.2, worst of the family. Fresh: realized -6.3, combined
-  +5.5 only through open marks.
+  Matched: -24.2 summed over the 26 (mean -0.93), worst of the family.
+  Fresh: realized -6.3, combined +5.5 only through open marks.
 - D1i3 (+intrabar-3): -10.1 vs D1 July. The invalidation itself is small
   and behaves as designed (7 firings, -7.7pp -- cheap exits near the
   entry); the rest is composition drift on the freed book. Fresh: -5.3
@@ -138,13 +162,31 @@ Against D1's +83.8 combined (its exits: 91-97 target fills at rung 1):
   small tax simultaneously.
 
 ## Finding 5 -- the D9 collision census answers the convention question
+## (CORRECTED 2026-08-16b; the first version was wrong)
 
-The risk-first pessimistic same-bar precedence was PROVISIONAL pending
-evidence it distorts. It does not: across all ten new arms and both
-windows the maximum number of bars with two simultaneously satisfiable
-exit classes in any arm-window is SIX (PX July); most cells show zero or
-one. The ruled convention's bite is negligible on this data; no revisit
-is indicated.
+The first version of this finding claimed a maximum of six collision
+bars and "no revisit indicated" -- from a broken counter that snapshot
+satisfiability at bar start and could not see the classes a bar itself
+arms (the external audit's HIGH finding). The corrected census
+(transition-accumulated, roster scope): P2 18 July / 11 fresh, PX 25 /
+12, A0bS 5 / 4, P1 1 / 1, S0b 1 / 1, S0c 1 / 0. Collisions are NOT
+rare on the tranche arms -- 18 of P2's 55 July entries hit one.
+
+What the collision_pairs decomposition adds: every prot+tgt bar (18 +
+19 + 10 + 9 across the tranche arm-windows) is the bank->floor
+ARM-AND-FIRE chain, where the order is structurally forced -- the floor
+does not exist until the bank arms it, so no alternative convention
+could change those outcomes (zero already-armed-floor collisions were
+found). The genuinely order-sensitive bars -- a stop racing a
+harvest/break/flip on A0bS (bf+stop 1, brk+stop 2, flip+stop 1 July;
+brk+stop 1, flip+stop 3 fresh), invalidation racing a stop on PX
+(i3+stop 3 + 3) plus one prot+stop, and one bf+state on S0c -- are 3-6
+per arm-window, and the ruled order books the worse fill on those by
+design.
+
+USER RULING (2026-08-16, on the corrected census): the risk-first
+convention STANDS; the named alternatives are not priced. The census and
+its pair decomposition ride every future run as the watchdog.
 
 ## Fresh-window replication of the thirteen existing arms (D8)
 

@@ -65,8 +65,15 @@ says otherwise:
 could fire inside one 5-minute bar, we assume the worst order for us:
 invalidation, then stop, then protective floors, then profit targets,
 then BF harvest, then level break, then flip, then the hourly state
-check. The collision counter (D9) shows this near-never matters in
-practice (max 6 bars in any arm-window so far).
+check. CORRECTED 2026-08-16b (the audit caught the counter missing
+same-bar armings): collisions are actually common on the tranche arms --
+18 of P2's 55 July entries hit one -- but nearly all are the
+bank-then-floor chain, where the order is forced by the mechanics (the
+floor does not exist until the bank arms it) and no convention could
+change the outcome. Where order genuinely matters (a stop racing a
+harvest, break, or flip), it is 3-6 bars per arm-window and the ruled
+order takes the worse fill on purpose. User ruling on the corrected
+count: risk-first stands.
 
 ## Control family (breakout entries)
 
@@ -85,14 +92,17 @@ practice (max 6 bars in any arm-window so far).
   catastrophic runner AND hands the bullet back for the next trade. The
   only overlay so far that also wins per-matched-trade.
 - **S0a -- "enter on strength, leave the moment an hour closes against
-  you."** Breakout entries; ONLY exit is the state stop. July +194.8 /
-  fresh +96.1 -- but 866 July trades vs A0b's 172. Per shared trade it
+  you."** Breakout entries; ONLY exit is the state stop -- INCLUDING the
+  hour you entered on (ruled 2026-08-16b: enter on the last bar of an
+  hour that already broke the other side and you are out at that same
+  close; 14 such one-bar scratches in July, 6 fresh). July +195.3 /
+  fresh +95.9 -- but 877 July trades vs A0b's 172. Per shared trade it
   exits WORSE than A0b; the whole-arm win is pure reload speed.
 - **S0b -- "S0a plus the panic backstop."** State stop + flip. The flip
   fired five times in July for -3.0pp: once a state stop exists, the
-  flip backstop is nearly dead weight. July +197.3 / fresh +97.3.
+  flip backstop is nearly dead weight. July +197.7 / fresh +97.2.
 - **S0c -- "S0a that also cashes structure touches."** State stop + BF
-  harvest. July +291.1 / fresh +131.8 -- the biggest number the program
+  harvest. July +291.4 / fresh +131.6 -- the biggest number the program
   has produced, and the most misleading if read naively: on the shared
   trades it is the WORST control-family exit (harvests winners early);
   everything it gains is faster recycling plus free structure touches on
@@ -132,9 +142,12 @@ practice (max 6 bars in any arm-window so far).
   recoverable dips. Stop value is book-dependent -- the cleanest
   mechanism statement of TVB-25.
 - **P1 -- "bank half at the first target, run half to the structure
-  touch."** July +32.5 / fresh +20.9 whole-arm -- but on the shared
-  trades it BEATS D1 (+18.5 vs +8.4 July). The simple two-piece is the
-  best per-trade package exit measured so far; it loses whole-arm only
+  touch."** July +32.5 / fresh +20.9 whole-arm -- but on the 26 shared
+  trades it BEATS D1 (+18.5 vs +8.4 summed; +0.71 vs +0.32 per trade).
+  Scope that claim carefully (audit correction): P1 wins per trade
+  against D1 and the other NEW exits on this round's shared-trade set;
+  the deeper D2-D5 targets still earn more per matched trade on their
+  own earlier receipt (D5: +1.79 per trade). P1 loses whole-arm only
   because its runners occupy the bullet.
 - **P2 -- "your runner profile, mechanized."** Skip T1; bank 40% at T2,
   20% at T3, 20% at T4, 10% at T5 (missing rungs fold into the runner);
@@ -142,7 +155,8 @@ practice (max 6 bars in any arm-window so far).
   T1 dumps every un-hit middle at T1, and the runner is then protected
   at breakeven while still aiming for the BF line (your ruled reading
   A). July +6.1 / fresh +3.4, and it loses to D1 on the matched trades
-  too (-3.8 vs +8.4 July). On this sample the middles wait too long and
+  too (-3.8 vs +8.4 summed over the 26 shared July trades; -0.15 vs
+  +0.32 per trade). On this sample the middles wait too long and
   the retrace rule sells them at the worst permitted price; the
   machinery is faithful to the rulings -- the profile itself
   underperformed. The ruled fractions are 40/20/20/10 + a 10% runner
