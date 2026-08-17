@@ -1,19 +1,30 @@
 """TVB-25 runner regression tests: arm table integrity, gate-stream
 collapsing for tranche arms, the determinism comparison, and the
-matched-entry frozen-state contract (F5 carried forward)."""
+matched-entry frozen-state contract (F5 carried forward). TVB-26 audit
+fold: the gate expectation is declaration-only (F4), the veto_counts
+modulo rule is pinned (no wider), and zero-duration degenerate episodes
+survive the runner end-to-end (F2)."""
 
 from __future__ import annotations
+
+import json
 
 import pytest
 
 from analysis.paper.engine import TwinConfig
+from analysis.paper.sweep_tier_a import _warm_symbol
+from analysis.paper.tier_b import WARM_KEY
 from analysis.paper.tier_b_exits import (
     CONTROL_FAMILY,
     NEW_ARMS,
     PACKAGE_FAMILY,
     TRANCHE_ARMS,
+    _determinism_vs,
+    _entry_stream_gate,
+    _expected_family_arms,
     _gate_stream_events,
     _matched_entry,
+    _replay_arm_v25,
 )
 
 
@@ -117,3 +128,78 @@ def test_matched_entry_duplicate_identity_raises():
     ]
     with pytest.raises(ValueError, match="duplicate entry identity"):
         _matched_entry({"A": dup}, ("A",), pattern_family=True)
+
+
+# --- TVB-26 audit fold -------------------------------------------------------
+
+
+def test_expected_family_arms_is_declaration_only():
+    # F4: canonical expectation = the FULL declared family, independent of
+    # anything produced; smoke expectation = requested subset + anchors
+    assert _expected_family_arms(CONTROL_FAMILY, {"S0a"}, set(), smoke=False) == CONTROL_FAMILY
+    assert _expected_family_arms(PACKAGE_FAMILY, {"P1"}, {"D1"}, smoke=True) == ("D1", "P1")
+    assert _expected_family_arms(CONTROL_FAMILY, set(), set(), smoke=True) == ()
+
+
+def test_gate_fails_on_missing_produced_arm_canonical():
+    # caller-boundary mutation (audit F4): one produced arm removed; with
+    # the declared-family expectation the exact-set check must flag it
+    # instead of the expectation silently shrinking around the hole
+    present = {a: {} for a in CONTROL_FAMILY if a != "S0c"}
+    fails = _entry_stream_gate(present, {a: {} for a in present}, CONTROL_FAMILY, set())
+    assert any(
+        f.get("reason") == "expected depth arm missing" and f.get("arms") == ["S0c"] for f in fails
+    )
+
+
+def test_determinism_vs_modulo_rule_exact_scope(tmp_path):
+    # the 5796da2 correction is EXACTLY the declared TVB-23 rule, no wider:
+    # new keys tolerated iff zero-valued, in veto_counts ONLY
+    row = {
+        "arm_id": "A2",
+        "symbol": "xyz:T",
+        "n_trades": 1,
+        "veto_counts": {"chop": 2},
+        "pattern_census": {"2-2u": {"n": 1}},
+    }
+    committed = tmp_path / "by_symbol.jsonl"
+    committed.write_text(json.dumps(row) + "\n", encoding="utf-8")
+    ours = {**row, "veto_counts": {"chop": 2, "t1_floor": 0}}
+    assert _determinism_vs([ours], committed, {"A2"}) == []  # new zero key: ok
+    ours = {**row, "veto_counts": {"chop": 2, "t1_floor": 3}}
+    assert _determinism_vs([ours], committed, {"A2"})  # new NONZERO key: fail
+    ours = {**row, "veto_counts": {"chop": 1}}
+    assert _determinism_vs([ours], committed, {"A2"})  # changed value: fail
+    ours = {**row, "pattern_census": {"2-2u": {"n": 1}, "x": 0}}
+    assert _determinism_vs([ours], committed, {"A2"})  # other fields: strict
+
+
+def test_replay_arm_v25_survives_zero_duration_episode(tmp_path):
+    # F2 end-to-end: a D14 state-degenerate entry (enter + exit on the same
+    # 5m bar) must flow through the runner's episode contracts instead of
+    # aborting in episode_metrics; P&L retained, MFE/MAE excluded
+    sym = "xyz:ZDT"
+    stem = sym.replace(":", "_")
+    bars_5m = [
+        [0, 100.0, 101.0, 99.5, 100.5],
+        [3300, 100.5, 100.8, 100.0, 100.2],
+        [3600, 100.5, 100.9, 100.1, 100.6],
+        [6900, 100.9, 102.0, 99.0, 101.5],  # hour-completing: BOTH sides break
+        [7200, 101.5, 101.6, 101.4, 101.5],  # sacrificial forming bar
+    ]
+    bars_1h = [[0, 100.0, 101.0, 99.5, 100.5], [3600, 100.5, 102.0, 99.0, 101.5]]
+    bars_1d = [[0, 100.0, 101.0, 99.5, 100.5], [86400, 101.5, 101.6, 101.4, 101.5]]
+    for iv, bars in (("5m", bars_5m), ("1h", bars_1h), ("1d", bars_1d)):
+        (tmp_path / f"{stem}_{iv}.json").write_text(json.dumps({"bars": bars}), encoding="utf-8")
+    entry = {"name": sym, "tv_mintick": 0.01, "tail": "zdt"}
+    warm = _warm_symbol(entry, WARM_KEY, 3600, str(tmp_path))
+    arm = next(a for a in NEW_ARMS if a["arm_id"] == "S0a")
+    res = _replay_arm_v25(entry, arm, warm, 3600, 7200, str(tmp_path))
+    rec = res["rec"]
+    assert rec["n_entries"] == 1 and rec["n_trades"] == 1
+    assert rec["exit_kind_n"]["state"] == 1
+    assert rec["exit_counters"]["state_degenerate"] == 1
+    assert rec["mfe_avg_pct"] is None and rec["mae_avg_pct"] is None  # excluded
+    assert rec["sum_pnl_pp"] == pytest.approx(
+        (101.5 - 101.01) / 101.01 * 100.0, abs=1e-6
+    )  # P&L retained

@@ -451,8 +451,14 @@ class Twin:
             "stop_degenerate_anchor": 0,
             "stop_atr_unavailable": 0,
             "i3_degenerate": 0,
+            "state_degenerate": 0,
         }
     )
+    # D9 additive diagnostic (TVB-26 audit fold): per class-combination
+    # collision counts, keyed "cls+cls" sorted -- serves the promised user
+    # revisit of the provisional risk-first order (only order-sensitive
+    # combinations can bite)
+    collision_pairs: dict = field(default_factory=dict)
     _anchor_freeze: dict = field(default_factory=dict)
     _anchor_freeze_key: int | None = None
     t1_px: float | None = None  # P2 frozen T1 (retrace trigger)
@@ -696,6 +702,36 @@ class Twin:
                     else {}
                 )
                 close_out("long" if self.pos == 1 else "short", "i3", c, i3_degenerate=True, **frac)
+            if (
+                cfg.state_stop
+                and self.pos != 0
+                and hour_end
+                and self.prev_ah is not None
+                and (
+                    self.prev_al - self.a_lo >= cfg.mintick
+                    if self.pos == 1
+                    else self.a_hi - self.prev_ah >= cfg.mintick
+                )
+            ):
+                # D14 entry-hour ruling (2026-08-16, TVB-26 audit F3, user-
+                # ruled literal-inclusive): the ENTRY hour counts. An entry
+                # on the hour-completing bar of an hour whose range broke the
+                # prior opposite extreme exits at that same bar's close --
+                # matching how mid-hour entries already behave and the i3
+                # degenerate convention. Ordered after i3 (race steps 1 vs 8).
+                self.exit_counters["state_degenerate"] += 1
+                frac = (
+                    {"frac": 1.0, "tranche": "all"}
+                    if (self.tranches is not None or self.runner_frac is not None)
+                    else {}
+                )
+                close_out(
+                    "long" if self.pos == 1 else "short",
+                    "state",
+                    c,
+                    state_degenerate=True,
+                    **frac,
+                )
         return events
 
     def _entry_step(self, ts, o, h, l, gate_up, gate_dn, sig, prox_vals, events) -> None:  # noqa: E741
@@ -792,7 +828,9 @@ class Twin:
         relative order of tgt/bf/brk/flip matches the incumbent race, so an
         overlay arm minus its overlay is decision-identical to its base.
         D9: bars with >= 2 simultaneously satisfiable exit classes are
-        counted (bar-start satisfiability) into exit_counters.
+        counted into exit_counters, with satisfiability accumulated across
+        the ordered within-bar transitions (TVB-26 repair of the bar-start
+        snapshot; collision_pairs carries the class-combination breakdown).
         """
         cfg = self.cfg
         if self.pos == 0:
@@ -865,7 +903,13 @@ class Twin:
         ):
             self.bf_armed = True
 
-        # --- D9 collision census: per-class satisfiability at bar start
+        # --- D9 collision census: class satisfiability accumulated across
+        # the ordered within-bar state transitions (TVB-25 audit F1: a
+        # bar-start snapshot cannot see classes the bar itself arms -- the
+        # P2 bank->floor and retrace->breakeven chains -- and the amendment
+        # pins that D9 counts those bars). The snapshot seeds the set; the
+        # arm-and-fire blocks below add "prot" when their live conditions
+        # hold; the bar counts once at the end of the race.
         i3_hit = (
             cfg.intrabar3_exit
             and self.i3_level is not None
@@ -901,9 +945,20 @@ class Twin:
             and self.prev_ah is not None
             and (self.prev_al - self.a_lo >= tick if d == 1 else self.a_hi - self.prev_ah >= tick)
         )
-        n_hit = sum((i3_hit, stop_hit, prot_hit, tgt_hit, bf_hit, brk_hit, flip_hit, state_hit))
-        if n_hit >= 2:
-            self.exit_counters["collision_bars"] += 1
+        collide = {
+            name
+            for name, hit in (
+                ("i3", i3_hit),
+                ("stop", stop_hit),
+                ("prot", prot_hit),
+                ("tgt", tgt_hit),
+                ("bf", bf_hit),
+                ("brk", brk_hit),
+                ("flip", flip_hit),
+                ("state", state_hit),
+            )
+            if hit
+        }
 
         # 1) intrabar-3 invalidation (before the stop, skill 5.4)
         if self.pos != 0 and i3_hit:
@@ -961,6 +1016,7 @@ class Twin:
             and self.t1_px is not None
             and l <= self.t1_px <= h
         ):
+            collide.add("prot")  # D9: the bank armed the floor on this bar
             fire_retrace(self.t1_px)
         if (
             self.pos != 0
@@ -968,6 +1024,7 @@ class Twin:
             and (self.runner_frac or 0.0) > 0
             and l <= self.runner_be_px <= h
         ):
+            collide.add("prot")  # D9: the retrace armed the breakeven mid-bar
             frac_exit("be", self.runner_be_px, self.runner_frac, tranche="runner")
             self.runner_frac = 0.0
             maybe_flat()
@@ -995,6 +1052,12 @@ class Twin:
         # 8) state stop (close-evaluated on the hour-completing bar, D14)
         if self.pos != 0 and state_hit:
             full_exit("state", c)
+        # D9: one count per bar with >= 2 satisfiable classes, over the
+        # transition-accumulated set
+        if len(collide) >= 2:
+            self.exit_counters["collision_bars"] += 1
+            key = "+".join(sorted(collide))
+            self.collision_pairs[key] = self.collision_pairs.get(key, 0) + 1
 
     def _pattern_entry(self, ts: int, o: float, sig, prox_vals, events: list) -> None:
         """TVB-21 pattern-arm entry: vetoes, then fill (pre-reg mechanics).
@@ -1130,10 +1193,12 @@ class Twin:
         d = sig.dir
         ev = events[-1]
         if cfg.stop_mode is not None:
-            anchor = src = None
+            anchor = src = src_ts = None
             if cfg.stop_mode == "structural":
                 ident = (self.pattern.key, sig.dir, sig.name)
-                anchor, src = self._anchor_freeze.get(ident, (sig.stop_anchor, sig.stop_src))
+                anchor, src, src_ts = self._anchor_freeze.get(
+                    ident, (sig.stop_anchor, sig.stop_src, sig.stop_src_ts)
+                )
             degenerate = (
                 anchor is None
                 or not math.isfinite(anchor)
@@ -1144,6 +1209,7 @@ class Twin:
             if cfg.stop_mode == "structural" and not degenerate:
                 self.stop_px, self.stop_kind = anchor, "structural"
                 ev["stop_src"] = src
+                ev["stop_src_ts"] = src_ts
             else:
                 a = self.atr.value if self.atr is not None else None
                 if a is None:
@@ -1243,10 +1309,13 @@ class Twin:
                 ident = (self.pattern.key, sig.dir, sig.name)
                 held = self._anchor_freeze.get(ident)
                 if held is None:
-                    self._anchor_freeze[ident] = (sig.stop_anchor, sig.stop_src)
-                elif held[1] != "developing" and held[0] != sig.stop_anchor:
+                    self._anchor_freeze[ident] = (sig.stop_anchor, sig.stop_src, sig.stop_src_ts)
+                elif held[1] != "developing" and (
+                    held[0] != sig.stop_anchor or held[2] != sig.stop_src_ts
+                ):
                     raise AssertionError(
-                        f"stop anchor drift for {ident}: {held[0]} -> {sig.stop_anchor}"
+                        f"stop anchor drift for {ident}: {held[0]}@{held[2]} -> "
+                        f"{sig.stop_anchor}@{sig.stop_src_ts}"
                     )
         # TVB-23 read-only retracement census (prereg ruling 5): evaluated
         # on the bar-start position BEFORE the position step, so the entry

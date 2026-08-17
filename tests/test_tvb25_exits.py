@@ -121,6 +121,64 @@ def test_state_stop_type3_hour_also_exits():
     assert ev[-1]["kind"] == "state" and ev[-1]["price"] == 101.8
 
 
+# --- D14 entry-hour ruling (2026-08-16, TVB-26 audit F3, user-ruled) ---------
+# The entry hour COUNTS: an entry on the hour-completing bar of an hour whose
+# range broke the prior opposite extreme exits at that same bar's close --
+# matching how mid-hour entries already behave and the i3 degenerate shape.
+
+
+def test_d14_entry_bar_state_degenerate_long():
+    tw = _state_twin()
+    ev = _drive_hours(
+        tw,
+        [
+            (0, 100.0, 101.0, 99.5, 100.8),  # prev hour 101/99.5; gates at 100
+            (HOUR, 100.9, 102.0, 99.0, 101.5),  # breaks BOTH sides: enter + out
+        ],
+    )
+    assert [(e["action"], e.get("kind")) for e in ev] == [("enter", None), ("exit", "state")]
+    assert ev[1]["ts"] == HOUR and ev[1]["price"] == 101.5  # that bar's close
+    assert ev[1]["state_degenerate"] is True
+    assert tw.exit_counters["state_degenerate"] == 1 and tw.pos == 0
+
+
+def test_d14_entry_bar_state_degenerate_short():
+    tw = _state_twin()
+    ev = _drive_hours(
+        tw,
+        [
+            (0, 100.0, 101.0, 99.5, 99.2),  # close below the opens: gate down
+            (HOUR, 99.3, 101.6, 99.0, 99.1),  # short entry + prior HIGH broken
+        ],
+    )
+    assert [(e["action"], e.get("kind")) for e in ev] == [("enter", None), ("exit", "state")]
+    assert ev[0]["dir"] == "short" and ev[1]["price"] == 99.1
+    assert tw.exit_counters["state_degenerate"] == 1 and tw.pos == 0
+
+
+def test_d14_entry_bar_boundary_one_tick():
+    # strict-break boundary: exactly one tick beyond fires, less does not
+    tw = _state_twin()
+    ev = _drive_hours(
+        tw,
+        [
+            (0, 100.0, 101.0, 99.5, 100.8),
+            (HOUR, 100.9, 102.0, 99.49, 101.5),  # 99.5 - 99.49 = one tick
+        ],
+    )
+    assert [(e["action"], e.get("kind")) for e in ev] == [("enter", None), ("exit", "state")]
+    tw2 = _state_twin()
+    ev2 = _drive_hours(
+        tw2,
+        [
+            (0, 100.0, 101.0, 99.5, 100.8),
+            (HOUR, 100.9, 102.0, 99.495, 101.5),  # half a tick: no break
+        ],
+    )
+    assert [(e["action"], e.get("kind")) for e in ev2] == [("enter", None)]
+    assert tw2.pos == 1 and tw2.exit_counters["state_degenerate"] == 0
+
+
 # --- intrabar-3 invalidation ------------------------------------------------
 
 
@@ -273,6 +331,10 @@ def test_p2_same_bar_arm_and_fire():
     ]
     assert ev[-1]["price"] == entry_px and tw.pos == 0
     assert abs(sum(e["frac"] for e in ev) - 1.0) < 1e-9
+    # D9 (TVB-25 audit F1): the bank->floor arm-and-fire bar IS a collision
+    # bar -- the bar-start snapshot alone cannot see the just-armed floor
+    assert tw.exit_counters["collision_bars"] == 1
+    assert tw.collision_pairs == {"prot+tgt": 1}
 
 
 def test_p2_short_ladder_folds_missing_rungs_into_runner():

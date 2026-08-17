@@ -254,6 +254,13 @@ def _replay_arm_v25(entry: dict, arm: dict, warm: dict, ws: int, we: int, bars_d
             continue  # counted with the open position below
         trade_pnls.append(sum(e.get("frac", 1.0) * e["pnl_pct"] for e in exs))
         last = max(exs, key=lambda e: e["ts"])
+        if last["ts"] <= ets:
+            # zero-duration episode (i3/state degenerate: enter and exit on
+            # the same 5m bar). P&L stays in trade_pnls; MFE/MAE/give-back
+            # are excluded (episode_metrics requires exit_time > entry_time
+            # and a one-bar window has no excursion to measure); the engine
+            # exit_counters carry the counted reason. TVB-25 audit F2.
+            continue
         i, j = bisect_left(ts_5m, ets), bisect_right(ts_5m, last["ts"])
         m = episode_metrics(
             rows_5m[i:j], last["dir"], ets, last["entry_px"], last["ts"], last["price"]
@@ -276,10 +283,13 @@ def _replay_arm_v25(entry: dict, arm: dict, warm: dict, ws: int, we: int, bars_d
         sign = 1.0 if twin.pos == 1 else -1.0
         open_mtm = (open_frac or 1.0) * sign * (last_bar[4] - twin.entry_px) / twin.entry_px * 100.0
         i = bisect_left(ts_5m, twin.entry_ts)
-        m = episode_metrics(
-            rows_5m[i:wj], open_dir, twin.entry_ts, twin.entry_px, int(last_bar[0]), last_bar[4]
-        )
-        episodes.append((m["mfe"] * 100, m["mae"] * 100, m["give_back_pp"]))
+        if int(last_bar[0]) > twin.entry_ts:
+            # same zero-duration guard as the closed path: a position opened
+            # on the window's final bar has no excursion window yet
+            m = episode_metrics(
+                rows_5m[i:wj], open_dir, twin.entry_ts, twin.entry_px, int(last_bar[0]), last_bar[4]
+            )
+            episodes.append((m["mfe"] * 100, m["mae"] * 100, m["give_back_pp"]))
         oe = entries_by_ts.get(twin.entry_ts)
         open_pattern = oe.get("pattern") if oe else None
         open_row = {
@@ -372,6 +382,7 @@ def _replay_arm_v25(entry: dict, arm: dict, warm: dict, ws: int, we: int, bars_d
         "veto_counts": vc,
         "counter_reconciliation_ok": recon_counter_ok,
         "exit_counters": dict(twin.exit_counters),
+        "collision_pairs": dict(twin.collision_pairs),
         "open_pattern": open_pattern,
         "pattern_census": census,
         "tranche_reconciliation_bad": recon_bad,
@@ -406,6 +417,10 @@ def _rollup_arm(arm: dict, sym_results: list[dict]) -> dict:
     kinds_n = {k: sum(r["exit_kind_n"][k] for r in recs) for k in EXIT_KINDS_V25}
     kinds_pp = {k: round(sum(r["exit_kind_pp"][k] for r in recs), 4) for k in EXIT_KINDS_V25}
     counters = {k: sum(r["exit_counters"][k] for r in recs) for k in recs[0]["exit_counters"]}
+    pairs: dict[str, int] = {}
+    for r in recs:
+        for k, v in r.get("collision_pairs", {}).items():
+            pairs[k] = pairs.get(k, 0) + v
     return {
         "arm_id": arm["arm_id"],
         "label": arm["label"],
@@ -424,6 +439,7 @@ def _rollup_arm(arm: dict, sym_results: list[dict]) -> dict:
         "exit_kind_n": kinds_n,
         "exit_kind_pp": kinds_pp,
         "exit_counters": counters,
+        "collision_pairs": dict(sorted(pairs.items())),
         "n_open": sum(1 for r in recs if r["open_dir"]),
         "med_pnl_pct": round(_med(all_pnls), 4) if all_pnls else None,
         "win_rate": (
@@ -607,6 +623,19 @@ def _matched_entry(
     }
 
 
+def _expected_family_arms(
+    fam: tuple[str, ...], requested_ids: set[str], anchor_ids: set[str], smoke: bool
+) -> tuple[str, ...]:
+    """Declared entry-stream-gate expectation. NEVER derived from produced
+    streams (TVB-25 audit F4: passing the produced set as expected_arms
+    removes a missing arm from the exact-set check before it runs).
+    Canonical runs expect the FULL declared family; smoke runs expect the
+    requested arm subset plus the supplied anchors."""
+    if not smoke:
+        return fam
+    return tuple(a for a in fam if a in requested_ids or a in anchor_ids)
+
+
 def _run_window(
     label: str,
     ws: int,
@@ -616,6 +645,7 @@ def _run_window(
     bars_dir: str,
     out_dir: Path,
     anchors: dict,
+    smoke: bool,
 ) -> dict:
     """Replay one window: all `arms` + in-memory family anchors; gates."""
     t0 = time.time()
@@ -657,6 +687,8 @@ def _run_window(
     # entry-stream gates per family (anchors joined in, filtered to the
     # replayed symbol scope so smoke subsets stay comparable)
     replayed = {e["name"] for e in symbols}
+    requested_ids = {a["arm_id"] for a in arms}
+    anchor_ids = {k for k in anchors if not k.endswith("_events")}
     gate_results = {}
     for fam_name, fam, pattern_family in (
         ("control", CONTROL_FAMILY, False),
@@ -669,14 +701,14 @@ def _run_window(
                 a_streams, a_recs = anchors[a]
                 streams[a] = {s: v for s, v in a_streams.items() if s in replayed}
                 recs_f[a] = {s: v for s, v in a_recs.items() if s in replayed}
-        present = tuple(a for a in fam if a in streams)
-        fails = _entry_stream_gate(streams, recs_f, present, replayed)
+        expected = _expected_family_arms(fam, requested_ids, anchor_ids, smoke)
+        fails = _entry_stream_gate(streams, recs_f, expected, replayed)
         if fails:
             for m in fails[:10]:
                 print(f"  [{label}/{fam_name}] entry-stream gate: {m}")
             raise SystemExit(f"[{label}] ENTRY-STREAM GATE FAILED ({fam_name})")
-        gate_results[fam_name] = {"arms": list(present), "pass": True}
-        print(f"[{label}] entry-stream gate PASS ({fam_name}: {present})", flush=True)
+        gate_results[fam_name] = {"arms": list(expected), "pass": True}
+        print(f"[{label}] entry-stream gate PASS ({fam_name}: {expected})", flush=True)
 
     # matched-entry diagnostics with the F5 frozen-state contract
     fam_events = dict(arm_events)
@@ -822,7 +854,9 @@ def main() -> None:
         for ln in (T1FLOOR_EVENTS_DIR / "events_D1.jsonl").read_text(encoding="utf-8").splitlines()
         if ln.strip()
     ]
-    july = _run_window("july", ws, we, new_arms, symbols, args.bars_dir, out_dir, anchors_july)
+    july = _run_window(
+        "july", ws, we, new_arms, symbols, args.bars_dir, out_dir, anchors_july, smoke
+    )
 
     # fresh window (D8): all arms -- 13 existing rerun + the new arms
     fresh = None
@@ -834,7 +868,7 @@ def main() -> None:
             {**a, "family": "package" if a["arm_id"] == "D1" else "existing"} for a in T1FLOOR_ARMS
         ]
         fresh = _run_window(
-            "fresh", fs, fe, existing + new_arms, symbols, args.bars_dir, out_dir, {}
+            "fresh", fs, fe, existing + new_arms, symbols, args.bars_dir, out_dir, {}, smoke
         )
 
     manifest = {

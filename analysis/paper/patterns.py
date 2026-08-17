@@ -94,6 +94,9 @@ class Signal:
     # the first-detection value per identity. None -> ATR fallback (D2).
     stop_anchor: float | None = None
     stop_src: str | None = None  # "closed[-1]" | "closed[-2]" | "developing"
+    # absolute source-bar timestamp of the anchor (signal-TF bar start; the
+    # amendment's promised source record -- TVB-25 audit F6)
+    stop_src_ts: int | None = None
 
 
 def _is_hammer(o: float, h: float, l: float, c: float) -> bool:  # noqa: E741
@@ -378,10 +381,13 @@ class PatternDetector:
                 "1-3-1-2d": (H2, "closed[-2]"),
             }
         )
-        stop_anchor = stop_src = None
+        stop_anchor = stop_src = stop_src_ts = None
         hit = stop_map.get(name)
         if hit is not None and hit[0] is not None:
             stop_anchor, stop_src = hit
+            # self.key is the developing signal-TF bar's start timestamp
+            off = {"developing": 0, "closed[-1]": 1, "closed[-2]": 2}[stop_src]
+            stop_src_ts = self.key - off * cfg.tf_s
 
         pmg_hit = is_rev and (sig_dir == 1 and bull_pmg or sig_dir == -1 and bear_pmg)
         if pmg_hit:
@@ -442,4 +448,5 @@ class PatternDetector:
             ladder=ladder,
             stop_anchor=stop_anchor,
             stop_src=stop_src,
+            stop_src_ts=stop_src_ts,
         )
