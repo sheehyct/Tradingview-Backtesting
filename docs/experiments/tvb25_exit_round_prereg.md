@@ -341,3 +341,58 @@ Merge-integrity check run before commit: zero July-window rows changed,
 zero rows dropped, zero 5m continuity holes; exactly one post-window row
 revised per file (the 2026-08-04 00:00-00:50 UTC bars captured while
 FORMING by the 2026-08-04 00:45Z archive run, now completed values).
+[Superseded on the per-file count by the 2026-08-16b amendment below:
+31 of 33 files, two timestamps.]
+
+### Amendment 2026-08-16b (TVB-26, external-audit fold; user-ruled where noted)
+
+Repairs and clarifications from the returned TVB-25 audit
+(docs/reviews/tvb25-codex-audit.md). Nothing above this section is
+rewritten; the canonical artifacts are regenerated under this text.
+
+- **D14 entry-hour ruling (audit F3; USER-RULED, literal-inclusive):**
+  the entry hour COUNTS. An entry on the hour-completing 5m bar of an
+  hour whose range broke the prior hour's opposite extreme against the
+  new position exits at that same bar's close (state stop, counted
+  `state_degenerate`) -- exactly as a mid-hour entry in that same hour
+  already would at the hour close, and mirroring the i3 degenerate
+  convention on the entry bar. On a shared entry bar i3 precedes state
+  (race steps 1 vs 8). The intrahour position of the break is NOT
+  consulted (pessimistic, order-free within the hour, consistent with
+  D14's Type-3-hour-included text). The alternatives (entry hour never
+  counts; post-entry-breaks-only) were declined -- both would also
+  rewrite the already-ruled mid-hour behavior.
+- **D9 census repair (audit F1):** the collision census accumulates
+  class satisfiability across the ordered within-bar state transitions
+  (the bank->floor and retrace->breakeven armings add the protective
+  class mid-bar); each bar counts once. The TVB-25 canonical counters
+  understated the P2/PX arm-and-fire collisions (report Finding 5 and
+  the ledger line are superseded by the regenerated artifacts).
+  ADDITIVE diagnostic: `collision_pairs` (counts per colliding class
+  combination) rides beside the pinned counter so the promised revisit
+  of the provisional risk-first order can see WHICH combinations
+  collide -- reporting-only, no behavior change.
+- **P2 no-bank ladder (audit F6a):** "leaves 90% runner" above is
+  corrected to **100% runner** -- folding all four missing banks
+  (40+20+20+10) into the 10% base runner leaves the full position
+  riding. The engine, fixtures, and committed events already implement
+  100%; the prose was arithmetically wrong.
+- **Stop-anchor source record (audit F6b):** the promised source-bar
+  record is implemented as `stop_src_ts` -- the absolute signal-TF
+  bar-start timestamp of the anchor source, derived from the relative
+  token at detection -- frozen with the anchor, drift-asserted, and
+  emitted on entry events beside `stop_src`.
+- **D13 merge note correction (audit F7):** the harvest revised one
+  shared post-window row in 31 of 33 files (22 rows at 2026-08-04
+  00:00 UTC, 9 at 00:50 UTC); MRVL 5m and MSFT 5m revised none (their
+  prior files ended before the appended sequence). The verified claims
+  stand unchanged: zero rows dropped, zero July-window rows changed,
+  zero 5m continuity holes.
+- **Zero-duration episodes (audit F2):** i3/state degenerate episodes
+  (exit ts == entry ts) keep their P&L and counted reason; they are
+  excluded from MFE/MAE/give-back (no excursion window exists). The
+  runner supports them end-to-end (regression-tested).
+- **Gate expectation (audit F4):** the entry-stream gate's expected arm
+  set is DECLARED -- the full family on canonical runs, the requested
+  subset plus anchors on smoke runs -- never derived from produced
+  streams.
