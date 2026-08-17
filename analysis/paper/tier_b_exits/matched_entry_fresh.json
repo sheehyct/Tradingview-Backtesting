@@ -50,13 +50,13 @@
   },
   "n_matched_all": 27,
   "n_matched_all_closed": 24,
-  "pairwise_identities_checked": 1909,
+  "pairwise_identities_checked": 1927,
   "per_arm_identities": {
    "A0b": 106,
    "A0bS": 123,
-   "S0a": 486,
-   "S0b": 486,
-   "S0c": 543
+   "S0a": 492,
+   "S0b": 492,
+   "S0c": 549
   }
  },
  "package": {

@@ -172,17 +172,17 @@
   "xyz_TSLA_5m.json": "544a982345064fd2"
  },
  "determinism": {
-  "elapsed_s": 31.9,
+  "elapsed_s": 31.3,
   "mismatches": [],
   "t1floor_rows": 88,
   "tier_b_rows": 55
  },
  "executed_blobs": {
-  "engine.py": "00113af080435f58",
-  "patterns.py": "5a67e6dcf0b29a3d",
+  "engine.py": "98302d86d0fe7563",
+  "patterns.py": "298cdeb9af06eebf",
   "sweep_tier_a.py": "e3ba3f7a694abd77",
   "tier_b.py": "8714b93591276b02",
-  "tier_b_exits.py": "6e4b39d2cb6e8489",
+  "tier_b_exits.py": "1d1e65b62e1ea1dc",
   "tier_b_t1floor.py": "5675c8d265027909"
  },
  "fee_side_pct": 0.0125,
@@ -236,14 +236,12 @@
    }
   }
  },
- "git_dirty": true,
- "git_dirty_paths": [
-  "?? analysis/paper/tier_b_exits/"
- ],
- "git_head": "7f3626ede57ae144342419db19f2b65ea9dc7f8c",
+ "git_dirty": false,
+ "git_dirty_paths": [],
+ "git_head": "cea3372953f9d0ef478dd70acbfc98f3224da644",
  "label": "PRE-COMMITTED LAYER ABLATION + LADDER-BOTTOM VALIDATION + FRESH REPLICATION",
  "prereg": "docs/experiments/tvb25_exit_round_prereg.md",
- "prereg_blob_sha256": "2d655739025c9a11779a82c4e72b35efd93c5e487fa5bdb842de9c1424bfaaee",
+ "prereg_blob_sha256": "196b8eb31dff7de63aade9aa9b9743a93a647aefc301b91d5976c44bded5dcb7",
  "smoke": false,
  "windows": {
   "fresh": {
