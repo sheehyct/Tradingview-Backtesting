@@ -31,7 +31,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| hip3-executor (PRIMARY; private github.com/sheehyct/hip3-executor) | `C:\Strat_Trading_Bot\hip3-executor` | `e93d748^..f4011b6` (10 commits: executor build, paper/live brokers, rules gates, VPS deploy kit, dated mid-weekend rulings -- continuation escalation, min_reward_risk 1.0, operator alerts, hourly P/L -- fixes learned live, and the committed weekend-1 ledger under `runs/2026-08-22_weekend1/`) |
+| hip3-executor (PRIMARY; private github.com/sheehyct/hip3-executor) | `C:\Strat_Trading_Bot\hip3-executor` | `e93d748^..c8e65f4` (12 commits: executor build, paper/live brokers, rules gates, VPS deploy kit, dated mid-weekend rulings -- continuation escalation, min_reward_risk 1.0, operator alerts, hourly P/L -- fixes learned live, the committed weekend-1 ledger under `runs/2026-08-22_weekend1/`, the private ledger README 39255a9, and the TVB-28 ledger ANALYSIS c8e65f4 -- `analysis/weekend1.py` + `ANALYSIS.md` + `analysis.json` + committed venue ground truth. Range EXTENDED 2026-08-24 by TVB-28: the analysis is IN scope and its findings are provisional until this review returns) |
 | tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `59cda10^..59cda10` (1 commit, 4 paths, docs only: TVB-26 audit recorded + status flips + TVB-27 session-end docs. RANGE-PIN RULE: the caret keeps 59cda10 in the diff; sanity-checked with `git diff --name-status`. The pin commit after 59cda10 is docs-only routing, out of range. Sibling hip3-executor gained one post-range docs commit 39255a9 -- the private ledger README the focus areas reference.) |
 
 ## Read first (in this order)
@@ -43,7 +43,9 @@
    exits, P/L reporting), `deploy/` (VPS kit incl. the hidden-prompt
    secret handling).
 3. `runs/2026-08-22_weekend1/` -- the canonical ledger (decisions /
-   trades / tracker JSONL + state.json).
+   trades / tracker JSONL + state.json) plus the TVB-28 analysis layer
+   (`ANALYSIS.md`, `analysis.json`, `venue/` ground truth,
+   `analysis/weekend1.py`).
 4. This repo's `docs/HANDOFF.md` TVB-27 entry (the session record).
 
 ## Focus areas (scrutinize these)
@@ -68,6 +70,18 @@
 5. Change discipline: every mid-weekend change is reporting-side or
    entry-side, dated, none retro-applied to open positions or past rows.
 6. request.security: NO pine file changed this session -- verify none did.
+7. TVB-28 ANALYSIS (added 2026-08-24, `analysis/weekend1.py` +
+   `runs/2026-08-22_weekend1/ANALYSIS.md` + `analysis.json`): reproduce the
+   to-the-cent reconciliation (deposit 52.60 - closedPnl 6.0327 - fees
+   0.8082 - funding 0.0084 = 45.7507 vs 45.75); scrutinize the
+   counterfactual method (1m-candle first-touch with stop-before-target
+   pessimism; the ftfc-flip approximation from sparse decisions rows is
+   bracket-biased; slots/cooldown/day-cap NOT applied to refused-setup sims
+   -- upper bound framing must survive); check the headline claims (flip
+   exits +29.71pp vs riding to stops; cont 0/7 structural no-TP argument;
+   rr-floor refusals mean -0.154%/trade gross; account_value() isolated-
+   margin double-count) against the journals and venue files. The analysis
+   findings are PROVISIONAL until this review returns.
 
 Standing priorities apply (model fidelity; overfitting language; this
 was a MECHANICS test -- any P&L claim beyond "mechanics passed, account
