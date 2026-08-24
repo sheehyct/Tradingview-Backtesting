@@ -5,6 +5,130 @@
 
 ---
 
+## Session TVB-27: Live pivot -- hip3-executor built, VPS-deployed, weekend-1 live test run and closed (COMPLETE)
+
+**Date:** 2026-08-21..24 (multi-day session; user on remote control)
+**Status:** COMPLETE -- USER-DIRECTED pivot away from the planned TVB-26
+fold: a new PRIVATE repo (hip3-executor) was built from scratch, deployed
+to the ATLAS VPS, and traded a dedicated $52.60 Hyperliquid agent-wallet
+account live and unattended Fri 14:26 -> Sun 21:58 UTC. Killed FLAT by
+user decision (momentum stalled). Mechanics verdict: PASS on the
+pre-registered success metric (enters/sizes/brackets/exits as designed).
+The TVB-26 fold was flipped RETURNED at session start and DEFERRED (user
+ruling) -- it remains owed.
+
+### What was accomplished
+
+- TVB-26 review flipped RETURNED (audit committed this session-end:
+  NEEDS-CHANGES, 1 MEDIUM + 3 LOW; the MEDIUM carries a user checkpoint
+  on the D9 risk-first ruling's worse-fill premise). Fold deferred by
+  user direction; owed to TVB-28.
+- hip3-executor BUILT (github.com/sheehyct/hip3-executor, PRIVATE; local
+  C:\Strat_Trading_Bot\hip3-executor; commits e93d748..f4011b6): Python
+  3.12/uv + hyperliquid-python-sdk; consumes hip3-scanner /api/state
+  (single detection source -- the executor never analyzes bars); paper
+  and live brokers behind one interface; venue-resident stop+target
+  brackets; software exits (Type-3 invalidation with rev3 exemption,
+  ftfc opposite-flip, hold-through-mixed); decision/trade/tracker JSONL
+  journals; KILL / KILL_FLAT kill switches; agent wallet signs orders
+  only (cannot withdraw -- blast radius = wallet balance); key entered
+  only via hidden-prompt scripts in the user's own SSH session, never
+  through chat (a mid-session user offer to relax this was declined).
+- RULESET v0, all dated user rulings: rev signals on 1h/4h/1d + full
+  15m/1h/4h/1d ftfc alignment; transition-based entries with
+  per-signal-per-bar dedup + restart baseline; $30 fixed notional,
+  isolated 10x (venue max clamp); MAE-clearance (stop inside 0.8/lev or
+  skip); full exit at structural T1 + 24h post-exit rung tracking; main
+  dex crypto only (xyz excluded -- weekend oracle dynamics), $1M 24h
+  volume floor; max 2 concurrent, 60min cooldown, 12 entries/UTC day.
+- MID-WEEKEND RULINGS (all dated, all before the Saturday freeze):
+  continuation ESCALATE mode (a cont qualifies only with a live in-force
+  higher-TF reversal behind it -- the user's "go up in timeframes until
+  you find it", mechanized); min_reward_risk 1.0 entry floor (refuses
+  the tiny-target/reclaim class the TVB-22 research named; fired on 22
+  candidates at first snapshot); operator-grade alerts (dollar
+  notional/margin/risk on entry; dollar P/L + unified-account balance on
+  exit); hourly Discord P/L report (day resets 00:00 UTC + since-start).
+- VPS DEPLOY (ATLAS VPS, atlas@, IP in session chat only -- never
+  committed): tar-over-scp deploy kit, remote setup, phone runbook,
+  hidden-prompt env + webhook scripts, preflight (derives agent address
+  from the key WITHOUT exposing it, checks venue approval + balance --
+  caught the user pasting the agent ADDRESS instead of the private key).
+- WEEKEND-1 LIVE RESULT: 34 round trips, 9/34 winners, gross -6.04 USD;
+  account 52.60 -> 45.75 (-6.85 net incl fees; day P/L Fri -2.01 / Sat
+  -0.33 / Sun -3.70); exits 15 ftfc_flip / 8 stop / 5 target / 4
+  unknown_exit (all pre-fix Friday) / 2 kill_flat; 11,909 decisions
+  journaled. First trades: PENDLE long (bracketed on venue, verified via
+  public API) and PYTH long booked AT target to the tick 17s after entry.
+- LIVE LESSONS FIXED SAME DAY: Hyperliquid AUTO-CANCELS the reduce-only
+  sibling when a position closes (exit classification now matches the
+  closing fill's oid); paper positions rehydrate across restarts; a lint
+  hook stripped a briefly-unused import between edits (verify against
+  the source tree, not the cached build).
+- CLOSED FLAT 2026-08-24 21:58 UTC via KILL_FLAT (user decision):
+  0 positions, 0 orders verified via public API; canonical ledger
+  committed at hip3-executor/runs/2026-08-22_weekend1/ (f4011b6);
+  data/KILL_FLAT left on the VPS as a restart interlock.
+
+### Context for next session
+
+- FIRST TASK (user directive): heavy analysis of the weekend ledger,
+  BINDING FORM = every finding in both code/automation vocabulary AND
+  plain trader English. Seeded questions in .session_startup_prompt.md.
+- TVB-26 fold still owed (deferred twice); the MEDIUM needs the user.
+- Month-end fresh-window extension ~Sep 1.
+- Agent approval expires ~2026-08-29; rm data/KILL_FLAT deliberately
+  before any future live run.
+
+### Files created/modified
+
+- This repo: docs/reviews/REVIEW_REQUEST.md + docs/HANDOFF.md (TVB-26
+  status flips at session start; this entry + rewritten request at
+  close), .session_startup_prompt.md, docs/reviews/tvb26-codex-audit.md
+  (returned audit, committed).
+- Sibling repo hip3-executor (PRIVATE, all work): full build -- see
+  commits e93d748..f4011b6 there.
+
+### Open
+
+- [ ] Weekend-1 ledger analysis, dual-language form (TVB-28 first task)
+- [ ] Fold the TVB-26 external review (owed since 2026-08-17; MEDIUM has
+      a user checkpoint on the D9 risk-first worse-fill premise)
+- [ ] Month-end fresh-window extension through 2026-08-31 24:00 UTC (~Sep 1)
+- [ ] Executor round-2 decisions after the analysis (user-owned; agent
+      re-approval needed ~08-29; KILL_FLAT interlock on the VPS)
+- [ ] Carried from TVB-26: TV mirror per arm on demand + pine header
+      wording; assessment owner decisions; TVB-18 repairs bundle; M+T
+      PMG+ nudge; jackson set_inputs fix; tvb8/tvb9 unreturned
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb27-codex-audit.md.
+> See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: pinned in docs/reviews/REVIEW_REQUEST.md after push
+  (this repo: docs-only). PRIMARY REVIEW TARGET is the sibling repo
+  hip3-executor at C:\Strat_Trading_Bot\hip3-executor (PRIVATE remote;
+  local access), range `e93d748^..f4011b6` -- the entire executor build,
+  the weekend rulings, and the committed ledger.
+- Scope / what changed: live micro-capital executor built + deployed +
+  run + closed; this repo carries only status flips and session docs.
+- Focus areas (scrutinize these): (1) order lifecycle correctness in
+  broker.py (bracket placement, reconcile-on-vanish, oid-match exit
+  classification, the never-hold-without-a-stop abort); (2) rules.py
+  gates vs the dated rulings (escalation, R:R floor, MAE clearance,
+  in-force); (3) ledger integrity -- journals vs venue fills (the
+  runs/2026-08-22_weekend1 artifacts; 4 unknown_exit rows predate the
+  oid fix, dated); (4) no secrets anywhere in the committed tree; (5)
+  the mid-weekend change discipline (every change reporting-side or
+  entry-side, dated, none retro-applied).
+- Reviewed by: pending
+- Findings: (blank until docs/reviews/tvb27-codex-audit.md exists)
+
+---
+
 ## Session TVB-26: TVB-25 audit folded in full, canonical rerun (COMPLETE)
 
 **Date:** 2026-08-16
@@ -125,7 +249,8 @@ amendment 2026-08-16b, report + ledger corrected. Seven commits pushed.
 > below) and write a verbatim assessment to docs/reviews/tvb26-codex-audit.md.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: REQUESTED
+- Review status: RETURNED (2026-08-17, docs/reviews/tvb26-codex-audit.md --
+  NEEDS-CHANGES, 1 MEDIUM + 3 LOW; critical synthesis pending the TVB-27 fold)
 - Commits to review: `53599c4^..7f91c9c` on `main` (7 commits, 30 paths;
   RANGE-PIN RULE: the caret keeps 53599c4 in the diff; sanity-checked
   with `git diff --name-status`; the pin commit after 7f91c9c is
