@@ -108,11 +108,12 @@ ruling) -- it remains owed.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: pinned in docs/reviews/REVIEW_REQUEST.md after push
-  (this repo: docs-only). PRIMARY REVIEW TARGET is the sibling repo
-  hip3-executor at C:\Strat_Trading_Bot\hip3-executor (PRIVATE remote;
-  local access), range `e93d748^..f4011b6` -- the entire executor build,
-  the weekend rulings, and the committed ledger.
+- Commits to review: this repo `59cda10^..59cda10` (docs only; the pin
+  commit after it is routing, out of range). PRIMARY REVIEW TARGET is
+  the sibling repo hip3-executor at C:\Strat_Trading_Bot\hip3-executor
+  (PRIVATE remote; local access), range `e93d748^..f4011b6` -- the
+  entire executor build, the weekend rulings, and the committed ledger
+  (+ post-range docs commit 39255a9, the private ledger README).
 - Scope / what changed: live micro-capital executor built + deployed +
   run + closed; this repo carries only status flips and session docs.
 - Focus areas (scrutinize these): (1) order lifecycle correctness in

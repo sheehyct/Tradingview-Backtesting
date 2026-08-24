@@ -32,7 +32,7 @@
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
 | hip3-executor (PRIMARY; private github.com/sheehyct/hip3-executor) | `C:\Strat_Trading_Bot\hip3-executor` | `e93d748^..f4011b6` (10 commits: executor build, paper/live brokers, rules gates, VPS deploy kit, dated mid-weekend rulings -- continuation escalation, min_reward_risk 1.0, operator alerts, hourly P/L -- fixes learned live, and the committed weekend-1 ledger under `runs/2026-08-22_weekend1/`) |
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | {pending push -- docs only: TVB-26 audit recorded + status flips + TVB-27 session-end docs} |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `59cda10^..59cda10` (1 commit, 4 paths, docs only: TVB-26 audit recorded + status flips + TVB-27 session-end docs. RANGE-PIN RULE: the caret keeps 59cda10 in the diff; sanity-checked with `git diff --name-status`. The pin commit after 59cda10 is docs-only routing, out of range. Sibling hip3-executor gained one post-range docs commit 39255a9 -- the private ledger README the focus areas reference.) |
 
 ## Read first (in this order)
 
