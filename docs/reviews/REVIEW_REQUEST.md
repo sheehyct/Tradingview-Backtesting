@@ -31,7 +31,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| hip3-executor (PRIMARY; private github.com/sheehyct/hip3-executor) | `C:\Strat_Trading_Bot\hip3-executor` | `e93d748^..c8e65f4` (12 commits: executor build, paper/live brokers, rules gates, VPS deploy kit, dated mid-weekend rulings -- continuation escalation, min_reward_risk 1.0, operator alerts, hourly P/L -- fixes learned live, the committed weekend-1 ledger under `runs/2026-08-22_weekend1/`, the private ledger README 39255a9, and the TVB-28 ledger ANALYSIS c8e65f4 -- `analysis/weekend1.py` + `ANALYSIS.md` + `analysis.json` + committed venue ground truth. Range EXTENDED 2026-08-24 by TVB-28: the analysis is IN scope and its findings are provisional until this review returns) |
+| hip3-executor (PRIMARY; private github.com/sheehyct/hip3-executor) | `C:\Strat_Trading_Bot\hip3-executor` | `e93d748^..ddbd9d0` (13 commits: executor build, paper/live brokers, rules gates, VPS deploy kit, dated mid-weekend rulings -- continuation escalation, min_reward_risk 1.0, operator alerts, hourly P/L -- fixes learned live, the committed weekend-1 ledger under `runs/2026-08-22_weekend1/`, the private ledger README 39255a9, and the TVB-28 ledger ANALYSIS c8e65f4 + MMQB addendum ddbd9d0 -- `analysis/weekend1.py` + `ANALYSIS.md` + `analysis.json` + committed venue ground truth. Range EXTENDED 2026-08-24 by TVB-28: the analysis is IN scope and its findings are provisional until this review returns) |
 | tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `59cda10^..59cda10` (1 commit, 4 paths, docs only: TVB-26 audit recorded + status flips + TVB-27 session-end docs. RANGE-PIN RULE: the caret keeps 59cda10 in the diff; sanity-checked with `git diff --name-status`. The pin commit after 59cda10 is docs-only routing, out of range. Sibling hip3-executor gained one post-range docs commit 39255a9 -- the private ledger README the focus areas reference.) |
 
 ## Read first (in this order)
@@ -82,6 +82,40 @@
    rr-floor refusals mean -0.154%/trade gross; account_value() isolated-
    margin double-count) against the journals and venue files. The analysis
    findings are PROVISIONAL until this review returns.
+8. MMQB addendum (ddbd9d0, user-requested survivorship audit): verify the
+   pool constructions (rails-blocked 211 / stack-blocked 256 unique
+   setups from decisions.jsonl skip reasons; selection is arrival-ordered
+   in `engine._scan_candidates`); adversarially probe the two census
+   headlines -- (a) bench-worse-than-starters (-0.843%/trade vs -0.595%),
+   (b) the confirmation-lag census (unconfirmed longs +0.525%/trade vs
+   confirmed-queued longs -0.442%, median -0.28%, top-8 sims = 93% of
+   pool profit). The flip-approximation lag plausibly FLATTERS unconfirmed
+   entries -- quantify or bound that bias if you can.
+
+## Advisory section requested (NON-BINDING, separate from findings)
+
+Beyond the defect audit, the user asks for the reviewer's independent
+strategy-level judgment, to be written as a clearly-labeled ADVISORY
+section at the end of the audit (opinions, not findings; the user will
+reconvene on these before any round-2 build/live test/strategy
+brainstorm). The user's questions, near-verbatim:
+
+- Honest thoughts on the current status of the strategy. Would anything
+  have changed the outcome for the better? Was it too over-restrictive in
+  some parts?
+- Any other considerations vs previous backtest results (this repo's
+  ARM_LEDGER / TVB-21..25 arcs are the reference; the executor is a
+  pattern-entry, T1-target, ftfc-gated book -- closer to the M+T package
+  world than to the continuity-only control).
+- The "Monday morning quarterback" survivorship audit: why did the
+  tickers that traded make the selection, and were any skipped ones
+  better trades? (TVB-28's MMQB addendum is our attempt -- critique it
+  and extend it if the data supports more.)
+- The user is considering running the system pattern-by-pattern
+  (separate books per signal name) in a future round -- thoughts on
+  whether that is informative characterization or a tournament trap,
+  and if informative, what design keeps it charter-clean (ablation
+  ladder, pre-registration, no promotion by census).
 
 Standing priorities apply (model fidelity; overfitting language; this
 was a MECHANICS test -- any P&L claim beyond "mechanics passed, account
