@@ -162,8 +162,66 @@ and the collision-receipt instrument landed. All work pushed both repos.
   enforced; (5) the corrected ANALYSIS.md staying inside the
   mechanics-test boundary; (6) request.security: no Pine changed --
   verify.
-- Reviewed by: pending
-- Findings: (blank until docs/reviews/tvb28-codex-audit.md exists)
+- Reviewed by: Codex CLI (GPT-5), returned 2026-08-26; FOLDED by TVB-29
+  same day (this repo ddca002 + 7b4ae6a; hip3-executor 7d4fd86)
+- Findings / critical synthesis (TVB-29): ALL EIGHT findings reproduced
+  or confirmed BEFORE adjudication -- several digit-for-digit -- and
+  accepted with ZERO material disputes. The auditor first revalidated
+  our evidence base (suite 270 green, full tier_b_exits replay, 20
+  event streams byte-identical, the 58 memberships, the D9 signs), so
+  every finding attacks the instrument/contract layer, not the P&L.
+  - M1 REPRODUCED live: the canonical 8-arm t1floor caller fails its
+    own hardened 6-arm gate on A1F/D1ATR (probe confirmed), with event
+    files written pre-abort into the canonical dir; smoke runs also
+    wrote there unsuffixed (our finding, same class). FIX: _gate_scope
+    caller contract (produced==requested both ways + family-scoped gate
+    maps), staged event promotion after all gates, smoke out-dir
+    redirect, 3 real-shape caller regressions.
+  - M2 REPRODUCED exactly (58 members; 13 with no executable protective
+    exit: July P2 4/18, July PX 5/21, fresh P2 2/10, fresh PX 2/9).
+    USER RULED 2026-08-26: EXECUTABLE-ONLY -- corrected membership 45
+    (14/16/8/7), the arming-only transitions ride the new
+    floor_armed_inert counter (17 roster-wide: the 13 + 4 on bars never
+    collision-labeled). Event streams verified byte-identical under the
+    fix; report/prereg/ledger amended (dated); canonical rollups re-pin
+    at the month-end regen. Also explains the earlier 56-vs-58 split
+    (exact-pair vs superset counting).
+  - M3 REPRODUCED (the PX-July NBIS receipt scores BF +0.9pp "vs
+    executed" when BF was 60% of the actual path). USER RULED: honest
+    FIRST-FILL diagnostic -- field renamed delta_vs_first_fill_pct,
+    every both-ways claim narrowed; path-aware pricing deferred behind
+    a prereg.
+  - M4 CONFIRMED (e782e57 was prose-only) and the counterfactual is now
+    IMPLEMENTED with per-trade touch receipts + candle-cache sha256 in
+    analysis.json: 7/7 stop-first STANDS; the 6/7-within-0.2pp claim
+    did NOT reproduce -- corrected to 4/7 full precision (STX's venue
+    stop filled 1.0pp past its level; KAITO-down flipped 0.9pp before
+    its stop). ANALYSIS.md header cache claim corrected.
+  - M5 REPRODUCED exactly: med() picked the upper middle on even
+    samples (losers 4.48->4.465, R:R 1.87->1.745, align 108->104.5 /
+    69->68.4); denominators 9v18 + 6v20 now disclosed; frozen-rule
+    membership recomputed on the DECISION-time clock (same five coins
+    -- accidental parity, now stated); pre/post-freeze separated; the
+    STX targetless cont is exempt from the R:R gate and carries -3.84
+    of the -5.45 pre-freeze pp ("the process ruled it away" corrected).
+    Every census DIRECTION survives correction.
+  - M6/M7 ACCEPTED: causal/controlled-swap language rewritten to
+    upper-bound-census framing; README safety model states INTENDED vs
+    CURRENT per line until the gate lands; the two silently-shortened
+    gate requirements (durable KILL_FLAT zero/zero receipt;
+    candle/touch-receipt provenance) restored from the TVB-27 audit's
+    original wording.
+  - LOW-1 CONFIRMED: roster net now = roster gross minus the single
+    round-once roster fee, rollup returns fee_sides, invariant test
+    pins the algebra (drift case 2.9988 vs 2.9989 constructed).
+  - DISPUTED: nothing material.
+  - Regen note for the month-end extension: the canonical rollups now
+    re-pin with MORE deltas than previously listed -- receipts +
+    fee_sides + round-once fee (P1 1.0002->1.0000 July etc.), PLUS
+    net fields becoming gross-minus-roster-fee, PLUS the corrected
+    collision census (P2 14/9, PX 21/10, prot+tgt 45) and
+    floor_armed_inert. All expected, all documented in the report
+    amendments.
 
 ---
 
