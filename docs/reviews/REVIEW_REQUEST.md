@@ -30,7 +30,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `4a07107^..{pending push}` -- the TVB-27 review-scope docs commits (4a07107, c772864, 4bb6780, 3782383), the TVB-26/27 fold commit df291ef (engine collision receipts + two-way gate + round-once fee + 5 tests + D9 doc corrections + audit committed), and the session-end docs. RANGE-PIN RULE: the caret keeps 4a07107 in the diff; sanity-check with `git diff --name-status`. |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `4a07107^..9a964e1` (6 commits, 13 paths: the TVB-27 review-scope docs commits 4a07107/c772864/4bb6780/3782383, the TVB-26/27 fold commit df291ef -- engine collision receipts + two-way gate + round-once fee + 5 tests + D9 doc corrections + audit committed -- and session-end docs 9a964e1. RANGE-PIN RULE: the caret keeps 4a07107 in the diff; sanity-checked with `git diff --name-status` = 13 paths. The pin commit after 9a964e1 is docs-only routing, out of range.) |
 | hip3-executor (PRIVATE github.com/sheehyct/hip3-executor; local transport only) | `C:\Strat_Trading_Bot\hip3-executor` | `21bd2a9^..e782e57` (3 commits: conviction census 21bd2a9 -- UNREVIEWED by the TVB-27 audit, which was pinned at 2daf6a4; audit-fold corrections dd1a591; operator-context addendum e782e57) |
 
 ## Read first (in this order)

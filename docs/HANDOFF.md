@@ -135,13 +135,15 @@ and the collision-receipt instrument landed. All work pushed both repos.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: this repo `4a07107^..{head}` on `main` (the TVB-27
-  scope-extension docs commits + the fold commit df291ef + session-end
-  docs; concrete head pinned in REVIEW_REQUEST.md after push). Sibling
-  hip3-executor (PRIVATE, local path C:\Strat_Trading_Bot\hip3-executor):
-  `21bd2a9^..e782e57` -- the conviction census (EXPLICITLY unreviewed by
-  the TVB-27 audit, which was pinned at 2daf6a4), the audit-fold
-  corrections dd1a591, and the operator-context addendum e782e57.
+- Commits to review: this repo `4a07107^..9a964e1` on `main` (6 commits,
+  13 paths: the TVB-27 scope-extension docs commits + the fold commit
+  df291ef + session-end docs 9a964e1; sanity-checked via
+  `git diff --name-status`; the pin commit after 9a964e1 is routing,
+  out of range). Sibling hip3-executor (PRIVATE, local path
+  C:\Strat_Trading_Bot\hip3-executor): `21bd2a9^..e782e57` -- the
+  conviction census (EXPLICITLY unreviewed by the TVB-27 audit, which
+  was pinned at 2daf6a4), the audit-fold corrections dd1a591, and the
+  operator-context addendum e782e57.
 - Scope / what changed: TVB-26 fold (D9 relabel + user re-ruling +
   collision receipts + 3 LOW fixes + 5 tests); TVB-27 fold (analysis
   corrections, pre-live gate); conviction census; session docs.
