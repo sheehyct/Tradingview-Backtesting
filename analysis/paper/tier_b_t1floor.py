@@ -478,8 +478,12 @@ def _entry_stream_gate(
 ) -> list[dict]:
     """Fail-closed entry-stream gate (hardened 2026-08-16, TVB-24 audit F3).
 
-    (a) exact arm set: every expected depth arm must be present -- a missing
-        whole arm fails instead of silently shrinking the pair matrix;
+    (a) exact arm set, BOTH directions (TVB-26 audit LOW-2 hardened the
+        reverse side 2026-08-26): a missing expected arm fails instead of
+        silently shrinking the pair matrix, and a produced arm outside the
+        expected set fails instead of being silently accepted (a selector
+        or caller regression could otherwise write an unrequested arm
+        under a PASS);
     (b) stream-vs-rec reconciliation per arm+symbol: enter/exit counts in
         the comparison stream must equal the replay rec's n_trades/open_dir.
         This anchors the streams to the authoritative per-symbol rows, so a
@@ -495,6 +499,9 @@ def _entry_stream_gate(
     missing_arms = sorted(set(expected_arms) - set(arm_streams))
     if missing_arms:
         fails.append({"reason": "expected depth arm missing", "arms": missing_arms})
+    unexpected_arms = sorted(set(arm_streams) - set(expected_arms))
+    if unexpected_arms:
+        fails.append({"reason": "produced arm outside expected set", "arms": unexpected_arms})
     checked = [a for a in expected_arms if a in arm_streams]
     for a in checked:
         recs = arm_recs.get(a, {})

@@ -21,7 +21,15 @@ def _twin(**kw):
     return Twin(TwinConfig(symbol="SYN", mintick=0.01, entry_mode="pattern", **kw))
 
 
-def _sig(direction=1, trig=104.9, ladder=(), name="2-2u", stop_anchor=None, stop_src=None):
+def _sig(
+    direction=1,
+    trig=104.9,
+    ladder=(),
+    name="2-2u",
+    stop_anchor=None,
+    stop_src=None,
+    stop_src_ts=None,
+):
     return Signal(
         dir=direction,
         trig=trig,
@@ -35,6 +43,7 @@ def _sig(direction=1, trig=104.9, ladder=(), name="2-2u", stop_anchor=None, stop
         ladder=list(ladder),
         stop_anchor=stop_anchor,
         stop_src=stop_src,
+        stop_src_ts=stop_src_ts,
     )
 
 
@@ -230,6 +239,33 @@ def test_structural_stop_containment_and_gap_through_fills():
     assert ev[0]["kind"] == "stop" and ev[0]["price"] == 99.2
 
 
+def test_stop_src_ts_emitted_on_entry_for_each_source():
+    # TVB-26 audit LOW-4: stop_src_ts was implemented and reproduced but not
+    # regression-bound -- a deletion or off-by-one could pass the suite.
+    for src, src_ts, anchor in (
+        ("closed[-1]", -3600, 100.0),
+        ("closed[-2]", -7200, 99.5),
+        ("developing", 0, 100.2),
+    ):
+        tw = _twin(stop_mode="structural")
+        entry = _enter_long(tw, _sig(stop_anchor=anchor, stop_src=src, stop_src_ts=src_ts))
+        assert entry["stop_px"] == anchor and entry["stop_kind"] == "structural"
+        assert entry["stop_src"] == src and entry["stop_src_ts"] == src_ts
+
+
+def test_stop_anchor_freeze_wins_over_redetected_values():
+    # TVB-25 amendment: the FIRST detection's (anchor, src, src_ts) tuple is
+    # frozen per signal identity; entry consumes the FROZEN tuple even if
+    # the live Signal object carries drifted values.
+    tw = _twin(stop_mode="structural")
+    tw.pattern.key = 0
+    tw._anchor_freeze_key = 0
+    tw._anchor_freeze[(0, 1, "2-2u")] = (100.0, "closed[-1]", -3600)
+    entry = _enter_long(tw, _sig(stop_anchor=101.0, stop_src="closed[-2]", stop_src_ts=-7200))
+    assert entry["stop_px"] == 100.0
+    assert entry["stop_src"] == "closed[-1]" and entry["stop_src_ts"] == -3600
+
+
 def test_degenerate_anchor_falls_back_to_atr():
     tw = _twin(stop_mode="structural")
     tw.atr.value = 1.0
@@ -335,6 +371,13 @@ def test_p2_same_bar_arm_and_fire():
     # bar -- the bar-start snapshot alone cannot see the just-armed floor
     assert tw.exit_counters["collision_bars"] == 1
     assert tw.collision_pairs == {"prot+tgt": 1}
+    # D9 receipt (2026-08-26): the arm-and-fire prot candidate is priced
+    (rcpt,) = tw.collision_receipts
+    assert rcpt["classes"] == ["prot", "tgt"]
+    assert rcpt["candidates"]["prot"]["px"] == 105.5
+    assert rcpt["candidates"]["tgt"]["px"] == 106.0
+    assert rcpt["executed"][0]["kind"] == "tgt"
+    assert rcpt["delta_vs_executed_pct"]["prot"] < 0  # floor fill sits below the bank
 
 
 def test_p2_short_ladder_folds_missing_rungs_into_runner():
@@ -399,6 +442,34 @@ def test_stop_beats_target_on_collision_bar():
     ev = tw._position_step(300, 106.5, 99.5, 100.2, *NONES8, True, False, o=105.0)
     assert [e["kind"] for e in ev] == ["stop"] and ev[0]["price"] == 100.0
     assert tw.exit_counters["collision_bars"] == 1
+    # D9 receipt (2026-08-26): both classes priced beside the executed fill
+    (rcpt,) = tw.collision_receipts
+    assert rcpt["classes"] == ["stop", "tgt"]
+    assert rcpt["candidates"]["stop"]["px"] == 100.0
+    assert rcpt["candidates"]["tgt"]["px"] == 106.0
+    assert rcpt["executed"] == [{"kind": "stop", "price": 100.0, "frac": None}]
+    assert rcpt["delta_vs_executed_pct"]["stop"] == 0.0
+    assert rcpt["delta_vs_executed_pct"]["tgt"] > 0  # the road not taken paid more
+
+
+def test_collision_receipt_prices_i3_close_vs_stop_level():
+    # The TVB-26/27 audit counterexample class, pinned as a regression: i3
+    # fills at the 5m CLOSE while the stop fills at its LEVEL, so the ruled
+    # i3-first order can book the BETTER fill. Risk-first is a priority
+    # CONVENTION (user re-ruling 2026-08-24), not a per-bar pessimism
+    # guarantee -- the receipt prices the road not taken.
+    tw = _twin(intrabar3_exit=True, stop_mode="structural")
+    _prime_pattern(tw, key=0, prev_l=100.3)  # i3 level = 100.3
+    _enter_long(tw, _sig(stop_anchor=100.3, stop_src="closed[-1]"))
+    ev = tw._position_step(300, 105.0, 100.2, 104.9, *NONES8, True, False, o=104.5)
+    assert [e["kind"] for e in ev] == ["i3"] and ev[0]["price"] == 104.9
+    (rcpt,) = tw.collision_receipts
+    assert rcpt["classes"] == ["i3", "stop"]
+    assert rcpt["candidates"]["i3"]["px"] == 104.9
+    assert rcpt["candidates"]["stop"]["px"] == 100.3
+    assert rcpt["executed"][0]["kind"] == "i3"
+    # the stop would have exited ~4.4pp WORSE than the executed i3 close
+    assert rcpt["delta_vs_executed_pct"]["stop"] < -4.0
 
 
 def test_overlay_arm_without_trigger_matches_base_target_exit():

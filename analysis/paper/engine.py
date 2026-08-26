@@ -459,6 +459,13 @@ class Twin:
     # revisit of the provisional risk-first order (only order-sensitive
     # combinations can bite)
     collision_pairs: dict = field(default_factory=dict)
+    # D9 collision receipts (TVB-28 audit fold, 2026-08-26): one row per
+    # collision bar pricing every satisfiable class beside what executed,
+    # so order-sensitivity is a committed per-bar fact. The TVB-26 audit
+    # had to reconstruct candidate fills forensically to show the ruled
+    # order does NOT always book the worse fill (user re-ruled it a
+    # priority CONVENTION, not a pessimism guarantee, 2026-08-24).
+    collision_receipts: list = field(default_factory=list)
     _anchor_freeze: dict = field(default_factory=dict)
     _anchor_freeze_key: int | None = None
     t1_px: float | None = None  # P2 frozen T1 (retrace trigger)
@@ -839,6 +846,10 @@ class Twin:
         direction = "long" if d == 1 else "short"
         sign = 1.0 if d == 1 else -1.0
         tick = cfg.mintick
+        # Receipt anchors: exits below may clear the position, so snapshot
+        # the entry price and the event high-water mark before the race.
+        entry_px0 = self.entry_px
+        n_ev_before = len(events)
 
         def frac_exit(kind, price, frac, tranche=None, line_tf=None, line_n=None, **extra):
             ev = {
@@ -919,16 +930,25 @@ class Twin:
         )
         stop_hit = self.stop_px is not None and (l <= self.stop_px if d == 1 else h >= self.stop_px)
         prot_hit = False
+        prot_lvl = None
         if self.floor_armed and not self.retrace_done and self.t1_px is not None:
             prot_hit = l <= self.t1_px if d == 1 else h >= self.t1_px
+            if prot_hit:
+                prot_lvl = self.t1_px
         if not prot_hit and self.runner_be_px is not None and (self.runner_frac or 0.0) > 0:
             prot_hit = l <= self.runner_be_px if d == 1 else h >= self.runner_be_px
+            if prot_hit:
+                prot_lvl = self.runner_be_px
+        tgt_lvl = None
         if self.tranches:
-            tgt_hit = any(l <= t["level"] <= h for t in self.tranches)
+            tgt_lvl = next((t["level"] for t in self.tranches if l <= t["level"] <= h), None)
+            tgt_hit = tgt_lvl is not None
         else:
             tgt_hit = (
                 cfg.exit_targets is not None and self.tgt_px is not None and l <= self.tgt_px <= h
             )
+            if tgt_hit:
+                tgt_lvl = self.tgt_px
         bf_cand, bf_tf = (xl, xl_tf) if d == 1 else (xs, xs_tf)
         bf_hit = (
             cfg.bf_harvest_exit
@@ -959,6 +979,28 @@ class Twin:
             )
             if hit
         }
+        # Candidate fills per satisfiable class, under the ruled fill rules
+        # (protective: level, open on gap-through; profit: containment level;
+        # close-evaluated: this bar's close). Feeds the collision receipt.
+        cand_fill: dict = {}
+        if i3_hit:
+            cand_fill["i3"] = c
+        if stop_hit:
+            cand_fill["stop"] = (
+                o if (h < self.stop_px if d == 1 else l > self.stop_px) else self.stop_px
+            )
+        if prot_hit:
+            cand_fill["prot"] = o if (h < prot_lvl if d == 1 else l > prot_lvl) else prot_lvl
+        if tgt_hit:
+            cand_fill["tgt"] = tgt_lvl
+        if bf_hit:
+            cand_fill["bf"] = bf_cand[0]
+        if brk_hit:
+            cand_fill["brk"] = c
+        if flip_hit:
+            cand_fill["flip"] = c
+        if state_hit:
+            cand_fill["state"] = c
 
         # 1) intrabar-3 invalidation (before the stop, skill 5.4)
         if self.pos != 0 and i3_hit:
@@ -1017,6 +1059,7 @@ class Twin:
             and l <= self.t1_px <= h
         ):
             collide.add("prot")  # D9: the bank armed the floor on this bar
+            cand_fill.setdefault("prot", self.t1_px)
             fire_retrace(self.t1_px)
         if (
             self.pos != 0
@@ -1025,6 +1068,7 @@ class Twin:
             and l <= self.runner_be_px <= h
         ):
             collide.add("prot")  # D9: the retrace armed the breakeven mid-bar
+            cand_fill.setdefault("prot", self.runner_be_px)
             frac_exit("be", self.runner_be_px, self.runner_frac, tranche="runner")
             self.runner_frac = 0.0
             maybe_flat()
@@ -1058,6 +1102,38 @@ class Twin:
             self.exit_counters["collision_bars"] += 1
             key = "+".join(sorted(collide))
             self.collision_pairs[key] = self.collision_pairs.get(key, 0) + 1
+            # Collision receipt: candidate fill + pnl per satisfiable class,
+            # what the race executed, and each class's signed delta vs the
+            # executed fill (positive = that class would have exited better).
+            fired = [
+                {"kind": e["kind"], "price": e["price"], "frac": e.get("frac")}
+                for e in events[n_ev_before:]
+                if e.get("action") == "exit"
+            ]
+            exec_px = fired[0]["price"] if fired else None
+            self.collision_receipts.append(
+                {
+                    "ts": ts,
+                    "sym": cfg.symbol,
+                    "classes": sorted(collide),
+                    "candidates": {
+                        k: {
+                            "px": px,
+                            "pnl_pct": round(sign * (px - entry_px0) / entry_px0 * 100.0, 6),
+                        }
+                        for k, px in cand_fill.items()
+                    },
+                    "executed": fired,
+                    "delta_vs_executed_pct": (
+                        {
+                            k: round(sign * (px - exec_px) / entry_px0 * 100.0, 6)
+                            for k, px in cand_fill.items()
+                        }
+                        if exec_px is not None
+                        else None
+                    ),
+                }
+            )
 
     def _pattern_entry(self, ts: int, o: float, sig, prox_vals, events: list) -> None:
         """TVB-21 pattern-arm entry: vetoes, then fill (pre-reg mechanics).

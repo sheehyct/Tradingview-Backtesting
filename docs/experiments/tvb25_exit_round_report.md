@@ -172,21 +172,41 @@ arms (the external audit's HIGH finding). The corrected census
 12, A0bS 5 / 4, P1 1 / 1, S0b 1 / 1, S0c 1 / 0. Collisions are NOT
 rare on the tranche arms -- 18 of P2's 55 July entries hit one.
 
-What the collision_pairs decomposition adds: every prot+tgt bar (18 +
-19 + 10 + 9 across the tranche arm-windows) is the bank->floor
-ARM-AND-FIRE chain, where the order is structurally forced -- the floor
-does not exist until the bank arms it, so no alternative convention
-could change those outcomes (zero already-armed-floor collisions were
-found). The genuinely order-sensitive bars -- a stop racing a
-harvest/break/flip on A0bS (bf+stop 1, brk+stop 2, flip+stop 1 July;
-brk+stop 1, flip+stop 3 fresh), invalidation racing a stop on PX
-(i3+stop 3 + 3) plus one prot+stop, and one bf+state on S0c -- are 3-6
-per arm-window, and the ruled order books the worse fill on those by
-design.
+What the collision_pairs decomposition adds: every bar containing the
+prot+tgt pair -- 58 across the tranche arm-windows: 56 exact two-class
+prot+tgt keys (18 P2-July + 19 PX-July + 10 P2-fresh + 9 PX-fresh) plus
+2 three-class bf+prot+tgt supersets on PX July (membership CORRECTED
+2026-08-26; the first version quoted only the exact keys as "every
+prot+tgt bar") -- is the bank->floor ARM-AND-FIRE chain, where the
+order is structurally forced -- the floor does not exist until the bank
+arms it, so no alternative convention could change those outcomes (zero
+already-armed-floor collisions were found). The genuinely
+order-sensitive bars -- a stop racing a harvest/break/flip on A0bS
+(bf+stop 1, brk+stop 2, flip+stop 1 July; brk+stop 1, flip+stop 3
+fresh), invalidation racing a stop on PX (i3+stop 3 + 3) plus one
+prot+stop, and one bf+state on S0c -- are 3-6 per arm-window, where the
+ruled order fixes WHICH class fires first.
 
-USER RULING (2026-08-16, on the corrected census): the risk-first
-convention STANDS; the named alternatives are not priced. The census and
-its pair decomposition ride every future run as the watchdog.
+CORRECTED 2026-08-26 (TVB-26 external audit MEDIUM, reproduced before
+adjudication): the earlier clause "the ruled order books the worse fill
+on those by design" is FALSE as a per-bar statement. Close-evaluated
+classes (i3/brk/flip/state) fill at the 5m close while stops and
+protective levels fill at their level, and the close can land on either
+side of the level. Committed counterexample: the PX fresh i3+stop bar
+whose shared level is 1184.2 exits i3-first at the 1184.4 close --
+BETTER for the long than the stop's level fill. Our independent sign
+census on all six PX i3+stop bars: 4 worse / 2 better under the ruled
+order; the auditor's focused replay of all 16 order-sensitive roster
+bars: 7 better / 9 worse.
+
+USER RULING (2026-08-16 on the corrected census; BASIS RE-RULED
+2026-08-24 on the corrected fill evidence): the risk-first order STANDS
+as a priority CONVENTION -- when one bar could fire two exits, assume
+the risk exit happened first -- explicitly NOT a worse-fill guarantee.
+The named alternatives remain unpriced. From 2026-08-26 the engine
+emits a per-collision RECEIPT (satisfiable classes, candidate fills,
+executed fill, signed deltas) into the rollups, so order-sensitivity is
+priced on every future run instead of reconstructed forensically.
 
 ## Fresh-window replication of the thirteen existing arms (D8)
 

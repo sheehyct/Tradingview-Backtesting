@@ -10,7 +10,12 @@
 
 ## Status
 
-- Status: REQUESTED
+- Status: RETURNED (2026-08-25; audit at docs/reviews/tvb27-codex-audit.md,
+  verdict NEEDS-CHANGES -- 2 HIGH executor failure-path defects, 7 MEDIUM,
+  2 LOW; reviewed at 2daf6a4, so the conviction-census commit 21bd2a9 is
+  explicitly OUT of its scope and stays provisional. Folded by TVB-28
+  2026-08-26: analysis-layer fixes landed same session; executor lifecycle
+  fixes are the round-2 pre-live gate.)
   <!-- REQUESTED | RETURNED (audit file written) -->
 - Session under review: TVB-27 -- the USER-DIRECTED live pivot. A new
   PRIVATE sibling repo (hip3-executor) was built from scratch, deployed
@@ -60,9 +65,10 @@
    clearance vs isolated liquidation distance, in-force (R11), ftfc
    alignment, dedup keys (per-signal-per-bar).
 3. Ledger integrity: journals vs venue fills for the master wallet (the
-   address is recorded in the PRIVATE hip3-executor repo at
-   `runs/2026-08-22_weekend1/README.md` -- this repo is public, so the
-   address never appears here); do the 34 round trips, exit reasons, and
+   address lives ONLY in the PRIVATE hip3-executor repo -- run README,
+   `analysis/weekend1.py`, and `venue/ledger_updates.json`; this repo is
+   public, so the address never appears here. Inventory wording corrected
+   2026-08-26 per audit LOW-1); do the 34 round trips, exit reasons, and
    P/L totals reconcile?
 4. Secrets: verify NOTHING sensitive is committed in either repo (.env
    excluded everywhere; the agent key never appears; the master ADDRESS

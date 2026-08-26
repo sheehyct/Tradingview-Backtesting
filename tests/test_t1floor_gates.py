@@ -198,6 +198,19 @@ def test_entry_stream_gate_whole_arm_missing_fails():
     assert any(f.get("reason") == "expected depth arm missing" for f in fails)
 
 
+def test_entry_stream_gate_unexpected_produced_arm_fails():
+    # TVB-26 audit LOW-2: the advertised exact-set check was one-way -- an
+    # extra produced arm passed silently because later checks iterate only
+    # the expected arms
+    streams = _committed_streams()
+    streams["ZZ"] = streams[ENTRY_BOOK_ARMS[0]]
+    fails = _entry_stream_gate(streams, _committed_recs(), ENTRY_BOOK_ARMS, _roster_syms())
+    assert any(
+        f.get("reason") == "produced arm outside expected set" and f.get("arms") == ["ZZ"]
+        for f in fails
+    )
+
+
 def test_entry_stream_gate_partial_symbol_deletion_fails():
     # deleting one symbol's events from ONE arm must fail at least via the
     # symbol-set or reconciliation checks

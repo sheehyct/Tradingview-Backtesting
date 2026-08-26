@@ -335,9 +335,13 @@ def _replay_arm_v25(entry: dict, arm: dict, warm: dict, ws: int, we: int, bars_d
 
     # D10 fee columns (reporting-only): entry side on the full position per
     # entry; each exit side on its exited fraction; open entries carry the
-    # entry side only (flagged by open_dir)
+    # entry side only (flagged by open_dir). fee_sides carries the unrounded
+    # side count so the roster rollup can round ONCE (TVB-26 audit LOW-3:
+    # per-symbol rounding then summing violated the D10 round-once contract
+    # by 0.0002pp on P1).
     exited_fracs = sum(e.get("frac", 1.0) for e in exits)
-    fees_pp = round(FEE_SIDE_PCT * (n_entries + exited_fracs), 4)
+    fee_sides = n_entries + exited_fracs
+    fees_pp = round(FEE_SIDE_PCT * fee_sides, 4)
 
     vc = dict(twin.veto_counts)
     recon_counter_ok = (
@@ -367,6 +371,7 @@ def _replay_arm_v25(entry: dict, arm: dict, warm: dict, ws: int, we: int, bars_d
         "open_mtm_pp": round(open_mtm, 4) if open_mtm is not None else None,
         "combined_pp": round(realized + (open_mtm or 0.0), 4),
         "fees_pp": fees_pp,
+        "fee_sides": round(fee_sides, 6),
         "net_realized_pp": round(realized - fees_pp, 4),
         "net_combined_pp": round(realized + (open_mtm or 0.0) - fees_pp, 4),
         "max_dd_pp": round(dd, 4),
@@ -383,6 +388,7 @@ def _replay_arm_v25(entry: dict, arm: dict, warm: dict, ws: int, we: int, bars_d
         "counter_reconciliation_ok": recon_counter_ok,
         "exit_counters": dict(twin.exit_counters),
         "collision_pairs": dict(twin.collision_pairs),
+        "collision_receipts": list(twin.collision_receipts),
         "open_pattern": open_pattern,
         "pattern_census": census,
         "tranche_reconciliation_bad": recon_bad,
@@ -421,6 +427,18 @@ def _rollup_arm(arm: dict, sym_results: list[dict]) -> dict:
     for r in recs:
         for k, v in r.get("collision_pairs", {}).items():
             pairs[k] = pairs.get(k, 0) + v
+    receipts = sorted(
+        (x for r in recs for x in r.get("collision_receipts", [])),
+        key=lambda x: (x["ts"], x["sym"]),
+    )
+    # D10 round-once (TVB-26 audit LOW-3): roster fee from unrounded side
+    # counts, rounded here only; per-symbol fees_pp stays a display field.
+    side_vals = [r.get("fee_sides") for r in recs]
+    roster_fees = (
+        round(FEE_SIDE_PCT * sum(side_vals), 4)
+        if all(s is not None for s in side_vals)
+        else round(sum(r["fees_pp"] for r in recs), 4)
+    )
     return {
         "arm_id": arm["arm_id"],
         "label": arm["label"],
@@ -432,7 +450,7 @@ def _rollup_arm(arm: dict, sym_results: list[dict]) -> dict:
         "combined_pp": round(
             sum(r["sum_pnl_pp"] for r in recs) + sum(r["open_mtm_pp"] or 0.0 for r in recs), 4
         ),
-        "fees_pp": round(sum(r["fees_pp"] for r in recs), 4),
+        "fees_pp": roster_fees,
         "net_realized_pp": round(sum(r["net_realized_pp"] for r in recs), 4),
         "net_combined_pp": round(sum(r["net_combined_pp"] for r in recs), 4),
         "roster_max_dd_pp": round(dd, 4),
@@ -440,6 +458,7 @@ def _rollup_arm(arm: dict, sym_results: list[dict]) -> dict:
         "exit_kind_pp": kinds_pp,
         "exit_counters": counters,
         "collision_pairs": dict(sorted(pairs.items())),
+        "collision_receipts": receipts,
         "n_open": sum(1 for r in recs if r["open_dir"]),
         "med_pnl_pct": round(_med(all_pnls), 4) if all_pnls else None,
         "win_rate": (

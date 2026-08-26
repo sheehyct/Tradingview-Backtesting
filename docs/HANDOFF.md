@@ -11,7 +11,10 @@
 **Status:** COMPLETE -- USER-DIRECTED pivot away from the planned TVB-26
 fold: a new PRIVATE repo (hip3-executor) was built from scratch, deployed
 to the ATLAS VPS, and traded a dedicated $52.60 Hyperliquid agent-wallet
-account live and unattended Fri 14:26 -> Sun 21:58 UTC. Killed FLAT by
+account live and unattended Fri 14:26 -> Sun 21:58 UTC [erratum
+2026-08-26, TVB-27 audit LOW-2: the run days were SAT 08-22 14:26 -> MON
+08-24 21:58 UTC; every date/timestamp is correct, the weekday names in
+this entry are off by one]. Killed FLAT by
 user decision (momentum stalled). Mechanics verdict: PASS on the
 pre-registered success metric (enters/sizes/brackets/exits as designed).
 The TVB-26 fold was flipped RETURNED at session start and DEFERRED (user
@@ -54,10 +57,13 @@ ruling) -- it remains owed.
   hidden-prompt env + webhook scripts, preflight (derives agent address
   from the key WITHOUT exposing it, checks venue approval + balance --
   caught the user pasting the agent ADDRESS instead of the private key).
-- WEEKEND-1 LIVE RESULT: 34 round trips, 9/34 winners, gross -6.04 USD;
-  account 52.60 -> 45.75 (-6.85 net incl fees; day P/L Fri -2.01 / Sat
-  -0.33 / Sun -3.70); exits 15 ftfc_flip / 8 stop / 5 target / 4
-  unknown_exit (all pre-fix Friday) / 2 kill_flat; 11,909 decisions
+- WEEKEND-1 LIVE LEDGER (characterization only -- the pre-registered
+  adjudication is mechanics-pass + 52.60 -> 45.75; qualifier added
+  2026-08-26 per audit MEDIUM-5): 34 round trips, 9/34 winners, gross
+  -6.04 USD; account 52.60 -> 45.75 (-6.85 net incl fees; day P/L by UTC
+  date 08-22 -2.01 / 08-23 -0.33 / 08-24 -3.70 [weekdays Sat/Sun/Mon,
+  erratum 2026-08-26]); exits 15 ftfc_flip / 8 stop / 5 target / 4
+  unknown_exit (all pre-fix first hours) / 2 kill_flat; 11,909 decisions
   journaled. First trades: PENDLE long (bracketed on venue, verified via
   public API) and PYTH long booked AT target to the tick 17s after entry.
 - LIVE LESSONS FIXED SAME DAY: Hyperliquid AUTO-CANCELS the reduce-only

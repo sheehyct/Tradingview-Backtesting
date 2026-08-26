@@ -152,6 +152,26 @@ def test_gate_fails_on_missing_produced_arm_canonical():
     )
 
 
+def test_gate_fails_on_extra_produced_arm_canonical_and_smoke():
+    # TVB-26 audit LOW-2 mirror mutation: an UNREQUESTED produced arm must
+    # fail the exact-set check under both expectation shapes instead of
+    # riding along under a PASS
+    present = {a: {} for a in CONTROL_FAMILY}
+    present["P2"] = {}
+    fails = _entry_stream_gate(present, {a: {} for a in present}, CONTROL_FAMILY, set())
+    assert any(
+        f.get("reason") == "produced arm outside expected set" and f.get("arms") == ["P2"]
+        for f in fails
+    )
+    smoke_expected = _expected_family_arms(PACKAGE_FAMILY, {"P1"}, {"D1"}, smoke=True)
+    present = {"D1": {}, "P1": {}, "P2": {}}
+    fails = _entry_stream_gate(present, {a: {} for a in present}, smoke_expected, set())
+    assert any(
+        f.get("reason") == "produced arm outside expected set" and f.get("arms") == ["P2"]
+        for f in fails
+    )
+
+
 def test_determinism_vs_modulo_rule_exact_scope(tmp_path):
     # the 5796da2 correction is EXACTLY the declared TVB-23 rule, no wider:
     # new keys tolerated iff zero-valued, in veto_counts ONLY

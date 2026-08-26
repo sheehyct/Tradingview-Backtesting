@@ -62,7 +62,7 @@ says otherwise:
 - **Floor / breakeven (floor, be):** P2-only machinery -- see its card.
 
 **Same-bar tie-break (the ruled 2026-08-16 order):** when several exits
-could fire inside one 5-minute bar, we assume the worst order for us:
+could fire inside one 5-minute bar, the risk exits are checked first:
 invalidation, then stop, then protective floors, then profit targets,
 then BF harvest, then level break, then flip, then the hourly state
 check. CORRECTED 2026-08-16b (the audit caught the counter missing
@@ -71,9 +71,15 @@ same-bar armings): collisions are actually common on the tranche arms --
 bank-then-floor chain, where the order is forced by the mechanics (the
 floor does not exist until the bank arms it) and no convention could
 change the outcome. Where order genuinely matters (a stop racing a
-harvest, break, or flip), it is 3-6 bars per arm-window and the ruled
-order takes the worse fill on purpose. User ruling on the corrected
-count: risk-first stands.
+harvest, break, or flip), it is 3-6 bars per arm-window. CORRECTED
+2026-08-26: risk-first does NOT reliably take the worse fill there --
+exits that fill at the bar's close and exits that fill at a level rank
+either way per bar (4 worse / 2 better across the six
+invalidation-vs-stop bars; the auditor's 16-bar replay: 7 better /
+9 worse) -- so the ruling is a safety CONVENTION ("assume the emergency
+exit happened first"), re-ruled as exactly that by the user 2026-08-24.
+Every future run now prices each collision both ways in a committed
+receipt riding the rollups.
 
 ## Control family (breakout entries)
 

@@ -408,3 +408,21 @@ zero already-armed-floor collisions; the genuinely order-sensitive bars
 state on S0c) are 3-6 per arm-window, and the ruled order books the
 worse fill there by design. The named alternatives are NOT priced; the
 census + collision_pairs ride every future run as the watchdog.
+
+**Amendment 2026-08-26 (TVB-26 external audit fold; user re-ruling
+2026-08-24):** two corrections to the revisit outcome above, which is
+retained verbatim as the record of what was believed at ruling time.
+(1) "books the worse fill there by design" is RETRACTED -- false as a
+per-bar statement: close-evaluated classes fill at the 5m close,
+level classes at their level, and the close ranks either way
+(committed PX-fresh counterexample at shared level 1184.2 exiting
+i3-first at the 1184.4 close; 4 worse / 2 better across the six PX
+i3+stop bars; the auditor's 16-bar candidate-fill replay found
+7 better / 9 worse). The risk-first order STANDS as a priority
+CONVENTION -- assume the risk exit fired first -- by user re-ruling
+2026-08-24, not as a pessimism guarantee. (2) Membership: 58 bars
+contain the prot+tgt pair (the quoted 18+19+10+9 = 56 are the exact
+two-class keys; PX July adds 2 three-class bf+prot+tgt supersets);
+the zero-already-armed-floor conclusion is unchanged. The engine now
+emits a per-collision candidate-fill receipt into the rollups
+(collision_receipts), so future runs price every collision both ways.
