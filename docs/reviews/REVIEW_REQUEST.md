@@ -10,7 +10,7 @@
 
 ## Status
 
-- Status: REQUESTED
+- Status: RETURNED (audit file written 2026-08-26; flipped at TVB-29 session start)
   <!-- REQUESTED | RETURNED (audit file written) -->
 - Session under review: TVB-28 -- weekend-1 ledger analysis closed out and
   BOTH outstanding audits folded. The TVB-27 audit (returned 2026-08-25,

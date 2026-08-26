@@ -134,7 +134,9 @@ and the collision-receipt instrument landed. All work pushed both repos.
 > below) and write a verbatim assessment to docs/reviews/tvb28-codex-audit.md.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: REQUESTED
+- Review status: RETURNED 2026-08-26 (docs/reviews/tvb28-codex-audit.md;
+  NEEDS-CHANGES, 0 CRITICAL / 0 new HIGH / 7 MEDIUM / 1 LOW; flipped at
+  TVB-29 session start; critical synthesis owed by the folding session)
 - Commits to review: this repo `4a07107^..9a964e1` on `main` (6 commits,
   13 paths: the TVB-27 scope-extension docs commits + the fold commit
   df291ef + session-end docs 9a964e1; sanity-checked via
