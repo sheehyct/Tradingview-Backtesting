@@ -5,6 +5,164 @@
 
 ---
 
+## Session TVB-28: Weekend-1 analysis + BOTH audits folded + D9 re-ruling (COMPLETE)
+
+**Date:** 2026-08-24..26 (spans the /clear on 08-24; audit returned 08-25)
+**Status:** COMPLETE -- the weekend-1 ledger analyzed in the binding
+dual-language form, the TVB-27 external audit returned and folded same
+session, the twice-deferred TVB-26 fold executed with a user re-ruling,
+and the collision-receipt instrument landed. All work pushed both repos.
+
+### What was accomplished
+
+- WEEKEND-1 LEDGER ANALYSIS (hip3-executor commits c8e65f4..2daf6a4 +
+  corrections dd1a591, e782e57; report runs/2026-08-22_weekend1/
+  ANALYSIS.md + analysis.json + analysis/weekend1.py): books reconcile
+  against the venue TO THE CENT (52.60 - 6.0327 closedPnl - 0.8082 fees
+  - 0.0084 funding = 45.7507 vs 45.75); 4 unknown_exit rows reclassified
+  from venue fills (3 target / 1 stop -> true mix 15 flip / 9 stop /
+  8 target / 2 kill_flat); flip exits: 14/15 observed stop-first after
+  exit, 0 target-first, observed savings +17.34pp = +$5.20 (XMR
+  +12.38pp quarantined as unresolved scenario); conts 0/7 with the
+  structural no-TP fact scoped from the sample outcome; rr-floor census
+  (904 aligned refusals, 68.9% winners, mean -0.154%/trade gross =
+  tiny-target/reclaim class as named by TVB-22); fees $0.81 = 0.040% of
+  notional (not the TVB-1 churn regime); account-field double-count
+  found + verified (exact when flat, +~1 margin lot per open position).
+- MMQB + CONVICTION CENSUSES (user-requested; ddbd9d0, 21bd2a9): rails-
+  blocked pool (211) sims WORSE than the taken book (-0.843 vs
+  -0.595%/trade) -- no flattering survivorship; stack-blocked pool (256)
+  +0.238%/trade BUT median -0.28% and top-8 = 93% of profit
+  (confirmation-lag question, one regime, upper-bound census); kind x
+  direction decomposition: rev-long +$1.11 NET (6/13) vs all other
+  quadrants negative (third sighting of the short-whipsaw signature);
+  conviction census REFUTED the intuitive tier -- winners had NEAR
+  targets (median 1.59% vs losers 4.48%) and LOWER R:R at fill (1.09 vs
+  1.87); per-trade risk was a 32x accident of stop distance
+  ($0.12-$3.83) -> risk-normalize before any tier.
+- TVB-27 AUDIT RETURNED 2026-08-25 (NEEDS-CHANGES: no CRITICAL, 2 HIGH /
+  7 MEDIUM / 2 LOW) and FOLDED same session. Critical synthesis: the
+  audit reproduced EVERY published number, then correctly flagged (and
+  we accepted): the flip headline mixed observed savings with an
+  unresolved scenario (MEDIUM-3, corrected + full-precision aggregation);
+  my match_fills size check was a no-op bug (MEDIUM-2, now a hard
+  assert, passes on real data); MMQB language over-claimed fair-swap/
+  population inference (MEDIUM-4, reframed as upper-bound census with
+  the auditor's flip-proxy calibration recorded -- median 2.36h late, no
+  fixed sign, brackets-only +0.435%); mechanics-boundary language pass
+  (MEDIUM-5); candle-cache "committed" docstring corrected (MEDIUM-7);
+  wallet-inventory + webhook echo fixed (LOW-1); weekday erratum -- the
+  run was SAT 08-22 -> MON 08-24 UTC (LOW-2, annotated in place here).
+  The 2 HIGH executor lifecycle defects (bracket not fail-closed;
+  KILL_FLAT can announce success unverified) + 4 MEDIUMs are now the
+  BINDING round-2 pre-live gate in hip3-executor README. DISPUTED:
+  nothing material. Scope note: the review was pinned at 2daf6a4, so
+  the conviction census (21bd2a9) is UNREVIEWED -> in the TVB-28 range.
+- TVB-26 FOLD (owed since 08-17, df291ef; all four findings REPRODUCED
+  first): MEDIUM D9 -- the "books the worse fill by design" claim is
+  FALSE per-bar (PX-fresh counterexample verified to the tick: shared
+  level 1184.2, i3 close-fill 1184.4 BETTER; own sign census 4 worse /
+  2 better of 6; auditor 16-bar replay 7/9); USER RE-RULING 2026-08-24:
+  risk-first STANDS as a priority CONVENTION, not a pessimism guarantee
+  -- relabeled in report Finding 5, prereg (append-only dated
+  amendment), ARM_LEDGER; prot+tgt membership corrected 56 -> 58. NEW
+  INSTRUMENT: the engine emits per-collision candidate-fill RECEIPTS
+  (classes, candidate fills incl gap rules, executed fills, signed
+  deltas) into recs + rollups; tests pin the audit counterexample class.
+  LOW-2 two-way arm-set gate + mutations; LOW-3 round-once roster fee
+  from fee_sides; LOW-4 stop_src_ts regression-bound. 270 tests pass.
+- DESIGN SEEDS for round 2 (user questions answered in-session):
+  strat-methodology loaded -- the cont-target idea (walk UP timeframes
+  incl atypical aggregations to find the containing structure) maps to
+  the skill's R14/R18 continuation-magnitude rule; committed
+  counterfactual: inheriting the escalation-backing target changes
+  NOTHING (all 7 conts still stop first; backing structures +1.4% to
+  +27.6% away) -> the design question is a NEAR bank + reachability.
+  position-sizing-risk loaded -- sizing amplifies edge, never creates
+  it; notional-vs-leverage distinction recorded.
+- USER REGIME FRAMING recorded (ANALYSIS.md operator context): the
+  window was post-ignition digestion after the best 1-2 days in crypto
+  in years -- a mild edge case; the DESIGN regime (in position when
+  momentum ignites; shorts exit via stop/invalidation/flip and reverse)
+  went untested by this window.
+
+### Context for next session
+
+- FIRST TASK: the round-2 design session (plan mode ON) -- cont-target
+  contract, regime/direction input, risk-normalized sizing, pre-live
+  gate implementation plan. All rule changes are dated USER rulings.
+- The pre-live gate is BINDING: no live run until the 2 HIGH + 4 MEDIUM
+  executor fixes land. Agent approval expired ~08-29; rm data/KILL_FLAT
+  deliberately before any future run.
+- Next canonical regen re-pins rollups with collision_receipts +
+  fee_sides + round-once fee (expected deltas: P1 fee 1.0002->1.0000
+  July, 0.6502->0.6500 fresh).
+- User_Notes.md at repo root is the user's personal untracked scratch --
+  leave untracked, never sweep into a commit.
+
+### Files created/modified
+
+- This repo: analysis/paper/engine.py (+receipts), tier_b_exits.py,
+  tier_b_t1floor.py, tests (+5), docs/experiments/tvb25_exit_round_
+  report.md + prereg (D9 corrections), docs/ARM_LEDGER.md,
+  docs/reviews/tvb27-codex-audit.md (committed), REVIEW_REQUEST.md,
+  HANDOFF annotations, .session_startup_prompt.md.
+- hip3-executor (PRIVATE): analysis/weekend1.py + analysis.json +
+  ANALYSIS.md (analysis, censuses, audit corrections, operator context),
+  runs README, repo README (pre-live gate), deploy/set_webhook.sh,
+  venue/ ground truth (fills/funding/ledger committed; candle cache
+  gitignored).
+
+### Open
+
+- [ ] Round-2 design session -> dated rulings + prereg (cont targets,
+      regime input, sizing, pre-live gate plan)
+- [ ] Pre-live gate implementation in hip3-executor (2 HIGH + 4 MEDIUM;
+      BINDING before any live run)
+- [ ] Month-end fresh-window extension through 2026-08-31 24:00 UTC
+      (~Sep 1; regen re-pins rollups with receipts/fee_sides)
+- [ ] TVB-28 review fold when returned (incl the conviction census,
+      unreviewed by the TVB-27 audit)
+- [ ] Agent re-approval + deliberate KILL_FLAT removal before round 2
+- [ ] Carried: TV mirror per arm on demand; assessment owner decisions;
+      TVB-18 repairs bundle; M+T PMG+ nudge; jackson set_inputs fix;
+      tvb8/tvb9 unreturned
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb28-codex-audit.md.
+> See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: this repo `4a07107^..{head}` on `main` (the TVB-27
+  scope-extension docs commits + the fold commit df291ef + session-end
+  docs; concrete head pinned in REVIEW_REQUEST.md after push). Sibling
+  hip3-executor (PRIVATE, local path C:\Strat_Trading_Bot\hip3-executor):
+  `21bd2a9^..e782e57` -- the conviction census (EXPLICITLY unreviewed by
+  the TVB-27 audit, which was pinned at 2daf6a4), the audit-fold
+  corrections dd1a591, and the operator-context addendum e782e57.
+- Scope / what changed: TVB-26 fold (D9 relabel + user re-ruling +
+  collision receipts + 3 LOW fixes + 5 tests); TVB-27 fold (analysis
+  corrections, pre-live gate); conviction census; session docs.
+- Focus areas (scrutinize these): (1) the collision-receipt emitter --
+  candidate fills incl gap rules and mid-race prot arming, executed-row
+  capture, no behavior change to the race itself (all committed streams
+  must replay byte-identically; only NEW fields appear in recs/rollups
+  on the next regen); (2) D9 relabel fidelity across report/prereg/
+  ledger vs the audit's finding and the 2026-08-24 re-ruling; (3) the
+  round-once fee change (P1 1.0002->1.0000 expected on regen -- verify
+  no committed artifact was modified THIS session); (4) the conviction
+  census method + claims (near-target/anti-R:R finding, 32x risk
+  dispersion) under the same upper-bound caveats the TVB-27 audit
+  enforced; (5) the corrected ANALYSIS.md staying inside the
+  mechanics-test boundary; (6) request.security: no Pine changed --
+  verify.
+- Reviewed by: pending
+- Findings: (blank until docs/reviews/tvb28-codex-audit.md exists)
+
+---
+
 ## Session TVB-27: Live pivot -- hip3-executor built, VPS-deployed, weekend-1 live test run and closed (COMPLETE)
 
 **Date:** 2026-08-21..24 (multi-day session; user on remote control)
