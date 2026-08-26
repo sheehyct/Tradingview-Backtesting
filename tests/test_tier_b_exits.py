@@ -16,6 +16,8 @@ from analysis.paper.sweep_tier_a import _warm_symbol
 from analysis.paper.tier_b import WARM_KEY
 from analysis.paper.tier_b_exits import (
     CONTROL_FAMILY,
+    EXIT_KINDS_V25,
+    FEE_SIDE_PCT,
     NEW_ARMS,
     PACKAGE_FAMILY,
     TRANCHE_ARMS,
@@ -25,6 +27,7 @@ from analysis.paper.tier_b_exits import (
     _gate_stream_events,
     _matched_entry,
     _replay_arm_v25,
+    _rollup_arm,
 )
 
 
@@ -38,6 +41,46 @@ def test_arm_table_shape_and_constructibility():
             assert cfg.tranche_profile == a["arm_id"]
     assert set(CONTROL_FAMILY) == {"A0b", "S0a", "S0b", "S0c", "A0bS"}
     assert set(PACKAGE_FAMILY) == {"D1", "P1", "P2", "X1", "D1i3", "D1S", "PX"}
+
+
+def _fee_rec(sym: str, fee_sides: float) -> dict:
+    """Minimal per-symbol result shaped like _replay_arm_v25 output, with
+    only the fields _rollup_arm reads."""
+    fees_pp = round(FEE_SIDE_PCT * fee_sides, 4)
+    rec = {
+        "arm_id": "P1",
+        "symbol": sym,
+        "n_trades": 1,
+        "n_entries": 1,
+        "sum_pnl_pp": 1.0,
+        "open_mtm_pp": 0.0,
+        "open_dir": None,
+        "fees_pp": fees_pp,
+        "fee_sides": fee_sides,
+        "net_realized_pp": round(1.0 - fees_pp, 4),
+        "net_combined_pp": round(1.0 - fees_pp, 4),
+        "exit_kind_n": {k: 0 for k in EXIT_KINDS_V25},
+        "exit_kind_pp": {k: 0.0 for k in EXIT_KINDS_V25},
+        "exit_counters": {"collision_bars": 0},
+        "collision_pairs": {},
+        "collision_receipts": [],
+    }
+    return {"rec": rec, "curve": [(0, 1.0)], "episodes": [], "pnls": [1.0]}
+
+
+def test_rollup_net_equals_gross_minus_round_once_roster_fee():
+    # TVB-28 audit LOW-1: three symbols whose per-symbol display fees round
+    # UP (0.0004 each at fee_sides=0.03) while the round-once roster fee is
+    # 0.0011 -- summing per-symbol nets books 2.9988; the correct roster net
+    # (gross minus the single rounded roster fee) is 2.9989. The rollup must
+    # also expose the roster's unrounded side count.
+    arm = {"arm_id": "P1", "label": "x", "family": "package"}
+    roll = _rollup_arm(arm, [_fee_rec(f"S{i}", 0.03) for i in range(3)])
+    assert roll["fees_pp"] == 0.0011
+    assert roll["fee_sides"] == 0.09
+    assert roll["realized_pp"] == 3.0
+    assert roll["net_realized_pp"] == round(roll["realized_pp"] - roll["fees_pp"], 4) == 2.9989
+    assert roll["net_combined_pp"] == round(roll["combined_pp"] - roll["fees_pp"], 4) == 2.9989
 
 
 def test_s_family_exit_wiring():

@@ -433,11 +433,19 @@ def _rollup_arm(arm: dict, sym_results: list[dict]) -> dict:
     )
     # D10 round-once (TVB-26 audit LOW-3): roster fee from unrounded side
     # counts, rounded here only; per-symbol fees_pp stays a display field.
+    # Roster NET fields derive from roster gross minus that single roster
+    # fee (TVB-28 audit LOW-1: summing per-symbol nets re-imported each
+    # symbol's rounded display fee and drifted from gross - fees).
     side_vals = [r.get("fee_sides") for r in recs]
+    have_sides = all(s is not None for s in side_vals)
     roster_fees = (
         round(FEE_SIDE_PCT * sum(side_vals), 4)
-        if all(s is not None for s in side_vals)
+        if have_sides
         else round(sum(r["fees_pp"] for r in recs), 4)
+    )
+    gross_realized = round(sum(r["sum_pnl_pp"] for r in recs), 4)
+    gross_combined = round(
+        sum(r["sum_pnl_pp"] for r in recs) + sum(r["open_mtm_pp"] or 0.0 for r in recs), 4
     )
     return {
         "arm_id": arm["arm_id"],
@@ -445,14 +453,13 @@ def _rollup_arm(arm: dict, sym_results: list[dict]) -> dict:
         "family": arm.get("family"),
         "n_trades": sum(r["n_trades"] for r in recs),
         "n_entries": sum(r["n_entries"] for r in recs),
-        "realized_pp": round(sum(r["sum_pnl_pp"] for r in recs), 4),
+        "realized_pp": gross_realized,
         "open_mtm_pp": round(sum(r["open_mtm_pp"] or 0.0 for r in recs), 4),
-        "combined_pp": round(
-            sum(r["sum_pnl_pp"] for r in recs) + sum(r["open_mtm_pp"] or 0.0 for r in recs), 4
-        ),
+        "combined_pp": gross_combined,
         "fees_pp": roster_fees,
-        "net_realized_pp": round(sum(r["net_realized_pp"] for r in recs), 4),
-        "net_combined_pp": round(sum(r["net_combined_pp"] for r in recs), 4),
+        "fee_sides": round(sum(side_vals), 6) if have_sides else None,
+        "net_realized_pp": round(gross_realized - roster_fees, 4),
+        "net_combined_pp": round(gross_combined - roster_fees, 4),
         "roster_max_dd_pp": round(dd, 4),
         "exit_kind_n": kinds_n,
         "exit_kind_pp": kinds_pp,

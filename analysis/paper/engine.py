@@ -448,6 +448,7 @@ class Twin:
     exit_counters: dict = field(
         default_factory=lambda: {
             "collision_bars": 0,
+            "floor_armed_inert": 0,
             "stop_degenerate_anchor": 0,
             "stop_atr_unavailable": 0,
             "i3_degenerate": 0,
@@ -460,11 +461,18 @@ class Twin:
     # combinations can bite)
     collision_pairs: dict = field(default_factory=dict)
     # D9 collision receipts (TVB-28 audit fold, 2026-08-26): one row per
-    # collision bar pricing every satisfiable class beside what executed,
-    # so order-sensitivity is a committed per-bar fact. The TVB-26 audit
-    # had to reconstruct candidate fills forensically to show the ruled
-    # order does NOT always book the worse fill (user re-ruled it a
-    # priority CONVENTION, not a pessimism guarantee, 2026-08-24).
+    # collision bar recording every executable class's candidate fill
+    # beside what actually executed. The TVB-26 audit had to reconstruct
+    # candidate fills forensically to show the ruled order does NOT always
+    # book the worse fill (user re-ruled it a priority CONVENTION, not a
+    # pessimism guarantee, 2026-08-24). SCOPE (TVB-28 audit MEDIUM-3,
+    # user-ruled 2026-08-26): this is a FIRST-FILL diagnostic -- deltas
+    # compare each one-price candidate to the first executed fill, which
+    # is exact for one-fill races but is NOT a path-aware both-ways
+    # pricing on multi-fill tranche bars (the executed rows carry the
+    # full fraction path; pricing alternative orderings needs a
+    # fraction-weighted simulation that only gets built behind a prereg
+    # if a ruling will hang on it).
     collision_receipts: list = field(default_factory=list)
     _anchor_freeze: dict = field(default_factory=dict)
     _anchor_freeze_key: int | None = None
@@ -838,6 +846,10 @@ class Twin:
         counted into exit_counters, with satisfiability accumulated across
         the ordered within-bar transitions (TVB-26 repair of the bar-start
         snapshot; collision_pairs carries the class-combination breakdown).
+        Satisfiable means EXECUTABLE (TVB-28 audit MEDIUM-2, user-ruled
+        2026-08-26): a floor with no remaining middle tranches is not a
+        satisfiable protective class -- those arming-only transitions are
+        counted under exit_counters["floor_armed_inert"] instead.
         """
         cfg = self.cfg
         if self.pos == 0:
@@ -931,7 +943,11 @@ class Twin:
         stop_hit = self.stop_px is not None and (l <= self.stop_px if d == 1 else h >= self.stop_px)
         prot_hit = False
         prot_lvl = None
-        if self.floor_armed and not self.retrace_done and self.t1_px is not None:
+        # D9 executable-only (TVB-28 audit MEDIUM-2, user-ruled 2026-08-26):
+        # the floor is a satisfiable protective class only while middle
+        # tranches remain for it to exit -- an armed floor with an empty
+        # ladder is a state transition, not an exit that can fire.
+        if self.floor_armed and not self.retrace_done and self.t1_px is not None and self.tranches:
             prot_hit = l <= self.t1_px if d == 1 else h >= self.t1_px
             if prot_hit:
                 prot_lvl = self.t1_px
@@ -1058,8 +1074,18 @@ class Twin:
             and self.t1_px is not None
             and l <= self.t1_px <= h
         ):
-            collide.add("prot")  # D9: the bank armed the floor on this bar
-            cand_fill.setdefault("prot", self.t1_px)
+            if self.tranches:
+                # D9: the bank armed the floor on this bar and middle
+                # tranches remain -- an executable collision
+                collide.add("prot")
+                cand_fill.setdefault("prot", self.t1_px)
+            else:
+                # Executable-only ruling (2026-08-26): the banks consumed
+                # every tranche before the floor armed -- nothing left for
+                # the floor to exit. Counted separately, NOT a collision
+                # (the runner-breakeven block below still adds "prot" if
+                # the breakeven is contained, because that one can fire).
+                self.exit_counters["floor_armed_inert"] += 1
             fire_retrace(self.t1_px)
         if (
             self.pos != 0
@@ -1102,9 +1128,12 @@ class Twin:
             self.exit_counters["collision_bars"] += 1
             key = "+".join(sorted(collide))
             self.collision_pairs[key] = self.collision_pairs.get(key, 0) + 1
-            # Collision receipt: candidate fill + pnl per satisfiable class,
-            # what the race executed, and each class's signed delta vs the
-            # executed fill (positive = that class would have exited better).
+            # Collision receipt (first-fill diagnostic, ruled 2026-08-26):
+            # candidate fill + pnl per satisfiable class, the full executed
+            # fill path, and each class's signed delta vs the FIRST executed
+            # fill (positive = that class's single fill beats the first
+            # executed price). Exact for one-fill races; on multi-fill
+            # tranche bars it is NOT a both-ways path pricing.
             fired = [
                 {"kind": e["kind"], "price": e["price"], "frac": e.get("frac")}
                 for e in events[n_ev_before:]
@@ -1124,7 +1153,7 @@ class Twin:
                         for k, px in cand_fill.items()
                     },
                     "executed": fired,
-                    "delta_vs_executed_pct": (
+                    "delta_vs_first_fill_pct": (
                         {
                             k: round(sign * (px - exec_px) / entry_px0 * 100.0, 6)
                             for k, px in cand_fill.items()

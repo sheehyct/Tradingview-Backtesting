@@ -377,7 +377,30 @@ def test_p2_same_bar_arm_and_fire():
     assert rcpt["candidates"]["prot"]["px"] == 105.5
     assert rcpt["candidates"]["tgt"]["px"] == 106.0
     assert rcpt["executed"][0]["kind"] == "tgt"
-    assert rcpt["delta_vs_executed_pct"]["prot"] < 0  # floor fill sits below the bank
+    assert rcpt["delta_vs_first_fill_pct"]["prot"] < 0  # floor fill sits below the bank
+
+
+def test_p2_bank_sweep_that_arms_an_empty_floor_is_not_a_collision():
+    # TVB-28 audit MEDIUM-2, user-ruled 2026-08-26 (executable-only): one
+    # wide bar banks EVERY middle tranche, so the floor arms with nothing
+    # left to exit and the runner's breakeven is not touched. That is an
+    # arming transition, not a protective-vs-target collision -- it counts
+    # under floor_armed_inert and stays OUT of the D9 census.
+    tw = _twin(tranche_profile="P2")
+    _enter_long(tw, _sig(ladder=[105.5, 106.0, 107.0, 108.0, 109.0, 110.0]))
+    entry_px = tw.entry_px
+    ev = tw._position_step(300, 109.5, 105.4, 106.0, *NONES8, True, False, o=105.8)
+    assert [(e["kind"], e["tranche"]) for e in ev] == [
+        ("tgt", "T2"),
+        ("tgt", "T3"),
+        ("tgt", "T4"),
+        ("tgt", "T5"),
+    ]
+    assert tw.pos == 1 and abs((tw.runner_frac or 0.0) - 0.1) < 1e-9  # runner rides
+    assert tw.retrace_done and tw.runner_be_px == entry_px  # the floor DID arm
+    assert tw.exit_counters["floor_armed_inert"] == 1
+    assert tw.exit_counters["collision_bars"] == 0
+    assert tw.collision_pairs == {} and tw.collision_receipts == []
 
 
 def test_p2_short_ladder_folds_missing_rungs_into_runner():
@@ -448,8 +471,8 @@ def test_stop_beats_target_on_collision_bar():
     assert rcpt["candidates"]["stop"]["px"] == 100.0
     assert rcpt["candidates"]["tgt"]["px"] == 106.0
     assert rcpt["executed"] == [{"kind": "stop", "price": 100.0, "frac": None}]
-    assert rcpt["delta_vs_executed_pct"]["stop"] == 0.0
-    assert rcpt["delta_vs_executed_pct"]["tgt"] > 0  # the road not taken paid more
+    assert rcpt["delta_vs_first_fill_pct"]["stop"] == 0.0
+    assert rcpt["delta_vs_first_fill_pct"]["tgt"] > 0  # the road not taken paid more
 
 
 def test_collision_receipt_prices_i3_close_vs_stop_level():
@@ -469,7 +492,7 @@ def test_collision_receipt_prices_i3_close_vs_stop_level():
     assert rcpt["candidates"]["stop"]["px"] == 100.3
     assert rcpt["executed"][0]["kind"] == "i3"
     # the stop would have exited ~4.4pp WORSE than the executed i3 close
-    assert rcpt["delta_vs_executed_pct"]["stop"] < -4.0
+    assert rcpt["delta_vs_first_fill_pct"]["stop"] < -4.0
 
 
 def test_overlay_arm_without_trigger_matches_base_target_exit():

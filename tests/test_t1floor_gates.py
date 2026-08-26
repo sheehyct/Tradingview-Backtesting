@@ -24,10 +24,12 @@ import pytest
 from analysis.paper import round_census as rc
 from analysis.paper.tier_b_t1floor import (
     ENTRY_BOOK_ARMS,
+    NEW_ARMS,
     TIER_B_BY_SYMBOL,
     _determinism_check,
     _entry_stream_gate,
     _first_divergence_is_exit,
+    _gate_scope,
     _stream_key,
 )
 
@@ -70,6 +72,73 @@ def _committed_recs() -> dict[str, dict[str, dict]]:
 def _roster_syms() -> set[str]:
     roster = json.loads((REPO / "analysis" / "paper" / "roster_week1.json").read_text())
     return {e["name"] for e in roster["symbols"]}
+
+
+NEW_ARM_IDS = tuple(a["arm_id"] for a in NEW_ARMS)
+
+
+def _committed_streams_all_arms() -> dict[str, dict[str, list[tuple]]]:
+    """The REAL canonical caller shape: every NEW_ARMS product (8 arms),
+    not just the entry-book six -- TVB-28 audit MEDIUM-1 regression."""
+    streams: dict[str, dict[str, list[tuple]]] = {}
+    for arm in NEW_ARM_IDS:
+        per_sym: dict[str, list[tuple]] = {}
+        for e in _events(arm):
+            if e["action"] in ("enter", "exit"):
+                per_sym.setdefault(e["sym"], []).append(_stream_key(e))
+        streams[arm] = per_sym
+    return streams
+
+
+def _committed_recs_all_arms() -> dict[str, dict[str, dict]]:
+    recs: dict[str, dict[str, dict]] = {a: {} for a in NEW_ARM_IDS}
+    with open(ROUND_DIR / "results_by_symbol.jsonl", encoding="utf-8") as f:
+        for ln in f:
+            row = json.loads(ln)
+            if row["arm_id"] in recs:
+                recs[row["arm_id"]][row["symbol"]] = row
+    return recs
+
+
+# --- caller/gate contract (TVB-28 audit MEDIUM-1) ---------------------------
+
+
+def test_gate_scope_canonical_eight_arm_shape_passes():
+    # The defect: main() previously handed all eight produced arms to a
+    # six-arm expected set, so the hardened reverse-set check failed the
+    # canonical CLI on A1F/D1ATR while every unit test stayed green. The
+    # scoped caller path must pass the committed canonical artifacts.
+    streams = _committed_streams_all_arms()
+    recs = _committed_recs_all_arms()
+    book_streams, book_recs, expected, scope_fail = _gate_scope(
+        streams, recs, set(NEW_ARM_IDS), smoke=False
+    )
+    assert scope_fail == []
+    assert expected == ENTRY_BOOK_ARMS
+    assert set(book_streams) == set(ENTRY_BOOK_ARMS) == set(book_recs)
+    fails = _entry_stream_gate(book_streams, book_recs, expected, _roster_syms())
+    assert fails == []
+
+
+def test_gate_scope_rejects_unrequested_produced_arm():
+    # keeps the TVB-26 LOW-2 protection at the caller boundary
+    streams = _committed_streams_all_arms()
+    recs = _committed_recs_all_arms()
+    streams["ZZ"] = streams["D1"]
+    recs["ZZ"] = recs["D1"]
+    _, _, _, scope_fail = _gate_scope(streams, recs, set(NEW_ARM_IDS), smoke=False)
+    assert any(f["reason"] == "produced arms != requested arms" for f in scope_fail)
+
+
+def test_gate_scope_smoke_subset_scopes_to_requested_family_arms():
+    streams = {a: _committed_streams_all_arms()[a] for a in ("D1", "A1F")}
+    recs = {a: _committed_recs_all_arms()[a] for a in ("D1", "A1F")}
+    book_streams, book_recs, expected, scope_fail = _gate_scope(
+        streams, recs, {"D1", "A1F"}, smoke=True
+    )
+    assert scope_fail == []
+    assert expected == ("D1",)
+    assert set(book_streams) == {"D1"} == set(book_recs)
 
 
 # --- determinism comparison ------------------------------------------------

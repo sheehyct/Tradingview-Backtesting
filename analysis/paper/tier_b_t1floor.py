@@ -129,6 +129,40 @@ NEW_ARMS: list[dict] = [
 ENTRY_BOOK_ARMS = ("D1", "D2", "D3", "D4", "D5", "DINF")
 
 
+def _gate_scope(
+    arm_streams: dict, arm_recs: dict, requested: set, smoke: bool
+) -> tuple[dict, dict, tuple, list]:
+    """Caller/gate contract (TVB-28 audit MEDIUM-1). The entry-stream gate's
+    funnel property (streams identical until a first exit divergence) holds
+    WITHIN the entry-book depth family only -- A1F (no vetoes) and D1ATR
+    (ATR vetoes) are legitimate non-family books whose entries differ by
+    design, so the caller hands the gate family-scoped maps, never the whole
+    produced set (the canonical 8-arm run previously failed its own hardened
+    exact-set check on A1F/D1ATR). The produced-vs-requested check keeps the
+    TVB-26 LOW-2 protection at the caller boundary: a selector regression
+    that produces an unrequested arm fails here, in both directions.
+    """
+    produced = set(arm_streams)
+    if produced != set(requested) or set(arm_recs) != set(requested):
+        return (
+            {},
+            {},
+            (),
+            [
+                {
+                    "reason": "produced arms != requested arms",
+                    "produced": sorted(produced),
+                    "recs": sorted(arm_recs),
+                    "requested": sorted(requested),
+                }
+            ],
+        )
+    expected = tuple(a for a in ENTRY_BOOK_ARMS if a in requested or not smoke)
+    book_streams = {a: s for a, s in arm_streams.items() if a in ENTRY_BOOK_ARMS}
+    book_recs = {a: r for a, r in arm_recs.items() if a in ENTRY_BOOK_ARMS}
+    return book_streams, book_recs, expected, []
+
+
 def _replay_arm_ext(entry: dict, arm: dict, warm: dict, ws: int, we: int, bars_dir: str) -> dict:
     """tier_b._replay_arm extended for the TVB-23 arms: same metrics path,
     plus the raw event stream (census input), ATR seeding, and open-trade
@@ -579,6 +613,10 @@ def main() -> None:
         keep = set(args.arms.split(","))
         new_arms = [a for a in new_arms if a["arm_id"] in keep]
     smoke = bool(args.symbols or args.arms or args.skip_determinism)
+    if smoke and args.out_dir == str(OUT_DIR_DEFAULT):
+        # smoke runs never write into the canonical round dir (TVB-28 audit
+        # MEDIUM-1: event files previously landed there unsuffixed)
+        args.out_dir = str(OUT_DIR_DEFAULT.parent / "tier_b_t1floor_smoke")
     ws = int(datetime.fromisoformat(WINDOW_START).replace(tzinfo=timezone.utc).timestamp())
     we = int(datetime.fromisoformat(WINDOW_END).replace(tzinfo=timezone.utc).timestamp())
 
@@ -634,6 +672,7 @@ def main() -> None:
     rollups: list[dict] = []
     arm_streams: dict[str, dict[str, list[tuple]]] = {}
     arm_recs: dict[str, dict[str, dict]] = {}
+    arm_events: dict[str, list[dict]] = {}
     entry_counts: dict[str, int] = {}
     recon_fail = []
     for arm in new_arms:
@@ -656,12 +695,12 @@ def main() -> None:
         recon_fail.extend(
             (r["arm_id"], r["symbol"]) for r in recs if not r["counter_reconciliation_ok"]
         )
-        events = sorted(
+        # staged, not written: promotion happens only after every gate passes
+        # (TVB-28 audit MEDIUM-1: an aborting rerun previously left partially
+        # overwritten event files behind)
+        arm_events[arm["arm_id"]] = sorted(
             (e for r in results for e in r["events"]), key=lambda e: (e["sym"], e["ts"])
         )
-        with open(out_dir / f"events_{arm['arm_id']}.jsonl", "w", encoding="utf-8") as f:
-            for e in events:
-                f.write(json.dumps(e, sort_keys=True) + "\n")
         print(f"{arm['arm_id']} done ({arm['label']})", flush=True)
 
     if recon_fail:
@@ -675,18 +714,30 @@ def main() -> None:
     # exact arm set, stream-vs-rec reconciliation, equal symbol sets, all
     # pairs, both-sides-exit divergence -- see _entry_stream_gate.
     requested = {a["arm_id"] for a in new_arms}
-    expected_arms = tuple(a for a in ENTRY_BOOK_ARMS if a in requested or not smoke)
+    book_streams, book_recs, expected_arms, scope_fail = _gate_scope(
+        arm_streams, arm_recs, requested, smoke
+    )
+    if scope_fail:
+        for m in scope_fail:
+            print(f"  gate scope: {m}")
+        raise SystemExit("ARM SCOPE GATE FAILED")
     stream_fail = _entry_stream_gate(
-        arm_streams, arm_recs, expected_arms, {e["name"] for e in symbols}
+        book_streams, book_recs, expected_arms, {e["name"] for e in symbols}
     )
     if stream_fail:
         for m in stream_fail[:10]:
             print(f"  entry-stream gate: {m}")
         raise SystemExit("ENTRY-STREAM GATE FAILED")
-    checked = [a for a in expected_arms if a in arm_streams]
+    checked = [a for a in expected_arms if a in book_streams]
     if len(checked) > 1:
         funnel = {a: entry_counts[a] for a in checked}
         print(f"entry-stream gate PASS across {checked}; entry funnel {funnel}", flush=True)
+
+    # promote staged event files -- every gate above has passed
+    for arm_id, events in arm_events.items():
+        with open(out_dir / f"events_{arm_id}.jsonl", "w", encoding="utf-8") as f:
+            for e in events:
+                f.write(json.dumps(e, sort_keys=True) + "\n")
 
     manifest = {
         "prereg": "docs/experiments/tvb23_t1floor_prereg.md",

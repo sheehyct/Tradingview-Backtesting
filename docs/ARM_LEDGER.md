@@ -78,8 +78,18 @@ either way per bar (4 worse / 2 better across the six
 invalidation-vs-stop bars; the auditor's 16-bar replay: 7 better /
 9 worse) -- so the ruling is a safety CONVENTION ("assume the emergency
 exit happened first"), re-ruled as exactly that by the user 2026-08-24.
-Every future run now prices each collision both ways in a committed
-receipt riding the rollups.
+CORRECTED 2026-08-26b (user-ruled, executable-only): a "collision" now
+requires that both exits could actually FIRE on the bar. 13 of the
+counted bars were really the floor arming AFTER the banks had already
+consumed every tranche -- nothing left to protect, nothing fired --
+and those now sit under their own counter instead (corrected counts:
+P2 14 July / 9 fresh, PX 21 / 10; every surviving protective-vs-target
+bar carries a real floor or breakeven fill). The receipt riding the
+rollups is a FIRST-FILL diagnostic: exact where one exit would have
+replaced one other exit (every genuinely order-sensitive bar found),
+but on a bar that banked part at target and harvested the rest, it
+does not re-price the whole alternative path -- that stays future,
+prereg-gated work.
 
 ## Control family (breakout entries)
 

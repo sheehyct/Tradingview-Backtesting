@@ -426,3 +426,24 @@ two-class keys; PX July adds 2 three-class bf+prot+tgt supersets);
 the zero-already-armed-floor conclusion is unchanged. The engine now
 emits a per-collision candidate-fill receipt into the rollups
 (collision_receipts), so future runs price every collision both ways.
+
+**Amendment 2026-08-26b (TVB-28 external audit fold; USER-ruled same
+day):** two corrections to the amendment above, retained verbatim.
+(1) D9 class boundary is EXECUTABLE-ONLY: "simultaneously satisfiable"
+means each class could actually fire on that bar. 13 of the 58 quoted
+prot+tgt members had no executable protective exit (the banks consumed
+every middle tranche before the floor armed and the breakeven was
+untouched -- July P2 4/18, July PX 5/21, fresh P2 2/10, fresh PX 2/9);
+those are arming transitions, counted from 2026-08-26 under the
+engine's `floor_armed_inert` counter, NOT collisions. Corrected
+membership: 45 prot+tgt bars (14/16/8/7), all with an executed
+floor/breakeven exit; corrected collision totals P2 14/9, PX 21/10.
+Event streams verified byte-identical under the fix; canonical rollups
+re-pin at the next regeneration. (2) The final sentence above is
+NARROWED: the receipt is a FIRST-FILL DIAGNOSTIC (field
+`delta_vs_first_fill_pct`), exact for one-fill races -- which covers
+every genuinely order-sensitive pair found -- but NOT a path-aware
+both-ways pricing on multi-fill tranche bars (the executed rows carry
+the full fraction path; fraction-weighted alternative-ordering
+simulation is future work behind a prereg, only if a ruling will hang
+on it).

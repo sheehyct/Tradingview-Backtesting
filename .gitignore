@@ -68,6 +68,10 @@ temp/
 temporary/
 *.tmp
 
+# Smoke-run output dirs (runner-redirected scratch; canonical dirs tracked)
+analysis/paper/tier_b_exits_smoke/
+analysis/paper/tier_b_t1floor_smoke/
+
 # ============================================
 # VECTORBT PRO -- proprietary, NEVER COMMIT (remote is PUBLIC; the install
 # guide mirrors paywalled vectorbt.pro documentation => DMCA exposure).

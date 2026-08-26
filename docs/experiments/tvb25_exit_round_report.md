@@ -208,6 +208,37 @@ emits a per-collision RECEIPT (satisfiable classes, candidate fills,
 executed fill, signed deltas) into the rollups, so order-sensitivity is
 priced on every future run instead of reconstructed forensically.
 
+CORRECTED 2026-08-26 (TVB-28 external audit MEDIUM-2, reproduced to the
+bar before adjudication; USER RULING same day -- executable-only): 13
+of the 58 prot+tgt members above had NO executable protective exit --
+the target banks had consumed every middle tranche before the floor
+armed and the runner's breakeven was never touched, so the "collision"
+was an arming transition with nothing left to protect (July P2 4/18,
+July PX 5/21, fresh P2 2/10, fresh PX 2/9). The ruled class boundary is
+now EXECUTABLE-ONLY: a floor with no remaining middle tranches is not a
+satisfiable protective class. Corrected membership: 45 prot+tgt bars
+(14 P2-July / 16 PX-July / 8 P2-fresh / 7 PX-fresh), every one carrying
+an executed floor/breakeven exit; corrected collision totals P2 14 July
+/ 9 fresh, PX 21 / 10. The arming-only transitions ride a new
+`floor_armed_inert` counter (17 roster-wide: the 13 formerly mislabeled
+bars plus 4 on bars that were never collision-labeled because only the
+target class was live). The structural reading is UNCHANGED -- every
+surviving prot+tgt bar is still the order-forced bank->floor
+arm-and-fire chain. Event streams are byte-identical under the fix
+(verified against the committed streams 2026-08-26); the canonical
+rollup artifacts re-pin at the next regeneration.
+
+RECEIPT SCOPE (TVB-28 external audit MEDIUM-3, USER-ruled 2026-08-26):
+the receipt is a FIRST-FILL DIAGNOSTIC, not a both-ways pricing. Its
+deltas (field renamed `delta_vs_first_fill_pct`) compare each one-price
+candidate to the FIRST executed fill -- exact for one-fill races, which
+is every genuinely order-sensitive class pair above, but NOT a
+path-aware alternative on multi-fill tranche bars (a bar that banks 40%
+at target and exits 60% at the BF line records both fills in
+`executed`, and the BF "delta" there scores a fill that already
+happened). Pricing full alternative orderings fraction-weightedly is
+future work behind a prereg, only if a ruling will hang on it.
+
 ## Fresh-window replication of the thirteen existing arms (D8)
 
 All five Tier B arms and all eight T1-floor arms were rerun on the fresh
