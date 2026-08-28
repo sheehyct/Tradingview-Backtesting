@@ -593,6 +593,28 @@ def _entry_stream_gate(
     return fails
 
 
+def _resolve_requested_arms(arms_arg: str | None) -> tuple[list, set]:
+    """TVB-29 audit MEDIUM-5: validate the RAW --arms request BEFORE any
+    selection and return it as the independent expectation the scope gate
+    compares produced arms against. The previous flow filtered NEW_ARMS
+    first and re-derived `requested` from the filtered list, which made the
+    produced-vs-requested check circular: a request for "D1,ZZ" silently
+    selected only D1 and passed, and a faulty selector producing an extra
+    arm also passed. Unknown or duplicate ids are hard errors -- a request
+    must never silently shrink or grow."""
+    known = {a["arm_id"] for a in NEW_ARMS}
+    if not arms_arg:
+        return list(NEW_ARMS), set(known)
+    raw = [s.strip() for s in arms_arg.split(",") if s.strip()]
+    if len(raw) != len(set(raw)):
+        raise SystemExit(f"duplicate arm ids in --arms: {arms_arg}")
+    unknown = sorted(set(raw) - known)
+    if unknown:
+        raise SystemExit(f"unknown arm ids in --arms: {unknown}")
+    req = set(raw)
+    return [a for a in NEW_ARMS if a["arm_id"] in req], req
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="TVB-23 T1-floor round (8 new arms + gates)")
     ap.add_argument("--roster", default=str(REPO / "analysis" / "paper" / "roster_week1.json"))
@@ -608,12 +630,11 @@ def main() -> None:
     if args.symbols:
         keep = set(args.symbols.split(","))
         symbols = [e for e in symbols if e["name"] in keep]
-    new_arms = NEW_ARMS
-    if args.arms:
-        keep = set(args.arms.split(","))
-        new_arms = [a for a in new_arms if a["arm_id"] in keep]
+    new_arms, requested_ids = _resolve_requested_arms(args.arms)
     smoke = bool(args.symbols or args.arms or args.skip_determinism)
-    if smoke and args.out_dir == str(OUT_DIR_DEFAULT):
+    # Path-resolved compare: a relative spelling of the canonical dir must
+    # not bypass the smoke redirect (TVB-29 audit, unranked robustness note).
+    if smoke and Path(args.out_dir).resolve() == OUT_DIR_DEFAULT.resolve():
         # smoke runs never write into the canonical round dir (TVB-28 audit
         # MEDIUM-1: event files previously landed there unsuffixed)
         args.out_dir = str(OUT_DIR_DEFAULT.parent / "tier_b_t1floor_smoke")
@@ -713,7 +734,10 @@ def main() -> None:
     # Hardened 2026-08-15 (TVB-23 audit F1) + 2026-08-16 (TVB-24 audit F3):
     # exact arm set, stream-vs-rec reconciliation, equal symbol sets, all
     # pairs, both-sides-exit divergence -- see _entry_stream_gate.
-    requested = {a["arm_id"] for a in new_arms}
+    # TVB-29 audit MEDIUM-5: the expectation is the RAW validated request
+    # (_resolve_requested_arms), never re-derived from the selected list --
+    # that derivation was circular and could not catch a selector regression.
+    requested = requested_ids
     book_streams, book_recs, expected_arms, scope_fail = _gate_scope(
         arm_streams, arm_recs, requested, smoke
     )

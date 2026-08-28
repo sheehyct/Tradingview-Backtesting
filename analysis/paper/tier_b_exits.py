@@ -374,6 +374,11 @@ def _replay_arm_v25(entry: dict, arm: dict, warm: dict, ws: int, we: int, bars_d
         "fee_sides": round(fee_sides, 6),
         "net_realized_pp": round(realized - fees_pp, 4),
         "net_combined_pp": round(realized + (open_mtm or 0.0) - fees_pp, 4),
+        # Full-precision counterparts for the roster rollup (TVB-29 audit
+        # LOW-1 / D10 aggregate-then-round: the rollup must not sum the
+        # rounded display fields above).
+        "realized_fp": realized,
+        "open_mtm_fp": open_mtm,
         "max_dd_pp": round(dd, 4),
         "mfe_avg_pct": round(sum(mfes) / len(mfes), 4) if mfes else None,
         "mae_avg_pct": round(sum(maes) / len(maes), 4) if maes else None,
@@ -438,15 +443,21 @@ def _rollup_arm(arm: dict, sym_results: list[dict]) -> dict:
     # symbol's rounded display fee and drifted from gross - fees).
     side_vals = [r.get("fee_sides") for r in recs]
     have_sides = all(s is not None for s in side_vals)
-    roster_fees = (
-        round(FEE_SIDE_PCT * sum(side_vals), 4)
-        if have_sides
-        else round(sum(r["fees_pp"] for r in recs), 4)
-    )
-    gross_realized = round(sum(r["sum_pnl_pp"] for r in recs), 4)
-    gross_combined = round(
-        sum(r["sum_pnl_pp"] for r in recs) + sum(r["open_mtm_pp"] or 0.0 for r in recs), 4
-    )
+    # TVB-29 audit LOW-1: every roster aggregate sums FULL-PRECISION inputs
+    # (realized_fp/open_mtm_fp, with a fallback to the rounded display
+    # fields for pre-amendment recs) and rounds ONCE here -- D10's
+    # aggregate-then-round contract now holds end to end.
+    fee_fp = FEE_SIDE_PCT * sum(side_vals) if have_sides else sum(r["fees_pp"] for r in recs)
+    roster_fees = round(fee_fp, 4)
+
+    def _open_fp(r):
+        v = r.get("open_mtm_fp", r.get("open_mtm_pp"))
+        return v or 0.0
+
+    realized_fp = sum(r.get("realized_fp", r["sum_pnl_pp"]) for r in recs)
+    open_fp = sum(_open_fp(r) for r in recs)
+    gross_realized = round(realized_fp, 4)
+    gross_combined = round(realized_fp + open_fp, 4)
     return {
         "arm_id": arm["arm_id"],
         "label": arm["label"],
@@ -454,12 +465,12 @@ def _rollup_arm(arm: dict, sym_results: list[dict]) -> dict:
         "n_trades": sum(r["n_trades"] for r in recs),
         "n_entries": sum(r["n_entries"] for r in recs),
         "realized_pp": gross_realized,
-        "open_mtm_pp": round(sum(r["open_mtm_pp"] or 0.0 for r in recs), 4),
+        "open_mtm_pp": round(open_fp, 4),
         "combined_pp": gross_combined,
         "fees_pp": roster_fees,
         "fee_sides": round(sum(side_vals), 6) if have_sides else None,
-        "net_realized_pp": round(gross_realized - roster_fees, 4),
-        "net_combined_pp": round(gross_combined - roster_fees, 4),
+        "net_realized_pp": round(realized_fp - fee_fp, 4),
+        "net_combined_pp": round(realized_fp + open_fp - fee_fp, 4),
         "roster_max_dd_pp": round(dd, 4),
         "exit_kind_n": kinds_n,
         "exit_kind_pp": kinds_pp,

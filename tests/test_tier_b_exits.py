@@ -83,6 +83,35 @@ def test_rollup_net_equals_gross_minus_round_once_roster_fee():
     assert roll["net_combined_pp"] == round(roll["combined_pp"] - roll["fees_pp"], 4) == 2.9989
 
 
+def test_rollup_aggregates_full_precision_before_rounding():
+    # TVB-29 audit LOW-1: per-symbol display fields are rounded to 4dp; the
+    # roster must aggregate the FULL-PRECISION values and round ONCE (D10).
+    # Three symbols at 0.12344pp realized: summing the rounded displays gives
+    # 0.3702; the full-precision sum 0.37032 rounds to 0.3703. Whole-number
+    # inputs (the previous invariant test) cannot see this drift.
+    arm = {"arm_id": "P1", "label": "x", "family": "package"}
+    wraps = []
+    for i in range(3):
+        w = _fee_rec(f"S{i}", 0.03)
+        w["rec"]["realized_fp"] = 0.12344
+        w["rec"]["sum_pnl_pp"] = round(0.12344, 4)  # 0.1234 display
+        w["rec"]["open_mtm_fp"] = None
+        wraps.append(w)
+    roll = _rollup_arm(arm, wraps)
+    assert roll["realized_pp"] == 0.3703  # not 0.3702
+    fee_fp = FEE_SIDE_PCT * 0.09
+    assert roll["net_realized_pp"] == round(3 * 0.12344 - fee_fp, 4)
+    assert roll["net_combined_pp"] == roll["net_realized_pp"]  # no opens
+
+
+def test_rollup_falls_back_to_display_fields_for_old_recs():
+    # Pre-amendment recs (no *_fp keys) must still roll up -- the fallback
+    # reads the rounded display fields, matching the old behavior exactly.
+    arm = {"arm_id": "P1", "label": "x", "family": "package"}
+    roll = _rollup_arm(arm, [_fee_rec(f"S{i}", 0.03) for i in range(3)])
+    assert roll["realized_pp"] == 3.0 and roll["net_realized_pp"] == 2.9989
+
+
 def test_s_family_exit_wiring():
     by_id = {a["arm_id"]: a["twin"] for a in NEW_ARMS}
     assert by_id["S0a"] == {

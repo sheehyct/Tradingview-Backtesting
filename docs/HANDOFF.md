@@ -5,6 +5,148 @@
 
 ---
 
+## Session TVB-30: TVB-29 audit (BLOCK) folded before go-live (IN PROGRESS)
+
+**Date:** 2026-08-28
+**Status:** Audit fold COMPLETE across all three repos; the Friday round-2
+live run remains STAGED behind the still-open probe steps.
+
+### External review fold -- critical synthesis (TVB-29 audit, verdict BLOCK)
+
+The audit returned 2026-08-28: BLOCK, 0 CRITICAL / 4 HIGH / 6 MEDIUM /
+2 LOW. All four HIGHs were hip3-executor live-safety defects inside the
+exact round-2 scope; the auditor's own summary -- "the executor pre-live
+gate does not hold" -- was CORRECT, and the 2026-08-26 "items 1-7
+IMPLEMENTED" claim was over-stated. Every finding was REPRODUCED before
+adjudication (16/16 no-network probes against the old code; 0/16
+reproduce after the fold). ZERO disputes. Fold commits: executor
+a23ac43 (pushed), this repo (this commit), scanner PR #6 (branch
+tvb30-parity-gate @ fb1ec84).
+
+Where we agree (everything, with receipts):
+
+- HIGH-1 (dex-blind safety reads): SDK 0.24.0's user_state/open_orders
+  take dex="" = MAIN dex only, while the order path was perp_dexs-aware
+  -- writes succeeded into a universe the reads could not see. Probe:
+  a fake venue holding an xyz:TSLA position + resting order yielded a
+  clean {positions:0, open_orders:0} KILL_FLAT proof. Fixed: every
+  venue read sweeps every configured dex (coin-name prefix = dex
+  identity), requery_flat proves zero/zero ACROSS dexs with a by_dex
+  breakdown, and a builder-dex-only exposure fixture pins that a clean
+  receipt is impossible.
+- HIGH-2 (unknown read as flat): position_for mapped ANY query
+  exception to None = "confirmed absent"; startup then cleared the
+  intent while a real position sat live (probe H2b); a BrokerError
+  after a sent order cleared the intent with the position live (H2c);
+  market_close accepted an unfilled close (H2d/H2e). Fixed: tri-state
+  lookup (present / absent / raises), OrderRejected = the ONLY
+  definite-rejection class that skips reconciliation, unfilled closes
+  raise, and intents clear only after a fresh zero-position zero-order
+  proof. Live cloid downgrade is journaled.
+- HIGH-3 (no post-entry stop verification): verify_resting was called
+  exactly once, in the entry sequence; a stop canceled/rejected later
+  left the position naked indefinitely (probe H3b: no reaction). Fixed
+  + USER-RULED 2026-08-28 (restore, else flatten): every poll rechecks
+  venue side/size vs the record and the stop's presence in the cached
+  cross-dex order set; a missing stop is re-placed once and verified
+  fresh, else the position is closed (protection_lost); mismatch or an
+  unclosable naked position blocks entries.
+- HIGH-4 (KILL_FLAT gaps): the kill file was checked AFTER feed.state()
+  -- a scanner outage aborted the cycle before flattening (probe H4a);
+  a failed close was followed by an unconditional cancel-all that
+  stripped the survivor's stop (H4b). Fixed: kill honored before any
+  feed dependency (mids best-effort), failed closes KEEP their coin's
+  protective orders (cancel_all skip set + failed_closes in the
+  receipt), clean requires no failed closes.
+- M1 (sizing): the $10 min-clamp floored its own size back under $10
+  (probe: $9.45 at mid 105 -> self-reject below_min_notional) -- a
+  systematic skip, exactly as the audit said. Fixed + USER-RULED
+  2026-08-28 (receipt + warn): min tickets ceil to a valid size step,
+  one-step-over-cap refused min_ticket_exceeds_max_notional, entries
+  receipt stop_venue + risk_usd_booked (actual fill x actual size x
+  venue-rounded stop), RISK DRIFT alert past 1.5x budget, never
+  auto-close.
+- M2 (exit identity): an unmatched closing-fill OID was relabeled
+  "stop" by the survivor heuristic (probe reproduced). Fixed: an
+  explicit closing fill classifies by OID alone; unmatched, partial
+  (size-unreconciled), or wrong-direction fills defer to unknown_exit;
+  survivor heuristics only when no fill is visible. The audit also
+  caught our test fixture: ENTRY_MS sat TWO DAYS after ENTRY_TS, so the
+  pre-entry exclusion test never tested the exclusion -- now derived
+  from ENTRY_TS, and the pre-entry fill carries the sl_oid so a filter
+  regression would visibly misclassify.
+- M3 (reach fail-open): missing ATR silently passed the reachability
+  gate; the exception lived in code comments, never a dated ruling.
+  USER-RULED 2026-08-28: fail closed, reason reach_unavailable
+  (targetless entries untouched). Prereg amendment recorded in the
+  executor README.
+- M4 (gate status over-claim): leverage was "verified" by a bare
+  status:ok; account_value keeps the TVB-27-flagged sum; source_sha
+  came only from rev-parse (an archive deploy journals a PARENT repo's
+  HEAD). Fixed: post-fill venue leverage confirmation (mismatch
+  journaled + announced, venue values persisted), rev-parse trusted
+  only when ROOT/.git exists with DEPLOYED_SHA consumed otherwise, and
+  the README STATUS rewritten to say what is STILL OPEN -- the equity
+  formula is UNCHANGED and UNVERIFIED until the supervised
+  one-isolated-position probe.
+- M5 (this repo, t1floor): the produced-vs-requested check was
+  CIRCULAR -- `requested` was re-derived from the already-filtered arm
+  list, so "--arms D1,ZZ" silently selected D1 and passed. Fixed:
+  _resolve_requested_arms validates the RAW CLI request (unknown /
+  duplicate ids are hard errors) and the scope gate compares against
+  that independent expectation; selector-mutation regressions added
+  both directions; the smoke redirect now compares resolved paths.
+- M6 (scanner): the parity harness require()d its committed extraction
+  blind -- the exact stale-copy failure TVB-29 said to exclude.
+  Fixed: run_parity.js derives the expected module from the HTML in
+  memory and byte-compares BEFORE loading (proved end-to-end: a
+  mutated copy exits 1 before any network call); extract_core.js gains
+  build() + --check; npm run parity:check; HTML-mutation test pinned.
+- LOW-1 (this repo): roster rollups summed 4dp-rounded per-symbol
+  display fields. Fixed: full-precision realized_fp/open_mtm_fp ride
+  every rec, the rollup aggregates those and rounds ONCE (D10 holds
+  end to end), with a fallback for pre-amendment recs; a fractional
+  three-symbol vector (0.12344 x3 -> 0.3703 not 0.3702) pins it. The
+  committed round artifacts keep their last-digit drift until the
+  month-end regen re-pins them (documented expected delta).
+- LOW-2 (scanner): the single-pivot cont vector could not catch a
+  first-qualifying scan-order mutation; two-pivot vectors both
+  directions now assert the price-NEAREST pivot wins.
+
+New dated user rulings this session (2026-08-28, recorded in the
+executor README prereg amendments): (1) reach fail-closed
+(reach_unavailable); (2) risk drift = receipt + warn at 1.5x budget,
+never auto-close; (3) naked stop = restore once verified, else flatten,
+entries blocked while unprotected.
+
+Suites after the fold: executor 64 (was 35), this repo 280 (was 275),
+scanner 354 (was 349). request.security untouched (no Pine changed --
+audit confirmed independently).
+
+### Context for next session
+
+- The go-live checklist (.session_startup_prompt.md) remains the
+  contract, now unblocked by the fold: scanner PR #6 merge + railway
+  deploy, executor VPS deploy (a23ac43+), VPS dry-run + KILL_FLAT
+  drill, supervised probes (bracket / equity formula with ONE isolated
+  position -- still the open half of gate item 6 / first xyz fill),
+  manual KILL_FLAT at 18:00 ET.
+- Builder-dex coin naming in dex-scoped venue responses is normalized
+  defensively (re-prefixed if bare) but the first xyz probe should
+  confirm the venue's actual naming.
+- Month-end regen ~Sep 1 now ALSO re-pins the LOW-1 full-precision
+  rollup fields alongside the TVB-28 deltas already documented.
+
+### Open
+
+- [ ] Resume the go-live checklist (user decision: run today post-fold
+      or defer)
+- [ ] Month-end fresh-window regen ~Sep 1 (adds LOW-1 fp re-pin)
+- [ ] Carried: TV mirror on demand; TVB-18 repairs; jackson set_inputs
+      fix; tvb8/tvb9 unreturned
+
+---
+
 ## Session TVB-29: TVB-28 audit folded + round-2 design session + pre-live gate LANDED (COMPLETE)
 
 **Date:** 2026-08-26..28
@@ -127,7 +269,8 @@ staged for TVB-30.
 > below) and write a verbatim assessment to docs/reviews/tvb29-codex-audit.md.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: REQUESTED
+- Review status: RETURNED (2026-08-28, verdict BLOCK: 0C/4H/6M/2L; folded in
+  TVB-30 -- critical synthesis in the TVB-30 entry)
 - Commits to review: this repo `ddca002^..7531a12` on `main` (4 commits,
   14 paths; caret keeps ddca002 in the diff; sanity-checked via
   `git diff --name-status`; the pin commit after 7531a12 is routing,

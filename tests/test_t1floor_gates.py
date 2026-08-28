@@ -30,6 +30,7 @@ from analysis.paper.tier_b_t1floor import (
     _entry_stream_gate,
     _first_divergence_is_exit,
     _gate_scope,
+    _resolve_requested_arms,
     _stream_key,
 )
 
@@ -139,6 +140,42 @@ def test_gate_scope_smoke_subset_scopes_to_requested_family_arms():
     assert scope_fail == []
     assert expected == ("D1",)
     assert set(book_streams) == {"D1"} == set(book_recs)
+
+
+# --- raw-request validation (TVB-29 audit MEDIUM-5) -------------------------
+
+
+def test_resolve_requested_rejects_unknown_and_duplicate_ids():
+    # The audit's probe: "--arms D1,ZZ" previously selected only D1 and the
+    # scope gate, comparing against a requested set re-derived from that
+    # filtered list, returned no failure. The raw request is now validated.
+    with pytest.raises(SystemExit, match="unknown arm ids"):
+        _resolve_requested_arms("D1,ZZ")
+    with pytest.raises(SystemExit, match="duplicate arm ids"):
+        _resolve_requested_arms("D1,D1")
+
+
+def test_resolve_requested_subset_and_default():
+    all_ids = [a["arm_id"] for a in NEW_ARMS]
+    arms, req = _resolve_requested_arms(None)
+    assert req == set(all_ids) and [a["arm_id"] for a in arms] == all_ids
+    arms, req = _resolve_requested_arms("D1")
+    assert req == {"D1"} and [a["arm_id"] for a in arms] == ["D1"]
+
+
+def test_scope_gate_catches_selector_mutation_against_raw_request():
+    # Main-level selector mutation vs the INDEPENDENT expectation: a faulty
+    # selector that DROPS an arm now fails the scope gate (with the old
+    # circular derivation the expectation shrank with the product and
+    # passed). The extra-arm direction is pinned above
+    # (test_gate_scope_rejects_unrequested_produced_arm).
+    streams = _committed_streams_all_arms()
+    recs = _committed_recs_all_arms()
+    raw_request = set(NEW_ARM_IDS)
+    dropped_streams = {a: s for a, s in streams.items() if a != "D1"}
+    dropped_recs = {a: r for a, r in recs.items() if a != "D1"}
+    _, _, _, fail = _gate_scope(dropped_streams, dropped_recs, raw_request, smoke=False)
+    assert any(f["reason"] == "produced arms != requested arms" for f in fail)
 
 
 # --- determinism comparison ------------------------------------------------
