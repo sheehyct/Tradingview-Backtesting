@@ -5,6 +5,148 @@
 
 ---
 
+## Session TVB-29: TVB-28 audit folded + round-2 design session + pre-live gate LANDED (COMPLETE)
+
+**Date:** 2026-08-26..28
+**Status:** COMPLETE -- the TVB-28 audit folded same-day (all 8 findings
+reproduced first, zero disputes), the round-2 design session produced five
+dated user rulings + a prereg BEFORE code, and the entire executor
+pre-live gate + rule changes landed with a new 35-test suite. Round-2
+live test (Fri 08-28, ~$100, crypto + xyz equity perps to 18:00 ET) is
+staged for TVB-30.
+
+### What was accomplished
+
+- TVB-28 AUDIT FOLD (this repo ddca002/7b4ae6a/3fb0631; executor
+  7d4fd86): critical synthesis in the TVB-28 External Review block below.
+  Highlights: D9 executable-only USER RULING (membership 58 -> 45, the 13
+  inert armings ride floor_armed_inert; events byte-identical); receipt
+  relabeled FIRST-FILL diagnostic (delta_vs_first_fill_pct); t1floor
+  _gate_scope caller contract + staged event promotion + smoke redirect
+  (the canonical 8-arm CLI had been failing its own hardened gate);
+  round-once roster net algebra + invariant test; executor census medians
+  corrected (statistics.median, 9v18/6v20 denominators, decision-clock
+  membership, STX exemption), backing-target counterfactual IMPLEMENTED
+  + receipted (7/7 stop-first stands; 6/7-within-0.2pp corrected to 4/7),
+  MMQB language pass, README INTENDED-vs-CURRENT + gate items restored.
+- ROUND-2 DESIGN SESSION (plan mode, trader-terms questions anchored on
+  real weekend trades -- STX cont walkthrough, MOVE/CHIP vs kFLOKI):
+  five dated USER RULINGS 2026-08-26 prereg'd BEFORE code (executor
+  f986716 "Ruleset v1"): (1) cont targets = pivot-ladder near bank,
+  scanner-side; (2) symmetric stand-aside vs BTC daily-open sign; (3)
+  risk-normalized $0.50/trade (min $10 / max $100 notional clamps); (4)
+  reachability 1.5x daily ATR, all targeted entries (stated consequence:
+  conts fall under the rr floor once targeted); (5) universe = crypto +
+  xyz during underlying RTH. AMENDMENT 2026-08-28 (user-ruled): drift
+  veto scoped to main-dex crypto -- BTC's color never vetoes an equity
+  perp (36d5541). User flags recorded in the prereg: short window = weak
+  evidence; -6.85 vs $50 budget = refinements not repairs; STRAT-vs-algo
+  boundary answered in writing.
+- SCANNER CONT TARGETS (hip3-scanner PR #1, branch tvb29-cont-targets @
+  dccfd06 -- the repo moved to the HIP-3-Solutions org, main is PR-only
+  now): contTarget() in the HTML STRAT-CORE block wires the existing
+  pivotTarget() into the cont branches (3-2 measured-move fallback);
+  extract:check OK, 346/346 node tests, Python parity mirror updated,
+  parity harness 125 live pairs + 12 aggregations ZERO mismatches
+  (NOTE: the parity harness keeps its OWN extraction -- regenerate
+  parity/extract_core.js too or parity lies), bar-level hand checks
+  (TSLA 352.02 pivot / MSFT 487.19 / NVDA fallback).
+- PRE-LIVE GATE LANDED (executor 60d57a7, all 7 items + tests): entry
+  fail-closed (persisted intent + cloid before any order, resting-stop
+  re-query, ANY-exception reconciliation, entry_block on untracked
+  positions/failed reconcile, startup intent reconciliation); KILL_FLAT
+  venue-authoritative union flatten + cancel-all + durable zero/zero
+  kill_flat_receipt (dirty result never announces success); NEW HIGH
+  found in design exploration: the Type-3 invalidation exit was DEAD
+  CODE all weekend-1 (engine compared formingType == 3 int vs the
+  scanner's string "3") -- fixed + pinned; leverage response verified;
+  exit identity (closing-fills-after-entry, VWAP by oid, tp_oid-None
+  guard); P/L rebuild-then-append double-count fixed; provenance
+  (startup journals source SHA + config + uv.lock hashes; lock now
+  committed; deploy script archives git HEAD only, refuses dirty trees).
+  Rule changes wired: risk sizing, drift gate, reachability gate, xyz
+  RTH clock gate + SDK perp_dexs routing (incl "" main dex -- verified
+  live that meta(dex="xyz") serves prefixed names). 35-test pytest suite
+  (fake broker, payload fixtures, no network); local dry-run poll
+  verified against the live scanner (880 keys baselined, provenance row).
+- Memory: new standing feedback memory (trader-visualization gap: design
+  questions in trader terms + bar-by-bar walkthroughs are the
+  verification tool).
+
+### Context for next session
+
+- TVB-30 = the Friday live run. Go-live checklist is in
+  .session_startup_prompt.md: scanner PR merge + railway deploy FIRST
+  (cont targets don't exist live until then), executor VPS deploy (new
+  git-archive script; SSH needs explicit user go), VPS dry-run + KILL_FLAT
+  drill, deliberate rm data/KILL_FLAT, supervised probes (bracket /
+  equity formula with one isolated position / first xyz fill), manual
+  KILL_FLAT ~18:00 ET. Agent wallet ACTIVE (user confirmed 08-28).
+- Month-end regen ~Sep 1 re-pins rollups with MORE than fee fields:
+  corrected collision census (P2 14/9, PX 21/10, prot+tgt 45) +
+  collision_receipts + fee_sides + net-from-roster-fee algebra. All
+  deltas documented in the report amendments.
+- User_Notes.md stays untracked.
+
+### Files created/modified
+
+- This repo: analysis/paper/engine.py (executable-only D9 +
+  floor_armed_inert + first-fill receipt), tier_b_t1floor.py
+  (_gate_scope + staged promotion + smoke redirect), tier_b_exits.py
+  (roster net algebra + fee_sides), tests (+5 = 275), report/prereg/
+  ARM_LEDGER amendments, .gitignore (smoke dirs), audit committed,
+  HANDOFF synthesis, session docs.
+- hip3-executor: README (Ruleset v1 prereg + amendment + gate STATUS +
+  safety model), config.json/config.py (5 new fields), engine.py,
+  broker.py, rules.py, deploy/deploy_from_dev.ps1, tests/ (NEW, 35),
+  uv.lock committed, analysis/weekend1.py + ANALYSIS.md + analysis.json
+  (audit fold regen).
+- hip3-scanner: hip3_strat_screener.html STRAT-CORE + regenerated
+  src/strat_core.js + parity/strat_core_extracted.js +
+  parity/reference.py + test/core_v3.test.js (branch tvb29-cont-targets,
+  PR #1).
+
+### Open
+
+- [ ] TVB-30: run the Friday round-2 live test per the go-live checklist
+      (scanner PR merge + deploy, executor VPS deploy, dry-run + drill,
+      probes, 18:00 ET KILL_FLAT)
+- [ ] Month-end fresh-window regen ~Sep 1 (re-pins collision census +
+      receipts + fee algebra; expected deltas documented)
+- [ ] TVB-29 review fold when returned (incl the drift-scope amendment
+      and the gate implementation)
+- [ ] Equity-side drift reference: deliberately unchosen (future a-priori
+      design decision)
+- [ ] Runner profiles past T1: future prereg lane
+- [ ] Carried: TV mirror per arm on demand; TVB-18 repairs bundle; M+T
+      PMG+ nudge; jackson set_inputs fix; tvb8/tvb9 unreturned
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb29-codex-audit.md.
+> See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: {pending push -- pinned in REVIEW_REQUEST.md after
+  the session-end commit}
+- Scope / what changed: TVB-28 audit fold (both repos), Ruleset v1 prereg
+  + five rulings + drift amendment, scanner cont targets (PR #1), the
+  full pre-live gate implementation + 35-test suite.
+- Focus areas (scrutinize these): (1) executable-only D9 semantics vs the
+  ruled definition (satisfiable = could fire; the 45/13/17 split); (2)
+  the t1floor _gate_scope contract -- does the caller-level exact-set
+  check truly preserve LOW-2's protection; (3) entry fail-closed paths
+  (any exception class that still escapes?); (4) KILL_FLAT receipt --
+  can any path announce success without the fresh zero/zero proof; (5)
+  scanner contTarget correctness vs pivotTarget semantics + the parity
+  harness's own extraction; (6) sizing clamp math (min/max notional,
+  risk actually booked); (7) request.security: no Pine changed -- verify.
+- Reviewed by: pending
+- Findings: (blank until docs/reviews/tvb29-codex-audit.md exists)
+
+---
+
 ## Session TVB-28: Weekend-1 analysis + BOTH audits folded + D9 re-ruling (COMPLETE)
 
 **Date:** 2026-08-24..26 (spans the /clear on 08-24; audit returned 08-25)

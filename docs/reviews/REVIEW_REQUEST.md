@@ -10,19 +10,18 @@
 
 ## Status
 
-- Status: RETURNED (audit file written 2026-08-26; flipped at TVB-29 session start)
+- Status: REQUESTED
   <!-- REQUESTED | RETURNED (audit file written) -->
-- Session under review: TVB-28 -- weekend-1 ledger analysis closed out and
-  BOTH outstanding audits folded. The TVB-27 audit (returned 2026-08-25,
-  NEEDS-CHANGES, folded same session) already reproduced and corrected
-  the analysis THROUGH hip3-executor commit 2daf6a4 -- do not re-litigate
-  what it settled; THIS request covers what came after: the conviction
-  census (explicitly outside the prior audit's pin), the TVB-26 fold
-  (D9 relabel + user re-ruling 2026-08-24 + the new collision-receipt
-  instrument + 3 LOW fixes), the TVB-27 fold edits themselves, and the
-  session docs.
-- Requested: 2026-08-26
-- Write the audit to: `docs/reviews/tvb28-codex-audit.md` (copy
+- Session under review: TVB-29 -- the TVB-28 audit folded (all 8 findings
+  reproduced before adjudication, zero disputes), the round-2 design
+  session (five dated user rulings 2026-08-26 + drift-scope amendment
+  2026-08-28, prereg BEFORE code), scanner continuation near-bank targets
+  (PR #1), and the FULL executor pre-live gate implementation with a new
+  35-test suite. A NEW HIGH was found and fixed in design exploration:
+  the Type-3 invalidation exit was dead code all weekend-1 (int-vs-string
+  formingType compare).
+- Requested: 2026-08-28
+- Write the audit to: `docs/reviews/tvb29-codex-audit.md` (copy
   `docs/reviews/_TEMPLATE.md`)
 - NOTE: tvb8/tvb9 remain unreturned (standing note).
 
@@ -30,66 +29,63 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `4a07107^..9a964e1` (6 commits, 13 paths: the TVB-27 review-scope docs commits 4a07107/c772864/4bb6780/3782383, the TVB-26/27 fold commit df291ef -- engine collision receipts + two-way gate + round-once fee + 5 tests + D9 doc corrections + audit committed -- and session-end docs 9a964e1. RANGE-PIN RULE: the caret keeps 4a07107 in the diff; sanity-checked with `git diff --name-status` = 13 paths. The pin commit after 9a964e1 is docs-only routing, out of range.) |
-| hip3-executor (PRIVATE github.com/sheehyct/hip3-executor; local transport only) | `C:\Strat_Trading_Bot\hip3-executor` | `21bd2a9^..e782e57` (3 commits: conviction census 21bd2a9 -- UNREVIEWED by the TVB-27 audit, which was pinned at 2daf6a4; audit-fold corrections dd1a591; operator-context addendum e782e57) |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | {pending push -- pinned after the session-end commit} |
+| hip3-executor (PRIVATE github.com/sheehyct/hip3-executor; local transport only) | `C:\Strat_Trading_Bot\hip3-executor` | `7d4fd86^..36d5541` (4 commits: audit-fold corrections 7d4fd86, Ruleset v1 prereg f986716, gate + rules implementation 60d57a7, drift-scope amendment 36d5541) |
+| hip3-scanner (PRIVATE github.com/HIP-3-Solutions/hip3-scanner; local transport only) | `C:\Strat_Trading_Bot\hip3-scanner` | branch `tvb29-cont-targets` @ `dccfd06` (PR #1, unmerged at request time -- one commit off `main`) |
 
 ## Read first (in this order)
 
-1. `CLAUDE.md`; charter Section 0. Then `docs/reviews/tvb27-codex-audit.md`
-   (the prior audit whose findings this session folded -- the baseline for
-   judging the corrections).
-2. This repo: `analysis/paper/engine.py` (collision receipts around the
-   exit race), `tier_b_exits.py` (fee_sides + receipts in rec/rollup),
-   `tier_b_t1floor.py` (two-way gate), `tests/test_tvb25_exits.py` +
-   `tests/test_t1floor_gates.py` + `tests/test_tier_b_exits.py` (new
-   tests), `docs/experiments/tvb25_exit_round_report.md` Finding 5 +
-   prereg amendment + `docs/ARM_LEDGER.md` (D9 corrections).
-3. hip3-executor: `runs/2026-08-22_weekend1/ANALYSIS.md` (conviction
-   census + corrections + operator context), `analysis/weekend1.py`,
-   `analysis.json`, repo `README.md` (the binding pre-live gate).
-4. This repo's `docs/HANDOFF.md` TVB-28 entry (the session record incl
-   the critical synthesis of the TVB-27 audit).
+1. `CLAUDE.md`; charter Section 0. Then `docs/reviews/tvb28-codex-audit.md`
+   (the audit this session folded) and the TVB-28/TVB-29 HANDOFF entries
+   (the critical synthesis + this session's record).
+2. This repo: `analysis/paper/engine.py` (executable-only D9,
+   floor_armed_inert, first-fill receipt), `tier_b_t1floor.py`
+   (_gate_scope + staged promotion), `tier_b_exits.py` (roster net
+   algebra), the new tests, and the report/prereg/ARM_LEDGER amendments.
+3. hip3-executor: README (Ruleset v1 prereg + amendment + gate STATUS),
+   `src/hip3_executor/engine.py` / `broker.py` / `rules.py`, `tests/`
+   (35 tests), `deploy/deploy_from_dev.ps1`.
+4. hip3-scanner branch: `hip3_strat_screener.html` STRAT-CORE block
+   (contTarget), regenerated `src/strat_core.js` +
+   `parity/strat_core_extracted.js`, `parity/reference.py`,
+   `test/core_v3.test.js`.
 
 ## Focus areas (scrutinize these)
 
-1. Collision-receipt emitter correctness: candidate fills follow the
-   ruled fill classes (protective = level / open on gap-through; profit =
-   containment level; close-evaluated = 5m close), mid-race prot arming
-   is captured, executed rows come from the actual race, and the change
-   is PURELY ADDITIVE -- committed event streams must replay
-   byte-identically; only new rec/rollup fields appear on the next regen.
-2. D9 relabel fidelity: report Finding 5, the prereg's append-only
-   amendment, and ARM_LEDGER all now state the convention basis (user
-   re-ruling 2026-08-24), the retracted worse-fill claim, the 4/2 + 7/9
-   sign evidence, and the 56->58 membership correction -- verify against
-   the TVB-26 audit's MEDIUM and the committed artifacts.
-3. Round-once fee (LOW-3 fix): fee_sides threads through `_rollup_arm`;
-   NO committed canonical artifact may have been modified this session --
-   the expected deltas (P1 fees_pp 1.0002->1.0000 July / 0.6502->0.6500
-   fresh) appear only on the NEXT regeneration.
-4. Conviction census (21bd2a9): method + claims under the same
-   upper-bound-census discipline the TVB-27 audit enforced on the MMQB
-   pools -- the near-target/anti-R:R finding, the 32x per-trade risk
-   dispersion, and the pre-floor decomposition. Flag any sentence that
-   turns the census into promotion or diagnosis.
-5. The corrected ANALYSIS.md: does every retained claim now stay inside
-   the mechanics-test boundary (observed-in-this-ledger framing), and are
-   the corrections faithful to the audit's required changes (observed
-   +17.34pp flip split, census reframing, structural-vs-sample cont
-   wording)?
-6. request.security: NO Pine file changed this session -- verify none did.
+1. Executable-only D9 semantics: does the implementation match the ruled
+   definition (satisfiable = could actually fire) on every prot path
+   (bar-start floor, arm-and-fire, runner breakeven)? Verify the 45
+   membership / 13 relabeled / 17 floor_armed_inert split and that event
+   streams are truly byte-identical.
+2. t1floor `_gate_scope`: does the caller-level produced==requested check
+   preserve the TVB-26 LOW-2 protection now that the entry-stream gate
+   sees family-scoped maps only? Staged event promotion: can any gate
+   failure still leave a partially overwritten canonical dir?
+3. Executor entry fail-closed: hunt an exception class or ordering that
+   still leaves a venue position unrecorded or unprotected (intent
+   persistence, cloid, resting-stop re-query, reconciliation, entry_block).
+4. KILL_FLAT: any path that announces success or halts without the fresh
+   zero/zero venue proof; the receipt row's durability.
+5. Scanner contTarget: correctness vs pivotTarget's k=2 swing semantics
+   and the 3-2 fallback; the parity harness's OWN extraction
+   (parity/extract_core.js) -- confirm both extractions regenerate from
+   the HTML and the harness cannot silently run stale JS again.
+6. Sizing math: risk actually booked per ticket under the min/max
+   notional clamps + szDecimals flooring; the drift gate scope
+   (crypto-only) and reachability gate (missing-ATR pass) vs the prereg
+   text.
+7. request.security: NO Pine file changed this session -- verify none did.
 
-Standing priorities apply (model fidelity; overfitting language; the
-weekend was a MECHANICS test -- any P&L sentence beyond characterization
-is over-claim; the operator-context section is a USER a-priori thesis,
-not a data conclusion -- flag it if it reads otherwise).
+Standing priorities apply (model fidelity; overfitting language; every
+census claim stays characterization; the pre-live gate STATUS section
+must not over-claim -- probe steps are still open).
 
 ## Output contract
 
-- Verbatim audit -> `docs/reviews/tvb28-codex-audit.md` (template:
+- Verbatim audit -> `docs/reviews/tvb29-codex-audit.md` (template:
   `docs/reviews/_TEMPLATE.md`, skeptic preamble included).
 - Be concrete; cite `file:line`. Never paste a secret/IP/account value:
   the VPS IP and the master wallet ADDRESS must both stay out of the
   audit (this repo is public -- the address lives only in the private
-  hip3-executor repo: run README, analysis source, venue ledger record).
+  hip3-executor repo).
 - The critical synthesis is written by the NEXT session into `docs/HANDOFF.md`.
