@@ -10,7 +10,9 @@
 
 ## Status
 
-- Status: REQUESTED
+- Status: RETURNED (2026-08-28, verdict BLOCK: 0 CRITICAL / 4 HIGH / 6 MEDIUM
+  / 2 LOW -- all four HIGHs are hip3-executor live-safety defects; live run
+  blocked until folded)
   <!-- REQUESTED | RETURNED (audit file written) -->
 - Session under review: TVB-29 -- the TVB-28 audit folded (all 8 findings
   reproduced before adjudication, zero disputes), the round-2 design
