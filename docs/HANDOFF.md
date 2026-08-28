@@ -128,8 +128,14 @@ staged for TVB-30.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: {pending push -- pinned in REVIEW_REQUEST.md after
-  the session-end commit}
+- Commits to review: this repo `ddca002^..7531a12` on `main` (4 commits,
+  14 paths; caret keeps ddca002 in the diff; sanity-checked via
+  `git diff --name-status`; the pin commit after 7531a12 is routing,
+  out of range). Sibling hip3-executor (PRIVATE, local path
+  C:\Strat_Trading_Bot\hip3-executor): `7d4fd86^..36d5541` (audit fold,
+  Ruleset v1 prereg, gate + rules, drift amendment). Sibling
+  hip3-scanner (PRIVATE, HIP-3-Solutions org): branch
+  `tvb29-cont-targets` @ `dccfd06` (PR #1).
 - Scope / what changed: TVB-28 audit fold (both repos), Ruleset v1 prereg
   + five rulings + drift amendment, scanner cont targets (PR #1), the
   full pre-live gate implementation + 35-test suite.

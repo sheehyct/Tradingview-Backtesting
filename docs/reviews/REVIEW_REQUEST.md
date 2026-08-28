@@ -29,7 +29,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | {pending push -- pinned after the session-end commit} |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `ddca002^..7531a12` (4 commits, 14 paths: audit recorded ddca002, fold 7b4ae6a, synthesis 3fb0631, session-end docs 7531a12. RANGE-PIN RULE: the caret keeps ddca002 in the diff; sanity-checked with `git diff --name-status` = 14 paths. The pin commit after 7531a12 is docs-only routing, out of range.) |
 | hip3-executor (PRIVATE github.com/sheehyct/hip3-executor; local transport only) | `C:\Strat_Trading_Bot\hip3-executor` | `7d4fd86^..36d5541` (4 commits: audit-fold corrections 7d4fd86, Ruleset v1 prereg f986716, gate + rules implementation 60d57a7, drift-scope amendment 36d5541) |
 | hip3-scanner (PRIVATE github.com/HIP-3-Solutions/hip3-scanner; local transport only) | `C:\Strat_Trading_Bot\hip3-scanner` | branch `tvb29-cont-targets` @ `dccfd06` (PR #1, unmerged at request time -- one commit off `main`) |
 
