@@ -137,10 +137,38 @@ audit confirmed independently).
 - Month-end regen ~Sep 1 now ALSO re-pins the LOW-1 full-precision
   rollup fields alongside the TVB-28 deltas already documented.
 
+### HyPaper assessment (user-raised 2026-08-28, for the Monday discussion)
+
+github.com/GigabrainGG/HyPaper (MIT, Node/TS + Redis, ~29 stars /
+17 commits -- young): a drop-in paper-trading twin of the HL API --
+swap the base URL, add a wallet field, no signing; a worker fills paper
+orders on every live WS mid tick with maker/taker fees at live rates,
+8h funding from live rates, GTC/IOC/ALO, cancel-by-cloid,
+updateLeverage; /info mirrors HL (paper user-state + proxied live
+market data). Why it is interesting HERE: our dry-run exercises
+PaperBroker, a parallel twin -- the TVB-29 audit itself noted the
+dry-run can never reveal LiveBroker defects (HIGH-1 hid exactly there).
+Pointing LiveBroker at HyPaper would run the REAL, just-hardened code
+path (dex-scoped reads, tri-state reconcile, resting-stop verify,
+KILL_FLAT proofs) continuously against a simulated venue; multiple
+wallets = multiple strategies on one ticker. Open questions before any
+adoption (a spike, not a rewrite): (1) builder-dex support -- does it
+serve xyz:* assets and dex-scoped user_state/open_orders/meta, the
+exact seam we just fixed; (2) SDK compatibility -- the Python SDK signs
+actions, HyPaper wants unsigned JSON + wallet field; (3) fill realism
+is mid-cross (optimistic vs spread/queue) -- still better than our
+poll-cadence mid fills with no fees/funding; (4) new infra (Redis +
+Node service). Neighbors seen: chainstacklabs/hyperliquid-trading-bot
+(grid bot + SDK examples, not a paper venue), horn111/hip4-mm-simulator
+(HIP-4 MM queue modeling, different problem).
+
 ### Open
 
-- [ ] Resume the go-live checklist (user decision: run today post-fold
-      or defer)
+- [ ] MONDAY 2026-08-31: discussion, then the go-live checklist
+      (.session_startup_prompt.md) -- scanner PR #6 merge + railway
+      deploy first
+- [ ] HyPaper spike decision (xyz-dex + SDK-compat probe before any
+      adoption; assessment above)
 - [ ] Month-end fresh-window regen ~Sep 1 (adds LOW-1 fp re-pin)
 - [ ] Carried: TV mirror on demand; TVB-18 repairs; jackson set_inputs
       fix; tvb8/tvb9 unreturned
