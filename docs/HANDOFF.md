@@ -209,9 +209,9 @@ audit confirmed independently).
 > docs/reviews/tvb31-codex-audit.md. See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: `0d7437c^..HEAD` on `main` (HyPaper spike 0d7437c,
-  fold 371c37d, PR-10 docs f8921f4, session-end docs; concrete head sha
-  pinned in docs/reviews/REVIEW_REQUEST.md after push). Sibling repos:
+- Commits to review: `0d7437c^..7bfde0f` on `main` (4 commits, 10 paths:
+  HyPaper spike 0d7437c, fold 371c37d, PR-10 docs f8921f4, session-end
+  7bfde0f; sanity-checked via `git diff --name-status`). Sibling repos:
   hip3-executor `4e384bb^..4e384bb` (local transport only); hip3-scanner
   PR #10 branch commit `d0fe9e7`, merged unchanged at `7723462`.
 - Scope / what changed: TVB-30 BLOCK audit folded across three repos

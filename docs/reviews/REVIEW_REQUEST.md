@@ -34,7 +34,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `0d7437c^..{pending push}` (HyPaper spike 0d7437c, M4/L1/L2 fold + audit + HANDOFF synthesis 371c37d, PR-10 docs f8921f4, session-end docs. RANGE-PIN RULE: the caret keeps 0d7437c in the diff; sanity-check with `git diff --name-status`.) |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `0d7437c^..7bfde0f` (4 commits, 10 paths: HyPaper spike 0d7437c, M4/L1/L2 fold + audit + HANDOFF synthesis 371c37d, PR-10 docs f8921f4, session-end 7bfde0f. RANGE-PIN RULE: the caret keeps 0d7437c in the diff; sanity-checked with `git diff --name-status` = 10 paths. The pin commit after 7bfde0f is docs-only, outside the range by construction.) |
 | hip3-executor (PRIVATE github.com/sheehyct/hip3-executor; local transport only) | `C:\Strat_Trading_Bot\hip3-executor` | `4e384bb^..4e384bb` (ONE commit = the whole executor fold: proved-close-or-raise, scope-unknown sweep skip, keyed entry blocks + per-cycle intent retry, full stop-contract verification via frontendOpenOrders, boundary sizing, live KILL_FLAT scanner independence, leverage_unverified + notional receipts, DEPLOYED_SHA validation; 90-test suite) |
 | hip3-scanner (PRIVATE github.com/HIP-3-Solutions/hip3-scanner) | `C:\Strat_Trading_Bot\hip3-scanner` | branch `tvb31-parity-mutation-test` @ `d0fe9e7` (PR #10: runner-mutation test; MERGED to `main` 2026-08-30 @ `7723462` -- the scoped file is identical at both) |
 
