@@ -14,7 +14,8 @@
   4 MEDIUM / 4 LOW; audit at docs/reviews/tvb30-codex-audit.md; FOLDED
   same day by TVB-31: every finding reproduced first, 10/10 executor
   probes -> 0/10, zero disputes, two new dated rulings 2026-08-30;
-  executor 4e384bb, this repo per HANDOFF TVB-31 entry, scanner PR #10)
+  executor 4e384bb, this repo per HANDOFF TVB-31 entry, scanner PR #10
+  MERGED 2026-08-30 @ 7723462)
   <!-- REQUESTED | RETURNED (audit file written) -->
 - Session under review: TVB-30 -- the TVB-29 audit (verdict BLOCK,
   0 CRITICAL / 4 HIGH / 6 MEDIUM / 2 LOW) folded SAME DAY across all

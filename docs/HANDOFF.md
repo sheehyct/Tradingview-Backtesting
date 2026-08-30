@@ -152,8 +152,9 @@ audit confirmed independently).
   supervised probes (bracket receipt + STOP-CONTRACT field confirmation
   vs a real resting bracket / equity formula with ONE isolated position
   -- STILL UNVERIFIED / first xyz fill + user_fills dex question).
-- Scanner PR #10 needs user merge (test-only; no deploy needed after --
-  runtime untouched).
+- Scanner PR #10 MERGED (user, 2026-08-30 @ 7723462; test-only, runtime
+  untouched -- no Railway deploy needed). The whole TVB-30 fold is now
+  on main in all three repos.
 - Month-end regen ~Sep 1 now ALSO re-pins the per-symbol L1 net fields
   (net_realized_pp/net_combined_pp staged-vs-round-once, 0.0001pp class)
   alongside the TVB-28/TVB-30 deltas already documented.
