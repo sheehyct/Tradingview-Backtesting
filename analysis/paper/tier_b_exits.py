@@ -44,6 +44,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import subprocess
 import time
 from bisect import bisect_left, bisect_right
@@ -341,7 +342,7 @@ def _replay_arm_v25(entry: dict, arm: dict, warm: dict, ws: int, we: int, bars_d
     # by 0.0002pp on P1).
     exited_fracs = sum(e.get("frac", 1.0) for e in exits)
     fee_sides = n_entries + exited_fracs
-    fees_pp = round(FEE_SIDE_PCT * fee_sides, 4)
+    nets = _net_fields(realized, open_mtm, fee_sides)
 
     vc = dict(twin.veto_counts)
     recon_counter_ok = (
@@ -370,10 +371,10 @@ def _replay_arm_v25(entry: dict, arm: dict, warm: dict, ws: int, we: int, bars_d
         "open_frac": round(open_frac, 4) if (open_dir and open_frac is not None) else None,
         "open_mtm_pp": round(open_mtm, 4) if open_mtm is not None else None,
         "combined_pp": round(realized + (open_mtm or 0.0), 4),
-        "fees_pp": fees_pp,
+        "fees_pp": nets["fees_pp"],
         "fee_sides": round(fee_sides, 6),
-        "net_realized_pp": round(realized - fees_pp, 4),
-        "net_combined_pp": round(realized + (open_mtm or 0.0) - fees_pp, 4),
+        "net_realized_pp": nets["net_realized_pp"],
+        "net_combined_pp": nets["net_combined_pp"],
         # Full-precision counterparts for the roster rollup (TVB-29 audit
         # LOW-1 / D10 aggregate-then-round: the rollup must not sum the
         # rounded display fields above).
@@ -401,6 +402,19 @@ def _replay_arm_v25(entry: dict, arm: dict, warm: dict, ws: int, we: int, bars_d
     if open_row is not None:
         events = events + [open_row]
     return {"rec": rec, "curve": curve, "episodes": episodes, "pnls": trade_pnls, "events": events}
+
+
+def _net_fields(realized: float, open_mtm: float | None, fee_sides: float) -> dict:
+    """Per-symbol D10 net construction (TVB-30 audit LOW-1): every net field
+    derives from the UNROUNDED fee and rounds once at reporting. Subtracting
+    the rounded display fee from full-precision P&L drifted 0.0001pp on
+    P1's half-fraction fee_sides rows."""
+    fee_fp = FEE_SIDE_PCT * fee_sides
+    return {
+        "fees_pp": round(fee_fp, 4),
+        "net_realized_pp": round(realized - fee_fp, 4),
+        "net_combined_pp": round(realized + (open_mtm or 0.0) - fee_fp, 4),
+    }
 
 
 def _rollup_arm(arm: dict, sym_results: list[dict]) -> dict:
@@ -443,18 +457,48 @@ def _rollup_arm(arm: dict, sym_results: list[dict]) -> dict:
     # symbol's rounded display fee and drifted from gross - fees).
     side_vals = [r.get("fee_sides") for r in recs]
     have_sides = all(s is not None for s in side_vals)
+
     # TVB-29 audit LOW-1: every roster aggregate sums FULL-PRECISION inputs
     # (realized_fp/open_mtm_fp, with a fallback to the rounded display
     # fields for pre-amendment recs) and rounds ONCE here -- D10's
     # aggregate-then-round contract now holds end to end.
-    fee_fp = FEE_SIDE_PCT * sum(side_vals) if have_sides else sum(r["fees_pp"] for r in recs)
-    roster_fees = round(fee_fp, 4)
+    # TVB-30 audit LOW-2: the fallback is fail-closed and ROW-WISE -- a
+    # non-finite input raises, an open row with no MTM value raises (it used
+    # to read silently as zero), and one pre-amendment row no longer forces
+    # every new row back to rounded display fees.
+    def _finite(v, rec, what):
+        if not isinstance(v, (int, float)) or math.isnan(v) or math.isinf(v):
+            raise ValueError(f"non-finite {what} in {rec.get('arm_id')}/{rec.get('symbol')}: {v!r}")
+        return float(v)
+
+    def _row_fee_fp(r):
+        s = r.get("fee_sides")
+        if s is not None:
+            return FEE_SIDE_PCT * _finite(s, r, "fee_sides")
+        return _finite(r["fees_pp"], r, "fees_pp")
 
     def _open_fp(r):
-        v = r.get("open_mtm_fp", r.get("open_mtm_pp"))
-        return v or 0.0
+        v = r.get("open_mtm_fp")
+        if v is None:
+            v = r.get("open_mtm_pp")
+        if v is None:
+            if r.get("open_dir"):
+                raise ValueError(
+                    f"open row without MTM in {r.get('arm_id')}/{r.get('symbol')} -- "
+                    f"cannot silently zero an open position's mark"
+                )
+            return 0.0
+        return _finite(v, r, "open MTM")
 
-    realized_fp = sum(r.get("realized_fp", r["sum_pnl_pp"]) for r in recs)
+    def _realized_fp(r):
+        v = r.get("realized_fp")
+        if v is None:
+            v = r["sum_pnl_pp"]
+        return _finite(v, r, "realized")
+
+    fee_fp = sum(_row_fee_fp(r) for r in recs)
+    roster_fees = round(fee_fp, 4)
+    realized_fp = sum(_realized_fp(r) for r in recs)
     open_fp = sum(_open_fp(r) for r in recs)
     gross_realized = round(realized_fp, 4)
     gross_combined = round(realized_fp + open_fp, 4)

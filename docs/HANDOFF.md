@@ -5,6 +5,163 @@
 
 ---
 
+## Session TVB-31 (in progress): scanner deploy verified w/o redeploy; HyPaper spike; TVB-30 audit (BLOCK) folded
+
+**Date:** 2026-08-30
+**Status:** IN PROGRESS -- three work blocks done: (1) the scanner Railway
+item resolved by VERIFICATION, not deploy; (2) the HyPaper adoption spike
+(docs/experiments/tvb31_hypaper_spike.md, 0d7437c); (3) the TVB-30 audit
+returned BLOCK and was folded same-day across all three repos.
+
+### Scanner Railway item (startup checklist item 2) -- resolved, no deploy
+
+Cont targets are ALREADY LIVE: the live payload serves cont signals with
+targets (xyz:XYZ100 live 2D-1-2D, entry 29580 / stop 29595 / target
+29544), live display_v d9cb6247159c52f8 matches local main exactly, and
+everything merged since PR #1 (PRs #5/#6) is docs/parity/tests/npm-alias
+only. `railway up` deliberately SKIPPED: a no-op redeploy restarts the
+worker and resets in-memory alert state the day before go-live.
+Verification ticks all green: /health ok (279 coins), payload probe,
+SMOKE GREEN vs the live URL, local extract:check + 354/354.
+
+### HyPaper spike (docs/experiments/tvb31_hypaper_spike.md)
+
+Verdict: adoptable for continuous multi-strategy paper on MAIN-DEX
+CRYPTO ONLY, not drop-in. (a) zero builder-dex support end to end (meta/
+mids/asset-map are main-dex only); (b) three SDK blockers, all small --
+/exchange demands a `wallet` field the SDK never sends (400 on every
+action; ~30-line shim), trigger orders are DEAD via the API (route
+validation rejects non-limit wires while the engine's own trigger path
+sits unreachable; ~2-line upstream patch), HTTP-400-on-err reads as
+ambiguous BrokerError not OrderRejected; broker.py needs a base_url
+config and HyPaper mode must run perp_dexs=[""] (it ignores the dex
+param on reads -- our re-prefixing would mint phantom xyz positions);
+(c) fills are mid-cross detected but priced by REAL L2-book VWAP with
+maker/taker split + 8h live funding -- more realistic than PaperBroker
+-- with named optimisms: triggers fire on MID not MARK, maker fills on
+touch (no queue), no partials, no liquidation engine. Key value
+unchanged: it runs the REAL LiveBroker code path (where HIGH-1 hid) and
+per-wallet auto-created accounts = the user's parallel-strategies goal.
+Orthogonal to Monday's live run.
+
+### External review fold -- critical synthesis (TVB-30 audit, verdict BLOCK)
+
+The audit returned 2026-08-30: BLOCK, 0 CRITICAL / 4 HIGH / 4 MEDIUM /
+4 LOW. All four HIGHs were again executor live-safety defects inside the
+boundary TVB-30 claimed folded; the auditor's summary -- "the TVB-29
+fold is not ready for a supervised live run" -- was CORRECT. Every
+finding REPRODUCED before adjudication: 10 executor no-network probes
+10/10 -> 0/10 after the fold, M4a/M4b/L1/L2 primary probes all
+reproduced (L1 via the exact formula mechanism on P1-shaped
+half-fraction fee_sides; committed rows predate the fp fields), L4
+confirmed statically (the mutation test never spawned the runner). ZERO
+disputes. Fold commits: executor 4e384bb (pushed, 90 tests, was 64),
+this repo (this commit, 287 tests, was 280), scanner PR #10 (branch
+tvb31-parity-mutation-test @ d0fe9e7, 356 tests; NEEDS USER MERGE).
+
+Where we agree (everything, with receipts):
+
+- HIGH-1 (partial IOC close read as complete): market_close discarded
+  totalSz; every caller deleted the record and cancelled the stop on ANY
+  nonzero fill -- a partial left a NAKED UNTRACKED residual (probe: 0.3
+  residual, failed_closes=[], stop stripped). Fixed: market_close proves
+  flat with a fresh dex-scoped query INSIDE the broker or raises
+  (underfilled = unresolved); every caller already handles the raise --
+  record kept, stop kept, KILL_FLAT books it failed and retries.
+- HIGH-2 (failed poll + cancel-all): with pre_poll down, KILL_FLAT
+  flattened tracked names then ran the GLOBAL cancel sweep anyway -- an
+  unseen survivor's stop was stripped (probe: GHOST's stop gone). Fixed:
+  scope-unknown skips the sweep entirely (receipt order_sweep:
+  skipped_scope_unknown); only proved closes lose their orders.
+- HIGH-3 (scalar entry_block): the untracked writer's clear erased the
+  pending-intent block while state["pending_entry"] persisted (probe:
+  block None, intent retained), and _enter could overwrite the only
+  durable handle. Fixed: independent keyed blocks (intent / untracked /
+  protection), each writer owns exactly its key, the intent block
+  re-derives from persisted state EVERY cycle with reconciliation
+  retried (announce-throttled), and _enter refuses while an intent
+  exists (pending_intent_unresolved).
+- HIGH-4 (coin/oid-only stop proof): a same-coin/oid row with wrong
+  side, size, price, type, and reduceOnly=False verified as protection
+  (probe: True); 1000.0-vs-1000.9 passed the 0.1% size tolerance. Fixed:
+  _orders_state moved to frontendOpenOrders (rich rows, dex param
+  intact) and the predicate proves the FULL contract -- reduce-only,
+  isTrigger, "Stop" orderType, close side, remaining-size coverage to
+  half a size step, venue-rounded trigger price; missing fields read
+  UNPROTECTED; mutation-tested per attribute; the engine size compare is
+  half a step (was 0.1% relative); restore updates stop_venue and
+  re-proves the contract fresh. Venue field VALUES asserted from SDK
+  docs -- confirm against a real resting bracket in the supervised probe
+  (added to README STATUS open list).
+- M1 (boundary sizing): exactly-$10.00 and $10.40 tickets floored to
+  $9.45 and self-rejected (probe digit-for-digit). Fixed: quantize
+  first, ceil-repair ANY under-minimum result, cap guard unchanged.
+- M2 (kill-flat scanner touch): live KILL_FLAT fetched scanner state
+  (15s timeout exposure) before the broker. Fixed: LIVE never touches
+  the scanner (the live broker ignores mids); the paper twin keeps the
+  best-effort fetch for its fills.
+- M3 + USER RULING 2026-08-30 (warn-only): a failed/incomplete leverage
+  confirmation was swallowed silently. Fixed: leverage_unverified
+  journal + announce with the reason (query_failed /
+  position_not_visible / leverage_fields_missing); entries NEVER block
+  on it (risk is set by the stop; matches the risk-drift ruling shape).
+- NEW USER RULING 2026-08-30 (the audit's unstated question): the
+  max-notional cap binds the PRE-TRADE estimate; the ACTUAL fill
+  notional rides every entry receipt (notional_usd_filled) and warns
+  past 5% over the cap -- never auto-closed.
+- M4 (this repo, t1floor): blank/commas-only --arms resolved to ZERO
+  arms with every gate passing vacuously; the default expectation
+  tracked a mutated NEW_ARMS; dict-keying erased production
+  multiplicity. Fixed: CANONICAL_ARM_IDS literal + NEW_ARMS assertion,
+  absent-vs-explicit-empty distinction (empty components hard-error),
+  produced-sequence multiset gate before any dict collapse; tests pin
+  the eight ids literally.
+- L1 (this repo): per-symbol nets subtracted the ROUNDED display fee
+  from full-precision P&L (0.0001pp drift on P1 half-fraction rows).
+  Fixed: _net_fields helper -- every net derives from the unrounded fee,
+  rounds once; regression distinguishes the two formulas exactly.
+  EXPECTED DELTA: committed results_by_symbol rows keep the staged
+  values until the month-end regen re-pins them (same treatment as the
+  TVB-30 LOW-1 rollup delta).
+- L2 (this repo): rollup fallback silently zeroed an open row's missing
+  MTM, propagated NaN into JSON, and one old row flipped EVERY row to
+  rounded display fees. Fixed: fail-closed finiteness validation, open
+  rows REQUIRE an MTM value, row-wise fee fallback.
+- L3 (executor): any nonempty DEPLOYED_SHA text became provenance.
+  Fixed: 40-hex or journaled deployed_sha_invalid; four vectors pinned.
+- L4 (scanner): the parity mutation test re-implemented the comparison
+  inline and never executed run_parity.js -- deleting the preflight left
+  every test green. Fixed (PR #10): the new test spawns the ACTUAL
+  runner against a poisoned tmp replica, asserts exit 1 + STALE message
+  + the poison never executed; META-CHECKED (deleting the preflight
+  fails exactly this test).
+
+New dated user rulings this session (2026-08-30): (1) leverage
+unverified = journal + announce, warn-only, never blocks entries;
+(2) actual-fill notional = receipt every entry + warn past 5% over the
+cap, never auto-close.
+
+Suites after the fold: executor 90 (was 64), this repo 287 (was 280),
+scanner 356 (PR #10). request.security untouched (no Pine changed --
+audit confirmed independently).
+
+### Context for next session
+
+- Go-live checklist unchanged for Monday: executor VPS deploy now at
+  4e384bb+ (SSH needs explicit user go), VPS dry-run + KILL_FLAT drill,
+  supervised probes (bracket receipt + STOP-CONTRACT field confirmation
+  vs a real resting bracket / equity formula with ONE isolated position
+  -- STILL UNVERIFIED / first xyz fill + user_fills dex question).
+- Scanner PR #10 needs user merge (test-only; no deploy needed after --
+  runtime untouched).
+- Month-end regen ~Sep 1 now ALSO re-pins the per-symbol L1 net fields
+  (net_realized_pp/net_combined_pp staged-vs-round-once, 0.0001pp class)
+  alongside the TVB-28/TVB-30 deltas already documented.
+- HyPaper adoption decision pending the Monday discussion; the spike doc
+  is the input.
+
+---
+
 ## Session TVB-30: TVB-29 audit (BLOCK) folded before go-live; run deferred to Monday (COMPLETE)
 
 **Date:** 2026-08-28

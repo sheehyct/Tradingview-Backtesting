@@ -26,6 +26,7 @@ from analysis.paper.tier_b_exits import (
     _expected_family_arms,
     _gate_stream_events,
     _matched_entry,
+    _net_fields,
     _replay_arm_v25,
     _rollup_arm,
 )
@@ -295,3 +296,64 @@ def test_replay_arm_v25_survives_zero_duration_episode(tmp_path):
     assert rec["sum_pnl_pp"] == pytest.approx(
         (101.5 - 101.01) / 101.01 * 100.0, abs=1e-6
     )  # P&L retained
+
+
+# -- TVB-30 audit LOW-1: per-symbol nets from the UNROUNDED fee ---------------
+
+
+def test_net_fields_round_once_distinguishes_staged_formula():
+    # P1's half-fraction fee_sides (x.5) puts the unrounded fee on a
+    # round-half boundary: fee_sides=1.5 -> fee 0.01875. At realized
+    # -2.99998 the D10 round-once net is -3.0187 while the old staged
+    # formula (subtract the ROUNDED display fee first) books -3.0188.
+    nets = _net_fields(-2.99998, None, 1.5)
+    fee_fp = FEE_SIDE_PCT * 1.5
+    assert nets["net_realized_pp"] == round(-2.99998 - fee_fp, 4) == -3.0187
+    staged = round(-2.99998 - round(fee_fp, 4), 4)
+    assert staged == -3.0188  # the defect this pins against
+    assert nets["net_combined_pp"] == nets["net_realized_pp"]
+    assert nets["fees_pp"] == round(fee_fp, 4)
+
+
+# -- TVB-30 audit LOW-2: rollup fallback is finite, open-aware, row-wise ------
+
+
+def test_rollup_open_row_without_mtm_raises():
+    arm = {"arm_id": "P1", "label": "x", "family": "package"}
+    w = _fee_rec("S0", 0.03)
+    w["rec"]["open_dir"] = "up"
+    w["rec"]["open_mtm_pp"] = None
+    w["rec"]["open_mtm_fp"] = None
+    with pytest.raises(ValueError, match="open row without MTM"):
+        _rollup_arm(arm, [w])
+
+
+def test_rollup_nonfinite_input_raises():
+    arm = {"arm_id": "P1", "label": "x", "family": "package"}
+    w = _fee_rec("S0", 0.03)
+    w["rec"]["realized_fp"] = float("nan")
+    with pytest.raises(ValueError, match="non-finite"):
+        _rollup_arm(arm, [w])
+    w2 = _fee_rec("S1", 0.03)
+    w2["rec"]["fee_sides"] = float("inf")
+    with pytest.raises(ValueError, match="non-finite"):
+        _rollup_arm(arm, [w2])
+
+
+def test_rollup_mixed_schema_fee_is_row_wise():
+    # One pre-amendment row (no fee_sides) used to force EVERY new row back
+    # to its rounded display fee (all-or-nothing), shifting the aggregate's
+    # last digit. Row-wise: new rows keep their unrounded fee, only the old
+    # row contributes its display fee.
+    arm = {"arm_id": "P1", "label": "x", "family": "package"}
+    new1 = _fee_rec("S0", 3.3333)
+    new2 = _fee_rec("S1", 3.3333)
+    old = _fee_rec("S2", 0.0)
+    old["rec"]["fee_sides"] = None
+    old["rec"]["fees_pp"] = 0.05
+    roll = _rollup_arm(arm, [new1, new2, old])
+    row_wise = round(FEE_SIDE_PCT * 3.3333 * 2 + 0.05, 4)
+    all_display = round(round(FEE_SIDE_PCT * 3.3333, 4) * 2 + 0.05, 4)
+    assert row_wise != all_display  # the two policies are distinguishable
+    assert roll["fees_pp"] == row_wise == 0.1333
+    assert roll["fee_sides"] is None  # mixed schema: no roster side count

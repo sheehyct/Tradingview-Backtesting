@@ -128,6 +128,12 @@ NEW_ARMS: list[dict] = [
 
 ENTRY_BOOK_ARMS = ("D1", "D2", "D3", "D4", "D5", "DINF")
 
+# TVB-30 audit MEDIUM-4: the canonical roster is a LITERAL, independent of
+# the NEW_ARMS list that produces the run -- a mutation that drops or
+# duplicates an arm in NEW_ARMS now fails loudly instead of silently
+# shrinking the default expectation with it.
+CANONICAL_ARM_IDS = ("D1", "D2", "D3", "D4", "D5", "DINF", "A1F", "D1ATR")
+
 
 def _gate_scope(
     arm_streams: dict, arm_recs: dict, requested: set, smoke: bool
@@ -601,17 +607,38 @@ def _resolve_requested_arms(arms_arg: str | None) -> tuple[list, set]:
     produced-vs-requested check circular: a request for "D1,ZZ" silently
     selected only D1 and passed, and a faulty selector producing an extra
     arm also passed. Unknown or duplicate ids are hard errors -- a request
-    must never silently shrink or grow."""
-    known = {a["arm_id"] for a in NEW_ARMS}
-    if not arms_arg:
-        return list(NEW_ARMS), set(known)
-    raw = [s.strip() for s in arms_arg.split(",") if s.strip()]
-    if len(raw) != len(set(raw)):
+    must never silently shrink or grow.
+
+    TVB-30 audit MEDIUM-4 hardening: the no-argument default expectation is
+    the LITERAL CANONICAL_ARM_IDS roster (never the mutable NEW_ARMS list),
+    NEW_ARMS is asserted against it, ABSENT (None) is distinguished from
+    explicit-empty text, and empty comma components are rejected -- a
+    blank or commas-only request used to resolve to ZERO arms with every
+    gate passing vacuously."""
+    by_id: dict = {}
+    for a in NEW_ARMS:
+        if a["arm_id"] in by_id:
+            raise SystemExit(f"NEW_ARMS declares duplicate arm id: {a['arm_id']}")
+        by_id[a["arm_id"]] = a
+    if tuple(by_id) != CANONICAL_ARM_IDS:
+        raise SystemExit(
+            f"NEW_ARMS roster {tuple(by_id)} != canonical {CANONICAL_ARM_IDS} -- "
+            f"the declared arm set drifted"
+        )
+    if arms_arg is None:
+        return list(NEW_ARMS), set(CANONICAL_ARM_IDS)
+    parts = [s.strip() for s in arms_arg.split(",")]
+    if not any(parts) or any(not p for p in parts):
+        raise SystemExit(
+            f"malformed --arms request {arms_arg!r}: empty request or empty "
+            f"component (omit --arms entirely to run the full canonical roster)"
+        )
+    if len(parts) != len(set(parts)):
         raise SystemExit(f"duplicate arm ids in --arms: {arms_arg}")
-    unknown = sorted(set(raw) - known)
+    unknown = sorted(set(parts) - set(CANONICAL_ARM_IDS))
     if unknown:
         raise SystemExit(f"unknown arm ids in --arms: {unknown}")
-    req = set(raw)
+    req = set(parts)
     return [a for a in NEW_ARMS if a["arm_id"] in req], req
 
 
@@ -696,7 +723,9 @@ def main() -> None:
     arm_events: dict[str, list[dict]] = {}
     entry_counts: dict[str, int] = {}
     recon_fail = []
+    produced_seq: list[str] = []
     for arm in new_arms:
+        produced_seq.append(arm["arm_id"])
         results = [
             _replay_arm_ext(e, arm, warms[e["name"]], ws, we, args.bars_dir) for e in symbols
         ]
@@ -726,6 +755,17 @@ def main() -> None:
 
     if recon_fail:
         raise SystemExit(f"COUNTER RECONCILIATION FAILED: {recon_fail}")
+
+    # TVB-30 audit MEDIUM-4: compare the produced arm-id SEQUENCE against the
+    # validated request BEFORE any dict collapse -- keying results by arm id
+    # first erased duplicate production and cardinality drift.
+    if len(produced_seq) != len(set(produced_seq)):
+        raise SystemExit(f"ARM PRODUCTION DUPLICATED: {produced_seq}")
+    if set(produced_seq) != set(requested_ids) or len(produced_seq) != len(requested_ids):
+        raise SystemExit(
+            f"ARM PRODUCTION MISMATCH: produced {sorted(produced_seq)} vs "
+            f"requested {sorted(requested_ids)}"
+        )
 
     # gate 2 (prereg ruling 3, 2026-08-10 correction): per symbol, depth-arm
     # event streams must be identical until a first divergence that is an

@@ -26,6 +26,7 @@ from analysis.paper.tier_b_t1floor import (
     ENTRY_BOOK_ARMS,
     NEW_ARMS,
     TIER_B_BY_SYMBOL,
+    CANONICAL_ARM_IDS,
     _determinism_check,
     _entry_stream_gate,
     _first_divergence_is_exit,
@@ -404,3 +405,35 @@ def test_census_broken_event_linkage_raises():
     ]
     with pytest.raises(ValueError, match="event-linkage broken"):
         rc._trade_rows(orphaned, BARS_DIR)
+
+
+# -- TVB-30 audit MEDIUM-4: default/malformed arm contract --------------------
+
+
+def test_canonical_roster_pinned_literally():
+    # The eight declared ids, pinned as LITERALS here too -- deriving them
+    # from NEW_ARMS would track the very mutation this guards against.
+    assert CANONICAL_ARM_IDS == ("D1", "D2", "D3", "D4", "D5", "DINF", "A1F", "D1ATR")
+    assert [a["arm_id"] for a in NEW_ARMS] == list(CANONICAL_ARM_IDS)
+
+
+def test_resolve_rejects_blank_and_empty_components():
+    # Blank / commas-only input used to resolve to ZERO arms with every gate
+    # passing vacuously; empty components were silently dropped.
+    for bad in ("", "   ", ",,", "D1,,D2", "D1,", ",D1"):
+        with pytest.raises(SystemExit, match="malformed --arms"):
+            _resolve_requested_arms(bad)
+
+
+def test_resolve_default_is_independent_of_new_arms_mutation(monkeypatch):
+    # Shrinking or duplicating NEW_ARMS used to shrink the default
+    # expectation with it (no gate could fail); the canonical literal now
+    # catches the drift at resolve time.
+    import analysis.paper.tier_b_t1floor as t1f
+
+    monkeypatch.setattr(t1f, "NEW_ARMS", t1f.NEW_ARMS[:-1])
+    with pytest.raises(SystemExit, match="drifted"):
+        t1f._resolve_requested_arms(None)
+    monkeypatch.setattr(t1f, "NEW_ARMS", [*t1f.NEW_ARMS, t1f.NEW_ARMS[0]])
+    with pytest.raises(SystemExit, match="duplicate arm id"):
+        t1f._resolve_requested_arms(None)
