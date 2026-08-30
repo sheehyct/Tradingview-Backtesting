@@ -10,25 +10,23 @@
 
 ## Status
 
-- Status: RETURNED (2026-08-30 -- verdict BLOCK, 0 CRITICAL / 4 HIGH /
-  4 MEDIUM / 4 LOW; audit at docs/reviews/tvb30-codex-audit.md; FOLDED
-  same day by TVB-31: every finding reproduced first, 10/10 executor
-  probes -> 0/10, zero disputes, two new dated rulings 2026-08-30;
-  executor 4e384bb, this repo per HANDOFF TVB-31 entry, scanner PR #10
-  MERGED 2026-08-30 @ 7723462)
+- Status: REQUESTED
   <!-- REQUESTED | RETURNED (audit file written) -->
-- Session under review: TVB-30 -- the TVB-29 audit (verdict BLOCK,
-  0 CRITICAL / 4 HIGH / 6 MEDIUM / 2 LOW) folded SAME DAY across all
-  three repos: every finding reproduced before adjudication (16/16
-  no-network probes against the old executor code -> 0/16 after), zero
-  disputes, three new dated user rulings 2026-08-28 (reach fail-closed
-  `reach_unavailable`; risk drift = receipt + warn at 1.5x budget,
-  never auto-close; naked stop = restore once verified, else flatten).
-  The round-2 live run was then user-deferred to Monday 2026-08-31
-  (scheduling + Friday late-day OPEX pinning). HyPaper assessed for the
-  Monday discussion (HANDOFF TVB-30 entry).
-- Requested: 2026-08-28
-- Write the audit to: `docs/reviews/tvb30-codex-audit.md` (copy
+- Session under review: TVB-31 -- the TVB-30 audit (verdict BLOCK,
+  0 CRITICAL / 4 HIGH / 4 MEDIUM / 4 LOW) folded SAME DAY across all
+  three repos: every finding reproduced before adjudication (10/10
+  no-network executor probes against the old code -> 0/10 after;
+  M4a/M4b/L1/L2 primary probes; L4 static), zero disputes, two new
+  dated user rulings 2026-08-30 (leverage-unverified = journal +
+  announce, warn-only, never blocks; actual-fill notional = receipt
+  every entry + warn past 5% over the cap, never auto-close). Also:
+  the scanner Railway checklist item resolved by VERIFICATION (cont
+  targets already live; deliberate no-redeploy), and the HyPaper
+  adoption spike (docs/experiments/tvb31_hypaper_spike.md -- claims
+  checkable against the public github.com/GigabrainGG/HyPaper repo
+  @ b054fdd).
+- Requested: 2026-08-30
+- Write the audit to: `docs/reviews/tvb31-codex-audit.md` (copy
   `docs/reviews/_TEMPLATE.md`)
 - NOTE: tvb8/tvb9 remain unreturned (standing note).
 
@@ -36,63 +34,70 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `aa1c795^..60bc7de` (4 commits, 9 paths: audit recorded aa1c795, fold c2bf6ea, Monday-deferral docs 41a542d, session-end 60bc7de. RANGE-PIN RULE: the caret keeps aa1c795 in the diff; sanity-checked with `git diff --name-status` = 9 paths.) |
-| hip3-executor (PRIVATE github.com/sheehyct/hip3-executor; local transport only) | `C:\Strat_Trading_Bot\hip3-executor` | `a23ac43^..a23ac43` (ONE commit = the whole executor fold: dex-aware safety reads, tri-state reconciliation, per-poll protection verification, scanner-independent KILL_FLAT, sizing/exit-identity/reach/provenance fixes, 64-test suite) |
-| hip3-scanner (PRIVATE github.com/HIP-3-Solutions/hip3-scanner) | `C:\Strat_Trading_Bot\hip3-scanner` | branch `tvb30-parity-gate` @ `fb1ec84` (PR #6: parity stale-copy preflight + two-pivot nearest-wins vectors; MERGED to `main` 2026-08-30 @ 6a7a53c -- the scoped files are identical at fb1ec84 and the merge) |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `0d7437c^..{pending push}` (HyPaper spike 0d7437c, M4/L1/L2 fold + audit + HANDOFF synthesis 371c37d, PR-10 docs f8921f4, session-end docs. RANGE-PIN RULE: the caret keeps 0d7437c in the diff; sanity-check with `git diff --name-status`.) |
+| hip3-executor (PRIVATE github.com/sheehyct/hip3-executor; local transport only) | `C:\Strat_Trading_Bot\hip3-executor` | `4e384bb^..4e384bb` (ONE commit = the whole executor fold: proved-close-or-raise, scope-unknown sweep skip, keyed entry blocks + per-cycle intent retry, full stop-contract verification via frontendOpenOrders, boundary sizing, live KILL_FLAT scanner independence, leverage_unverified + notional receipts, DEPLOYED_SHA validation; 90-test suite) |
+| hip3-scanner (PRIVATE github.com/HIP-3-Solutions/hip3-scanner) | `C:\Strat_Trading_Bot\hip3-scanner` | branch `tvb31-parity-mutation-test` @ `d0fe9e7` (PR #10: runner-mutation test; MERGED to `main` 2026-08-30 @ `7723462` -- the scoped file is identical at both) |
 
 ## Read first (in this order)
 
-1. `CLAUDE.md`; charter Section 0. Then `docs/reviews/tvb29-codex-audit.md`
-   (the BLOCK audit this session folded) and the TVB-30 HANDOFF entry
+1. `CLAUDE.md`; charter Section 0. Then `docs/reviews/tvb30-codex-audit.md`
+   (the BLOCK audit this session folded) and the TVB-31 HANDOFF entry
    (the critical synthesis, including the reproduce-first probe results).
-2. hip3-executor: `src/hip3_executor/broker.py` + `engine.py` (the bulk
-   of the fold), `rules.py`, README (Ruleset v1 amendments 2026-08-28 +
-   the rewritten gate STATUS), `tests/test_gate_hardening.py` (the new
-   regression suite) + the updated conftest/test_broker/test_rules.
+2. hip3-executor: `src/hip3_executor/broker.py` (market_close proved
+   close, _stop_row_ok / verify_stop / stop_ok_cached, frontendOpenOrders
+   _orders_state) + `engine.py` (entry_blocks, _reconcile_pending_intent
+   per-cycle, _verify_protection, _kill_flat_cycle, _sized, _enter),
+   README (2026-08-30 amendments + rewritten STATUS incl open items e/f),
+   `tests/test_gate_hardening.py` (the TVB-30 fold battery).
 3. This repo: `analysis/paper/tier_b_t1floor.py`
-   (`_resolve_requested_arms` + the independent requested set),
-   `analysis/paper/tier_b_exits.py` (full-precision rollup), the new
-   tests in `tests/test_t1floor_gates.py` / `tests/test_tier_b_exits.py`.
-4. hip3-scanner branch: `parity/extract_core.js` (build()/--check),
-   `parity/run_parity.js` (preflight), `test/parity_extract_check.test.js`,
-   `test/core_v3.test.js` (two-pivot vectors).
+   (CANONICAL_ARM_IDS + _resolve_requested_arms + the produced-sequence
+   multiset gate), `analysis/paper/tier_b_exits.py` (_net_fields + the
+   fail-closed row-wise rollup fallback), the new tests in
+   `tests/test_t1floor_gates.py` / `tests/test_tier_b_exits.py`,
+   `docs/experiments/tvb31_hypaper_spike.md`.
+4. hip3-scanner: `test/parity_extract_check.test.js` (the new
+   runner-mutation test; the meta-check claim is in the PR body).
 
 ## Focus areas (scrutinize these)
 
-1. Dex-scoping COMPLETENESS: did any venue read escape the sweep?
-   `user_fills` notably has NO dex parameter in SDK 0.24.0 and
-   `explain_exit` depends on it -- whether builder-dex fills appear
-   there is UNVERIFIED (flagged Open; falls back to unknown_exit).
-2. The OrderRejected definite-vs-ambiguous split in `_parse_status`:
-   is a `status:"err"` response truly always nothing-placed on this
-   venue? Any response shape that is definite but classified ambiguous
-   (harmless) or ambiguous but classified definite (dangerous)?
-3. `_verify_protection`: the restore path re-places at `rec["stop"]`
-   for `abs(venue szi)` -- hunt a wrong-size/wrong-price/wrong-side
-   hole; also the `entry_block` interplay between the untracked-
-   positions writer and the protection writer (string-prefix clearing).
-4. `_kill_flat_cycle`: ordering (kill file before feed), the venue_ok
-   fallback to tracked records, `clean = zero/zero AND no failed
-   closes`, and whether any path can still cancel a survivor's stop.
-5. Sizing: ceil-step min-ticket math (float edges), the
-   `min_ticket_exceeds_max_notional` guard, risk_usd_booked/stop_venue
-   receipt correctness, the 1.5x warn (min-clamp interaction).
-6. This repo: is the t1floor produced-vs-requested check truly
-   non-circular now (raw-request validation, selector mutation both
-   directions)? LOW-1 rollup: full-precision aggregation incl the
-   pre-amendment fallback (`realized_fp`/`open_mtm_fp` absent).
-7. Scanner: any path that still loads the committed parity copy
-   without the byte-compare preflight; the two-pivot vectors' bar
-   classifications and pivot qualification (k=2) -- verify by hand.
-8. request.security: NO Pine file changed this session -- verify none did.
+1. market_close proved-close: any caller where the fresh position query
+   can mislead (same-coin refill race between close and requery, the
+   PaperBroker mirror's fidelity, position_for raising vs returning).
+2. The KILL_FLAT scope-unknown sweep skip: any path that still cancels
+   orders against an unknown position set; the order_sweep receipt
+   field; interaction with per-coin cancels inside _flatten_all.
+3. Keyed entry blocks: any writer that can still clear another owner's
+   key; the per-cycle intent retry (announce throttling, retry cadence
+   on a persistently down venue); the _enter pending-intent guard.
+4. _stop_row_ok semantics: the "Stop" substring match on orderType, the
+   remaining-sz (not origSz) coverage choice, the triggerPx tolerance,
+   half-step size coverage, missing-fields-as-unprotected; ALSO the
+   engine's half-step size compare and the restore path's stop_venue
+   update. Note: venue field VALUES are asserted from SDK docs, flagged
+   open (README STATUS item f) pending the supervised probe.
+5. requery_flat / cancel_all after the frontendOpenOrders switch: same
+   order universe as openOrders? (counts, skip sets, explain_exit oids).
+6. _sized restructure: the fixed-notional path now ALSO gets the
+   min-repair (behavior change, journaled) -- boundary vectors, the
+   max-then-floor-then-repair ordering.
+7. This repo M4: multiset gate placement (before dict collapse?),
+   CANONICAL literal + NEW_ARMS assertion, absent-vs-explicit-empty.
+8. L1/L2: _net_fields round-once; the row-wise fee fallback; the
+   DOCUMENTED expected delta on committed per-symbol rows (until the
+   month-end regen) -- is it stated everywhere a reader would recompute?
+9. HyPaper spike: verify the factual claims against the public repo
+   (exchange.ts wallet requirement + trigger validation, info.ts dex
+   handling, worker subscriptions, slippage.ts fill model).
+10. request.security: NO Pine file changed this session -- verify none did.
 
 Standing priorities apply (model fidelity; overfitting language; every
 census claim stays characterization; the gate STATUS must not
-over-claim -- the equity formula and supervised probes are still open).
+over-claim -- the equity formula, stop-row field values, and supervised
+probes are still open).
 
 ## Output contract
 
-- Verbatim audit -> `docs/reviews/tvb30-codex-audit.md` (template:
+- Verbatim audit -> `docs/reviews/tvb31-codex-audit.md` (template:
   `docs/reviews/_TEMPLATE.md`, skeptic preamble included).
 - Be concrete; cite `file:line`. Never paste a secret/IP/account value:
   the VPS IP and the master wallet ADDRESS must both stay out of the
