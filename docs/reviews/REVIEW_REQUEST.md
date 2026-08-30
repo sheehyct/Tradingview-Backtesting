@@ -31,9 +31,9 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `{pending push -- pinned after session-end commit}` (session commits: audit recorded aa1c795, fold c2bf6ea, Monday-deferral docs 41a542d, session-end docs. RANGE-PIN RULE: the caret form `aa1c795^..{head}` keeps aa1c795 in the diff; sanity-check with `git diff --name-status`.) |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `aa1c795^..60bc7de` (4 commits, 9 paths: audit recorded aa1c795, fold c2bf6ea, Monday-deferral docs 41a542d, session-end 60bc7de. RANGE-PIN RULE: the caret keeps aa1c795 in the diff; sanity-checked with `git diff --name-status` = 9 paths.) |
 | hip3-executor (PRIVATE github.com/sheehyct/hip3-executor; local transport only) | `C:\Strat_Trading_Bot\hip3-executor` | `a23ac43^..a23ac43` (ONE commit = the whole executor fold: dex-aware safety reads, tri-state reconciliation, per-poll protection verification, scanner-independent KILL_FLAT, sizing/exit-identity/reach/provenance fixes, 64-test suite) |
-| hip3-scanner (PRIVATE github.com/HIP-3-Solutions/hip3-scanner) | `C:\Strat_Trading_Bot\hip3-scanner` | branch `tvb30-parity-gate` @ `fb1ec84` (PR #6, one commit off `main`, unmerged at request time: parity stale-copy preflight + two-pivot nearest-wins vectors) |
+| hip3-scanner (PRIVATE github.com/HIP-3-Solutions/hip3-scanner) | `C:\Strat_Trading_Bot\hip3-scanner` | branch `tvb30-parity-gate` @ `fb1ec84` (PR #6: parity stale-copy preflight + two-pivot nearest-wins vectors; MERGED to `main` 2026-08-30 @ 6a7a53c -- the scoped files are identical at fb1ec84 and the merge) |
 
 ## Read first (in this order)
 

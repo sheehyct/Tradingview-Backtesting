@@ -216,13 +216,15 @@ Node service). Neighbors seen: chainstacklabs/hyperliquid-trading-bot
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: this repo `aa1c795^..{head pinned in
-  REVIEW_REQUEST.md after push}` on `main` (audit recorded aa1c795, fold
-  c2bf6ea, Monday-deferral docs 41a542d, session-end docs). Sibling
-  hip3-executor (PRIVATE, local path C:\Strat_Trading_Bot\hip3-executor):
+- Commits to review: this repo `aa1c795^..60bc7de` on `main` (4 commits,
+  9 paths: audit recorded aa1c795, fold c2bf6ea, Monday-deferral docs
+  41a542d, session-end 60bc7de; caret keeps aa1c795 in the diff,
+  sanity-checked via `git diff --name-status`). Sibling hip3-executor
+  (PRIVATE, local path C:\Strat_Trading_Bot\hip3-executor):
   `a23ac43^..a23ac43` (one commit, the whole executor fold). Sibling
   hip3-scanner (PRIVATE, HIP-3-Solutions org): branch `tvb30-parity-gate`
-  @ `fb1ec84` (PR #6, one commit off main).
+  @ `fb1ec84` (PR #6; merged to main 2026-08-30 @ 6a7a53c, scoped files
+  identical).
 - Scope / what changed: the TVB-29 BLOCK audit folded in full (4 HIGH +
   6 MEDIUM + 2 LOW, all reproduced first via 16 no-network probes);
   three new dated user rulings 2026-08-28 (reach fail-closed, risk
