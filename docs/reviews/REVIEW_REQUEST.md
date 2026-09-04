@@ -29,7 +29,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `5b194a2..<TVB-32 session-end commit>` (docs only: HANDOFF TVB-32 entry, startup prompt TVB-33, this file; the pin commit after it names the sha). No Pine, no code. |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `5b194a2..9507928` (docs only: HANDOFF TVB-32 entry, startup prompt TVB-33, this file; the pin commit after 9507928 is docs-only and outside the range by construction). No Pine, no code. |
 | hip3-executor (PRIVATE github.com/sheehyct/hip3-executor; local transport only) | `C:\Strat_Trading_Bot\hip3-executor` | main: `fd4db97` (.gitattributes LF fix -- the deploy defect) and `35a73a4` (analysis/fetch_round2.py, analysis/round2.py, runs/2026-08-31_round2/ incl. ANALYSIS.md + analysis.json + venue fills/funding). Branch `fix/entry-invalidated-bar` @ `cbea184` (rules.py entry gate + 5 tests; NOT merged). |
 
 ## Read first (in this order)

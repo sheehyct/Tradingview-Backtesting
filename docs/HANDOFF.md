@@ -104,9 +104,27 @@ published as an Artifact (see the session-end message). Headlines:
    (where the 3 completes) vs skill R22 reclaim of the broken side (SOL
    4h this week). Surfaced, not decided.
 
-Analysis-script review: a fresh-context reviewer (feature-dev
-code-reviewer agent) was run on `analysis/round2.py` before commit --
-result folded in the session-end block below.
+Analysis-script review (fresh-context feature-dev code-reviewer agent,
+adversarial brief, ran the script and recomputed against raw fills):
+2 CONFIRMED + 1 minor, ALL FIXED before the final commit, zero disputes.
+(1) `excursions`/`first_touch` skipped the 1m candle CONTAINING the start
+instant (`c.t < start_ms` vs a minute-aligned `t`), so the two
+same-minute 8-second trades (MORPHO, PAXG) had null MFE/MAE and every
+trade lost a boundary minute -- fixed to skip only candles fully closed
+before the start; (2) the 1-2-2 token accepted either 2U/2D for the trap
+bar instead of the direction-opposite one skill 3.2 requires -- fixed
+(`2opp`); all three 1-2-2 trades still match; (3) sparse-candle entries
+read `wrong_side_first` False instead of unknown -- now None. Re-run:
+EVERY headline number unchanged (flip 12/1/5, +19.19pp, coupled 9/18,
+decoupled -0.19 vs +0.66, accuracy 28/28, net -$0.82); the give-back
+medians moved and were corrected in ANALYSIS.md and the Artifact
+(material winners' MFE median 102% of target distance, losers 19%; the
+draft's "winners 80%" had mixed scratch exits into the winner set). The
+reviewer also verified fill matching (TAO 3 / MORPHO 2 / GRAM 2 / SPX 2 /
+JUP 1+open, no cross-trade leakage), sign conventions both directions,
+the decoupled loop, pool dedup on a chronologically sorted journal,
+reconciliation scope (no prior-run fills), and the tracker join (28/28,
+12 orphan keys are weekend-1 trackers).
 
 ### Files (this repo)
 
