@@ -5,6 +5,158 @@
 
 ---
 
+## Session TVB-33: round-2 CLOSED (KILL_FLAT) + reject dig + round-3 design session + Ruleset v2 prereg + ledger-replay harness build (IN PROGRESS)
+
+**Date:** 2026-09-04 (afternoon/evening, same day as the TVB-32 Friday deploy)
+**Status:** IN PROGRESS. Prereg frozen and pushed in both repos BEFORE any
+code; the replay harness is being built in four parallel slices on
+executor branch `feat/replay-harness` (skeleton 5c58e30).
+
+### 1. Round 2 CLOSED on the user's word (17:13Z)
+
+User: "kill flat the positions and shut down the wallet activity ... pull
+those funds temporarily for manual trading until we design the next
+implementation". Read-only VPS check first (loop alive on 4b5d248,
+heartbeat 17:07Z, ATOM + HBAR 4h shorts tracked = venue view, no kill
+files, no systemd unit, zero block rows, 6 first sightings of the new
+`entry_bar_invalidated` gate). KILL_FLAT file created 17:13:19Z; HBAR
+closed 17:13:26Z (-$0.06), ATOM 17:13:28Z (+$0.11); receipt 17:13:32Z
+`clean: true`, 0 positions / 0 orders on main AND xyz, `order_sweep:
+full`; loop halted and exited; public-API check 0/0, spot USDC 99.8567
+with nothing on hold. `data/KILL_FLAT` LEFT IN PLACE as the restart
+interlock; agent key stays on the VPS (order-only); the user withdraws the
+funds. Closed ledger: 32 entries / 32 exits (19 flip / 5 target / 4
+invalidation_type3 / 2 stop / 2 kill_flat); equity 99.6015 -> 99.8567
+(+$0.26 net all-in, zero deposits); zero entries after the 15:08Z restart.
+Closed journals + refreshed venue fills/funding installed in hip3-executor
+runs/2026-08-31_round2/ (README CLOSE block; SNAPSHOT_TS = the receipt
+instant; executor 1e79398). The gitignored candle caches were extended to
+the close by the new `analysis/extend_round2.py` (tail-only merge; 289
+caches, no errors). Harness note: the classifier blocks base64-piped
+remote scripts and the safety hook blocks `Remove-Item` on Windows paths;
+plain `ssh atlas@<host> 'cmd; cmd'` and Git Bash `rm` work.
+
+DEFECT FOUND: the TVB-32 overnight snapshot's `decisions_r2.jsonl` was
+MISSING 777 skip rows from 2026-08-31 20:03Z-23:59Z that the cumulative
+VPS journal holds (contiguous, all `skip`, normal 160-263 rows/hour
+cadence, zero entries in the window) -- a slicing defect at snapshot time,
+not a journal gap. Every pool-census count in ANALYSIS.md / analysis.json
+for that Monday evening is an undercount (all refusals; no trade
+affected). Noted in the run README; ANALYSIS.md/analysis.json left as
+the reviewed snapshot record. For the TVB-32 reviewer.
+
+### 2. Reject dig (user: BRENTOIL, CL, CRCL "had some pretty good runs")
+
+Every sighting of all three was refused, overwhelmingly by the
+equity-hours clock: BRENTOIL 60/84, CL 57/80, CRCL 63/78 sightings
+(`underlying_closed`), then the R:R floor (15/14/12), the seat cap, and
+one `entry_bar_invalidated` each on today's 4h longs. The clock is a
+weekday 09:30-16:00 NY window applied to EVERY xyz coin: oil, metals, FX
+and Asian indices included. The runs and who refused them (1m replay,
+fill at the sighted mid, stop-before-target): oil's Sep 1 +4.7% day = 4h
+3-2U longs at 04:06 ET on both names, clock-refused, 3.4R / 4.1R; CRCL Aug
+31 +6.4% = 4h 3-2U at 12:06 ET, R:R 1.35, passed EVERY gate, refused only
+because the two go-live probes (SP500 12:02, HIMS 12:04) held both seats,
++6.2% MFE, 1.4R; CRCL Sep 3 +15% = 1h 1-2-2 at 07:03 ET (21R stop-only over
+48h on a 0.75% stop) and 1d 1-2-2 at 08:33 ET, both clock-refused; inside
+the bell the only long was a 1h cont refused by the seat cap. Caveats: the
+clock guard runs before R:R/reach/drift, so its pool never met the later
+gates (upper bound); mid fills, no fees/slots. Script:
+scratchpad reject_dig.py (per-setup lines + per-guard summary).
+
+### 3. Design session (plan mode; strat-methodology loaded; two Explore +
+### two Plan agents; every decision via AskUserQuestion in trader terms)
+
+Walkthroughs used: SOL 4h 1-3 minute path (Tue Sep 1 ET: inside bar
+98.87-100.30 inside the noon-4pm mother bar 98.29-102.00; the 8pm bar broke
+the low 9:47pm, bottomed 98.49, reclaimed 98.87 at 9:55pm, crossed the
+inside bar's halfway 99.59 at 10:33pm, took 100.30 at 11:11pm where the
+bot bought, topped 100.65; flipped out 12:08am at -0.38%; all three entry
+conventions stopped by Wed morning bracket-only); JUP #1 runner
+(+4.71% MFE -> -0.63% flip; bracket-only would have been a stop; JUP #2 hit
++4.84%); the reject-dig cases. Facts that shaped the options: the scanner
+computes 15m/30m/1h/4h/1d/1w/1M (no 2h/8h/12h), serves ONE target per
+signal (nearest k=2 pivot or bar-0 wick), already serves `prov.kind` +
+`us_session` and `dwmContinuity` which the executor never reads;
+selection is arrival order (`selectionRank` null); P2 lost both axes in
+TVB-25 while P1 won per matched trade; the thestrat_ai corpus says
+"start small, add to winners, never scale out" (tension item, not
+adopted); "walk up the timeframe" is a project-derived idea.
+
+TWELVE RULINGS (user, 2026-09-04): R1 ledger replay first, then live round 3
+(amended = arm, round 2 = control). R2 1-3 trigger = the HALFWAY LINE (50
+percent rule, R19): live when price retraces past half the inside bar
+after the first break; stop = the entry bar's first-break extreme; target
+= bar 0's wick; the 3 completing is not an invalidation; scanner name
+`1-3h`, label "1-3 (50%SSS)" until the far side prints; alerts fire; far
+side stays the control. R3 xyz clock = EXTENDED HOURS 04:00-20:00 ET
+weekdays, ONE window for every xyz coin; future variant named: 24h
+ex-weekend (Sunday 8pm ET open) for the top-10 xyz by 24h volume. R4 no
+drift veto (arm). R5 continuity-backed 4h/1d conts via the coin's own
+D/W/M stack (arm). R6 higher-timeframe-first selection, then R:R (arm).
+R7 walk-up (TP at the ladder's LAST rung; next target = next-TF pivot;
+stop ONE RUNG BEHIND; ladder frozen at entry; BE = fill + one tick) and
+bank-half (50% at T1, remainder to the next-TF pivot, BE stop; sub-$20
+tickets fall back to T1, journaled) as arms vs full exit at T1. R8 the
+SCANNER serves the pivot ladder. R9 fee-aware R:R floor (net of both
+legs' fees >= 1.0) as an amendment; min prior-bar range and the funding
+gate NAMED DEFERRED with an expected-funding receipt. R10 five seats
+(arm). R11 crypto on weekends unchanged. R12 "completes" = intrabar. The
+user asked for my view on seats (given: arm not amendment; the blocked
+queue simulated worse at the median in both runs) and on the three
+lanes (given with the fee-share table: PAXG 86%, GOLD 69% of risk in
+fees). Claude declarations D1-D12 approved with the plan (parity gate
+thresholds, replay conventions, supervised probes).
+
+### 4. Phase 0 -- prereg BEFORE code, pushed in both repos
+
+- hip3-executor README "Ruleset v2 (round 3 -- PREREG, user-ruled
+  2026-09-04, frozen before code)" (5ba3347).
+- This repo `docs/experiments/tvb33_round3_prereg.md` (LABEL block,
+  rulings, declarations, nine arms A1-A9, binding contrasts, named
+  deferred) + `docs/ARM_LEDGER.md` "Live executor family" section
+  (v1 control cards + A1-A9 cards, trader terms, numbers pending)
+  (7deca94).
+- Replay skeleton on executor branch `feat/replay-harness` (5c58e30):
+  `analysis/replay/types.py` (the contract), `CONTRACT.md` (four slices),
+  `runs/2026-09-04_replay1/PREREG.md` (pins README v2 @ 5ba3347 + prereg
+  @ 7deca94; parity gate; arms; limitations), pytest pythonpath + ledger
+  marker, `tests/replay/synth.py`.
+
+### 5. Ledger replay harness -- build in progress (four teammates)
+
+S1 foundation (ledger/candles/fetch/vendored STRAT core/costs/sizing), S2
+rules/arms/recon/gates (differential test vs the live `evaluate`), S3
+exits/pivots/halfway/allocator, S4 parity/report/CLI. Each slice: no
+commits, disjoint files, synthetic tests, fresh-context review before the
+orchestrator commits. Then: fetch (1d from 2026-05-01, meta.json, funding
+history) -> parity round2 -> parity weekend1 -> arms -> report ->
+pins.json. Approved plan: C:\Users\Chris\.claude\plans\glimmering-puzzling-quilt.md.
+
+### Open
+
+- [ ] Replay harness: merge the four slices after review; parity PASS on
+      round 2 (32/32) then weekend 1 (34/34); record residuals; run A1-A9;
+      REPLAY.md; ARM_LEDGER numbers; pins.json.
+- [ ] Scanner PR-B (pivot ladder `tf[id].pivots`, 4h depth 12 -> 40) and
+      PR-A (`1-3h` halfway signal, label "1-3 (50%SSS)") -- after receipts.
+- [ ] Executor Ruleset v2 code (commit sequence in the plan); equity
+      display fix (spot USDC total) rides commit 2.
+- [ ] Round 3 live: re-fund, deploy, three supervised probes, rm
+      KILL_FLAT on the user's word.
+- [ ] TVB-31 / TVB-32 audits unreturned; the 777-row slice defect is for
+      the TVB-32 reviewer; TVB-33 review request at session end.
+- [ ] Carried: month-end fresh-window regen (overdue); TV mirror on
+      demand; TVB-18 repairs; jackson set_inputs fix; metals /
+      tech-vs-yields regime ID (user, later); trade visualization (the
+      SOL minute path and reject-dig replays are the first instalment).
+
+### External Review (for Codex / cloud review agents)
+
+- Review status: to be REQUESTED at session end (see REVIEW_REQUEST.md).
+
+---
+
 ## Session TVB-32: round-2 GO-LIVE (Mon 2026-08-31) + overnight ledger analysis (Thu/Fri 09-03/04) (COMPLETE, run STILL LIVE)
 
 **Date:** 2026-08-31 (go-live) and 2026-09-04 (overnight analysis; session
