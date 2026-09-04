@@ -201,10 +201,11 @@ surprised with the performance".
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED (2026-09-04)
-- Commits to review: this repo `5b194a2..{session-end head}` on `main`
-  (docs only; the pin commit after the session-end commit names the sha
-  -- RANGE-PIN RULE: `5b194a2..X` keeps every session commit since
-  5b194a2 was the TVB-31 pin). hip3-executor (PRIVATE, local transport
+- Commits to review: this repo `5b194a2..7a29dad` on `main` (docs only:
+  9507928, d2f2a24, 7a29dad; the pin commit after 7a29dad is outside the
+  range by construction -- RANGE-PIN RULE: `5b194a2..X` keeps every
+  session commit since 5b194a2 was the TVB-31 pin; sanity-checked with
+  `git diff --name-status` = 3 paths). hip3-executor (PRIVATE, local transport
   only, `C:\Strat_Trading_Bot\hip3-executor`): `fd4db97` (LF deploy fix),
   `35a73a4` + `2dc9490` + `68dca79` (round-2 analysis + review fold),
   `cbea184` (fix branch) merged as `e2a91ad`, `4b5d248` (README STATUS);

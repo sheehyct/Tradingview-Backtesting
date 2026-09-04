@@ -29,7 +29,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `5b194a2..9507928` (docs only: HANDOFF TVB-32 entry, startup prompt TVB-33, this file; the pin commit after 9507928 is docs-only and outside the range by construction). No Pine, no code. |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `5b194a2..7a29dad` (4 docs-only commits: 9507928 session entry, d2f2a24 review fold, 7a29dad session-end incl. the Friday deploy record and TVB-33 seeds; the pin commit after 7a29dad is docs-only and outside the range by construction; `git diff --name-status 5b194a2..7a29dad` = HANDOFF, startup prompt, this file). No Pine, no code. |
 | hip3-executor (PRIVATE github.com/sheehyct/hip3-executor; local transport only) | `C:\Strat_Trading_Bot\hip3-executor` | main: `fd4db97` (.gitattributes LF fix -- the deploy defect) and `35a73a4` (analysis/fetch_round2.py, analysis/round2.py, runs/2026-08-31_round2/ incl. ANALYSIS.md + analysis.json + venue fills/funding). Branch `fix/entry-invalidated-bar` @ `cbea184` (rules.py entry gate + 5 tests), MERGED Friday morning on the owner's go as `e2a91ad`; `4b5d248` = README STATUS rewrite; `68dca79` = the analysis-script review fold. DEPLOYED sha 4b5d248, live since 2026-09-04 15:08Z. |
 
 ## Read first (in this order)
