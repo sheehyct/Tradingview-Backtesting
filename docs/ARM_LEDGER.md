@@ -187,6 +187,64 @@ prereg-gated work.
   +35.7 / fresh -3.3. A labeled composite reading only; it inherits its
   parts' problems simultaneously and never adjudicates any of them.
 
+## Live executor family (Ruleset v1 control -> v2 arms; added 2026-09-04)
+
+Different machine, different units. These arms run on the LIVE
+hip3-executor (scanner-fed STRAT pattern entries on Hyperliquid perps, one
+$0.50-risk ticket per signal, venue stop + take-profit resting, software
+exits for a dead pattern and for the whole 15m/1h/4h/1d stack turning
+against the trade). Numbers are net DOLLARS and percentage points on a
+~$100 wallet from the closed live ledgers (weekend 1: 34 trades; round 2:
+32 trades) and from the ledger REPLAY that receipts each arm before it goes
+live. Readings, not rankings.
+
+The control (Ruleset v1, 2026-08-26), once:
+- **CONT-NB -- "continuations take profit at the near bank."** A
+  continuation's take-profit rests at the nearest swing pivot beyond entry
+  on its own timeframe. Round 2: 0 of 5 (0 of 12 cumulative).
+- **DRIFT -- "don't fight BTC's day."** No crypto longs while BTC is below
+  its midnight-UTC open, no shorts while above. Round 2: 72 refusals, pool
+  positive only through eight trades, median refusal -0.65%.
+- **RISK50 -- "every ticket risks half a dollar."** Size = $0.50 / stop
+  distance, $10 to $100 notional. Round 2: 21 of 32 tickets landed
+  $0.45-0.56; the clamps under- and over-risked the two tails.
+- **REACH -- "the target must live inside the tape's reach."** Refuse when
+  the target is farther than 1.5x the coin's daily ATR. Round 2: 22
+  refused, 2 would have won.
+- **BELL -- "stock perps only while the stock market is open."** Weekday
+  09:30-16:00 ET for EVERY xyz coin. Round 2: 2,491 aligned refusals,
+  zero-mean in the census; the reject dig showed the bell also refused
+  oil's and CRCL's pre-market runs.
+- **SEATS2 / ARRIVAL / FAR-13 / T1 -- ** two positions at once, first
+  qualified signal takes the seat, the 1-3 enters at the far side, full
+  exit at the first target.
+
+The v2 arms (2026-09-04), one change each; numbers pending the replay:
+- **A1 EXT -- "stock perps trade the extended session."** 04:00-20:00 ET
+  weekdays, one window for every xyz coin (oil, metals, FX and indices
+  included). Replay: pending.
+- **A2 NODRIFT -- "crypto trades its own signals."** The BTC veto off; a
+  shadow field records what it would have said. Replay: pending.
+- **A3 DWM -- "continuations need the big picture, not a reversal."** A 4h
+  or daily continuation is allowed when the coin's own daily, weekly and
+  monthly bars all lean the trade's way. Replay: pending.
+- **A4 HTF1 -- "the bigger bar gets the seat."** Daily before 4h before 1h,
+  then the better reward-to-risk; seats stay two. Replay: pending.
+- **A5 HALF13 -- "buy the 1-3 at the halfway line."** Enter when price
+  retraces past half the inside bar after the first break; stop under the
+  break extreme; target the mother bar's wick. Replay: pending.
+- **A6 WALKUP -- "your walk-up, on the timeframes that exist."** Full
+  position through T1; take-profit at the ladder's last rung; next target
+  = the next-timeframe pivot; stop walks one rung behind. Replay: pending.
+- **A7 BANKHALF -- "half off at T1, run the rest to the next pivot."**
+  Stop to breakeven after the bank; too-small tickets run the control exit.
+  Replay: pending.
+- **A8 SEATS5 -- "five positions at once."** Concurrent risk $2.50. Replay:
+  pending.
+- **A9 NETRR -- "the trade must clear the stop after fees."** Net
+  reward-to-risk after both legs' fees >= 1.0; refuses the gold-class
+  tickets where fees were 69-86% of the risk. Replay: pending.
+
 ## What Claude notices (cross-arm, things easy to miss)
 
 1. **The one-bullet lens explains almost every surprise.** Whenever a
