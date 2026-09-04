@@ -11,8 +11,9 @@
 resumed after the Monday process exited)
 **Status:** COMPLETE. The executor has been trading autonomously since Mon
 11:37 ET and was deliberately LEFT RUNNING (user, Thu night: "keep it
-running"). Analysis delivered for the Friday-morning review; two fixes
-staged, neither deployed. Executor `main` unchanged from what runs.
+running"). Analysis delivered for the Friday-morning review; the
+entry-gate fix was then MERGED AND DEPLOYED on the user's go (executor
+4b5d248, restarted 15:08Z); the equity-display fix is not coded.
 
 ### Monday go-live (checklist items 1-4 done; 5 superseded)
 
@@ -126,30 +127,100 @@ the decoupled loop, pool dedup on a chronologically sorted journal,
 reconciliation scope (no prior-run fills), and the tracker join (28/28,
 12 orphan keys are weekend-1 trackers).
 
+### Friday morning (user, 2026-09-04 ~11:00 ET): fix DEPLOYED, run continues
+
+User: "go ahead and implement the fix". Merged `fix/entry-invalidated-bar`
+into executor main (e2a91ad, 95/95), README STATUS rewritten (4b5d248 --
+probes/e/f closed with venue data, equity formula pinned but fix NOT
+coded, new gate documented). Live loop stopped with Ctrl-C in tmux
+(KeyboardInterrupt during poll sleep; brackets venue-resident),
+deploy_from_dev.ps1 run (PS 5.1 `2>&1` trap fired on uv's stderr again --
+the remote side had completed; remote_setup.sh re-run idempotently, VPS
+suite 95/95), restarted `--live` 15:08:14Z with `source_sha 4b5d248`
+from DEPLOYED_SHA, zero protection/entry-block rows after restart. The
+equity-display fix and the 1-3 trigger ruling remain open (user chose to
+discuss next session). User's verdict on round 2 so far: "pleasantly
+surprised with the performance".
+
+### Design seeds the user raised for TVB-33 (their words, paraphrased --
+### discuss, do not pre-decide)
+
+1. Entry/exit mechanics across timeframes: for a DAILY pattern, enter on
+   the daily with T1/T2 as the only exits -- or enter on the daily, drop
+   to the 1h targets first, and once those are taken (targets overlap
+   across timeframes) step up 2h -> 4h -> 8h -> 12h, "bumping up our
+   timeframe with how the trade is trending"? Maps to the skill's pivot
+   ladder / DP1-WP1 confluence language; the walk-up is a management
+   profile question (R15), prereg territory.
+2. Candidate selection in big trends: massive crypto runners print
+   2U-2U-2U-2U even on the daily; the rev-only + escalate-cont universe
+   never sees a pure continuation chain. "Could have been improved."
+3. Visualize the trades (still owed -- the standing
+   trader-visualization gap) before trusting "true performance".
+4. Second-guessing two round-2 rulings given the CURRENT REGIME (much of
+   the move is overnight, geopolitics-driven): (a) crypto only when BTC
+   is "green" (the daily-open drift veto), (b) equities only in RTH.
+5. Later, not now: basic regime identification for metals (silver/gold)
+   and for tech vs the 2y/10y yield levels.
+
 ### Files (this repo)
 
 - `docs/HANDOFF.md` (this entry), `.session_startup_prompt.md` (TVB-33),
   `docs/reviews/REVIEW_REQUEST.md` (TVB-32 request). No Pine changed;
   no request.security touched.
 
-### Open / next
+### Open
 
-- Owner decisions Friday morning: merge+deploy `fix/entry-invalidated-bar`
-  (deploy = merge, deploy_from_dev.ps1, restart tmux loop); the equity
-  display fix; the 1-3 trigger ruling; whether the run continues through
-  the weekend (crypto 24/7; xyz already RTH-gated).
-- Design-lane (prereg, a-priori): minimum prior-bar range; min stop
-  distance / fee-aware R:R for clamped tickets; runner/partial-harvest;
-  funding-aware holding cost.
-- Carried: month-end regen (~Sep 1, not done), TVB-31 audit STILL
-  unreturned (docs/reviews/tvb31-codex-audit.md absent), tvb8/tvb9
-  unreturned, TV mirror on demand, TVB-18 repairs, jackson set_inputs.
+- [x] Merge + deploy `fix/entry-invalidated-bar` (closed TVB-32 Friday:
+      e2a91ad merged, 4b5d248 deployed, restarted 15:08Z).
+- [ ] Equity-display fix: `account_value()` = spot USDC total while
+      all-isolated; verify once vs the HL app.
+- [ ] 1-3 Rev Strat trigger ruling (scanner far side vs skill R22 reclaim).
+- [ ] TVB-33 design discussion: timeframe walk-up for daily-pattern
+      targets; continuation-chain runners; the BTC drift veto and RTH-only
+      xyz under the overnight regime; pattern breakdown.
+- [ ] Visualize the round-2 trades (user: still owed before trusting
+      "true performance").
+- [ ] Design-lane preregs (a-priori only): minimum prior-bar range;
+      min stop distance / fee-aware R:R for clamped tickets;
+      runner/partial-harvest profile; funding-aware holding cost.
+- [ ] Weekend decision: run continues (crypto 24/7, xyz RTH-gated) unless
+      the user says KILL_FLAT; refresh the ledger snapshot when the run
+      closes so the analysis is on a CLOSED ledger.
+- [ ] Month-end fresh-window regen (overdue since ~Sep 1).
+- [ ] TVB-31 audit unreturned (docs/reviews/tvb31-codex-audit.md absent);
+      TVB-32 requested; tvb8/tvb9 unreturned.
+- [ ] Carried: TV mirror on demand; TVB-18 repairs; jackson set_inputs fix;
+      metals (silver/gold) + tech-vs-yields regime identification (user,
+      later).
 
-### External Review
+### External Review (for Codex / cloud review agents)
 
-- Status: REQUESTED (2026-09-04). Details in
-  `docs/reviews/REVIEW_REQUEST.md`. NOTE: the TVB-31 request was never
-  returned; both remain open.
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb32-codex-audit.md.
+> See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED (2026-09-04)
+- Commits to review: this repo `5b194a2..{session-end head}` on `main`
+  (docs only; the pin commit after the session-end commit names the sha
+  -- RANGE-PIN RULE: `5b194a2..X` keeps every session commit since
+  5b194a2 was the TVB-31 pin). hip3-executor (PRIVATE, local transport
+  only, `C:\Strat_Trading_Bot\hip3-executor`): `fd4db97` (LF deploy fix),
+  `35a73a4` + `2dc9490` + `68dca79` (round-2 analysis + review fold),
+  `cbea184` (fix branch) merged as `e2a91ad`, `4b5d248` (README STATUS);
+  deployed sha 4b5d248.
+- Scope / what changed: round-2 go-live ops (deploy defect + fix,
+  probes), the overnight ledger analysis (analysis/round2.py, ANALYSIS.md,
+  analysis.json), the entry-gate fix (rules.py + 5 tests), README STATUS.
+- Focus areas (scrutinize these): finding 1's mechanism and the fix
+  placement; the equity-formula reading of HL spot hold; the flip
+  proxy / coupling split / decoupled counterfactual; fill matching; the
+  pools census; the accuracy census; prose discipline (characterization
+  only; run LIVE at snapshot); no Pine changed.
+- Reviewed by: pending (in-session: analysis/round2.py reviewed by a
+  fresh-context code-reviewer agent, 2 confirmed + 1 minor, all fixed)
+- Findings: {blank until docs/reviews/tvb32-codex-audit.md exists}
+- NOTE: the TVB-31 request was never returned; both remain open.
 
 ---
 
