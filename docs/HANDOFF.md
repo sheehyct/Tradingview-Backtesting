@@ -5,6 +5,136 @@
 
 ---
 
+## Session TVB-32: round-2 GO-LIVE (Mon 2026-08-31) + overnight ledger analysis (Thu/Fri 09-03/04) (COMPLETE, run STILL LIVE)
+
+**Date:** 2026-08-31 (go-live) and 2026-09-04 (overnight analysis; session
+resumed after the Monday process exited)
+**Status:** COMPLETE. The executor has been trading autonomously since Mon
+11:37 ET and was deliberately LEFT RUNNING (user, Thu night: "keep it
+running"). Analysis delivered for the Friday-morning review; two fixes
+staged, neither deployed. Executor `main` unchanged from what runs.
+
+### Monday go-live (checklist items 1-4 done; 5 superseded)
+
+- HyPaper: PARKED (user). Crypto-only + not drop-in; xyz support = a real
+  fork (dex-aware meta/mids seeding, offset asset ids, dex-scoped reads,
+  keyed positions/fills, per-dex funding) plus the mid-not-mark caveat
+  bites hardest on equity perps. Revisit only after the live arc.
+- Deploy: `deploy_from_dev.ps1` FAILED on first real use -- `git archive`
+  on Windows (core.autocrlf=true, no .gitattributes) exported CRLF and
+  remote_setup.sh died on `set -o pipefail`. Fixed with
+  `* text=auto eol=lf` (executor fd4db97; archive verified byte-level
+  zero CRLF). Deployed sha fd4db979 (= 4e384bb fold + that one line);
+  90/90 tests on the VPS; KILL_FLAT drill clean (receipt `order_sweep:
+  full`, 0/0); interlock removed on the user's explicit word; preflight
+  PASS (agent approved; $99.60 spot USDC, unified account so perp
+  accountValue reads 0.0 while flat).
+- Live 15:37:45Z in the existing tmux session. Supervised probes = the
+  first two live trades (xyz:SP500 1h cont short, xyz:HIMS 4h rev long),
+  both xyz: README STATUS items closed with venue data -- (f) stop-row
+  field VALUES confirmed on a real bracket (`orderType "Stop Market"`,
+  `isTrigger true`, `reduceOnly true`, close side, remaining sz = position,
+  venue-rounded triggerPx; the TP leg correctly FAILS the stop predicate);
+  (e) `userFills` DOES carry builder-dex fills, dex-prefixed. Discord
+  webhook verified (HTTP 204). All three sizing branches witnessed
+  (max_notional clamp on SP500, plain on HIMS, min_notional on ZEC).
+- Item 5 (KILL_FLAT at day end) never happened: the Monday process exited
+  with the watcher running and the run continued. Fact, not a defect.
+
+### Overnight analysis (user directive Thu 00:43 ET: pull and analyze
+### everything tonight, present in the morning)
+
+Ledger snapshot 2026-09-04T04:57:13Z, run still live: 30 entries / 28
+closed / 2 open. Everything in hip3-executor `runs/2026-08-31_round2/`
+(ANALYSIS.md dual-language + analysis.json every number pinned;
+`analysis/round2.py`, `analysis/fetch_round2.py`; venue fills/funding
+committed, candle caches gitignored with hashes). Morning-review page
+published as an Artifact (see the session-end message). Headlines:
+
+1. ENTRY GATE ADMITS DEAD PATTERNS (mechanics): `rules.evaluate` has no
+   forming-bar check; the scanner marks a setup live the instant the
+   forming bar's extreme passes the trigger even when that bar already
+   broke the prior bar's OTHER side (Type 3 -- skill 3.6; the scanner
+   itself sets `invalidated`). The exit side honors `formingType "3"`, so
+   the bot enters and exits `invalidation_type3` ~8 s later: MORPHO 1h,
+   SPX 4h, xyz:MINIMAX 4h (+ xyz:GOLD, entered wrong-side-first, never
+   invalidated, stopped). Re-classified live from venue 1m candles: 4 of
+   27 non-1-3 entries. FIX STAGED on executor branch
+   `fix/entry-invalidated-bar` (cbea184: `entry_bar_invalidated` journal
+   reason mirroring the exit predicate, rev3 exempt, 5 regressions,
+   95/95) -- NOT merged, NOT deployed.
+2. FLIP EXIT EARNS ITS KEEP, second sighting: 18 flips, 12 stop-first
+   after exit (+19.2pp observed savings), 1 target-first (GRAM 4h,
+   -2.5pp), 5 unresolved. The 00:00-UTC coupling is REAL BY CONSTRUCTION
+   (scanner ftfc = forming close-vs-open on 15m/1h/4h/1d, all four; at
+   the roll they share one open, one tick flips all four -- skill 4.5):
+   9/18 flips inside the first hour after a 4h/1d open vs 25% base, but
+   those nine exited near flat and the "young bars can't vote" variant
+   sums -0.19pp vs +0.66pp actual. Mature-bar flips: 8/9 stop-first,
+   -7.5pp actual vs -17.0pp bracket-only.
+3. BOOKS TIE TO THE VENUE within $0.003 and PIN THE EQUITY FORMULA (README
+   item b closed): HL spot `hold` = every isolated position's `marginUsed`
+   which already carries uPnL -> true equity = spot USDC total (all-
+   isolated). `account_value()` adds main-dex perp `accountValue` on top:
+   $101.83 shown vs $99.20 real; journal `account` ran $1-7 high with a
+   main-dex position open. One-line reporting fix, not coded yet.
+4. ACCURACY: 28/28 pattern sequences and triggers re-derive exactly from
+   venue candles. Two scanner-vs-tape disagreements on the two thinnest
+   prior bars (PAXG 0.094%: scanner-only Type 3, the forming bar unions
+   MID ticks with candles per loop.js setCandles; xyz:GOLD 0.25%: the
+   mirror) -> a-priori design question: minimum prior-bar range.
+5. CUT TOO SOON / HELD TOO LONG: no evidence of early bailing; 9 trades
+   reached >= 0.5% MFE and closed <= 0 (JUP +4.71% = 65% of target ->
+   -0.63% flip after 13.3h) = the runner/partial lane (TVB-13), prereg
+   territory. 2 of 4 target exits had a T2 within 24h.
+6. TFC: the 440 `ftfc_not_aligned` refusals simulate WORSE than the taken
+   book (-0.025 vs +0.136%/trade) -- weekend-1's confirmation-lag pattern
+   did NOT recur (one sighting for, one against).
+7. LEDGER: 9 wins (32%), 5 material; gross +$0.13, fees $0.73, funding
+   $0.23 (ACE alone $0.21 = 2.1% of notional over 20.6h), NET -$0.82;
+   payoff 2.62 -> breakeven 27.6%. Conts 0/5 with near-bank targets
+   (0/12 cumulative). rev-short 5/11 +$0.39 the only paying quadrant.
+   Sizing: max_notional clamp under-risks tight-stop gold-class tickets
+   (fees 12-86% of the $0.10-0.25 budgets); min_notional over-risks wide
+   stops (ACE $1.49). Gates census: reach gate refused 2-for-22 (-60.9pp
+   sim); missing-ATR refused the PONS lottery; drift veto's pool positive
+   only via 8 trades; RTH clock refusals zero-mean; R:R floor class as
+   weekend-1 (69% winners, negative mean).
+8. RULING NEEDED: scanner 1-3 Rev Strat trigger = inside bar far side
+   (where the 3 completes) vs skill R22 reclaim of the broken side (SOL
+   4h this week). Surfaced, not decided.
+
+Analysis-script review: a fresh-context reviewer (feature-dev
+code-reviewer agent) was run on `analysis/round2.py` before commit --
+result folded in the session-end block below.
+
+### Files (this repo)
+
+- `docs/HANDOFF.md` (this entry), `.session_startup_prompt.md` (TVB-33),
+  `docs/reviews/REVIEW_REQUEST.md` (TVB-32 request). No Pine changed;
+  no request.security touched.
+
+### Open / next
+
+- Owner decisions Friday morning: merge+deploy `fix/entry-invalidated-bar`
+  (deploy = merge, deploy_from_dev.ps1, restart tmux loop); the equity
+  display fix; the 1-3 trigger ruling; whether the run continues through
+  the weekend (crypto 24/7; xyz already RTH-gated).
+- Design-lane (prereg, a-priori): minimum prior-bar range; min stop
+  distance / fee-aware R:R for clamped tickets; runner/partial-harvest;
+  funding-aware holding cost.
+- Carried: month-end regen (~Sep 1, not done), TVB-31 audit STILL
+  unreturned (docs/reviews/tvb31-codex-audit.md absent), tvb8/tvb9
+  unreturned, TV mirror on demand, TVB-18 repairs, jackson set_inputs.
+
+### External Review
+
+- Status: REQUESTED (2026-09-04). Details in
+  `docs/reviews/REVIEW_REQUEST.md`. NOTE: the TVB-31 request was never
+  returned; both remain open.
+
+---
+
 ## Session TVB-31: scanner deploy verified w/o redeploy; HyPaper spike; TVB-30 audit (BLOCK) folded (COMPLETE)
 
 **Date:** 2026-08-30
