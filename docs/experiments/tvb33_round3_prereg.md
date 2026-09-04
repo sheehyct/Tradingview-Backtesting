@@ -201,4 +201,15 @@ tiers / size multipliers (position-sizing rule stands).
 
 ## Amendments (append-only, dated)
 
-(none yet)
+### Amendment 2026-09-04b (orchestrator, before any gate code)
+
+D5's quoted fee rates ("main ~0.07 percent, xyz ~0.086 percent") came from
+the overnight analysis prose and are WRONG against the venue's fills.
+Observed round 2: main taker 0.0432% per side (round trip 0.0864%), main
+maker 0.0144%; xyz taker bimodal per coin (0.00864% on HIMS / LITE /
+MINIMAX / MU / NBIS / SP500 / ZHIPU vs 0.0864% on GOLD / MSTR); no builder
+fee on any fill. D5 now reads: fee_rt = the observed round-trip rate for
+that coin where fills exist, else the dex default (main 0.0864%, xyz
+0.0746%), journaled on the row. Formula and floor unchanged. Weekend-1
+facts from the files: first decision 14:27:28Z, last exit (kill_flat)
+2026-08-24T21:58:24Z = the ledger's close instant.
