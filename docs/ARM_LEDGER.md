@@ -339,6 +339,11 @@ the arm took. Readings, not rankings.
    cheap, mechanically faithful to the methodology, and its cost is
    mostly composition drift rather than the exits themselves.
 
+ROUND 3 RULING (user, 2026-09-05): v1 + A9 NETRR goes live; A1-A8 stay
+off and are shadow-journaled for the next replay; walk-up deferred to a
+daily-entries-only variant; per-coin fee rates (A9c) named-deferred (the
+A9 receipt used dex-default rates -- amendment 2026-09-04i).
+
 Live executor family, after ledger replay 1 (2026-09-05):
 - The receipt was hard to earn and that is the finding: three fidelity
   amendments (roll freeze, drift pin, settle pin) were needed before the

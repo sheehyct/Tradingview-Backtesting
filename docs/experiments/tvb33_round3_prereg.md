@@ -261,3 +261,37 @@ OPEN, for the user (not amended by Claude):
   not beyond the line at the close). Options: re-time the in-force check
   to the cross instant at the crossing price, or leave the halfway tier
   unreceipted on this ledger.
+
+### Amendment 2026-09-05a (USER RULING: the round-3 arm set)
+
+After reading the receipts the user ruled: round 3 = Ruleset v1 + the
+fee-aware floor (A9) and nothing else live; every other arm is
+shadow-journaled so the round-3 ledger can receipt it again. Rationale
+stated to the user and accepted: A9 is the only arm positive on both
+ledgers AND on the matched trades, and its gain is the tickets it refuses
+(fee-heavy losers), which is a structural accounting argument that would
+stand even if the numbers were flat; A6 walk-up is negative on both
+ledgers and on matched trades (rungs inside noise on 1h/4h ladders) and is
+deferred to a daily-entries-only variant; A4 never bound; A1 admitted one
+xyz trade (the R:R floor, not the bell, refuses the oil/CRCL runs); A2, A3,
+A7, A8 are reshuffles whose sign does not hold across ledgers. Round 3 is
+the next rung of the ladder (v1 -> v1+A9), receipted against round 2 as
+the control; it is not a package.
+
+Executor prereg block: hip3-executor README "Round 3 config (user-ruled
+2026-09-05)". Live change: `fee_aware_rr: true` with the dex-default
+round-trip rates (main 0.0864%, xyz 0.0746%), fail-closed when a dex has
+no rate. Shadows journaled per row: net reward-to-risk and the rate used,
+the observed per-coin rate, the scanner's D/W/M continuity, the poll
+counter, the funding rate; per entry the expected-funding receipt (D6).
+Equity display fix (spot USDC total) ships in the same branch as a
+non-strategy change.
+
+Amendment 2026-09-04i (found while porting; recorded, not tuned): the
+replay's A9 receipt was computed with the dex-default fee table, not the
+per-coin observed rates amendment b declared (the per-coin hook was never
+wired into the allocator). The live floor matches the receipt; the
+per-coin variant is named-deferred (A9c).
+
+Named deferred, added: walk-up scoped to daily entries; A9c; a fill /
+slippage model for the weekend-1 P5 question.
