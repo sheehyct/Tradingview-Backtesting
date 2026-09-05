@@ -7,6 +7,7 @@
 | `../CLAUDE.md` | Workspace development rules (inherits the spine) | Every session |
 | `../.session_startup_prompt.md` | Current mission + next priorities | Session start |
 | `guides/TRADINGVIEW_MCP_SETUP.md` | TradingView MCP wiring + gotchas for this workspace | Setting up / debugging the MCP |
+| `guides/STRATEGY_DEEP_DIVE_REVIEW_PROMPT_2026-09-05.md` | Whole-program deep-dive review brief for an external frontier model (dossier, file map, STRAT-faithfulness checklist, recommendation card format); output goes to `reviews/deep-dive-2026-09-05-astra.md` | Delivering or folding the 2026-09-05 deep-dive review |
 
 ## External references (vbt-workspace)
 

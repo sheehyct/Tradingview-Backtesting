@@ -189,6 +189,17 @@ receipt, the equity check and `rm KILL_FLAT` all wait for the user
 
 ### Open
 
+- [ ] BEFORE DEPLOY (user, 2026-09-05, "before we deploy"): a whole-program
+      deep-dive review by an external frontier model (Codex / GPT-6
+      Astra) -- every aspect of the strategy, how it compares to the
+      data, STRAT faithfulness, and the reviewer's own recommendations
+      including deviations from STRAT. Prompt (self-contained dossier +
+      file map + card format + output contract):
+      `docs/guides/STRATEGY_DEEP_DIVE_REVIEW_PROMPT_2026-09-05.md`.
+      Output expected at `docs/reviews/deep-dive-2026-09-05-astra.md`.
+      Read-only by contract; nothing is modified by it. The next session
+      writes the critical synthesis here (agree / dispute / act) and puts
+      any go-live-blocking finding to the user BEFORE the checklist below.
 - [ ] ROUND 3 GO-LIVE (on the user's word, in this order): fund the wallet
       -> deploy main (deploy_from_dev.ps1, 40-hex DEPLOYED_SHA; SSH only
       with explicit confirmation) -> `--once` interlock receipt -> equity
