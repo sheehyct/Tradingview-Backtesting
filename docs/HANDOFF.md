@@ -5,7 +5,7 @@
 
 ---
 
-## Session TVB-33: round-2 CLOSED (KILL_FLAT) + reject dig + round-3 design session + Ruleset v2 prereg + ledger-replay harness build (IN PROGRESS)
+## Session TVB-33: round-2 CLOSED (KILL_FLAT) + reject dig + round-3 design session + Ruleset v2 prereg + ledger-replay harness BUILT + receipts (COMPLETE; three user rulings pending)
 
 **Date:** 2026-09-04 (afternoon/evening, same day as the TVB-32 Friday deploy)
 **Status:** IN PROGRESS. Prereg frozen and pushed in both repos BEFORE any
@@ -123,37 +123,76 @@ thresholds, replay conventions, supervised probes).
   @ 7deca94; parity gate; arms; limitations), pytest pythonpath + ledger
   marker, `tests/replay/synth.py`.
 
-### 5. Ledger replay harness -- build in progress (four teammates)
+### 5. Ledger replay harness -- BUILT, round-2 parity PASS, nine arms receipted
 
-S1 foundation (ledger/candles/fetch/vendored STRAT core/costs/sizing), S2
-rules/arms/recon/gates (differential test vs the live `evaluate`), S3
-exits/pivots/halfway/allocator, S4 parity/report/CLI. Each slice: no
-commits, disjoint files, synthetic tests, fresh-context review before the
-orchestrator commits. Then: fetch (1d from 2026-05-01, meta.json, funding
-history) -> parity round2 -> parity weekend1 -> arms -> report ->
-pins.json. Approved plan: C:\Users\Chris\.claude\plans\glimmering-puzzling-quilt.md.
+Built in four reviewed slices (S1 foundation, S2 rules/gates, S3 exits/
+allocator, S4 parity/report; 1,032 tests) on hip3-executor branch
+`feat/replay-harness` (5c58e30..b1da068, pushed; nothing under src/
+changed). The three "failed" background tasks the user saw were the
+parity CLI exiting non-zero on a real FAIL and two mid-build test runs
+inside teammates, fixed before the slice commits; the teammates then hit
+the account's session limit and the rest was done directly.
+
+Parity round 2: FAIL -> FAIL -> FAIL -> PASS across three fidelity
+amendments (prereg d-h, executor PREREG.md; mirrored in
+tvb33_round3_prereg.md): (1) the scanner's post-roll FREEZE -- served
+dots keep the pre-roll value for one refetch sweep per timeframe (~75 s
+each, TFS order; the daily dot lags ~6 min; a first per-universe 10/30
+min guess scored below no-freeze and was withdrawn); (2) the BTC drift
+sign journal-pinned where the refusal reason reveals it (both misses
+were BTC within $10 of its open inside a minute); (3) matched positions
+free their seat at the journaled exit instant (a one-second seat gap
+cascaded through every later entry). Final: 22,401/22,401 decisions
+agree, 32/32 entries, 30/32 exit reasons (2 mid_union_type3), worst
+timing 2.8 min, net +$0.44 vs venue (threshold $0.50). pins.json written.
+
+Parity weekend 1: 34/34 entries, 33/34 exit reasons (KAITO
+coupled_open_tick), P5 FAIL by $0.11 / 0.54pp = fill slippage on PURR
+(entry 0.9%) and STX (stop 1.05%); arms run WATERMARKED against a v1
+replay control (D8; net -$2.16 on 27 vs the v0 book's -$6.86 on 34).
+
+Arms (round 2, control +$0.70 on 32): A9 fee-aware floor +$3.30 (the
+gain is the 11 refused fee-heavy losers, -$1.61); A6 walk-up -$1.51 and
+-$1.30 on matched trades (same sign on weekend 1); A3 +$1.26, A2 +$1.20
+(sign flips on weekend 1), A7 +$0.82 (matched -$0.48), A1 +$0.75 (one
+xyz trade admitted; oil/CRCL die at the R:R floor once the bell opens;
+two 4h conts found no seat), A5 +$0.36 with ZERO halfway entries (875
+synthetic candidates all refused: volume 359, clock 248, not beyond the
+line at the cross minute's close 268), A8 -$0.14 on 55 trades, A4
+identical (never bound). Full cards: docs/ARM_LEDGER.md; dual-language
+report: executor runs/2026-09-04_replay1/REPLAY.md.
 
 ### Open
 
-- [ ] Replay harness: merge the four slices after review; parity PASS on
-      round 2 (32/32) then weekend 1 (34/34); record residuals; run A1-A9;
-      REPLAY.md; ARM_LEDGER numbers; pins.json.
-- [ ] Scanner PR-B (pivot ladder `tf[id].pivots`, 4h depth 12 -> 40) and
-      PR-A (`1-3h` halfway signal, label "1-3 (50%SSS)") -- after receipts.
+- [ ] USER RULINGS NEEDED: (a) weekend-1 P5 -- accept watermarked
+      readings, amend P5 to exclude declared slippage trades, or add a
+      fill model; (b) A5 -- D4's in-force-at-minute-close convention
+      leaves the halfway tier empty; re-time at the cross instant, or
+      leave it unreceipted; (c) which arms (if any) go into the round-3
+      config given the readings (A9 and A6 are the only two that repeat
+      on both ledgers and on matched trades; A9 positive, A6 negative).
+- [ ] Merge `feat/replay-harness` to executor main after the user reads
+      REPLAY.md.
+- [ ] Scanner PR-B (pivot ladder, 4h depth 40) and PR-A (`1-3h`) --
+      after the rulings above (A5's convention question comes first).
 - [ ] Executor Ruleset v2 code (commit sequence in the plan); equity
-      display fix (spot USDC total) rides commit 2.
+      display fix rides commit 2; the executor stays DOWN (KILL_FLAT
+      interlock) until round 3 on the user's word.
 - [ ] Round 3 live: re-fund, deploy, three supervised probes, rm
       KILL_FLAT on the user's word.
-- [ ] TVB-31 / TVB-32 audits unreturned; the 777-row slice defect is for
-      the TVB-32 reviewer; TVB-33 review request at session end.
+- [ ] TVB-31 / TVB-32 audits unreturned; TVB-33 review requested
+      (REVIEW_REQUEST.md): the three fidelity amendments are the thing
+      to attack.
 - [ ] Carried: month-end fresh-window regen (overdue); TV mirror on
       demand; TVB-18 repairs; jackson set_inputs fix; metals /
       tech-vs-yields regime ID (user, later); trade visualization (the
-      SOL minute path and reject-dig replays are the first instalment).
+      SOL minute path and reject-dig replays are the first instalment);
+      replay `_Context` calls fetch.ensure_meta (network) -- make it
+      offline-pure.
 
 ### External Review (for Codex / cloud review agents)
 
-- Review status: to be REQUESTED at session end (see REVIEW_REQUEST.md).
+- Review status: REQUESTED 2026-09-05 (docs/reviews/REVIEW_REQUEST.md).
 
 ---
 

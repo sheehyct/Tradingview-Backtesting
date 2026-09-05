@@ -219,31 +219,95 @@ The control (Ruleset v1, 2026-08-26), once:
   qualified signal takes the seat, the 1-3 enters at the far side, full
   exit at the first target.
 
-The v2 arms (2026-09-04), one change each; numbers pending the replay:
+The replay receipt (ledger replay 1, 2026-09-04/05; hip3-executor
+runs/2026-09-04_replay1/REPLAY.md): the control replays round 2 to the
+decision -- all 22,401 refusals and admissions agree, 32 of 32 entries,
+exit reasons 30 of 32 with both misses in a declared class (the scanner's
+mid-union forming bar read an entry bar as a Type 3 that trade candles did
+not, or the reverse), worst exit timing 2.8 min, net within $0.44 of the
+venue. It took three fidelity amendments to get there, each calibrated on
+served fields or journaled facts and never on outcomes: the scanner's
+post-roll FREEZE (a bar that just rolled keeps showing the old bar for one
+refetch sweep per timeframe, ~75 s each, so the daily dot lags ~6 min),
+the BTC drift sign read from the live refusal where the row reveals it,
+and matched trades freeing their seat at the journaled exit instant.
+Weekend 1 replays 34 of 34 entries and 33 of 34 exit reasons but FAILS the
+P&L check by $0.11 -- two thin weekend fills (PURR's entry 0.9% worse than
+the decision mid, STX's stop 1.05% through the level) -- so its arm
+numbers below are WATERMARKED and contrast against a v1 replay control
+(net -$2.16 on 27 trades), not the v0 book that actually traded (-$6.86
+on 34).
+
+The control's replay card (round 2): 32 trades, net +$0.70, +8.5pp, 44%
+winners, worst drawdown $1.43, both seats busy 95% of the window, median
+hold 3.7 h.
+
+The v2 arms (2026-09-04), one change each. Round 2 first (gate PASSED),
+weekend 1 second (watermarked). "Matched" = the trades both books took;
+"displaced" = control trades the arm refused; "admitted" = trades only
+the arm took. Readings, not rankings.
 - **A1 EXT -- "stock perps trade the extended session."** 04:00-20:00 ET
-  weekdays, one window for every xyz coin (oil, metals, FX and indices
-  included). Replay: pending.
-- **A2 NODRIFT -- "crypto trades its own signals."** The BTC veto off; a
-  shadow field records what it would have said. Replay: pending.
-- **A3 DWM -- "continuations need the big picture, not a reversal."** A 4h
-  or daily continuation is allowed when the coin's own daily, weekly and
-  monthly bars all lean the trade's way. Replay: pending.
-- **A4 HTF1 -- "the bigger bar gets the seat."** Daily before 4h before 1h,
-  then the better reward-to-risk; seats stay two. Replay: pending.
-- **A5 HALF13 -- "buy the 1-3 at the halfway line."** Enter when price
-  retraces past half the inside bar after the first break; stop under the
-  break extreme; target the mother bar's wick. Replay: pending.
-- **A6 WALKUP -- "your walk-up, on the timeframes that exist."** Full
-  position through T1; take-profit at the ladder's last rung; next target
-  = the next-timeframe pivot; stop walks one rung behind. Replay: pending.
+  weekdays, one window for every xyz coin. Round 2: 36 trades, net +$0.75
+  vs +$0.70, +10.0pp, drawdown $1.89; 31 matched (identical), 1 displaced,
+  5 admitted netting -$0.18. Only ONE bell-refused row ever became a
+  trade (GOLD 1h at 19:51 ET); of the 6,358 bell refusals, 3,069 fall
+  outside even the extended window, 1,159 fail the volume floor and 979
+  the reward-to-risk floor. Oil and CRCL: 77 rows pass the bell under this
+  arm, 39 die at the R:R floor, and the two 4h continuations that passed
+  (BRENTOIL and CL, 08:06 ET Sep 1) found no seat. Weekend 1: no xyz
+  trades on a weekend, identical to control.
+- **A2 NODRIFT -- "crypto trades its own signals."** Round 2: 41 trades,
+  net +$1.20 vs +$0.70 but -4.1pp (the dollars came from a few larger
+  tickets), drawdown $2.87; 18 matched, 14 displaced (they had netted
+  +$0.67), 23 admitted (+$1.17). Weekend 1: 31 trades, -$3.10 vs -$2.16,
+  -17.0pp. Sign flips between ledgers: no reading.
+- **A3 DWM -- "continuations need the big picture, not a reversal."**
+  Round 2: 36 trades, +$1.26 vs +$0.70, +9.9pp, drawdown unchanged $1.43;
+  24 matched, 8 displaced (-$0.21), 12 admitted (+$0.35). Weekend 1: 26
+  trades, -$2.01 vs -$2.16; 23 matched, 4 displaced, 3 admitted. Small
+  positive on both, inside the noise of a dozen trades; the D/W/M
+  continuity it needs is reconstructed, never journaled.
+- **A4 HTF1 -- "the bigger bar gets the seat."** Round 2: IDENTICAL to
+  control -- the ranking never bound; no poll ever held two qualified
+  candidates where the order changed the pick. Weekend 1: 2 swaps,
+  -$2.73 vs -$2.16. Inert on these ledgers.
+- **A5 HALF13 -- "buy the 1-3 at the halfway line."** Round 2: 39 trades,
+  +$0.36 vs +$0.70, -6.5pp; 25 matched, 7 displaced (incl. the SOL 4h
+  far-side 1-3, +$0.36), 14 admitted (+$0.02). BUT zero halfway entries
+  happened: of 1,217 scanner 1-3 rows, 875 could be re-timed to a
+  halfway cross and every one was refused -- 359 volume floor, 248
+  outside the bell, 268 no longer beyond the line at the cross minute's
+  close (the D4 in-force convention). As run, this arm is "far-side 1-3
+  removed", not "halfway 1-3 added"; the halfway tier cannot be receipted
+  on this ledger under D4 as declared. Weekend 1: identical to control.
+- **A6 WALKUP -- "your walk-up, on the timeframes that exist."** Round 2:
+  35 trades, net -$1.51 vs +$0.70, +4.6pp, median hold 1.8 h (control 3.7
+  h); on the 14 matched trades the walk-up gave back $1.30 (3 worse, 11
+  same); 18 displaced, 21 admitted (-$1.44). Weekend 1: 27 trades, -$3.83
+  vs -$2.16; on 26 matched trades -$1.94 (4 worse). Only 10 of 35 round-2
+  holds printed a rung at all; the walked stop is what ends them.
+  Ladder: 40 retained 4h bars, weekly from dailies (caveat).
 - **A7 BANKHALF -- "half off at T1, run the rest to the next pivot."**
-  Stop to breakeven after the bank; too-small tickets run the control exit.
-  Replay: pending.
-- **A8 SEATS5 -- "five positions at once."** Concurrent risk $2.50. Replay:
-  pending.
-- **A9 NETRR -- "the trade must clear the stop after fees."** Net
-  reward-to-risk after both legs' fees >= 1.0; refuses the gold-class
-  tickets where fees were 69-86% of the risk. Replay: pending.
+  Round 2: 30 trades, +$0.82 vs +$0.70, +9.9pp, 50% winners, drawdown
+  $1.10 (best of the book); on 18 matched -$0.48 (2 worse); 14 displaced
+  (-$0.32), 12 admitted (+$0.29). Weekend 1: -$2.21 vs -$2.16; matched
+  -$0.33. Neutral on the trades it shares; the whole-book edge is the
+  reshuffle.
+- **A8 SEATS5 -- "five positions at once."** Round 2: 55 trades, -$0.14
+  vs +$0.70, +15.2pp, drawdown $2.70, median hold 1.1 h; 14 matched, 18
+  displaced (+$1.33), 41 admitted (+$0.50); the five seats were 46% busy
+  (= 114% of two seats). Weekend 1: 31 trades, -$1.83 vs -$2.16. More
+  trades, shorter holds, no dollar change: seats are not the constraint,
+  candidate quality is.
+- **A9 NETRR -- "the trade must clear the stop after fees."** Round 2: 32
+  trades, +$3.30 vs +$0.70, +20.8pp, drawdown $0.94 (best), 47% winners;
+  21 matched (identical), 11 displaced, 11 admitted. The whole gain is in
+  what it REFUSED: the 11 displaced control trades had netted -$1.61
+  (the gold-class fee-heavy tickets: GOLD, MINIMAX, MU, PAXG, SP500 ...),
+  and the 11 admitted (CRCL 4h, KIOXIA 4h x2, PURR, PENGU, ZORA ...) added
+  +$0.99. Weekend 1: 26 trades, -$0.36 vs -$2.16; 7 displaced had netted
+  -$1.64, 6 admitted +$0.16. Same shape on both ledgers: a filter that
+  removes fee-dominated losers, not a picker of winners.
 
 ## What Claude notices (cross-arm, things easy to miss)
 
@@ -274,6 +338,21 @@ The v2 arms (2026-09-04), one change each; numbers pending the replay:
 7. **The invalidation exit (i3) is the best-behaved overlay:** rare,
    cheap, mechanically faithful to the methodology, and its cost is
    mostly composition drift rather than the exits themselves.
+
+Live executor family, after ledger replay 1 (2026-09-05):
+- The receipt was hard to earn and that is the finding: three fidelity
+  amendments (roll freeze, drift pin, settle pin) were needed before the
+  replay reproduced the live book, and each was a live-loop mechanism
+  nobody had written down. Any counterfactual arm run without them would
+  have been reading a different machine.
+- A9's gain and A6's loss both show up on both ledgers and on the matched
+  trades, the only two arms that do. Everything else is a reshuffle of a
+  dozen trades around a two-seat book.
+- A5 and A4 are inert as run (no halfway entry survived D4's in-force
+  check; no poll ever ranked two candidates) -- an arm that never binds is
+  a design fact, not a null result.
+- Sizing makes dollars and percentage points disagree (A2: +$0.50 and
+  -12.6pp vs control). Read both or neither.
 
 ## Maintenance rule
 

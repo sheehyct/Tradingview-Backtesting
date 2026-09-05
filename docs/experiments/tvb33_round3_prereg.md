@@ -213,3 +213,51 @@ that coin where fills exist, else the dex default (main 0.0864%, xyz
 0.0746%), journaled on the row. Formula and floor unchanged. Weekend-1
 facts from the files: first decision 14:27:28Z, last exit (kill_flat)
 2026-08-24T21:58:24Z = the ledger's close instant.
+
+### Amendments 2026-09-04d/e/f/g/h (hip3-executor runs/2026-09-04_replay1/PREREG.md carries the full text)
+
+Fidelity amendments made between the first round-2 parity FAIL and the
+PASS, each calibrated on SERVED fields or journaled facts, never on
+outcomes; the pre-amendment receipts are kept in the executor run home
+(parity_round2_prefreeze.json, parity_round2_flat.json):
+
+- d/e ROLL FREEZE (sweep model). The scanner stops updating a forming bar
+  once its period ends and rolls it only when that timeframe's refetch
+  sweep reaches the coin; the sweeps share one queue in TFS order, so a
+  timeframe's dot stays pre-roll for SWEEP_RANK[tf] x 75 s (15m x1, 1h x3,
+  4h x4, 1d x5) after its own boundary. Fitted on served ftfc vs the store
+  (88.8% agreement at 75 s vs 84.2% with no freeze). The first two-bucket
+  per-universe constants (10 min perps / 30 min xyz) scored BELOW no
+  freeze and were withdrawn. Applied to the flip walk and to the BTC drift
+  sign.
+- f DRIFT PIN. Where the live reason reveals the drift sign (a
+  counter_drift refusal = against; any later-gate reason = not against)
+  the control reads that sign; the P6 validator still scores the pure
+  reconstruction (98.5%). Both remaining misses were BTC within $10 of its
+  daily open inside one minute.
+- g SETTLE PIN. A replay position the ledger also held frees its seat and
+  starts its cooldown at the JOURNALED exit instant when the exit reason
+  agrees or the mismatch is a declared residual class; exit legs, prices,
+  P&L and the P3/P4/P5 checks keep the replay's own exits. Reason: a
+  one-second seat-timing gap (ACE flip 00:44:29Z live vs 00:45:00Z
+  replay; CHIP row 00:44:59Z) cascaded through every later entry.
+- h D8 implementation note: weekend-1 arms contrast against a v1 REPLAY
+  control (CONTROL_V1 across the window; no settle pin there); REPLAY.md
+  marks each ledger block with its own gate status.
+
+Results: round 2 PASS (22,401/22,401 decisions, 32/32 entries, 30/32 exit
+reasons with 2 declared residuals, worst timing 2.8 min, net +$0.44 vs
+venue); weekend 1 FAIL on P5 only (+$0.61 vs $0.50; +2.04pp vs 1.5pp).
+Arm numbers: docs/ARM_LEDGER.md (Live executor family).
+
+OPEN, for the user (not amended by Claude):
+- Weekend-1 P5: the delta is fill slippage on two thin weekend trades
+  (PURR entry 0.9%, STX stop 1.05%; the other 32 net to ~0). Slippage is a
+  stated limitation, not a residual class. Options: accept the watermarked
+  weekend-1 readings; amend P5 to score matched trades net of declared
+  slippage cases; or declare a fill model a-priori.
+- A5: under D4's in-force check at the cross minute's close, zero halfway
+  entries survive (875 synthetic candidates: 359 volume, 248 clock, 268
+  not beyond the line at the close). Options: re-time the in-force check
+  to the cross instant at the crossing price, or leave the halfway tier
+  unreceipted on this ledger.
