@@ -31,7 +31,7 @@
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
 | tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `7a29dad..HEAD` (docs only: 4c9e920 close-out, 7deca94 prereg + ARM_LEDGER family, 6a44e36 HANDOFF, 48bc604 amendment b, then the session-end commit: amendments d-h mirrored, ARM_LEDGER numbers, HANDOFF, this file). No Pine, no code. |
-| hip3-executor (PRIVATE github.com/sheehyct/hip3-executor; local transport only) | `C:\Strat_Trading_Bot\hip3-executor` | main `5ba3347` (Ruleset v2 prereg block) and `99620ff` (amendment b). Branch `feat/replay-harness` `5c58e30..b1da068` (NOT merged): analysis/replay/ (16 modules + CONTRACT.md), tests/replay/ (18 files, 1,032 tests, pins.json), runs/2026-09-04_replay1/ (PREREG.md with amendments b-h, parity_round2.json PASS, parity_round2_prefreeze.json and _flat.json = the kept FAIL receipts, parity_weekend1.json FAIL on P5, round2.json, weekend1.json, REPLAY.md), runs/2026-08-31_round2/ closed ledger + venue records, runs/2026-08-22_weekend1/venue/FETCH_RECEIPT.json. Nothing under src/ changed. |
+| hip3-executor (PRIVATE github.com/sheehyct/hip3-executor; local transport only) | `C:\Strat_Trading_Bot\hip3-executor` | main `5ba3347` (Ruleset v2 prereg block) and `99620ff` (amendment b). Branch `feat/replay-harness` `5c58e30..b1da068` (NOT merged): analysis/replay/ (16 modules + CONTRACT.md), tests/replay/ (18 files, 1,032 tests, pins.json), runs/2026-09-04_replay1/ (PREREG.md with amendments b-h, parity_round2.json PASS, parity_round2_prefreeze.json and _flat.json = the kept FAIL receipts, parity_weekend1.json FAIL on P5, round2.json, weekend1.json, REPLAY.md), runs/2026-08-31_round2/ closed ledger + venue records, runs/2026-08-22_weekend1/venue/FETCH_RECEIPT.json. Nothing under src/ changed there. Branch `feat/round3-fee-floor` (merged to main): 1ddc19e README "Round 3 config" prereg, 2e877a3 rules/config (the live fee-aware floor + tests + differential cases), 64d8d19 engine shadows / funding receipt / arms row / equity receipt, 4dad7f3 broker equity fix, 38179e3 config.json. |
 
 ## Read first (in this order)
 
@@ -102,6 +102,16 @@
    "validation"; watermarked weekend-1 numbers must be visibly marked
    wherever quoted.
 8. request.security: NO Pine file changed -- verify none did.
+9. THE LIVE PORT OF A9 (round 3 goes live on it): rules.net_reward_risk
+   vs analysis/replay/gates.py line for line; the dex mapping
+   (config.dex_of_uni) vs replay costs.dex_of; the fail-closed
+   `fee_rate_unavailable` branch vs Config.__post_init__ (is it really
+   unreachable?); the shadows (rr_net in gross mode, fee_rt_pct_coin,
+   dwm, poll, funding_rate) and the D6 funding sign convention
+   (engine.expected_funding_usd: positive = this side pays); the equity
+   fix (broker.account_parts / account_value = spot USDC total) against
+   the TVB-32 chain. Amendment 2026-09-04i: is "the receipt used
+   dex-default rates" correct, and does it change the A9 reading?
 
 Standing priorities apply (model fidelity; overfitting language; every
 census claim stays characterization; nothing here is a promotion).

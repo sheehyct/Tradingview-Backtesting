@@ -5,7 +5,7 @@
 
 ---
 
-## Session TVB-33: round-2 CLOSED (KILL_FLAT) + reject dig + round-3 design session + Ruleset v2 prereg + ledger-replay harness BUILT + receipts (COMPLETE; three user rulings pending)
+## Session TVB-33: round-2 CLOSED (KILL_FLAT) + reject dig + round-3 design session + Ruleset v2 prereg + ledger-replay harness BUILT + receipts + round 3 BUILT and READY (COMPLETE; deploy on the user's word)
 
 **Date:** 2026-09-04 (afternoon/evening, same day as the TVB-32 Friday deploy)
 **Status:** IN PROGRESS. Prereg frozen and pushed in both repos BEFORE any
@@ -162,33 +162,58 @@ line at the cross minute's close 268), A8 -$0.14 on 55 trades, A4
 identical (never bound). Full cards: docs/ARM_LEDGER.md; dual-language
 report: executor runs/2026-09-04_replay1/REPLAY.md.
 
+### 6. Round 3 ruled and built (user, 2026-09-05: "lets go with that and get it ready")
+
+Asked for a one-shot recommendation, Claude proposed: make the R:R floor
+net of fees (the only arm positive on both ledgers and on matched trades,
+for a structural accounting reason), change nothing else live, and
+shadow-journal every other arm so the next ledger can receipt them again.
+The user accepted. Prereg'd BEFORE code in both repos (executor README
+"Round 3 config"; public prereg amendment 2026-09-05a; replay PREREG
+amendments i and 2026-09-05a). Found while porting: the A9 receipt was
+computed with the dex-default fee table, not the per-coin rates
+amendment b declared (the hook was never wired) -- recorded as amendment
+2026-09-04i; the live floor matches the receipt, the per-coin rate is a
+shadow (A9c, named-deferred).
+
+Built on hip3-executor `feat/round3-fee-floor` (merged to main): the net
+floor with dex-default rates and fail-closed refusal, config validation
+at load, shadows on every decision row (rr_net, fee_rt_pct,
+fee_rt_pct_coin, dwm, poll, funding_rate), the D6 expected-funding entry
+receipt, `arms` on the startup row, the hourly `equity` tracker row, and
+the TVB-32 equity fix (account_value = spot USDC total). 1,144 tests; the
+replay differential proves live and port agree on the fee-aware cases;
+paper smoke run clean. NOT deployed: the VPS deploy, the interlock
+receipt, the equity check and `rm KILL_FLAT` all wait for the user
+(checklist in the executor README STATUS 2026-09-05).
+
 ### Open
 
-- [ ] USER RULINGS NEEDED: (a) weekend-1 P5 -- accept watermarked
+- [ ] ROUND 3 GO-LIVE (on the user's word, in this order): fund the wallet
+      -> deploy main (deploy_from_dev.ps1, 40-hex DEPLOYED_SHA; SSH only
+      with explicit confirmation) -> `--once` interlock receipt -> equity
+      check vs the HL app -> `rm data/KILL_FLAT` -> tmux `--live` ->
+      first heartbeat + first rr_net row. No supervised probes needed
+      (no venue primitive changed).
+- [ ] After go-live: add the round-3 LedgerSpec to analysis/replay
+      (contrast_control "as_built"; the journaled shadows read
+      journaled-first), replay it at close against round 2 as the
+      control.
+- [ ] USER RULINGS still open: (a) weekend-1 P5 -- accept watermarked
       readings, amend P5 to exclude declared slippage trades, or add a
       fill model; (b) A5 -- D4's in-force-at-minute-close convention
-      leaves the halfway tier empty; re-time at the cross instant, or
-      leave it unreceipted; (c) which arms (if any) go into the round-3
-      config given the readings (A9 and A6 are the only two that repeat
-      on both ledgers and on matched trades; A9 positive, A6 negative).
-- [ ] Merge `feat/replay-harness` to executor main after the user reads
-      REPLAY.md.
-- [ ] Scanner PR-B (pivot ladder, 4h depth 40) and PR-A (`1-3h`) --
-      after the rulings above (A5's convention question comes first).
-- [ ] Executor Ruleset v2 code (commit sequence in the plan); equity
-      display fix rides commit 2; the executor stays DOWN (KILL_FLAT
-      interlock) until round 3 on the user's word.
-- [ ] Round 3 live: re-fund, deploy, three supervised probes, rm
-      KILL_FLAT on the user's word.
+      leaves the halfway tier empty.
+- [ ] Scanner PR-B (pivot ladder) and PR-A (`1-3h`) -- deferred with the
+      profile arms and the A5 ruling; not needed for round 3.
 - [ ] TVB-31 / TVB-32 audits unreturned; TVB-33 review requested
-      (REVIEW_REQUEST.md): the three fidelity amendments are the thing
-      to attack.
+      (REVIEW_REQUEST.md): the three fidelity amendments and the live A9
+      port are the things to attack.
 - [ ] Carried: month-end fresh-window regen (overdue); TV mirror on
       demand; TVB-18 repairs; jackson set_inputs fix; metals /
       tech-vs-yields regime ID (user, later); trade visualization (the
       SOL minute path and reject-dig replays are the first instalment);
       replay `_Context` calls fetch.ensure_meta (network) -- make it
-      offline-pure.
+      offline-pure; walk-up scoped to daily entries as a future arm.
 
 ### External Review (for Codex / cloud review agents)
 
