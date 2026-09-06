@@ -278,7 +278,15 @@ receipt, prereg amendment, ARM_LEDGER corrections, this section.
       call): 3-1-2 continuation target (the 3's wick vs near-bank pivot);
       3-2-2 stop placement; nested-inside mother anchoring; the continuity
       stack question; whether the reviewer's no-progress exit becomes A10.
-- [ ] ROUND 3 GO-LIVE (on the user's word, in this order): fund the wallet
+- [x] ROUND-3 PACKAGE BUILT 2026-09-06 (user-approved after the fold; executor
+      main; prereg amendments 2026-09-06c executor / 2026-09-06b here): weekly
+      dot on gate and flip, four seats, $1.00 risk / $200 cap on a $200
+      wallet, score x log-volume shadow; the three STRAT scanner rulings
+      (3-1-2 cont target = the outside bar's wick then a higher-TF pattern's
+      target; 3-2-2 stop = the outside bar's wick; nested inside bars keep
+      the bar the whole coil sits inside) recorded for the next scanner
+      release; the reviewer's time exit parked.
+- [ ] ROUND 3 GO-LIVE (on the user's word, target Sunday 20:00 ET new week; in this order): fund the wallet ($200)
       -> deploy main (deploy_from_dev.ps1, 40-hex DEPLOYED_SHA; SSH only
       with explicit confirmation) -> `--once` interlock receipt -> equity
       check vs the HL app -> `rm data/KILL_FLAT` -> tmux `--live` ->
