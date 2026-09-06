@@ -293,7 +293,15 @@ receipt, prereg amendment, ARM_LEDGER corrections, this section.
       control. First minute: the fee floor refused DASH 1h 1-3 at rr_net
       0.959; stack / stack_60dwm / score / rank / session ride every row.
       Extended hours stays the CONTROL (user option 1: `session` shadow
-      journaled, the bell gates). Watch list: `liq_inside_stop` must never
+      journaled, the bell gates). INCIDENT 18:22Z: the venue had PRUNED the
+      round-2 API wallet when Thursday's withdrawal took the balance to
+      zero, so the first qualified candidate (PURR) failed at the leverage
+      step and reconciled fail-closed (no exposure); the user approved a new
+      agent in the HL app and set the key on the VPS himself; loop restarted
+      19:52:53Z = the EFFECTIVE round-3 open (no entry was possible before
+      it); the failing call was re-issued on the new key and accepted.
+      Lesson: a full withdrawal drops the agent; re-approve before
+      re-funding. Watch list: `liq_inside_stop` must never
       fire; `fee_rate_unavailable` must never appear; the first entry
       receipt should carry `lev` and `liq_px_venue`.
 - [ ] (done above) ROUND 3 GO-LIVE checklist, for the record: fund the wallet ($200)
