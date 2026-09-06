@@ -1,0 +1,138 @@
+{
+ "control": {
+  "family": [
+   "A0b",
+   "S0a",
+   "S0b",
+   "S0c",
+   "A0bS"
+  ],
+  "frozen_fields_bound": [
+   "price",
+   "ladder",
+   "boom",
+   "pmg",
+   "rev",
+   "star"
+  ],
+  "identity": "sym/entry_ts/dir",
+  "matched_closed_aggregate": {
+   "A0b": {
+    "mean_pnl_pp": 0.9602,
+    "n": 24,
+    "sum_pnl_pp": 23.046,
+    "win_rate": 0.6667
+   },
+   "A0bS": {
+    "mean_pnl_pp": 0.8578,
+    "n": 24,
+    "sum_pnl_pp": 20.5866,
+    "win_rate": 0.625
+   },
+   "S0a": {
+    "mean_pnl_pp": -0.0298,
+    "n": 24,
+    "sum_pnl_pp": -0.714,
+    "win_rate": 0.4583
+   },
+   "S0b": {
+    "mean_pnl_pp": -0.0154,
+    "n": 24,
+    "sum_pnl_pp": -0.3692,
+    "win_rate": 0.4583
+   },
+   "S0c": {
+    "mean_pnl_pp": 0.58,
+    "n": 24,
+    "sum_pnl_pp": 13.9191,
+    "win_rate": 0.5833
+   }
+  },
+  "n_matched_all": 27,
+  "n_matched_all_closed": 24,
+  "pairwise_identities_checked": 1941,
+  "per_arm_identities": {
+   "A0b": 105,
+   "A0bS": 130,
+   "S0a": 492,
+   "S0b": 492,
+   "S0c": 549
+  }
+ },
+ "package": {
+  "family": [
+   "D1",
+   "P1",
+   "P2",
+   "X1",
+   "D1i3",
+   "D1S",
+   "PX"
+  ],
+  "frozen_fields_bound": [
+   "price",
+   "ladder",
+   "boom",
+   "pmg",
+   "rev",
+   "star"
+  ],
+  "identity": "sym/entry_ts/dir/pattern/trig",
+  "matched_closed_aggregate": {
+   "D1": {
+    "mean_pnl_pp": 0.8575,
+    "n": 15,
+    "sum_pnl_pp": 12.8629,
+    "win_rate": 0.9333
+   },
+   "D1S": {
+    "mean_pnl_pp": 0.7363,
+    "n": 15,
+    "sum_pnl_pp": 11.0445,
+    "win_rate": 0.8
+   },
+   "D1i3": {
+    "mean_pnl_pp": 0.638,
+    "n": 15,
+    "sum_pnl_pp": 9.5693,
+    "win_rate": 0.8
+   },
+   "P1": {
+    "mean_pnl_pp": 0.9212,
+    "n": 15,
+    "sum_pnl_pp": 13.8187,
+    "win_rate": 0.7333
+   },
+   "P2": {
+    "mean_pnl_pp": 0.2559,
+    "n": 15,
+    "sum_pnl_pp": 3.8387,
+    "win_rate": 0.7333
+   },
+   "PX": {
+    "mean_pnl_pp": -0.046,
+    "n": 15,
+    "sum_pnl_pp": -0.6902,
+    "win_rate": 0.4667
+   },
+   "X1": {
+    "mean_pnl_pp": 0.456,
+    "n": 15,
+    "sum_pnl_pp": 6.8405,
+    "win_rate": 0.5333
+   }
+  },
+  "n_matched_all": 20,
+  "n_matched_all_closed": 15,
+  "pairwise_identities_checked": 573,
+  "per_arm_identities": {
+   "D1": 39,
+   "D1S": 42,
+   "D1i3": 42,
+   "P1": 27,
+   "P2": 27,
+   "PX": 33,
+   "X1": 23
+  }
+ }
+}

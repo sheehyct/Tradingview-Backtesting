@@ -187,19 +187,97 @@ paper smoke run clean. NOT deployed: the VPS deploy, the interlock
 receipt, the equity check and `rm KILL_FLAT` all wait for the user
 (checklist in the executor README STATUS 2026-09-05).
 
+### 7. Deep-dive external review FOLDED (2026-09-06; the critical synthesis)
+
+Review: `docs/reviews/deep-dive-2026-09-05-astra.md` (GPT-6 Astra via the
+local transport; prompt `docs/guides/STRATEGY_DEEP_DIVE_REVIEW_PROMPT_2026-09-05.md`).
+Verdict on the review: the best this program has had. Every numerical
+claim I could check reproduced from the raw receipts before any edit
+(scratchpad verify_review.py): the liquidation geometry, the A9
+decomposition to the cent, the research entry-containment census
+(58/106, 63/123, 1/39, 81/492), the July fee algebra. The user was told
+the plain-terms reading first and said continue.
+
+AGREE (acted):
+- R1 stop-vs-liquidation. The rail used 1/leverage; the venue liquidates
+  at (1/L - m)/(1 -/+ m), m = 1/(2 x maxLeverage) (5.26% long / 4.76%
+  short at 10x vs the 8% the rail admitted). Round 2: LITE, ACE, NBIS
+  stops rested BEYOND the liquidation price, ZHIPU and DOT past the 80%
+  buffer; weekend-1 XMR the same. None hit. Repaired: `liq_model
+  "maintenance"` picks the leverage per ticket so the stop clears (LITE
+  8x, ACE 2x, NBIS 7x), the entry SETS it, and the entry receipt carries
+  the venue's liquidationPx + `liq_inside_stop` (receipt + warn).
+- R2/R3/R4 broker defenses: malformed account response is unknown never
+  flat (both dexes serve assetPositions as a list when empty, checked
+  read-only); stop verifier requires "Stop Market" exactly; partial IOC
+  closes book their fragment and the exit prices size-weighted.
+- R8: a higher-TF reversal whose forming bar is a Type 3 cannot license
+  a continuation (`backing_excludes_invalidated`; the as-built sponsor is
+  journaled as a shadow).
+- R5: the A5 halfway synthesizer set mid == trigger; the strict in-force
+  gate refused every candidate. MY ERROR: I reported the 268 refusals as
+  the D4 convention. Fixed (amendment j: decision price = cross minute's
+  close), parity re-gated (round 2 PASS again; weekend 1 P5 FAIL as
+  before), all arms re-run, pre-fix receipts archived in
+  `runs/2026-09-04_replay1/before_amend_j/`. Result: round 2 still zero
+  halfway entries for honest reasons (109 R:R floor, 44 no seat, 44
+  close back inside, 41 stack, 18 drift); weekend 1 five halfway entries,
+  zero winners (-$1.67 on the five; watermarked).
+- R6/C1: the research twin's arm-mode entry books the prior-hour level
+  even when the bar opened beyond it. Added `entry_fill "feasible"` (the
+  rule the package path already used) and a labeled contrast receipt
+  `analysis/paper/tier_b_exits_feasible/` (determinism gates PASS):
+  fresh A0b 76.5 -> 20.0, A0bS 111.1 -> 44.8 with drawdown 36.5 -> 59.5,
+  S0c 131.6 -> 67.3; July S0c 291.4 -> 155.0, A0bS 214.9 -> 88.2 with
+  drawdown 55 -> 73; D1 unchanged. ARM_LEDGER control family
+  WATERMARKED; "the control still leads" withdrawn as a finding.
+- R7 (Finding 3): MY ERROR. A9's matched trades are identical by
+  construction (I said "positive on matched trades"); only 6 of the 11
+  displaced tickets fail the net floor directly, one a winner, all six at
+  net R:R 0.95-0.9997 ("gross floor ~1.07" in practice); 5 vanished via
+  seat reshuffle (3 of the 4 "gold-class" names I cited); the +$2.60 is
+  62% avoided losses, 38% admitted tickets. The accounting argument
+  stands; the money argument is thin and in-sample. The reviewer still
+  picks the fee floor as the one eligibility change, for the accounting
+  reason. THE USER'S RULING STANDS UNLESS THE USER CHANGES IT.
+- Conceded wording: settle pin reads journaled exit instants (outcome
+  data); "26 of 28 flips" was a mixed-slice slip (26/27, 27/28 closed);
+  24/32 in the risk band; the state-stop family does NOT all flip
+  negative at 0.1%/side (July stays positive). ARM_LEDGER corrected.
+
+DISPUTE / NUANCE: none of the numerical findings. The reviewer's
+"designed after a reject dig then receipted on the same ledger =
+in-sample" is correct and was already implicit; recorded now as binding
+(the next round needs a frozen forward window before any arm is called
+anything). Its 21 recommendation cards are proposals; for a solo
+operator the three that matter were R1, R5/R6, R7, and those are done.
+
+NOT ACTED (user rulings or scanner PRs; put to the user): R15 same-color
+3-1-2 continuation target = the containing 3's wick (skill invariant 5;
+the near-bank pivot can MANUFACTURE admissions under the R:R floor);
+Appendix B 3-2-2 stop = the outside bar's extreme (scanner uses the
+trap's low, wider); R20 nested inside bars keep the original mother bar
+(scanner uses closed[n-3]); which continuity stack is "STRAT" (four
+intraday dots vs D/W/M); R10 the reviewer's proposed FIRST exit
+experiment (no progress in two signal-bar lengths with < 0.5R MFE = out)
+as a candidate A10 over the runner profiles; a prospective halfway
+generator; a fill/slippage model (weekend-1 P5).
+
+Commits: executor branch `fix/deep-dive-fold` 0562f14 (code + 1,172
+tests) + the README amendment 2026-09-06b, PREREG j/k and re-run
+receipts, merged to main; this repo: twin `entry_fill`, the feasible
+receipt, prereg amendment, ARM_LEDGER corrections, this section.
+
 ### Open
 
-- [ ] BEFORE DEPLOY (user, 2026-09-05, "before we deploy"): a whole-program
-      deep-dive review by an external frontier model (Codex / GPT-6
-      Astra) -- every aspect of the strategy, how it compares to the
-      data, STRAT faithfulness, and the reviewer's own recommendations
-      including deviations from STRAT. Prompt (self-contained dossier +
-      file map + card format + output contract):
-      `docs/guides/STRATEGY_DEEP_DIVE_REVIEW_PROMPT_2026-09-05.md`.
-      Output expected at `docs/reviews/deep-dive-2026-09-05-astra.md`.
-      Read-only by contract; nothing is modified by it. The next session
-      writes the critical synthesis here (agree / dispute / act) and puts
-      any go-live-blocking finding to the user BEFORE the checklist below.
+- [x] BEFORE DEPLOY: deep-dive review delivered, returned and FOLDED
+      (section 7). Blocking finding R1 repaired on executor main; round
+      3 = v1 + fee floor + the mechanics repairs (liq_model maintenance,
+      backing_excludes_invalidated, broker defenses).
+- [ ] USER RULINGS raised by the review (before or after go-live, user's
+      call): 3-1-2 continuation target (the 3's wick vs near-bank pivot);
+      3-2-2 stop placement; nested-inside mother anchoring; the continuity
+      stack question; whether the reviewer's no-progress exit becomes A10.
 - [ ] ROUND 3 GO-LIVE (on the user's word, in this order): fund the wallet
       -> deploy main (deploy_from_dev.ps1, 40-hex DEPLOYED_SHA; SSH only
       with explicit confirmation) -> `--once` interlock receipt -> equity
@@ -228,7 +306,10 @@ receipt, the equity check and `rm KILL_FLAT` all wait for the user
 
 ### External Review (for Codex / cloud review agents)
 
-- Review status: REQUESTED 2026-09-05 (docs/reviews/REVIEW_REQUEST.md).
+- Review status: REQUESTED 2026-09-05 (docs/reviews/REVIEW_REQUEST.md);
+  the separate DEEP-DIVE review RETURNED 2026-09-05 and was FOLDED
+  2026-09-06 (section 7). The TVB-33 session review is still open; its
+  reviewer should read section 7 and the fold commits first.
 
 ---
 

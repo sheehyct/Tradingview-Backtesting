@@ -327,6 +327,33 @@ def test_flip_backstop_and_its_toggle():
     assert _step(twin2, c=97.0, gate_dn=True) == []
 
 
+def test_feasible_fill_never_books_a_price_the_bar_did_not_trade():
+    # Deep-dive review fold (2026-09-06, R6): a bar that OPENS beyond the
+    # prior-hour extreme fills at its open under "feasible"; the as-built
+    # "level" books the old level the bar never traded.
+    def step(twin, o, h, l, c, gate_up=False, gate_dn=False):  # noqa: E741
+        return twin._position_step(
+            1000, h, l, c, None, None, None, None, None, None, None, None, gate_up, gate_dn, o=o
+        )
+
+    for fill, want in (("level", 104.01), ("feasible", 106.0)):
+        twin = _twin(entry_fill=fill)
+        twin.seed_arm(104.00, 100.00)
+        ev = step(twin, 106.0, 107.0, 105.5, 106.5, gate_up=True)  # opens ABOVE the level
+        assert ev and ev[0]["action"] == "enter" and ev[0]["price"] == pytest.approx(want), fill
+    # a bar that opens BELOW the level and breaks it fills at the level either way
+    for fill in ("level", "feasible"):
+        twin = _twin(entry_fill=fill)
+        twin.seed_arm(104.00, 100.00)
+        ev = step(twin, 103.5, 104.5, 103.0, 104.2, gate_up=True)
+        assert ev and ev[0]["price"] == pytest.approx(104.01), fill
+    # short mirror under feasible: opens below the level, fills at the open
+    twin = _twin(entry_fill="feasible")
+    twin.seed_arm(104.00, 100.00)
+    ev = step(twin, 98.0, 98.5, 97.0, 97.5, gate_dn=True)
+    assert ev and ev[0]["dir"] == "short" and ev[0]["price"] == pytest.approx(98.0)
+
+
 def test_trigger_strictness_r10():
     # equality never breaks: h == prev_ah does not reach prev_ah + mintick
     twin = _twin()

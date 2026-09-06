@@ -295,3 +295,40 @@ per-coin variant is named-deferred (A9c).
 
 Named deferred, added: walk-up scoped to daily entries; A9c; a fill /
 slippage model for the weekend-1 P5 question.
+
+### Amendment 2026-09-06 (deep-dive external review folded)
+
+The whole-program review (docs/reviews/deep-dive-2026-09-05-astra.md;
+prompt docs/guides/STRATEGY_DEEP_DIVE_REVIEW_PROMPT_2026-09-05.md) was
+reproduced claim by claim from the raw receipts before anything changed.
+Corrections on the record (the numbers stand; the readings did not):
+
+- A9's matched trades are identical by construction (delta $0), so "positive
+  on the matched trades" was false. Only six of the eleven displaced tickets
+  fail the net floor directly (net -$0.90, one of them a winner), all six at
+  net R:R 0.95-0.9997; five vanished through the seat reshuffle. The whole-
+  book gain is 62% avoided losses and 38% admitted tickets. The accounting
+  argument stands; the money argument is thin and in-sample. The ruling is
+  unchanged unless the user changes it.
+- The A5 halfway receipt was EMPTY BY A BUG (synthetic mid == trigger vs
+  the strict in-force gate), not by the D4 convention. Executor PREREG
+  amendment 2026-09-06j; parity re-gated and all arms re-run; the pre-fix
+  receipts archived. A5 stays conditional on future far-side completion.
+- Mechanics repairs shipped on the executor (not strategy variables):
+  liquidation-aware clearance (three round-2 stops sat beyond the venue's
+  liquidation price under the 1/leverage rail), malformed-flat guard,
+  stop-market contract, partial-close fragments; plus the dead-sponsor
+  license repair (a Type-3 forming bar cannot license a continuation).
+  Round-3 config turns the clearance and the license repair on; the
+  replay controls keep the as-built values.
+- Research book: 58 of 106 fresh-window breakout-control entries (63/123
+  with the ATR stop; 81/492 state-stop) were booked at a price their own
+  5m candle never traded (the prior-hour level after the bar had opened
+  beyond it). The pattern family is nearly clean (1/39). Control-family
+  numbers are WATERMARKED in ARM_LEDGER until the feasible-fill contrast
+  receipt (analysis/paper/tier_b_exits_feasible/) is read beside them.
+- Conceded wording: the settle pin reads journaled exit instants; the flip
+  stop-first tally is 26/27 resolved across the two snapshots (27/28 at
+  the closed horizon), not 26/28; 24/32 round-2 tickets in the risk band;
+  the state-stop family does NOT all flip negative at 0.1%/side (July
+  stays positive; two of three go negative in the fresh window).

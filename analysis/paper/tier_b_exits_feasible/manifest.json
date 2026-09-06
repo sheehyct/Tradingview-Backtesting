@@ -1,0 +1,264 @@
+{
+ "arms": [
+  {
+   "arm_id": "S0a",
+   "family": "control",
+   "label": "ladder bottom: state stop only (ruled 2-against at 1H close)",
+   "twin": {
+    "arm_tf_s": 3600,
+    "bf_harvest_exit": false,
+    "brk_exit": false,
+    "flip_backstop": false,
+    "state_stop": true
+   }
+  },
+  {
+   "arm_id": "S0b",
+   "family": "control",
+   "label": "ladder bottom: state stop + flip backstop",
+   "twin": {
+    "arm_tf_s": 3600,
+    "bf_harvest_exit": false,
+    "brk_exit": false,
+    "flip_backstop": true,
+    "state_stop": true
+   }
+  },
+  {
+   "arm_id": "S0c",
+   "family": "control",
+   "label": "amendment A: state stop + BF harvest touch (BF isolation over S0a)",
+   "twin": {
+    "arm_tf_s": 3600,
+    "bf_harvest_exit": true,
+    "brk_exit": false,
+    "flip_backstop": false,
+    "state_stop": true
+   }
+  },
+  {
+   "arm_id": "A0bS",
+   "family": "control",
+   "label": "A0b+stop: matched control (C1 exits) + ATR stop overlay",
+   "twin": {
+    "arm_tf_s": 3600,
+    "stop_mode": "atr"
+   }
+  },
+  {
+   "arm_id": "P1",
+   "family": "package",
+   "label": "two-piece: 50% at frozen T1, 50% runner to the BF touch",
+   "twin": {
+    "arm_tf_s": 3600,
+    "bf_prox_veto_pct": 1.0,
+    "chop_veto_pct": 2.0,
+    "entry_mode": "pattern",
+    "retrace_census": true,
+    "t1_floor_pct": 0.25,
+    "tranche_profile": "P1"
+   }
+  },
+  {
+   "arm_id": "P2",
+   "family": "package",
+   "label": "runner profile: skip T1, 40/20/20/10 at T2-T5, armed floor, BE runner",
+   "twin": {
+    "arm_tf_s": 3600,
+    "bf_prox_veto_pct": 1.0,
+    "chop_veto_pct": 2.0,
+    "entry_mode": "pattern",
+    "retrace_census": true,
+    "t1_floor_pct": 0.25,
+    "tranche_profile": "P2"
+   }
+  },
+  {
+   "arm_id": "X1",
+   "family": "package",
+   "label": "BF overlay at extension: harvest armed once rung 3 reached",
+   "twin": {
+    "arm_tf_s": 3600,
+    "bf_arm_rung": 3,
+    "bf_prox_veto_pct": 1.0,
+    "chop_veto_pct": 2.0,
+    "entry_mode": "pattern",
+    "retrace_census": true,
+    "t1_floor_pct": 0.25
+   }
+  },
+  {
+   "arm_id": "D1i3",
+   "family": "package",
+   "label": "D1+i3: D1 + intrabar-3 invalidation overlay",
+   "twin": {
+    "arm_tf_s": 3600,
+    "bf_harvest_exit": false,
+    "bf_prox_veto_pct": 1.0,
+    "chop_veto_pct": 2.0,
+    "entry_mode": "pattern",
+    "exit_targets": 1,
+    "intrabar3_exit": true,
+    "retrace_census": true,
+    "t1_floor_pct": 0.25
+   }
+  },
+  {
+   "arm_id": "D1S",
+   "family": "package",
+   "label": "D1+stop: D1 + structural/ATR stop overlay",
+   "twin": {
+    "arm_tf_s": 3600,
+    "bf_harvest_exit": false,
+    "bf_prox_veto_pct": 1.0,
+    "chop_veto_pct": 2.0,
+    "entry_mode": "pattern",
+    "exit_targets": 1,
+    "retrace_census": true,
+    "stop_mode": "structural",
+    "t1_floor_pct": 0.25
+   }
+  },
+  {
+   "arm_id": "PX",
+   "family": "package",
+   "label": "composite (reading only): P2 + intrabar-3 + structural/ATR stops",
+   "twin": {
+    "arm_tf_s": 3600,
+    "bf_prox_veto_pct": 1.0,
+    "chop_veto_pct": 2.0,
+    "entry_mode": "pattern",
+    "intrabar3_exit": true,
+    "retrace_census": true,
+    "stop_mode": "structural",
+    "t1_floor_pct": 0.25,
+    "tranche_profile": "P2"
+   }
+  }
+ ],
+ "bar_hashes": {
+  "xyz_AAPL_1d.json": "1a4faf5b333b7877",
+  "xyz_AAPL_1h.json": "223911fa4ebcd45e",
+  "xyz_AAPL_5m.json": "3518179f33dd8c79",
+  "xyz_AMZN_1d.json": "74aaeee48fb6a440",
+  "xyz_AMZN_1h.json": "5a3b364a17d8f633",
+  "xyz_AMZN_5m.json": "cd202723b80120ce",
+  "xyz_DRAM_1d.json": "8fcbf5adc3d37b18",
+  "xyz_DRAM_1h.json": "54e24bba8fc4485d",
+  "xyz_DRAM_5m.json": "ad1ea7ad1ffd9c17",
+  "xyz_GOLD_1d.json": "ce91e83d84e8a2ea",
+  "xyz_GOLD_1h.json": "5dc6401932927fb3",
+  "xyz_GOLD_5m.json": "0ca426e7d4a5efe6",
+  "xyz_GOOGL_1d.json": "be9948f0319f936c",
+  "xyz_GOOGL_1h.json": "140e74eb02bd736d",
+  "xyz_GOOGL_5m.json": "63cc04a8cdd71ea1",
+  "xyz_MRVL_1d.json": "75e257963a991f3b",
+  "xyz_MRVL_1h.json": "96d576476208e39d",
+  "xyz_MRVL_5m.json": "0181414f20fb4387",
+  "xyz_MSFT_1d.json": "ec0e0766c9831c40",
+  "xyz_MSFT_1h.json": "2c732b4a7fa0d0bd",
+  "xyz_MSFT_5m.json": "3b4e39890159c202",
+  "xyz_NBIS_1d.json": "0c5bf299590901da",
+  "xyz_NBIS_1h.json": "935701b9c4d6d474",
+  "xyz_NBIS_5m.json": "d79e1757f9beee2f",
+  "xyz_SKHX_1d.json": "459a84e2ede78316",
+  "xyz_SKHX_1h.json": "f25178330d4bd68e",
+  "xyz_SKHX_5m.json": "2b8c3d8e036005e0",
+  "xyz_SKHY_1d.json": "3561b6fa35616aae",
+  "xyz_SKHY_1h.json": "d063dea0a76b594a",
+  "xyz_SKHY_5m.json": "bcaccf2e081aeeb9",
+  "xyz_TSLA_1d.json": "33e3db1209b2d32e",
+  "xyz_TSLA_1h.json": "2ca379e968ed3ed5",
+  "xyz_TSLA_5m.json": "544a982345064fd2"
+ },
+ "determinism": {
+  "elapsed_s": 32.4,
+  "mismatches": [],
+  "t1floor_rows": 88,
+  "tier_b_rows": 55
+ },
+ "entry_fill": "feasible",
+ "executed_blobs": {
+  "engine.py": "e8d8fb4ad1d2d860",
+  "patterns.py": "298cdeb9af06eebf",
+  "sweep_tier_a.py": "e3ba3f7a694abd77",
+  "tier_b.py": "8714b93591276b02",
+  "tier_b_exits.py": "e2778254c123c847",
+  "tier_b_t1floor.py": "dfd3f7e087e369a6"
+ },
+ "fee_side_pct": 0.0125,
+ "gates": {
+  "fresh": {
+   "control": {
+    "arms": [
+     "A0b",
+     "S0a",
+     "S0b",
+     "S0c",
+     "A0bS"
+    ],
+    "pass": true
+   },
+   "package": {
+    "arms": [
+     "D1",
+     "P1",
+     "P2",
+     "X1",
+     "D1i3",
+     "D1S",
+     "PX"
+    ],
+    "pass": true
+   }
+  },
+  "july": {
+   "control": {
+    "arms": [
+     "A0b",
+     "S0a",
+     "S0b",
+     "S0c",
+     "A0bS"
+    ],
+    "pass": true
+   },
+   "package": {
+    "arms": [
+     "D1",
+     "P1",
+     "P2",
+     "X1",
+     "D1i3",
+     "D1S",
+     "PX"
+    ],
+    "pass": true
+   }
+  }
+ },
+ "git_dirty": true,
+ "git_dirty_paths": [
+  " M analysis/paper/engine.py",
+  " M analysis/paper/tier_b_exits.py",
+  " M tests/test_paper_engine.py",
+  "?? User_Notes.md",
+  "?? docs/reviews/deep-dive-2026-09-05-astra.md"
+ ],
+ "git_head": "60ffdb09671c363078148e1d243fac5c870bfea3",
+ "label": "PRE-COMMITTED LAYER ABLATION + LADDER-BOTTOM VALIDATION + FRESH REPLICATION",
+ "prereg": "docs/experiments/tvb25_exit_round_prereg.md",
+ "prereg_blob_sha256": "383a54cb923c8d2fe09177829ff2d953efd4412d492743db122daa42c4599f10",
+ "smoke": false,
+ "windows": {
+  "fresh": {
+   "end": "2026-08-16",
+   "label": "SHORT / sign-indeterminate (D13 pin)",
+   "start": "2026-08-03"
+  },
+  "july": {
+   "end": "2026-08-03",
+   "start": "2026-07-06"
+  }
+ }
+}

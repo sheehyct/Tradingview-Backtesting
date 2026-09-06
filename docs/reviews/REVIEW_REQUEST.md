@@ -20,6 +20,13 @@
 - Requested: 2026-09-05
 - Write the audit to: `docs/reviews/tvb33-codex-audit.md` (copy
   `docs/reviews/_TEMPLATE.md`)
+- DEEP-DIVE REVIEW (separate, whole-program): RETURNED 2026-09-05
+  (`docs/reviews/deep-dive-2026-09-05-astra.md`) and FOLDED 2026-09-06
+  (HANDOFF TVB-33 section 7). Its findings changed the executor
+  (liquidation-aware clearance, broker defenses, dead-sponsor license,
+  halfway synthesizer fix + re-run) and the research book (feasible-fill
+  contrast receipt, control family watermarked). Reviewers of THIS
+  request: read section 7 first; the fold commits are listed there.
 - NOTE: TVB-31 and TVB-32 (docs/reviews/tvb31-codex-audit.md,
   tvb32-codex-audit.md) were never returned and stay open. For the TVB-32
   reviewer: the 777-row snapshot-slice defect in the overnight analysis

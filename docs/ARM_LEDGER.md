@@ -93,6 +93,29 @@ prereg-gated work.
 
 ## Control family (breakout entries)
 
+> WATERMARK 2026-09-06 (deep-dive review, reproduced): the arm-mode
+> entry books the prior hour's level even when the bar had already opened
+> beyond it, so 58 of 106 fresh-window A0b entries (63/123 A0bS, 81/492
+> S0a, 82/492 S0b, 115/549 S0c) were filled at a price their own 5m
+> candle never traded, some 4-7% better than available. Every number in
+> this family is an UPPER BOUND until read beside the feasible-fill
+> contrast receipt (`analysis/paper/tier_b_exits_feasible/`, engine
+> `entry_fill: "feasible"` = max/min of level and open, the rule the
+> package family already used; D1 is 1/39). The directions may survive;
+> the magnitudes and the control-vs-package comparisons do not stand as
+> written. FEASIBLE-FILL CONTRAST (run 2026-09-06, determinism gates
+> PASS, combined pp, level -> feasible): July S0a 195.3 -> 159.5, S0b
+> 197.7 -> 160.0, S0c 291.4 -> 155.0, A0bS 214.9 -> 88.2 (drawdown 55
+> -> 73); fresh A0a 50.2 -> 19.6, A0b 76.5 -> 20.0, A0bS 111.1 -> 44.8
+> (drawdown 36.5 -> 59.5), S0a 95.9 -> 69.5, S0b 97.2 -> 69.6, S0c 131.6
+> -> 67.3; D1 28.4 -> 28.4 (unchanged, as expected). Readings that
+> change: the BF-harvest state-stop arm S0c loses its lead over S0a/S0b;
+> the ATR-stop overlay no longer halves drawdown (it deepens it); and in
+> the fresh window the breakout control (+20.0) no longer leads the
+> floored package (D1 +28.4). "The control still leads" (TVB-23) is
+> withdrawn as a finding pending the July A0b anchor under feasible fills
+> (not written by the runner; owed).
+
 - **A0a -- "the control at 15-minute speed."** Breakout entries armed on
   the 15m clock; exits BF harvest + level break + flip. July +47.4 /
   fresh +50.2. Exists as the deployed-cadence reference.
@@ -206,8 +229,9 @@ The control (Ruleset v1, 2026-08-26), once:
   its midnight-UTC open, no shorts while above. Round 2: 72 refusals, pool
   positive only through eight trades, median refusal -0.65%.
 - **RISK50 -- "every ticket risks half a dollar."** Size = $0.50 / stop
-  distance, $10 to $100 notional. Round 2: 21 of 32 tickets landed
-  $0.45-0.56; the clamps under- and over-risked the two tails.
+  distance, $10 to $100 notional. Round 2: 24 of 32 tickets landed
+  $0.45-0.56 (21 was the 28-trade snapshot; corrected 2026-09-06); the
+  clamps under- and over-risked the two tails (range $0.10-$1.49).
 - **REACH -- "the target must live inside the tape's reach."** Refuse when
   the target is farther than 1.5x the coin's daily ATR. Round 2: 22
   refused, 2 would have won.
@@ -271,7 +295,22 @@ the arm took. Readings, not rankings.
   control -- the ranking never bound; no poll ever held two qualified
   candidates where the order changed the pick. Weekend 1: 2 swaps,
   -$2.73 vs -$2.16. Inert on these ledgers.
-- **A5 HALF13 -- "buy the 1-3 at the halfway line."** Round 2: 39 trades,
+- **A5 HALF13 -- CORRECTED 2026-09-06.** The first receipt was empty by a
+  BUG (the synthetic candidate's decision price equalled the halfway line,
+  and the strict in-force gate refused every one; the "268 no longer
+  beyond the line at the cross minute's close" story below was wrong).
+  Re-run under amendment j (decision price = the cross minute's close):
+  round 2 STILL has zero halfway entries, now for honest reasons -- of
+  875 candidates, 359 fail the volume floor, 248 the bell, 109 the
+  reward-to-risk floor (the halfway stop is the running extreme, the
+  target bar 0's wick), 44 find no seat, 44 close back inside the line,
+  41 lack the stack, 18 the drift veto; whole-arm numbers unchanged
+  (+$0.36). Weekend 1 (watermarked): FIVE halfway entries (INJ 1h twice,
+  BOME 1h, ACE 1d, TRX 1h), zero winners, -$1.67 on the five, arm -$5.85
+  vs -$2.16 with the rest of the gap displacement. Five trades is a
+  sighting, not a reading; and the candidate set is still conditional on
+  the setup later completing a far-side 1-3 (prospective generator
+  deferred). Original card (pre-fix, kept for the record): Round 2: 39 trades,
   +$0.36 vs +$0.70, -6.5pp; 25 matched, 7 displaced (incl. the SOL 4h
   far-side 1-3, +$0.36), 14 admitted (+$0.02). BUT zero halfway entries
   happened: of 1,217 scanner 1-3 rows, 875 could be re-timed to a
@@ -301,13 +340,19 @@ the arm took. Readings, not rankings.
   candidate quality is.
 - **A9 NETRR -- "the trade must clear the stop after fees."** Round 2: 32
   trades, +$3.30 vs +$0.70, +20.8pp, drawdown $0.94 (best), 47% winners;
-  21 matched (identical), 11 displaced, 11 admitted. The whole gain is in
-  what it REFUSED: the 11 displaced control trades had netted -$1.61
-  (the gold-class fee-heavy tickets: GOLD, MINIMAX, MU, PAXG, SP500 ...),
-  and the 11 admitted (CRCL 4h, KIOXIA 4h x2, PURR, PENGU, ZORA ...) added
-  +$0.99. Weekend 1: 26 trades, -$0.36 vs -$2.16; 7 displaced had netted
-  -$1.64, 6 admitted +$0.16. Same shape on both ledgers: a filter that
-  removes fee-dominated losers, not a picker of winners.
+  21 matched (identical, delta $0.00), 11 displaced, 11 admitted.
+  CORRECTED 2026-09-06 (deep-dive review, reproduced): only SIX of the
+  eleven displaced tickets fail the net floor directly (SP500 1h, TAO 1h
+  twice, XMR 1h, GOLD 1h, VVV 4h; net -$0.90, INCLUDING the XMR winner
+  +$0.51), and all six sat at net R:R 0.95-0.9997 -- in practice the arm
+  is "gross floor about 1.07". The other five (ZEC, MORPHO, MINIMAX, MU,
+  PAXG; -$0.71) left through the seat reshuffle, not fees. The 11
+  admitted (CRCL 4h, KIOXIA 4h x2, PURR, PENGU, ZORA ...) added +$0.99,
+  so the +$2.60 delta is 62% avoided losses, 38% admitted tickets.
+  Weekend 1: 26 trades, -$0.36 vs -$2.16; 7 displaced had netted -$1.64,
+  6 admitted +$0.16. Reading: the accounting argument (pay both legs'
+  fees before counting the reward) stands on its own; the money argument
+  is thin, in-sample, and partly replacement luck.
 
 ## What Claude notices (cross-arm, things easy to miss)
 
@@ -331,10 +376,13 @@ the arm took. Readings, not rankings.
 5. **Redundant safety layers cost nothing but add nothing:** the flip
    backstop fired 5 times in 866 S0b trades. Once a faster exit exists,
    slower backstops go inert -- fine to keep, wrong to credit.
-6. **Fees do not kill churn at the real taker rate** (~1.25bp/side: 971
-   trades cost ~24pp against +291). At the 0.1% fee assumption from the
-   early TVB rounds the whole state-stop family would flip negative --
-   the fee tier is load-bearing for every high-churn reading.
+6. **Fees do not kill churn at the real taker rate** (~1.25bp/side: 982
+   trades cost ~24.6pp against +291). CORRECTED 2026-09-06 (deep-dive
+   review): at the 0.1%/side assumption from the early rounds the July
+   family stays POSITIVE (S0a +19.8, S0b +22.0, S0c +94.9 net of fees
+   only); in the fresh window two of three go negative (S0a -2.2, S0b
+   -0.9, S0c +22.1). The fee tier is load-bearing for the fresh-window
+   readings, not a kill switch for the family.
 7. **The invalidation exit (i3) is the best-behaved overlay:** rare,
    cheap, mechanically faithful to the methodology, and its cost is
    mostly composition drift rather than the exits themselves.
@@ -350,12 +398,21 @@ Live executor family, after ledger replay 1 (2026-09-05):
   replay reproduced the live book, and each was a live-loop mechanism
   nobody had written down. Any counterfactual arm run without them would
   have been reading a different machine.
-- A9's gain and A6's loss both show up on both ledgers and on the matched
-  trades, the only two arms that do. Everything else is a reshuffle of a
-  dozen trades around a two-seat book.
-- A5 and A4 are inert as run (no halfway entry survived D4's in-force
-  check; no poll ever ranked two candidates) -- an arm that never binds is
+- CORRECTED 2026-09-06: A9 is NEUTRAL on matched trades (identical by
+  construction); A6's loss is the only reading that shows on the matched
+  axis. A9's whole-book gain is six direct refusals plus a reshuffle.
+  Everything else is a reshuffle of a dozen trades around a two-seat book.
+- CORRECTED 2026-09-06: A5 was empty BY A BUG (the synthetic decision
+  price equalled the halfway line and the strict in-force gate refused
+  every candidate; executor PREREG amendment 2026-09-06j), not by D4's
+  convention -- the halfway entry had never been tested. A4 is inert as
+  run (no poll ever ranked two candidates) -- an arm that never binds is
   a design fact, not a null result.
+- MECHANICS (deep-dive review R1, repaired 2026-09-06): under the
+  1/leverage clearance rail three round-2 stops (LITE, ACE, NBIS) and
+  weekend-1's XMR rested BEYOND the venue's liquidation price; the $0.50
+  ticket was not a $0.50 ticket on those. Round 3 sets the leverage per
+  ticket so the stop clears and receipts the venue's liquidation price.
 - Sizing makes dollars and percentage points disagree (A2: +$0.50 and
   -12.6pp vs control). Read both or neither.
 

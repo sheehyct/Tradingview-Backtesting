@@ -314,6 +314,14 @@ class TwinConfig:
     # False keeps the twin's original bootstrap (first loaded bar adopted as
     # every period's open), which all pre-TVB-20 replays and sweeps used.
     pine_gate_warmup: bool = False
+    # Deep-dive review fold (2026-09-06, R6 / Appendix C1): the arm-mode entry
+    # fill. "level" = as-built: the prior arm-period extreme + tick even when
+    # the bar OPENED beyond it (58 of 106 fresh-window control entries booked
+    # a price their own candle never traded). "feasible" = max(level, open)
+    # for longs / min(level, open) for shorts -- the price the bar could
+    # actually fill, the same rule _pattern_entry already applies. Default
+    # keeps every committed control-family receipt bit-identical.
+    entry_fill: str = "level"
     # --- TVB-21 Tier B pattern layer (docs/experiments/tvb21_tier_b_prereg.md).
     # Defaults are inert: "arm" never constructs the detector and every veto/
     # target branch is additionally guarded on non-None values.
@@ -764,7 +772,10 @@ class Twin:
             and self.prev_ah is not None
             and h >= self.prev_ah + cfg.mintick
         ):
-            self.pos, self.entry_px, self.entry_ts = 1, self.prev_ah + cfg.mintick, ts
+            px = self.prev_ah + cfg.mintick
+            if cfg.entry_fill == "feasible":
+                px = max(px, o)
+            self.pos, self.entry_px, self.entry_ts = 1, px, ts
             events.append(
                 {
                     "ts": ts,
@@ -782,7 +793,10 @@ class Twin:
             and self.prev_al is not None
             and l <= self.prev_al - cfg.mintick
         ):
-            self.pos, self.entry_px, self.entry_ts = -1, self.prev_al - cfg.mintick, ts
+            px = self.prev_al - cfg.mintick
+            if cfg.entry_fill == "feasible":
+                px = min(px, o)
+            self.pos, self.entry_px, self.entry_ts = -1, px, ts
             events.append(
                 {
                     "ts": ts,

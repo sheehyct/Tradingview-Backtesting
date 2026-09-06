@@ -172,6 +172,14 @@ TRANCHE_ARMS = {"P1", "P2", "PX"}
 FROZEN_ENTRY_FIELDS = ("price", "ladder", "boom", "pmg", "rev", "star")
 
 
+# Deep-dive review fold (2026-09-06, R6): the arm-mode entry-fill model every
+# arm replayed through _replay_arm_v25 uses. "level" reproduces the committed
+# receipts; `--entry-fill feasible` writes a SEPARATE labeled contrast receipt
+# (never over the canonical artifacts). The determinism gates replay the
+# committed Tier B / T1-floor arms through their own runners and are untouched.
+ENTRY_FILL = "level"
+
+
 def _entry_frac_open(twin: Twin) -> float | None:
     """Remaining open fraction, or None when the twin is flat / whole-pos."""
     if twin.pos == 0:
@@ -189,7 +197,9 @@ def _replay_arm_v25(entry: dict, arm: dict, warm: dict, ws: int, we: int, bars_d
     coin = entry["name"]
     rows_5m = _rows(coin, "5m", bars_dir)
     ts_5m = [r[0] for r in rows_5m]
-    cfg = TwinConfig(symbol=coin, mintick=float(entry["tv_mintick"]), **arm["twin"])
+    cfg = TwinConfig(
+        symbol=coin, mintick=float(entry["tv_mintick"]), **{"entry_fill": ENTRY_FILL, **arm["twin"]}
+    )
     twin = Twin(cfg)
     twin.pools = deepcopy(warm["pools"])
     twin.gate_open = dict(warm["gate_open"])
@@ -826,7 +836,19 @@ def main() -> None:
     ap.add_argument("--symbols", help="smoke runs only: comma-separated subset")
     ap.add_argument("--skip-determinism", action="store_true", help="smoke runs only")
     ap.add_argument("--skip-fresh", action="store_true", help="smoke runs only")
+    ap.add_argument(
+        "--entry-fill",
+        choices=("level", "feasible"),
+        default="level",
+        help="arm-mode entry fill: level (as-built) | feasible (max/min of level and bar open); "
+        "feasible writes to tier_b_exits_feasible/ unless --out-dir is given",
+    )
     args = ap.parse_args()
+    global ENTRY_FILL
+    ENTRY_FILL = args.entry_fill
+    if ENTRY_FILL != "level" and args.out_dir == str(OUT_DIR_DEFAULT):
+        args.out_dir = str(OUT_DIR_DEFAULT.parent / f"tier_b_exits_{ENTRY_FILL}")
+        print(f"ENTRY FILL {ENTRY_FILL}: contrast artifacts -> {args.out_dir}")
 
     roster = json.loads(Path(args.roster).read_text())
     symbols = roster["symbols"]
@@ -970,6 +992,7 @@ def main() -> None:
             },
         },
         "fee_side_pct": FEE_SIDE_PCT,
+        "entry_fill": ENTRY_FILL,
         "arms": [{k: a[k] for k in ("arm_id", "family", "label", "twin")} for a in NEW_ARMS],
         "smoke": smoke,
         "determinism": determinism,
