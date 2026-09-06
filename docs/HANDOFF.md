@@ -5,6 +5,101 @@
 
 ---
 
+## Session TVB-34: deep-dive external review delivered and FOLDED, round-3 package approved and LIVE (COMPLETE)
+
+**Date:** 2026-09-05/06
+**Status:** COMPLETE -- the whole-program review came back, every checkable number
+reproduced, five mechanics defects repaired on the executor, the research control
+family watermarked, the user's Sunday rulings prereg'd, the round-3 package built
+and LIVE on the VPS (effective open 2026-09-06 19:52:53Z after the agent-pruning
+incident). Detail lives in the TVB-33 entry section 7 (the critical synthesis)
+and its Open list; this entry is the close-out.
+
+### What was accomplished
+
+- Wrote and delivered `docs/guides/STRATEGY_DEEP_DIVE_REVIEW_PROMPT_2026-09-05.md`;
+  the review returned as `docs/reviews/deep-dive-2026-09-05-astra.md`.
+- Verified the review from the raw receipts (liquidation geometry, A9
+  decomposition, research entry containment 58/106, fee algebra) BEFORE editing.
+- Executor (main): liquidation-aware clearance (leverage set per ticket, venue
+  liquidationPx receipted, liq_inside_stop warns), malformed-flat guard, "Stop
+  Market" exact, partial-close fragments, dead-sponsor license; halfway
+  synthesizer fix (amendment j) + parity re-gated + all arms re-run (pre-fix
+  receipts archived); replay port + differential cases; 1,188 tests.
+- Research: `TwinConfig.entry_fill "feasible"` + `analysis/paper/tier_b_exits_feasible/`
+  contrast receipt (fresh A0b 76.5 -> 20.0, A0bS 111.1 -> 44.8, S0c 131.6 -> 67.3;
+  D1 unchanged); ARM_LEDGER control family WATERMARKED, "the control still leads"
+  withdrawn; A9 / A5 / fee-sensitivity / risk-band corrections on the record.
+- User rulings (Sunday, the cheat sheet as the reference): 3-1-2 continuation
+  target = outside bar's wick then a higher-TF pattern's target; 3-2-2 stop =
+  outside bar's wick; nested inside bars keep the bar the whole coil sits inside;
+  reviewer's time exit PARKED; extended hours stays the control (session shadow).
+- Round-3 package approved and built: weekly dot on gate and flip, four seats,
+  $1.00 risk / $200 cap on a $202 wallet, score x log-volume rank shadow, session
+  shadow. Deployed 9f39ba9; interlock receipt clean; KILL_FLAT removed on the
+  user's word; loop live 16:26:06Z. Incident 18:22Z: the venue had pruned the
+  round-2 API wallet after Thursday's full withdrawal; the user approved a new
+  agent and set the key on the VPS; loop restarted 19:52:53Z (effective open);
+  the failing leverage call re-issued and accepted.
+
+### Context for next session
+
+The executor is LIVE (round 3; tmux `executor`; KILL_FLAT only on the user's
+word). Round 2 is the control; three admission changes ride on top (fee floor,
+weekly dot, seats), each journaled with its counterfactual. Watch:
+`liq_inside_stop` must never fire, `fee_rate_unavailable` never appears, the
+first entry receipt carries `lev` and `liq_px_venue`. The user will open a NEW
+session for monitoring and the review of this leg. Rule learned: after any full
+withdrawal, re-approve the agent before re-funding and check `extraAgents`.
+
+### Files created/modified
+
+- docs/guides/STRATEGY_DEEP_DIVE_REVIEW_PROMPT_2026-09-05.md (new), docs/reviews/deep-dive-2026-09-05-astra.md (new, verbatim review)
+- docs/HANDOFF.md (TVB-33 section 7 + Open), docs/ARM_LEDGER.md, docs/experiments/tvb33_round3_prereg.md, docs/reviews/REVIEW_REQUEST.md, docs/INDEX.md, .session_startup_prompt.md
+- analysis/paper/engine.py, analysis/paper/tier_b_exits.py, tests/test_paper_engine.py, analysis/paper/tier_b_exits_feasible/ (new receipt)
+- hip3-executor (private): src/hip3_executor/{config,rules,broker,engine}.py, config.json, analysis/replay/{types,gates,recon,one_three}.py, tests/, README.md, runs/2026-09-04_replay1/ (PREREG j/k, re-run receipts, before_amend_j/)
+
+### Open
+
+- [ ] HANDOFF.md is over 1,500 lines: archive the TVB-27..TVB-32 entries to
+      docs/session_archive/ on the user's word.
+- [ ] Round-3 close-out replay: add the round-3 LedgerSpec (contrast_control
+      "as_built"; read the journaled shadows first: stack, rank, session, lev,
+      backing_invalidated) and replay it against round 2 at close.
+- [ ] Scanner release with the three STRAT rulings (3-1-2 cont target, 3-2-2
+      stop, nested mother) + PR-B pivot ladder / PR-A `1-3h`.
+- [ ] The July A0b anchor under feasible fills is not written by the runner
+      (owed for the July control-vs-package comparison).
+- [ ] Score picker arm (receipt on the round-3 ledger before it trades);
+      prospective halfway generator; fill/slippage model (weekend-1 P5).
+- [ ] TVB-31/32/33 session reviews still unreturned.
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb34-codex-audit.md.
+> See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: `7ad92f4..HEAD_PIN` on `main` (this repo: docs, the review
+  file, the twin's entry_fill option, the feasible receipt); hip3-executor
+  (private, local transport) `d8a07b0..5cd2b0d` on main.
+- Scope / what changed: the deep-dive fold (five executor repairs, halfway
+  synthesizer fix, replay port), the feasible-fill research contrast, the
+  round-3 package (weekly dot, seats, risk, shadows), the go-live and the
+  agent-pruning incident.
+- Focus areas (scrutinize these): the liquidation formula and clearing-leverage
+  selection vs the venue docs; the weekly-dot verdict (executor-computed
+  dots_dir vs the scanner's coinSummary; missing/flat handling) and its use in
+  BOTH gate and flip; the partial-close VWAP path across a restart; whether
+  amendment j's decision-price convention is the right D4 successor; the
+  feasible-fill twin change (only the arm-mode entry touched?); whether three
+  admission changes on round 2 stay separable from the shadows.
+- Reviewed by: pending
+- Findings: (blank until docs/reviews/tvb34-codex-audit.md exists)
+
+---
+
 ## Session TVB-33: round-2 CLOSED (KILL_FLAT) + reject dig + round-3 design session + Ruleset v2 prereg + ledger-replay harness BUILT + receipts + round 3 BUILT and READY (COMPLETE; deploy on the user's word)
 
 **Date:** 2026-09-04 (afternoon/evening, same day as the TVB-32 Friday deploy)

@@ -12,123 +12,68 @@
 
 - Status: REQUESTED
   <!-- REQUESTED | RETURNED (audit file written) -->
-- Session under review: TVB-33 -- round-2 CLOSE (KILL_FLAT), reject dig,
-  round-3 design session (twelve rulings + D1-D12, prereg BEFORE code),
-  and the LEDGER REPLAY HARNESS: built in four reviewed slices, round-2
-  parity taken from FAIL to PASS through three fidelity amendments, nine
-  single-change arms receipted on both closed ledgers.
-- Requested: 2026-09-05
-- Write the audit to: `docs/reviews/tvb33-codex-audit.md` (copy
+- Session under review: TVB-34 -- the deep-dive external review folded (five
+  executor mechanics repairs, halfway synthesizer fix + re-run, replay port),
+  the feasible-fill research contrast, the round-3 package (weekly dot on gate
+  and flip, four seats, $1 risk / $200 cap, rank + session shadows), go-live,
+  and the agent-pruning incident.
+- Requested: 2026-09-06
+- Write the audit to: `docs/reviews/tvb34-codex-audit.md` (copy
   `docs/reviews/_TEMPLATE.md`)
-- DEEP-DIVE REVIEW (separate, whole-program): RETURNED 2026-09-05
-  (`docs/reviews/deep-dive-2026-09-05-astra.md`) and FOLDED 2026-09-06
-  (HANDOFF TVB-33 section 7). Its findings changed the executor
-  (liquidation-aware clearance, broker defenses, dead-sponsor license,
-  halfway synthesizer fix + re-run) and the research book (feasible-fill
-  contrast receipt, control family watermarked). Reviewers of THIS
-  request: read section 7 first; the fold commits are listed there.
-- NOTE: TVB-31 and TVB-32 (docs/reviews/tvb31-codex-audit.md,
-  tvb32-codex-audit.md) were never returned and stay open. For the TVB-32
-  reviewer: the 777-row snapshot-slice defect in the overnight analysis
-  is documented in the TVB-33 HANDOFF entry (section 1), not silently
-  fixed.
+- NOTE: TVB-31, TVB-32 and TVB-33 audits were never returned and stay open.
+  The separate DEEP-DIVE review (docs/reviews/deep-dive-2026-09-05-astra.md)
+  was RETURNED and FOLDED (HANDOFF TVB-33 section 7); do not re-review it,
+  review the fold.
 
 ## Commits to review
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `7a29dad..HEAD` (docs only: 4c9e920 close-out, 7deca94 prereg + ARM_LEDGER family, 6a44e36 HANDOFF, 48bc604 amendment b, then the session-end commit: amendments d-h mirrored, ARM_LEDGER numbers, HANDOFF, this file). No Pine, no code. |
-| hip3-executor (PRIVATE github.com/sheehyct/hip3-executor; local transport only) | `C:\Strat_Trading_Bot\hip3-executor` | main `5ba3347` (Ruleset v2 prereg block) and `99620ff` (amendment b). Branch `feat/replay-harness` `5c58e30..b1da068` (NOT merged): analysis/replay/ (16 modules + CONTRACT.md), tests/replay/ (18 files, 1,032 tests, pins.json), runs/2026-09-04_replay1/ (PREREG.md with amendments b-h, parity_round2.json PASS, parity_round2_prefreeze.json and _flat.json = the kept FAIL receipts, parity_weekend1.json FAIL on P5, round2.json, weekend1.json, REPLAY.md), runs/2026-08-31_round2/ closed ledger + venue records, runs/2026-08-22_weekend1/venue/FETCH_RECEIPT.json. Nothing under src/ changed there. Branch `feat/round3-fee-floor` (merged to main): 1ddc19e README "Round 3 config" prereg, 2e877a3 rules/config (the live fee-aware floor + tests + differential cases), 64d8d19 engine shadows / funding receipt / arms row / equity receipt, 4dad7f3 broker equity fix, 38179e3 config.json. |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `7ad92f4..HEAD_PIN` -- docs, the review file, `analysis/paper/engine.py` entry_fill, `tier_b_exits.py --entry-fill`, `tests/test_paper_engine.py`, `analysis/paper/tier_b_exits_feasible/` |
+| hip3-executor (PRIVATE; local transport only) | `C:\Strat_Trading_Bot\hip3-executor` | main `d8a07b0..5cd2b0d`: 0562f14 (the fold: liq clearance, malformed-flat guard, Stop Market, partial-close fragments, dead sponsor, replay port, halfway decision price), c0074e0 (README amendment b, PREREG j/k, re-run receipts, before_amend_j/), 8beb8e8 (amendment c prereg), c531a8a (the package: stack_tfs, seats, risk, rank shadow), 9f39ba9 (session shadow; DEPLOYED), 3767c2f + 5cd2b0d (STATUS: live + incident) |
 
 ## Read first (in this order)
 
-1. `CLAUDE.md`; charter Section 0. Then the TVB-33 HANDOFF entry.
-2. hip3-executor `runs/2026-09-04_replay1/PREREG.md` (what was declared
-   before any number, and the dated amendments b-h) and
-   `analysis/replay/CONTRACT.md` (the slice contract + build rulings).
-3. `analysis/replay/exits.py` (dot_with_freeze / simulate),
-   `analysis/replay/recon.py` (ref_drift + the drift pin in build_view),
-   `analysis/replay/allocator.py` (settle_pin), `analysis/replay/parity.py`
-   (P0-P6, residual classes), `analysis/replay/__main__.py` (_Context:
-   how the pins and the v1 contrast control are wired). hip3-scanner
-   `src/loop.js` lines 57-69, 492-501, 548-560, 617-655 (the freeze
-   mechanism the sweep model claims to reproduce).
-4. `runs/2026-09-04_replay1/REPLAY.md` and this repo's
-   `docs/ARM_LEDGER.md` (Live executor family) -- the numbers as stated
-   to the user.
+1. `CLAUDE.md`; charter Section 0. Then the TVB-34 HANDOFF entry and TVB-33 section 7.
+2. `docs/reviews/deep-dive-2026-09-05-astra.md` (what was folded) and the
+   executor README amendments 2026-09-06b / 2026-09-06c.
+3. Executor `src/hip3_executor/rules.py` (liq_distance / clearing_leverage,
+   dots_dir / stack_dir, htf_reversal_backing exclude_invalidated,
+   xyz_session_now), `broker.py` (_positions_state guard, PartialClose,
+   _stop_row_ok), `engine.py` (_enter leverage + liq receipt, _close_record
+   fragments, _exit_reason stack), `analysis/replay/{gates,recon,one_three}.py`,
+   `tests/test_deep_dive_fold.py`, `tests/test_round3_package.py`.
+4. `analysis/paper/engine.py` `_entry_step` + `tier_b_exits.py` ENTRY_FILL; the
+   feasible receipt vs the canonical `analysis/paper/tier_b_exits/`.
 
 ## Focus areas (scrutinize these)
 
-1. THE THREE FIDELITY AMENDMENTS are the thing to attack. Each was made
-   AFTER a parity FAIL. The claim is that each is calibrated on a served
-   field or a journaled fact and never on outcomes; the alternative
-   reading is that the control was tuned until it matched. For each:
-   (a) roll freeze / sweep model (amendments d, e): is SWEEP_RANK x 75 s
-   what loop.js actually does (one queue, TFS order, concurrency 6, 4 s
-   "beat", 5 s timer, 30 s retryAfter on failures)? Is fitting SWEEP_MS
-   by argmax of served-ftfc agreement legitimate, and does the per-minute
-   curve in amendment e support 75 s over 60 s? The withdrawn 10/30 min
-   constants scored BELOW no freeze -- was the first calibration wrong or
-   the second?
-   (b) drift pin (f): does reading the sign from the refusal reason leak
-   the live decision into the control in a way that also helps the ARMS
-   (A2 excepted)? Is `reached(reason, "kill_switch")` the right boundary
-   in the gate order?
-   (c) settle pin (g): matched positions free their seat at the journaled
-   exit instant when reasons agree OR the mismatch is a declared residual.
-   Does this make P1 (entries 100% identical) trivially satisfiable? What
-   would P1 look like with the pin off (the third receipt in the HANDOFF
-   narrative: 25/32)? Is applying the pin to the ARMS (over as-built
-   epochs) defensible, and is switching it off under the weekend-1 v1
-   control (h) consistent?
-2. Weekend-1 P5: the $0.61 delta is attributed to slippage on PURR and
-   STX. Verify the per-trade attribution (parity_weekend1.json
-   control_positions vs the trades.jsonl exit rows; `ledger_gross_usd`
-   for the reclassified unknown_exit rows). Is "the other 32 net to ~0"
-   true, and is leaving P5 as FAIL (watermarked arms) the right reading
-   of the prereg?
-3. A5: 875 synthetic halfway candidates, all refused, 268 by the in-force
-   check at the cross minute's close. Is `one_three.synthesize` timing
-   the cross as D4 declares (last second of the cross minute; stop =
-   running extreme incl. the cross candle)? Is the "not_beyond_trigger"
-   outcome a convention artifact or a real property of the halfway line?
-4. A9: net +$3.30 on 32 trades with 11 displaced / 11 admitted. Check the
-   fee-aware floor formula (D5 + amendment b rates), that the displaced
-   set really is the fee-heavy gold class, and that the whole-book gain
-   is the displaced set (-$1.61) rather than admitted winners.
-5. A6 walk-up: 10 of 35 holds printed a rung; the walked stop ends them.
-   Check pivots.next_rung / build_ladder (40 retained 4h bars, 1w derived
-   from dailies) and the stop-first convention on rung candles (c(3)).
-6. The parity checks themselves: P0 100% agreement on 22,401 decision
-   rows is the strongest claim in the session -- is the gate port in
-   gates.py truly line-for-line with rules.evaluate (the differential
-   test in tests/replay/test_gates_port.py), and are the journaled-first
-   pins (forming_type not_3, htf_backing, drift) hiding gate differences?
-7. Prose discipline: every P&L statement in ARM_LEDGER.md and REPLAY.md
-   must read as characterization; "receipt" must not become
-   "validation"; watermarked weekend-1 numbers must be visibly marked
-   wherever quoted.
+1. Liquidation formula and clearing-leverage selection vs the venue docs
+   (tier-0 m = 1/(2 x maxLeverage); does anything change for larger tiers?);
+   the post-fill `liq_inside_stop` receipt is warn-only by ruling.
+2. The weekly dot: executor-computed `dots_dir` vs the scanner's coinSummary
+   (missing slot, dead-even candle, the derived 1w candle's open); its use in
+   BOTH the gate and the flip; the as-built four still reads the scanner field.
+3. Partial-close fragments across a restart (state persisted before retry?);
+   `_close_record` VWAP with `fill_sz` absent.
+4. Amendment j: is "decision price = the cross minute's close" the right
+   successor to D4's "fill at the halfway line"? The candidate set is still
+   conditional on later far-side completion.
+5. The feasible-fill twin change: only the arm-mode `_entry_step` should differ;
+   determinism gates passed; the July anchors (A0b) are missing from the
+   contrast receipt -- does that matter for the ARM_LEDGER watermark text?
+6. Three admission changes on round 2 (fee floor, weekly dot, seats) plus
+   risk/cap: are the journaled shadows sufficient to separate them at close?
+7. The agent-pruning incident: fail-closed reconciliation held; is the
+   "re-approve before re-funding" rule enough, or should the loop refuse to
+   start when `extraAgents` does not list the .env agent?
 8. request.security: NO Pine file changed -- verify none did.
-9. THE LIVE PORT OF A9 (round 3 goes live on it): rules.net_reward_risk
-   vs analysis/replay/gates.py line for line; the dex mapping
-   (config.dex_of_uni) vs replay costs.dex_of; the fail-closed
-   `fee_rate_unavailable` branch vs Config.__post_init__ (is it really
-   unreachable?); the shadows (rr_net in gross mode, fee_rt_pct_coin,
-   dwm, poll, funding_rate) and the D6 funding sign convention
-   (engine.expected_funding_usd: positive = this side pays); the equity
-   fix (broker.account_parts / account_value = spot USDC total) against
-   the TVB-32 chain. Amendment 2026-09-04i: is "the receipt used
-   dex-default rates" correct, and does it change the A9 reading?
-
-Standing priorities apply (model fidelity; overfitting language; every
-census claim stays characterization; nothing here is a promotion).
 
 ## Output contract
 
-- Verbatim audit -> `docs/reviews/tvb33-codex-audit.md` (template:
+- Verbatim audit -> `docs/reviews/tvb34-codex-audit.md` (template:
   `docs/reviews/_TEMPLATE.md`, skeptic preamble included).
-- Be concrete; cite `file:line`. Never paste a secret/IP/account value:
-  the VPS IP and the master wallet ADDRESS must both stay out of the
-  audit (this repo is public -- the address lives only in the private
-  hip3-executor repo).
+- Be concrete; cite `file:line`. Never paste a secret/IP/account value: the VPS
+  IP, the master wallet address and the agent address stay out (this repo is
+  public).
 - The critical synthesis is written by the NEXT session into `docs/HANDOFF.md`.
