@@ -286,7 +286,17 @@ receipt, prereg amendment, ARM_LEDGER corrections, this section.
       target; 3-2-2 stop = the outside bar's wick; nested inside bars keep
       the bar the whole coil sits inside) recorded for the next scanner
       release; the reviewer's time exit parked.
-- [ ] ROUND 3 GO-LIVE (on the user's word, target Sunday 20:00 ET new week; in this order): fund the wallet ($200)
+- [x] ROUND 3 LIVE 2026-09-06 16:26:06Z (executor 9f39ba9; the user funded
+      $202.24 and gave the go for the SSH deploy and go-live; interlock
+      receipt clean 0/0 both dexes; KILL_FLAT removed; tmux `executor`
+      --live). The round-3 ledger opens at that startup row; round 2 is the
+      control. First minute: the fee floor refused DASH 1h 1-3 at rr_net
+      0.959; stack / stack_60dwm / score / rank / session ride every row.
+      Extended hours stays the CONTROL (user option 1: `session` shadow
+      journaled, the bell gates). Watch list: `liq_inside_stop` must never
+      fire; `fee_rate_unavailable` must never appear; the first entry
+      receipt should carry `lev` and `liq_px_venue`.
+- [ ] (done above) ROUND 3 GO-LIVE checklist, for the record: fund the wallet ($200)
       -> deploy main (deploy_from_dev.ps1, 40-hex DEPLOYED_SHA; SSH only
       with explicit confirmation) -> `--once` interlock receipt -> equity
       check vs the HL app -> `rm data/KILL_FLAT` -> tmux `--live` ->
