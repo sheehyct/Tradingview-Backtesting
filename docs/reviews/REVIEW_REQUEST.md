@@ -29,7 +29,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `7ad92f4..HEAD_PIN` -- docs, the review file, `analysis/paper/engine.py` entry_fill, `tier_b_exits.py --entry-fill`, `tests/test_paper_engine.py`, `analysis/paper/tier_b_exits_feasible/` |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `7ad92f4..00d243e` -- docs, the review file, `analysis/paper/engine.py` entry_fill, `tier_b_exits.py --entry-fill`, `tests/test_paper_engine.py`, `analysis/paper/tier_b_exits_feasible/` |
 | hip3-executor (PRIVATE; local transport only) | `C:\Strat_Trading_Bot\hip3-executor` | main `d8a07b0..5cd2b0d`: 0562f14 (the fold: liq clearance, malformed-flat guard, Stop Market, partial-close fragments, dead sponsor, replay port, halfway decision price), c0074e0 (README amendment b, PREREG j/k, re-run receipts, before_amend_j/), 8beb8e8 (amendment c prereg), c531a8a (the package: stack_tfs, seats, risk, rank shadow), 9f39ba9 (session shadow; DEPLOYED), 3767c2f + 5cd2b0d (STATUS: live + incident) |
 
 ## Read first (in this order)

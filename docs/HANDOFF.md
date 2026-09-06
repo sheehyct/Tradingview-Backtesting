@@ -81,7 +81,7 @@ withdrawal, re-approve the agent before re-funding and check `extraAgents`.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: `7ad92f4..HEAD_PIN` on `main` (this repo: docs, the review
+- Commits to review: `7ad92f4..00d243e` on `main` (this repo: docs, the review
   file, the twin's entry_fill option, the feasible receipt); hip3-executor
   (private, local transport) `d8a07b0..5cd2b0d` on main.
 - Scope / what changed: the deep-dive fold (five executor repairs, halfway
