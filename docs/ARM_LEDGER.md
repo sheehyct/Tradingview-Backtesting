@@ -392,6 +392,30 @@ off and are shadow-journaled for the next replay; walk-up deferred to a
 daily-entries-only variant; per-coin fee rates (A9c) named-deferred (the
 A9 receipt used dex-default rates -- amendment 2026-09-04i).
 
+ROUND 3 PACKAGE (user-approved 2026-09-06 after the deep-dive fold; prereg
+before code). The cards, trader terms first, numbers blank until the
+round-3 ledger closes:
+- **WEEK5 -- "the week has to agree too."** Enter only when the 15-minute,
+  hourly, 4-hour, daily and weekly candles all lean the trade's way; leave
+  when all five lean against it. Fewer candidates, more conviction; flips
+  come later and fewer. The four-dot verdict rides every row as the
+  counterfactual. Numbers: pending.
+- **SEATS4 -- "four positions at once on $200."** More tape, not better
+  tape (the five-seat replay took 55 trades for the same dollars). Numbers:
+  pending.
+- **RISK100 -- "every ticket risks a dollar."** Half a percent of the
+  wallet, as round 2 was; the venue's $10 minimum now distorts only stops
+  wider than 10%. Percent results are unchanged by construction; dollars
+  double. Numbers: pending.
+- **RANK (shadow only) -- "the strongest, most liquid fresh setup gets the
+  seat."** Score times the log of 24-hour dollar volume, highest for longs,
+  lowest for shorts, continuity as the tie-break; journaled on every row,
+  receipted on the round-3 ledger before it trades. Numbers: pending.
+- STRAT rulings for the next scanner release: 3-1-2 continuation target =
+  the outside bar's wick first, then a higher-timeframe pattern's target;
+  3-2-2 stop = the outside bar's wick; nested inside bars keep the bar the
+  whole coil sits inside as bar x.
+
 Live executor family, after ledger replay 1 (2026-09-05):
 - The receipt was hard to earn and that is the finding: three fidelity
   amendments (roll freeze, drift pin, settle pin) were needed before the

@@ -332,3 +332,31 @@ Corrections on the record (the numbers stand; the readings did not):
   the closed horizon), not 26/28; 24/32 round-2 tickets in the risk band;
   the state-stop family does NOT all flip negative at 0.1%/side (July
   stays positive; two of three go negative in the fresh window).
+
+### Amendment 2026-09-06b (USER RULINGS + the approved round-3 package)
+
+Sunday design exchange after the deep-dive fold (the user's cheat sheet is
+the STRAT reference: continuity panel 60 / Day / Week / Month, 3-2-2 stops
+at the outside bar's wick). Executor README amendment 2026-09-06c is the
+binding text; restated here in trader terms and confirmed with the user
+before this commit:
+
+- **Scanner rulings (next scanner release, recorded now):** a same-color
+  3-1-2 continuation targets the containing outside bar's wick first and
+  only steps up to a higher-timeframe pattern's target when the wick fails
+  the floor (no higher pattern = not a candidate); the 3-2-2 stop is the
+  outside bar's wick, not the trap bar's; nested inside bars keep the bar
+  the whole coil sits inside as bar x (115, not 110).
+- **Weekly dot live (gate and flip):** 15m/1h/4h/1d/1w all leaning the
+  trade's way to enter, all five against to flip out. Four-dot and
+  60/D/W/M verdicts journaled as shadows.
+- **Four seats, $200 wallet, $1.00 risk per ticket, $200 max notional.**
+  Half a percent per ticket as before, two percent concurrent; the venue
+  minimum now distorts only stops wider than 10%.
+- **Score x log-volume rank journaled as a shadow**; the picker is an arm
+  for the round-3 ledger, not live.
+- **The reviewer's no-progress exit is parked.**
+
+Three admission changes on top of round 2 (fee floor, weekly dot, seats),
+each with its counterfactual on the row. The whole-book number will not be
+attributable to any one of them; the replay separates them.
