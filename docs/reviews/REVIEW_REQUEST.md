@@ -29,8 +29,8 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `848db00..{pending push}` -- docs only: HANDOFF TVB-35, startup prompt, this file, prereg amendment 2026-09-07a, ARM_LEDGER round-3 halt card |
-| hip3-executor (PRIVATE; local transport only) | `C:\Strat_Trading_Bot\hip3-executor` | main `5cd2b0d..7dc011f`: 098cff1 (amendment 2026-09-07a: `HD_STACK`, `SEAT_STAGE_REASONS`, `book_summary`, `book_top` on both brokers, `_book_shadow` in the engine, 16 tests), 7dc011f (README STATUS 2026-09-07: the halt, labels, restart checklist) |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `848db00..HEAD` = 5b028a5 + the sha-pin follow-up on top -- docs only: HANDOFF TVB-35, startup prompt, this file, prereg amendment 2026-09-07a, ARM_LEDGER round-3 halt card (verify with `git diff --name-status 848db00..HEAD`) |
+| hip3-executor (PRIVATE; local transport only) | `C:\Strat_Trading_Bot\hip3-executor` | main `5cd2b0d..fc90368`: 098cff1 (amendment 2026-09-07a: `HD_STACK`, `SEAT_STAGE_REASONS`, `book_summary`, `book_top` on both brokers, `_book_shadow` in the engine, 16 tests), 7dc011f (README STATUS 2026-09-07: the halt, labels, restart checklist), fc90368 (runs/2026-09-06_round3_aborted/ slices + README) |
 
 ## Read first (in this order)
 

@@ -117,9 +117,12 @@ new one is the user's call.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: `848db00..{head}` on `main` (pinned after push; this repo:
-  docs only); hip3-executor (private, local transport) `5cd2b0d..7dc011f` on
-  main (098cff1 the shadows, 7dc011f the STATUS).
+- Commits to review: `848db00..HEAD` on `main` = 5b028a5 (the session-end
+  docs) + the sha-pin follow-up commit on top of it (this repo: docs only;
+  `git diff --name-status 848db00..HEAD` lists HANDOFF, the startup prompt,
+  REVIEW_REQUEST, the prereg, ARM_LEDGER); hip3-executor (private, local
+  transport) `5cd2b0d..fc90368` on main (098cff1 the shadows, 7dc011f the
+  STATUS, fc90368 the round-3 ledger slices + run README).
 - Scope / what changed: two journal-only shadow columns on the executor
   (hourly/daily control verdict; order-book spread on seat-stage rows), the
   round-3 read-out and halt, the public prereg / ledger amendments.
