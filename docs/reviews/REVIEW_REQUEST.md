@@ -12,66 +12,71 @@
 
 - Status: REQUESTED
   <!-- REQUESTED | RETURNED (audit file written) -->
-- Session under review: TVB-34 -- the deep-dive external review folded (five
-  executor mechanics repairs, halfway synthesizer fix + re-run, replay port),
-  the feasible-fill research contrast, the round-3 package (weekly dot on gate
-  and flip, four seats, $1 risk / $200 cap, rank + session shadows), go-live,
-  and the agent-pruning incident.
-- Requested: 2026-09-06
-- Write the audit to: `docs/reviews/tvb34-codex-audit.md` (copy
+- Session under review: TVB-35 -- round-3 monitoring from the raw journals
+  and the venue record, two journal-only shadow columns on the executor
+  (hourly/daily immediate-control verdict; order-book spread on seat-stage
+  rows), the round-3 halt (KILL_FLAT on the user's word), the public
+  prereg / ledger amendments, and the week's pause for regime-detection
+  design.
+- Requested: 2026-09-08
+- Write the audit to: `docs/reviews/tvb35-codex-audit.md` (copy
   `docs/reviews/_TEMPLATE.md`)
-- NOTE: TVB-31, TVB-32 and TVB-33 audits were never returned and stay open.
-  The separate DEEP-DIVE review (docs/reviews/deep-dive-2026-09-05-astra.md)
-  was RETURNED and FOLDED (HANDOFF TVB-33 section 7); do not re-review it,
-  review the fold.
+- NOTE: TVB-31, TVB-32, TVB-33 and TVB-34 audits were never returned and stay
+  open. The DEEP-DIVE review (docs/reviews/deep-dive-2026-09-05-astra.md) was
+  RETURNED and FOLDED in TVB-34; do not re-review it.
 
 ## Commits to review
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `7ad92f4..00d243e` -- docs, the review file, `analysis/paper/engine.py` entry_fill, `tier_b_exits.py --entry-fill`, `tests/test_paper_engine.py`, `analysis/paper/tier_b_exits_feasible/` |
-| hip3-executor (PRIVATE; local transport only) | `C:\Strat_Trading_Bot\hip3-executor` | main `d8a07b0..5cd2b0d`: 0562f14 (the fold: liq clearance, malformed-flat guard, Stop Market, partial-close fragments, dead sponsor, replay port, halfway decision price), c0074e0 (README amendment b, PREREG j/k, re-run receipts, before_amend_j/), 8beb8e8 (amendment c prereg), c531a8a (the package: stack_tfs, seats, risk, rank shadow), 9f39ba9 (session shadow; DEPLOYED), 3767c2f + 5cd2b0d (STATUS: live + incident) |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `848db00..{pending push}` -- docs only: HANDOFF TVB-35, startup prompt, this file, prereg amendment 2026-09-07a, ARM_LEDGER round-3 halt card |
+| hip3-executor (PRIVATE; local transport only) | `C:\Strat_Trading_Bot\hip3-executor` | main `5cd2b0d..7dc011f`: 098cff1 (amendment 2026-09-07a: `HD_STACK`, `SEAT_STAGE_REASONS`, `book_summary`, `book_top` on both brokers, `_book_shadow` in the engine, 16 tests), 7dc011f (README STATUS 2026-09-07: the halt, labels, restart checklist) |
 
 ## Read first (in this order)
 
-1. `CLAUDE.md`; charter Section 0. Then the TVB-34 HANDOFF entry and TVB-33 section 7.
-2. `docs/reviews/deep-dive-2026-09-05-astra.md` (what was folded) and the
-   executor README amendments 2026-09-06b / 2026-09-06c.
-3. Executor `src/hip3_executor/rules.py` (liq_distance / clearing_leverage,
-   dots_dir / stack_dir, htf_reversal_backing exclude_invalidated,
-   xyz_session_now), `broker.py` (_positions_state guard, PartialClose,
-   _stop_row_ok), `engine.py` (_enter leverage + liq receipt, _close_record
-   fragments, _exit_reason stack), `analysis/replay/{gates,recon,one_three}.py`,
-   `tests/test_deep_dive_fold.py`, `tests/test_round3_package.py`.
-4. `analysis/paper/engine.py` `_entry_step` + `tier_b_exits.py` ENTRY_FILL; the
-   feasible receipt vs the canonical `analysis/paper/tier_b_exits/`.
+1. `CLAUDE.md`; charter Section 0. Then the TVB-35 HANDOFF entry.
+2. Executor README amendment 2026-09-07a and STATUS 2026-09-07; PREREG.md
+   amendment 2026-09-07a (runs/2026-09-04_replay1/PREREG.md).
+3. Executor `src/hip3_executor/rules.py` (HD_STACK, SEAT_STAGE_REASONS,
+   book_summary), `engine.py` (`_scan_candidates`, `_book_shadow`,
+   BOOK_CALLS_PER_POLL), `broker.py` (`book_top` x2),
+   `tests/test_shadows_hd_book.py`, `tests/conftest.py` (FakeBroker.book_top).
+4. The aborted-run copy `runs/2026-09-06_round3_aborted/live/` (local; may be
+   gitignored) for the numbers quoted in the HANDOFF and ARM_LEDGER.
 
 ## Focus areas (scrutinize these)
 
-1. Liquidation formula and clearing-leverage selection vs the venue docs
-   (tier-0 m = 1/(2 x maxLeverage); does anything change for larger tiers?);
-   the post-fill `liq_inside_stop` receipt is warn-only by ruling.
-2. The weekly dot: executor-computed `dots_dir` vs the scanner's coinSummary
-   (missing slot, dead-even candle, the derived 1w candle's open); its use in
-   BOTH the gate and the flip; the as-built four still reads the scanner field.
-3. Partial-close fragments across a restart (state persisted before retry?);
-   `_close_record` VWAP with `fill_sz` absent.
-4. Amendment j: is "decision price = the cross minute's close" the right
-   successor to D4's "fill at the halfway line"? The candidate set is still
-   conditional on later far-side completion.
-5. The feasible-fill twin change: only the arm-mode `_entry_step` should differ;
-   determinism gates passed; the July anchors (A0b) are missing from the
-   contrast receipt -- does that matter for the ARM_LEDGER watermark text?
-6. Three admission changes on round 2 (fee floor, weekly dot, seats) plus
-   risk/cap: are the journaled shadows sufficient to separate them at close?
-7. The agent-pruning incident: fail-closed reconciliation held; is the
-   "re-approve before re-funding" rule enough, or should the loop refuse to
-   start when `extraAgents` does not list the .env agent?
+1. Seat-stage gating of the order-book read: `SEAT_STAGE_REASONS` =
+   {no_slot_free, cooldown, day_cap_reached}. Should `already_in_position`
+   or `counter_drift` count as "competed"? Is anything journaled on a row
+   that did NOT reach the seat stage?
+2. The per-poll cache is keyed by coin while `mid` is read per row: two
+   signals on one coin in one poll share one book read but could carry
+   different mids -- is spread_bps then consistent? (Same poll, same served
+   coin dict, so mid should be identical; verify.)
+3. `l2_snapshot(name)` for builder-dex coins (`xyz:AAPL` naming) -- does the
+   SDK call accept the dex-qualified name? No live check was made; every
+   failure path returns None by design, so a silent None on every xyz row
+   would be the failure mode.
+4. The rate-budget claim: at most 20 l2Book reads per 5 s poll; is that
+   within the venue's per-IP budget alongside the loop's own calls?
+5. The claim that the weekly dot duplicates the daily on Sunday/Monday: the
+   served 1w candle's open vs the scanner's week boundary (UTC Monday? the
+   user's "Sunday 20:00 ET new week"?). Only 2/91 continuity refusals were
+   the weekly's; is the coupling explanation right or was the week simply
+   aligned?
+6. Labor Day labeling: `session` = "rth" on 09-07 for 394 xyz rows; the
+   README states the missing holiday calendar as an accepted limitation.
+   Is the SK Hynix entry correctly described (Korean session also closed at
+   09:31 ET)?
+7. The ZEC liquidation (2026-09-06 04:46:32Z) sits before the ledger window
+   (open 19:52:53Z); confirm the window definition excludes it and that the
+   phone-app framing is right.
 8. request.security: NO Pine file changed -- verify none did.
 
 ## Output contract
 
-- Verbatim audit -> `docs/reviews/tvb34-codex-audit.md` (template:
+- Verbatim audit -> `docs/reviews/tvb35-codex-audit.md` (template:
   `docs/reviews/_TEMPLATE.md`, skeptic preamble included).
 - Be concrete; cite `file:line`. Never paste a secret/IP/account value: the VPS
   IP, the master wallet address and the agent address stay out (this repo is

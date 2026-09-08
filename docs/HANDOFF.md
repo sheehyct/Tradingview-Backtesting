@@ -5,6 +5,138 @@
 
 ---
 
+## Session TVB-35: round-3 monitoring, two shadows added, round 3 HALTED on the user's word, deployment paused for regime-detection design (COMPLETE)
+
+**Date:** 2026-09-07/08
+**Status:** COMPLETE -- the round-3 tape was read from the raw journals and the
+venue record, the user's -$133 was located (a manual ZEC liquidation 15 h
+BEFORE the ledger window, same wallet), two review-seeded shadow columns
+were built and deployed to executor main (not to the VPS), and round 3 was
+killed flat on the user's word with a clean receipt. The user is pausing
+live deployment for the week of 2026-09-08 and wants it spent on regime
+detection (dollar / 10-year yield / crude sensitivity of the traded names).
+
+### What was accomplished
+
+- Session start: charter S0, startup prompt, HANDOFF TVB-34, CLAUDE.md;
+  TVB-34 audit NOT returned (TVB-31..34 all still open); tests 288 pass.
+- Astra's "what I would do next" (entry selection) assessed against the
+  record: points 1 (first obstacle), 3 (dissect the 12 continuations) and
+  5 (post-entry path metrics) agreed and largely already ruled (R-A/R-B/
+  R-C) or replayable; point 2 (hourly/daily control as the FIRST live
+  change) declined -- shadow first, the five-dot arm is one day old;
+  point 4 (seat competition) agreed as a shadow; four seats make it near-
+  inert. Proposed order: scanner release -> shadows before restart ->
+  12-cont replay under R-A -> path-metrics block.
+- The user's question "didn't we fold volume INTO the score?" answered:
+  yes, as `rank` = score x log10(24h volume), one composite journaled per
+  row; the scanner's score is served unchanged and the parts ride along.
+- Executor amendment 2026-09-07a (098cff1, pushed; 1,204 tests): `stack_hd`
+  (hourly+daily immediate-control verdict, review R17) on every decision
+  row; `spread_bps` / `tob_bid_usd` / `tob_ask_usd` from the venue l2Book
+  on entry and seat-stage rows only (review R21), once per coin per poll,
+  cap 20, None on failure. Journal-only; no gate; no config change; README
+  + PREREG amended.
+- Round-3 ledger pulled (the classifier blocked history-derived SSH; the
+  user gave the host in chat + permission): 5,330 decision rows, 18 entries,
+  watch list clean (no liq_inside_stop, no fee_rate_unavailable, lev +
+  liq_px_venue on every entry, the five shadows on every row). Venue fills
+  since the open reconcile to the books (-$4.60 gross, $0.87 fees at the
+  first read; -$3.92 after the two kill-flat exits).
+- The -$133 located: ZEC short LIQUIDATED 2026-09-06 04:46:32Z on the same
+  master wallet (userFillsByTime carries a `liquidation` block; my first
+  query started at the round open and missed it). Outside the ledger by
+  time; fouls the phone-app lifetime view only.
+- Labels for the replay: Labor Day (xyz clock has no holiday calendar; 394
+  "rth" rows, one entry = SK Hynix); the weekly dot vetoed 2/91 (Sun/Mon
+  coupling with the daily open); BCH's TP filled in three fragments with
+  protection_mismatch logged every 6 s; sheet stack "mixed" on 9/18
+  entries (all shorts, 8 lost) = a question.
+- KILL_FLAT on the user's word 19:00:17Z: SKHX long + ENA short closed in
+  3 s, receipt clean, verified from the public API (0/0 both dexes, spot
+  USDC 197.28, hold 0), no process, interlock LEFT IN PLACE. Journals +
+  DEPLOYED_SHA copied to executor runs/2026-09-06_round3_aborted/.
+  Executor README STATUS 2026-09-07 (7dc011f, pushed).
+- Public record: prereg amendment 2026-09-07a, ARM_LEDGER round-3 halt
+  card, this entry, startup prompt for TVB-36.
+
+### Context for next session
+
+The executor is DOWN by design under the KILL_FLAT interlock; VPS still
+holds 9f39ba9 (098cff1 with the shadows is NOT deployed). Deployment is
+PAUSED for the week on the user's call (holiday-shortened week,
+geopolitical headlines, economic data, a sensitive market). The user
+wants the week on REGIME DETECTION: the traded names are sensitive to
+DXY and the US 10-year (which tagged a 2023 pivot high on 09-08 morning);
+crude 94.72 / HIP-3 Brent ~99; the market is whipsaw and headline-driven.
+Design session in plan mode, dual language, a-priori labels only; see the
+startup prompt. Restart checklist when the fresh wallet exists: approve
+the agent FIRST -> extraAgents -> fund -> re-pin config wallet/risk/cap ->
+deploy 098cff1 -> `--once` receipt -> rm KILL_FLAT on the user's word ->
+tmux --live. Whether the restart continues the round-3 ledger or opens a
+new one is the user's call.
+
+### Files created/modified
+
+- docs/HANDOFF.md, .session_startup_prompt.md, docs/reviews/REVIEW_REQUEST.md,
+  docs/experiments/tvb33_round3_prereg.md (amendment 2026-09-07a),
+  docs/ARM_LEDGER.md (round-3 halt card)
+- hip3-executor (private): src/hip3_executor/{rules,broker,engine}.py,
+  tests/conftest.py, tests/test_shadows_hd_book.py (new), README.md,
+  runs/2026-09-04_replay1/PREREG.md, runs/2026-09-06_round3_aborted/ (local,
+  journals gitignored per the runs convention -- check before relying on it)
+
+### Open
+
+- [ ] HANDOFF.md is over 1,500 lines: archive TVB-27..TVB-32 to
+      docs/session_archive/ on the user's word (asked again at TVB-35 close).
+- [ ] Regime-detection design session (TVB-36, plan mode): a-priori macro
+      labels (dollar / yields / crude continuity; expansion = whipsaw),
+      shadow-journaled on the executor first, receipted on the three closed
+      ledgers as characterization only; never sample-tuned.
+- [ ] Fresh wallet + restart of the executor (checklist above), 098cff1 to
+      deploy; round-3 ledger continue-vs-new = user's call.
+- [ ] Holiday calendar for the xyz session clock (review R18): at least a
+      US-holiday list; the Korea-linked names need their own session.
+- [ ] Scanner release with the three STRAT rulings + PR-B / PR-A.
+- [ ] Round-3 close-out replay (LedgerSpec, shadows journaled-first) and the
+      12-continuation replay under R-A; the score-picker and cost-picker
+      receipts; the post-entry path-metrics block (Astra point 5).
+- [ ] Executor push gate: this repo's secret_scan walks THIS repo; pointed at
+      the executor it flags the master address in weekend-1 records (there by
+      design). Decide an allowlist or an executor-local scan; never mask the
+      exit code with a pipe.
+- [ ] July A0b anchor under feasible fills; prospective halfway generator;
+      slippage model; TVB-18 repairs; month-end fresh-window regen.
+- [ ] TVB-31/32/33/34 session reviews still unreturned.
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb35-codex-audit.md.
+> See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: `848db00..{head}` on `main` (pinned after push; this repo:
+  docs only); hip3-executor (private, local transport) `5cd2b0d..7dc011f` on
+  main (098cff1 the shadows, 7dc011f the STATUS).
+- Scope / what changed: two journal-only shadow columns on the executor
+  (hourly/daily control verdict; order-book spread on seat-stage rows), the
+  round-3 read-out and halt, the public prereg / ledger amendments.
+- Focus areas (scrutinize these): the seat-stage gating of the l2Book read
+  (does any refusal reason that should count as "competed" fall outside
+  SEAT_STAGE_REASONS, e.g. already_in_position?); the per-poll cache keyed by
+  coin while `mid` can differ per signal row; l2Book naming for builder-dex
+  coins; the claim that the weekly dot duplicates the daily on Sun/Mon (check
+  the served 1w candle's open against the scanner's week boundary); whether
+  the Labor Day rows are correctly labeled by `session` alone; the ZEC
+  liquidation placement relative to the ledger window; no Pine file changed
+  (verify).
+- Reviewed by: pending
+- Findings: (blank until docs/reviews/tvb35-codex-audit.md exists)
+
+---
+
 ## Session TVB-34: deep-dive external review delivered and FOLDED, round-3 package approved and LIVE (COMPLETE)
 
 **Date:** 2026-09-05/06

@@ -416,6 +416,34 @@ round-3 ledger closes:
   3-2-2 stop = the outside bar's wick; nested inside bars keep the bar the
   whole coil sits inside as bar x.
 
+ROUND 3 HALTED (TVB-35, 2026-09-07 19:00:26Z, KILL_FLAT on the user's
+word). Window 2026-09-06 19:52:53Z -> 2026-09-07 19:00:26Z, 18 entries /
+18 exits (3 target, 5 stop, 7 flip, 1 invalidation, 2 kill_flat), venue
+closedPnl -$3.92 gross, fees ~$0.88 -- 23 hours of tape, a mechanics
+receipt, not a package number. Trader's read, one tape, questions only:
+- **Watch list clean:** no stop ever sat beyond liquidation, no missing
+  fee rate, leverage + venue liquidation price on every entry.
+- **WEEK5 was nearly inert:** the week vetoed 2 of 91 continuity
+  refusals. Structural: on Sunday/Monday the forming weekly candle opens
+  where the day opens, so the weekly dot IS the daily dot until midweek.
+  The arm cannot be read on a Sunday-to-Monday tape.
+- **SEATS4 bound 7 times** (no_slot_free) and the daily cap bound 7 times.
+- **The sheet stack (60/D/W/M) read "mixed" on 9 of 18 entries, all
+  shorts; 8 of those 9 lost.** Nine trades. A question for the replay,
+  not a verdict.
+- **Labor Day label:** the xyz clock has no holiday calendar; 394 stock-
+  perp rows read "rth" against frozen US oracles, one entered (SK Hynix,
+  Korean underlying, itself outside its session). Review R18 on tape.
+- **Six of seven flips lost** (the round-2 pattern again); BCH's target
+  filled in three fragments over three minutes.
+- Two new shadows ride every future row (amendment 2026-09-07a): the
+  hourly/daily "immediate control" verdict, and the quoted spread + top-
+  of-book dollars on tickets that competed for a seat. Neither is live.
+- NOT in this ledger: the user's manual ZEC liquidation (-$132.20), 15 h
+  before the window on the same wallet.
+Numbers on the WEEK5 / SEATS4 / RISK100 / RANK cards stay PENDING: 23
+hours is not a round.
+
 Live executor family, after ledger replay 1 (2026-09-05):
 - The receipt was hard to earn and that is the finding: three fidelity
   amendments (roll freeze, drift pin, settle pin) were needed before the

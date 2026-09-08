@@ -360,3 +360,39 @@ before this commit:
 Three admission changes on top of round 2 (fee floor, weekly dot, seats),
 each with its counterfactual on the row. The whole-book number will not be
 attributable to any one of them; the replay separates them.
+
+### Amendment 2026-09-07a (TVB-35: two more shadows; round 3 HALTED)
+
+Two shadow columns, user-approved 2026-09-07 before any restart,
+journal-only, no gate and no config change (executor README amendment
+2026-09-07a; executor 098cff1):
+
+- **`stack_hd` -- "are the hourly and daily participants on our side?"**
+  The hourly and daily forming candles' verdict alone, on every decision
+  row. The deep-dive review's R17 proposes an ENTRY-ONLY arm that swaps
+  the full-stack unanimity for this two-dot agreement; weekend 1 and
+  round 2 point opposite ways on confirmation lag, so it is receipted on
+  the ledger first and never flipped live on no tape.
+- **`spread_bps`, `tob_bid_usd`, `tob_ask_usd` -- "what did the book
+  quote when this ticket competed for a seat?"** From the venue order
+  book, read only on rows that reached the seat stage (an entry, or a
+  refusal for no free seat / cooldown / the daily cap alone), once per
+  coin per poll, at most 20 coins per poll, None on any failure. The
+  review's R21 picker (execution cost over stop risk) gets receipted on
+  these beside the score x log-volume picker; both are hypotheses.
+
+ROUND 3 HALTED 2026-09-07 19:00:26Z by KILL_FLAT on the user's word.
+Ledger window 2026-09-06 19:52:53Z -> 2026-09-07 19:00:26Z, 18 entries /
+18 exits (3 target, 5 stop, 7 flip, 1 invalidation, 2 kill_flat). Labels
+for the replay: (a) 2026-09-07 was US Labor Day and the xyz session
+clock has no holiday calendar -- 394 stock-perp rows read "rth" against
+frozen US oracles, one entered (xyz:SKHX, Korean underlying, also outside
+its own session); (b) the weekly dot vetoed 2 of 91 continuity refusals
+because on Sunday/Monday the forming weekly candle's open IS the daily
+open (coupling), so it only becomes its own vote midweek; (c) the user's
+manual ZEC liquidation (-132.20) sits on the same master wallet 15 h
+BEFORE the window and is outside this ledger by time. The user intends a
+fresh wallet; whether the restart continues this ledger or opens a new
+one is their call. Deployment is PAUSED for the week of 2026-09-08 (user:
+holiday-shortened week, geopolitical headlines, economic data into a
+sensitive market); the week is for regime-detection design.
