@@ -59,6 +59,32 @@ detection (dollar / 10-year yield / crude sensitivity of the traded names).
   Executor README STATUS 2026-09-07 (7dc011f, pushed).
 - Public record: prereg amendment 2026-09-07a, ARM_LEDGER round-3 halt
   card, this entry, startup prompt for TVB-36.
+- POST-CLOSE ADDENDUM (2026-09-08 23:xxZ, user: "I'd be okay with going ahead
+  and doing this now"): the macro-regime RECEIPT. Source question answered:
+  TradingView is enough for the receipt (TVC:DXY, TVC:US10Y, NYMEX:CL1!,
+  ICEEUR:BRN1!, SP:SPX, BITSTAMP:BTCUSD at 60m/D/W, 300 bars each, harvested
+  by scripts/tvb35_regime_harvest.mjs into analysis/regime/data/ with a
+  MANIFEST; TradingView launched with CDP by me, the user's chart restored
+  to CBOT_MINI:10Y1! 60). A PROSPECTIVE source for the executor (VPS has no
+  TradingView) is a design-session item. analysis/regime/receipt.py labels
+  all 84 closed trades + 39,653 decision rows with a-priori labels fixed in
+  its docstring BEFORE reading numbers (daily/weekly dot per reference =
+  price vs that reference's OWN forming open; macro_dir headwind = dollar
+  up AND 10-year up, tailwind = both down, else mixed; alignment with/
+  against/mixed; whipsaw = S&P or BTC running outside day). CAUGHT AND
+  FIXED before reading: a frozen Friday close was labeling weekend trades
+  as live dots -- a reference with no 60m bar in 2 h now reads "closed"
+  (R18 on my own script). HEADLINE = a structural one: the label EXISTS
+  for only 32 of 84 trades. Weekend 1: 29/34 trades entered while both
+  references were closed; round 3: the 10-year was closed all Labor Day,
+  18/18 mixed. Only round 2 is labelable: with 16 trades (7 wins, +6.75pp,
+  +$1.80), mixed 12 (+4.3pp), against 4 (0 wins, -2.94pp) -- the sign
+  matches the prior, n=4 says nothing. The running outside-day whipsaw
+  flag fired on 2/84 entries = inert as an entry-time label (needs a
+  different a-priori measure: prior-day outside bar, range vs ATR, or
+  realized vol). NOW (23:33Z): dollar down daily+weekly, 10-year closed,
+  WTI up daily+weekly, BTC down, S&P closed -> mixed. Output:
+  analysis/regime/REGIME_RECEIPT.md + receipt.json. Characterization only.
 
 ### Context for next session
 
