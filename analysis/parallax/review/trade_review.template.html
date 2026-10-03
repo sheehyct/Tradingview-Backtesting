@@ -1,0 +1,597 @@
+<title>September Trade Review</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a review bench. One filter row scopes everything below it. The chart card is the work
+   surface (trade, levels, timeframe switch, your read). The trade list is the index: under the
+   chart on a phone, beside it on a wide screen. */
+:root {
+  --page: #f2f4f7; --surface: #fcfcfd; --sunk: #eef1f5;
+  --ink: #0e1218; --ink-2: #4a5361; --ink-3: #7b8491;
+  --line: #e1e5eb; --line-2: #c9cfd8;
+  --accent: #2a78d6; --accent-strong: #1c5cab; --accent-wash: #e3eefb;
+  --up: #26a69a; --down: #c93030; --outside: #4a3aa7; --inside: #0e1218;
+  --good: #0ca30c; --bad: #d03b3b; --warn: #eda100;
+  --good-wash: #e3f4e3; --bad-wash: #fbe6e6; --warn-wash: #fdf1d6; --quiet-wash: #eceff3;
+  --ui: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --num: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #0c0f14; --surface: #161a21; --sunk: #10141a;
+    --ink: #f3f5f8; --ink-2: #b9c0cc; --ink-3: #7f8794;
+    --line: #232934; --line-2: #333b48;
+    --accent: #3987e5; --accent-strong: #86b6ef; --accent-wash: #16273d;
+    --up: #26a69a; --down: #e66767; --outside: #9085e9; --inside: #f3f5f8;
+    --good: #0ca30c; --bad: #d03b3b; --warn: #c98500;
+    --good-wash: #12301a; --bad-wash: #3a1717; --warn-wash: #3a2c0d; --quiet-wash: #1c222b;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #0c0f14; --surface: #161a21; --sunk: #10141a;
+  --ink: #f3f5f8; --ink-2: #b9c0cc; --ink-3: #7f8794;
+  --line: #232934; --line-2: #333b48;
+  --accent: #3987e5; --accent-strong: #86b6ef; --accent-wash: #16273d;
+  --up: #26a69a; --down: #e66767; --outside: #9085e9; --inside: #f3f5f8;
+  --good: #0ca30c; --bad: #d03b3b; --warn: #c98500;
+  --good-wash: #12301a; --bad-wash: #3a1717; --warn-wash: #3a2c0d; --quiet-wash: #1c222b;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--page); color: var(--ink); font-family: var(--ui); font-size: 15px; line-height: 1.45; padding-inline: 16px; padding-block: 16px 40px; }
+.wrap { max-width: 1320px; margin-inline: auto; display: flex; flex-direction: column; gap: 14px; }
+h1 { font-size: 20px; font-weight: 600; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+.sub { margin: 4px 0 0; color: var(--ink-2); max-width: 70ch; }
+.num { font-family: var(--num); font-variant-numeric: tabular-nums; }
+button, select, input { font: inherit; color: inherit; }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.filters { display: flex; flex-wrap: wrap; gap: 10px 12px; align-items: end; }
+.field { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.field label { font-size: 12px; color: var(--ink-3); letter-spacing: 0.04em; text-transform: uppercase; }
+.field select { min-height: 38px; padding: 6px 10px; border: 1px solid var(--line-2); border-radius: 6px; background: var(--surface); }
+.count { color: var(--ink-2); padding-bottom: 8px; margin-left: auto; }
+
+.bench { display: grid; gap: 14px; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 1000px) { .bench { grid-template-columns: minmax(0, 1fr) 372px; } }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; min-width: 0; }
+.viewer { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+
+.head { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: baseline; }
+.head h2 { font-size: 18px; font-weight: 600; margin: 0; }
+.head .setup { color: var(--ink-2); }
+.pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px; font-size: 13px; background: var(--quiet-wash); color: var(--ink); }
+.pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); flex: none; }
+.pill.good { background: var(--good-wash); } .pill.good::before { background: var(--good); }
+.pill.bad { background: var(--bad-wash); } .pill.bad::before { background: var(--bad); }
+.pill.warn { background: var(--warn-wash); } .pill.warn::before { background: var(--warn); }
+.pill.plain::before { display: none; }
+.notice { margin: 0; color: var(--ink-2); font-size: 14px; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.seg { display: inline-flex; border: 1px solid var(--line-2); border-radius: 6px; overflow: hidden; }
+.seg button { min-height: 38px; min-width: 46px; padding: 6px 12px; border: 0; background: var(--surface); cursor: pointer; border-right: 1px solid var(--line-2); }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--accent-wash); color: var(--accent-strong); font-weight: 600; }
+.btn { min-height: 38px; padding: 6px 12px; border: 1px solid var(--line-2); border-radius: 6px; background: var(--surface); cursor: pointer; }
+.btn:hover, .seg button:hover { background: var(--sunk); }
+.check { display: inline-flex; align-items: center; gap: 7px; min-height: 38px; cursor: pointer; }
+.check input { width: 18px; height: 18px; accent-color: var(--accent); }
+
+.readout { min-height: 20px; font-size: 13px; color: var(--ink-2); overflow-wrap: anywhere; }
+.chartbox { position: relative; height: clamp(320px, 56vh, 560px); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--surface); }
+#chart { position: absolute; inset: 0; }
+.state { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 10px; align-items: center; justify-content: center; color: var(--ink-2); background: var(--surface); text-align: center; padding: 16px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--ink-2); }
+.key { display: inline-flex; align-items: center; gap: 6px; }
+.key i { display: inline-block; width: 18px; height: 0; border-top: 2px solid var(--ink-3); flex: none; }
+.key i.entry { border-top: 2px dashed var(--accent); }
+.key i.stop { border-top-color: var(--bad); }
+.key i.target { border-top-color: var(--good); }
+.key i.box { width: 10px; height: 14px; border: 2px solid var(--inside); border-radius: 1px; }
+.key i.box.out { border-color: var(--outside); }
+
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px 18px; margin: 0; }
+.facts div { min-width: 0; border-top: 1px solid var(--line); padding-top: 8px; }
+.facts dt { font-size: 12px; color: var(--ink-3); letter-spacing: 0.04em; text-transform: uppercase; }
+.facts dd { margin: 2px 0 0; overflow-wrap: anywhere; }
+.facts dd small { display: block; color: var(--ink-2); font-size: 13px; }
+
+.read { border-top: 1px solid var(--line); padding-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.read h3 { font-size: 12px; color: var(--ink-3); letter-spacing: 0.04em; text-transform: uppercase; font-weight: 500; margin: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { min-height: 38px; padding: 6px 12px; border: 1px solid var(--line-2); border-radius: 999px; background: var(--surface); cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--accent-wash); border-color: var(--accent); color: var(--accent-strong); font-weight: 600; }
+.note { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.note input { flex: 1 1 220px; min-width: 0; min-height: 38px; padding: 6px 10px; border: 1px solid var(--line-2); border-radius: 6px; background: var(--surface); }
+.saved { font-size: 13px; color: var(--ink-2); min-height: 18px; }
+
+.nav { display: flex; gap: 10px; align-items: center; }
+.nav .btn { flex: 1 1 0; min-height: 44px; font-weight: 500; }
+.nav .pos { flex: none; color: var(--ink-2); min-width: 76px; text-align: center; }
+
+.index { display: flex; flex-direction: column; min-width: 0; }
+.index h2 { font-size: 12px; color: var(--ink-3); letter-spacing: 0.04em; text-transform: uppercase; font-weight: 500; margin: 0; padding: 12px 14px 8px; }
+.rows { position: relative; display: flex; flex-direction: column; overflow-y: auto; max-height: 70vh; }
+@media (min-width: 1000px) { .index { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); } .rows { max-height: calc(100vh - 150px); } }
+.row { display: grid; grid-template-columns: 78px minmax(0, 1fr) auto; gap: 2px 10px; align-items: center; text-align: left; padding: 9px 14px; border: 0; border-top: 1px solid var(--line); background: transparent; cursor: pointer; min-height: 52px; }
+.row:hover { background: var(--sunk); }
+.row[aria-current="true"] { background: var(--accent-wash); box-shadow: inset 3px 0 0 var(--accent); }
+.row .when { font-size: 12px; color: var(--ink-3); }
+.row .what { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row .what b { font-weight: 600; }
+.row .what span { color: var(--ink-2); }
+.row .res { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+.row .res::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); }
+.row .res.good::before { background: var(--good); } .row .res.bad::before { background: var(--bad); } .row .res.warn::before { background: var(--warn); }
+.row .tag { grid-column: 2 / 4; font-size: 12px; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.empty { padding: 18px 14px; color: var(--ink-2); border-top: 1px solid var(--line); }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>September Trade Review</h1>
+    <p class="sub" id="sub">Every trade the strategy chose on the paper platform, on a chart with its entry, stop, target and exit.</p>
+  </header>
+
+  <div class="filters" id="filters">
+    <div class="field"><label for="f-status">Filled</label>
+      <select id="f-status"><option value="all">All trades</option><option value="filled">Filled only</option><option value="lost">Not filled (replays)</option></select></div>
+    <div class="field"><label for="f-result">Result</label>
+      <select id="f-result"><option value="any">Any result</option><option value="target">Reached target</option><option value="stop">Stopped</option><option value="later">Stopped, then reached target</option><option value="bot">Bot exited early</option><option value="open">Still open</option></select></div>
+    <div class="field"><label for="f-side">Side</label>
+      <select id="f-side"><option value="both">Long and short</option><option value="up">Long</option><option value="down">Short</option></select></div>
+    <div class="field"><label for="f-tf">Signal timeframe</label>
+      <select id="f-tf"><option value="all">All</option><option value="1h">1h</option><option value="4h">4h</option><option value="1d">1D</option></select></div>
+    <div class="field"><label for="f-read">Your read</label>
+      <select id="f-read"><option value="any">Any</option><option value="none">Not reviewed yet</option><option value="some">Reviewed</option></select></div>
+    <div class="count" id="count"></div>
+  </div>
+
+  <div class="bench">
+    <section class="card viewer" aria-live="polite">
+      <div class="head">
+        <h2 id="t-title">No trade selected</h2>
+        <span class="setup" id="t-setup"></span>
+      </div>
+      <div class="pills" id="t-pills"></div>
+      <p class="notice" id="t-notice" hidden></p>
+
+      <div class="controls">
+        <div class="seg" id="tfseg" role="group" aria-label="Chart timeframe"></div>
+        <button class="btn" id="b-fit" type="button">Fit trade</button>
+        <button class="btn" id="b-all" type="button">All bars</button>
+        <label class="check"><input type="checkbox" id="c-strat" checked> Mark inside and outside bars</label>
+      </div>
+
+      <div class="readout num" id="readout">Touch and hold the chart, or hover, to read a bar. Times are UTC.</div>
+      <div class="chartbox">
+        <div id="chart"></div>
+        <div class="state" id="state">Loading candles.</div>
+      </div>
+      <div class="legend">
+        <span class="key"><i class="entry"></i>Entry</span>
+        <span class="key"><i class="stop"></i>Stop</span>
+        <span class="key"><i class="target"></i>Target</span>
+        <span class="key"><i class="box"></i>Inside bar</span>
+        <span class="key"><i class="box out"></i>Outside bar</span>
+        <span>Drag to move, pinch or scroll to zoom.</span>
+      </div>
+
+      <dl class="facts" id="facts"></dl>
+
+      <div class="read">
+        <h3>Your read on this trade</h3>
+        <div class="chips" id="chips"></div>
+        <div class="note"><input id="note" type="text" maxlength="240" placeholder="Add a note (optional)" aria-label="Note on this trade"></div>
+        <div class="saved" id="saved"></div>
+      </div>
+
+      <div class="nav">
+        <button class="btn" id="b-prev" type="button">Previous</button>
+        <span class="pos num" id="pos"></span>
+        <button class="btn" id="b-next" type="button">Next</button>
+      </div>
+    </section>
+
+    <aside class="card index">
+      <h2>Trades</h2>
+      <div class="rows" id="rows"></div>
+    </aside>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"></script>
+<script>
+(function () {
+  "use strict";
+  var BOOT = /*__TRADES__*/null;
+  var $ = function (id) { return document.getElementById(id); };
+  var TF = ["15m", "1h", "4h", "1d"];
+  var TF_LABEL = { "15m": "15m", "1h": "1h", "4h": "4h", "1d": "1D" };
+  var VERDICTS = [["stopped_early", "Stopped too early"], ["bad_entry", "Bad entry"], ["target_far", "Target too far"], ["good", "Good trade"], ["skip", "Should have skipped"]];
+  var VERDICT_LABEL = {};
+  VERDICTS.forEach(function (v) { VERDICT_LABEL[v[0]] = v[1]; });
+  var OUTCOME = { target: "Reached target", stop: "Stopped", flip: "Flipped out", bot_exit: "Bot exited", open: "Still open" };
+  var TYPE_NAME = { "1": "inside bar (1)", "2": "2 up", "-2": "2 down", "3": "outside bar (3)" };
+
+  var store = {
+    get: function (k, d) { try { var v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* storage unavailable */ } }
+  };
+  function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text !== undefined && text !== null) n.textContent = text; return n; }
+  function decimals(p) { var a = Math.abs(p); if (!a) return 2; return Math.max(0, Math.min(8, 4 - Math.floor(Math.log10(a)))); }
+  function px(p, d) { return p === null || p === undefined ? "-" : Number(p).toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d }); }
+  function rText(r) { return r === null || r === undefined ? "" : (r > 0 ? "+" : "") + r.toFixed(2) + "R"; }
+  function pct(a, b) { return (Math.abs(a - b) / b * 100).toFixed(2) + "%"; }
+  var fUTC = new Intl.DateTimeFormat("en-US", { timeZone: "UTC", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false });
+  var fNY = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short", hour: "numeric", minute: "2-digit" });
+  var fDay = new Intl.DateTimeFormat("en-US", { timeZone: "UTC", month: "short", day: "numeric" });
+  var fHM = new Intl.DateTimeFormat("en-US", { timeZone: "UTC", hour: "2-digit", minute: "2-digit", hour12: false });
+  function utc(sec) { return fUTC.format(new Date(sec * 1000)) + " UTC"; }
+  function hold(a, b) { var h = (b - a) / 3600; return h < 1 ? Math.round(h * 60) + " min" : h < 48 ? h.toFixed(1) + " h" : (h / 24).toFixed(1) + " days"; }
+  function coinName(c) { return c.indexOf("xyz:") === 0 ? c.slice(4) : c; }
+  function isStock(c) { return c.indexOf("xyz:") === 0; }
+
+  if (!BOOT || !BOOT.trades) {
+    $("state").textContent = "This page has no trade data. Rebuild it with build_review.py.";
+    return;
+  }
+  var trades = BOOT.trades;
+  var byId = {};
+  trades.forEach(function (t) { byId[t.id] = t; });
+  var nFilled = trades.filter(function (t) { return t.filled; }).length;
+  $("sub").textContent = trades.length + " trades the strategy chose on the paper platform, " + fDay.format(new Date(trades[0].entry_t * 1000)) + " to " +
+    fDay.format(new Date(trades[trades.length - 1].entry_t * 1000)) + ". " + nFilled + " were filled. The other " + (trades.length - nFilled) +
+    " were refused by the platform and are shown as replays through their own stop and target. All times are UTC.";
+
+  // ---------- state ----------
+  var cur = null, tf = "1h", seq = 0, list = [], verdicts = {}, db = null, dbState = "pending";
+  var cache = {}, dataNow = null, typeAt = {}, lines = [], chart = null, series = null, colors = {};
+  var stratOn = store.get("tr.strat", true);
+  $("c-strat").checked = !!stratOn;
+
+  // ---------- STRAT bar types: strict breaks, equality never breaks ----------
+  function classify(bars) {
+    var out = [0];
+    for (var i = 1; i < bars.length; i++) {
+      var bh = bars[i][2] > bars[i - 1][2], bl = bars[i][3] < bars[i - 1][3];
+      out.push(bh && bl ? 3 : bh ? 2 : bl ? -2 : 1);
+    }
+    return out;
+  }
+  function lastAtOrBefore(bars, sec) {
+    var lo = 0, hi = bars.length - 1, ans = 0;
+    while (lo <= hi) { var mid = (lo + hi) >> 1; if (bars[mid][0] <= sec) { ans = mid; lo = mid + 1; } else { hi = mid - 1; } }
+    return ans;
+  }
+
+  // ---------- chart ----------
+  function readColors() {
+    var cs = getComputedStyle(document.documentElement);
+    var g = function (n) { return cs.getPropertyValue(n).trim(); };
+    colors = { surface: g("--surface"), ink: g("--ink"), ink2: g("--ink-2"), ink3: g("--ink-3"), line: g("--line"), line2: g("--line-2"), accent: g("--accent"),
+      up: g("--up"), down: g("--down"), outside: g("--outside"), inside: g("--inside"), good: g("--good"), bad: g("--bad"), ui: g("--ui") };
+  }
+  function chartOptions() {
+    return {
+      layout: { background: { type: "solid", color: colors.surface }, textColor: colors.ink2, fontFamily: colors.ui, fontSize: 12 },
+      grid: { vertLines: { color: colors.line }, horzLines: { color: colors.line } },
+      rightPriceScale: { borderColor: colors.line2 },
+      timeScale: { borderColor: colors.line2, timeVisible: true, secondsVisible: false, rightOffset: 3 },
+      crosshair: { mode: 0, vertLine: { color: colors.ink3, labelBackgroundColor: colors.ink2 }, horzLine: { color: colors.ink3, labelBackgroundColor: colors.ink2 } },
+      handleScroll: { mouseWheel: true, pressedMouseMove: true, horzTouchDrag: true, vertTouchDrag: false }
+    };
+  }
+  function initChart() {
+    if (!window.LightweightCharts) { $("state").hidden = false; $("state").textContent = "The chart library did not load. The trade details below still work."; return; }
+    readColors();
+    var opts = chartOptions();
+    opts.autoSize = true;
+    chart = LightweightCharts.createChart($("chart"), opts);
+    series = chart.addCandlestickSeries({ priceLineVisible: false, lastValueVisible: false, borderVisible: true, wickVisible: true,
+      // Keep entry, stop and target inside the price scale even when no visible candle reaches them.
+      autoscaleInfoProvider: function (base) {
+        var res = base();
+        if (!res || !res.priceRange || !cur) return res;
+        var lo = res.priceRange.minValue, hi = res.priceRange.maxValue;
+        [cur.entry, cur.stop, cur.target].forEach(function (p) { if (typeof p === "number") { lo = Math.min(lo, p); hi = Math.max(hi, p); } });
+        return { priceRange: { minValue: lo, maxValue: hi }, margins: res.margins };
+      } });
+    chart.subscribeCrosshairMove(function (p) {
+      var d = p && p.seriesData ? p.seriesData.get(series) : null;
+      if (!d || !cur) { $("readout").textContent = "Touch and hold the chart, or hover, to read a bar. Times are UTC."; return; }
+      var dec = decimals(cur.entry), ty = typeAt[p.time];
+      $("readout").textContent = utc(p.time) + "   O " + px(d.open, dec) + "   H " + px(d.high, dec) + "   L " + px(d.low, dec) + "   C " + px(d.close, dec) +
+        "   " + (d.close > d.open ? "closed up" : d.close < d.open ? "closed down" : "closed flat") + (TYPE_NAME[ty] ? ", " + TYPE_NAME[ty] : "");
+    });
+  }
+  function retheme() {
+    if (!chart) return;
+    readColors();
+    chart.applyOptions(chartOptions());
+    if (dataNow) draw(false);
+  }
+  function showState(text, retry) {
+    var s = $("state");
+    s.textContent = "";
+    s.appendChild(el("span", null, text));
+    if (retry) { var b = el("button", "btn", "Try again"); b.type = "button"; b.addEventListener("click", retry); s.appendChild(b); }
+    s.hidden = false;
+  }
+  function fit() {
+    if (!chart || !dataNow || !cur) return;
+    var bars = dataNow[tf];
+    if (!bars || !bars.length) return;
+    var a = lastAtOrBefore(bars, cur.entry_t), b = lastAtOrBefore(bars, cur.exit_t || cur.entry_t);
+    var from = a - 28, to = Math.max(b + 42, from + 72);
+    chart.timeScale().setVisibleLogicalRange({ from: from, to: to });
+  }
+  function draw(refit) {
+    if (!chart || !cur || !dataNow) return;
+    var bars = dataNow[tf];
+    if (!bars || !bars.length) { showState("No candles on this timeframe for " + coinName(cur.coin) + "."); return; }
+    $("state").hidden = true;
+    var types = classify(bars), C = colors, dec = decimals(cur.entry);
+    typeAt = {};
+    series.applyOptions({ priceFormat: { type: "price", precision: dec, minMove: Math.pow(10, -dec) } });
+    series.setData(bars.map(function (b, i) {
+      typeAt[b[0]] = types[i];
+      var body = b[4] > b[1] ? C.up : b[4] < b[1] ? C.down : C.ink3, edge = body;
+      if (stratOn && types[i] === 1) edge = C.inside;
+      if (stratOn && types[i] === 3) edge = C.outside;
+      return { time: b[0], open: b[1], high: b[2], low: b[3], close: b[4], color: body, borderColor: edge, wickColor: edge };
+    }));
+    lines.forEach(function (l) { series.removePriceLine(l); });
+    lines = [];
+    var LS = LightweightCharts.LineStyle;
+    lines.push(series.createPriceLine({ price: cur.entry, color: C.accent, lineWidth: 1, lineStyle: LS.Dashed, axisLabelVisible: true, title: cur.filled ? "Entry" : "Entry (replay)" }));
+    if (cur.stop !== null) lines.push(series.createPriceLine({ price: cur.stop, color: C.bad, lineWidth: 2, lineStyle: LS.Solid, axisLabelVisible: true, title: "Stop" }));
+    if (cur.target !== null) lines.push(series.createPriceLine({ price: cur.target, color: C.good, lineWidth: 2, lineStyle: LS.Solid, axisLabelVisible: true, title: "Target" }));
+    var long = cur.dir === "up", marks = [];
+    marks.push({ time: bars[lastAtOrBefore(bars, cur.entry_t)][0], position: long ? "belowBar" : "aboveBar", color: C.ink, shape: long ? "arrowUp" : "arrowDown", text: long ? "Long" : "Short" });
+    if (cur.exit_t) marks.push({ time: bars[lastAtOrBefore(bars, cur.exit_t)][0], position: long ? "aboveBar" : "belowBar", color: C.ink, shape: "circle", text: OUTCOME[cur.outcome] || "Exit" });
+    marks.sort(function (x, y) { return x.time - y.time; });
+    series.setMarkers(marks);
+    if (refit !== false) fit();
+  }
+  function load(file) {
+    if (!cache[file]) {
+      cache[file] = fetch("data/" + file + ".json").then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); });
+      cache[file].catch(function () { delete cache[file]; });
+    }
+    return cache[file];
+  }
+
+  // ---------- trade panel ----------
+  function tone(t) { return t.outcome === "target" ? "good" : t.outcome === "stop" ? "bad" : t.outcome === "open" ? "" : "warn"; }
+  function laterText(t) {
+    var L = t.later;
+    if (!L) return null;
+    if (t.outcome === "stop") {
+      if (L.first === "target") return ["warn", "Reached the target " + L.hours + " h after the stop"];
+      return ["plain", L.complete ? "Did not reach the target in the 3 days after the stop" : "Less than 3 days of data after the stop"];
+    }
+    if (L.first === "stop") return ["plain", "After the exit, price hit the stop first (" + L.hours + " h later)"];
+    if (L.first === "target") return ["warn", "After the exit, price reached the target first (" + L.hours + " h later)"];
+    if (L.first === "both") return ["plain", "Stop and target were both touched in the same 15 minutes after the exit"];
+    return ["plain", L.complete ? "Neither stop nor target touched in the 3 days after the exit" : "Less than 3 days of data after the exit"];
+  }
+  function fact(dl, label, main, small) {
+    var d = el("div"), dd = el("dd", "num", main);
+    d.appendChild(el("dt", null, label));
+    if (small) dd.appendChild(el("small", null, small));
+    d.appendChild(dd);
+    dl.appendChild(d);
+  }
+  function renderPanel() {
+    var t = cur, dec = decimals(t.entry), long = t.dir === "up";
+    $("t-title").textContent = coinName(t.coin) + (isStock(t.coin) ? " (xyz perp)" : "") + "  " + (long ? "Long" : "Short");
+    $("t-setup").textContent = t.pattern + " on the " + TF_LABEL[t.tf] + (t.kind === "cont" ? ", continuation" : t.kind === "rev" ? ", reversal" : "");
+    var pills = $("t-pills");
+    pills.textContent = "";
+    pills.appendChild(el("span", "pill " + tone(t), (OUTCOME[t.outcome] || t.outcome) + (t.r !== null ? "  " + rText(t.r) : "")));
+    pills.appendChild(el("span", "pill plain", t.filled ? "Filled, " + t.seen.join(" and ") : "Not filled, replay"));
+    var lt = laterText(t);
+    if (lt) pills.appendChild(el("span", "pill " + lt[0], lt[1]));
+    var n = $("t-notice");
+    if (!t.filled) { n.hidden = false; n.textContent = "The platform refused this order: " + t.why.charAt(0).toLowerCase() + t.why.slice(1) + ". The result is what its own stop and target would have done from that moment."; }
+    else if (t.outcome === "bot_exit") { n.hidden = false; n.textContent = "The bot closed this trade itself before the stop or target. The log no longer holds the reason: it was either all timeframes turning against it or the entry bar going outside."; }
+    else if (t.outcome === "flip") { n.hidden = false; n.textContent = "The bot closed this trade because every timeframe in its stack turned against it."; }
+    else { n.hidden = true; }
+    var dl = $("facts");
+    dl.textContent = "";
+    fact(dl, t.filled ? "Entry" : "Entry (replay)", px(t.entry, dec), utc(t.entry_t) + "  /  " + fNY.format(new Date(t.entry_t * 1000)) + " New York");
+    if (t.stop !== null) fact(dl, "Stop", px(t.stop, dec), pct(t.stop, t.entry) + " from entry");
+    if (t.target !== null) fact(dl, "Target", px(t.target, dec), pct(t.target, t.entry) + " from entry" + (t.rr ? ", pays " + t.rr.toFixed(2) + " to 1" : ""));
+    if (t.exit_t) fact(dl, "Exit", px(t.exit, dec), utc(t.exit_t) + ", held " + hold(t.entry_t, t.exit_t));
+    else fact(dl, "Exit", "Still open", "as of " + utc(BOOT.meta.as_of));
+    fact(dl, "Result", t.r !== null ? rText(t.r) : "Open", t.usd !== null && t.usd !== undefined ? (t.usd >= 0 ? "+$" : "-$") + Math.abs(t.usd).toFixed(2) + " on the account" : t.filled ? "" : "R is the move in units of the stop distance");
+    if (!t.filled) fact(dl, "Seen by", t.seen.join(", "), "accounts that tried this order");
+    renderRead();
+  }
+  function renderRead() {
+    var v = verdicts[cur.id] || {};
+    var chips = $("chips");
+    chips.textContent = "";
+    VERDICTS.forEach(function (pair) {
+      var b = el("button", "chip", pair[1]);
+      b.type = "button";
+      b.setAttribute("aria-pressed", v.verdict === pair[0] ? "true" : "false");
+      b.addEventListener("click", function () { saveRead({ verdict: v.verdict === pair[0] ? null : pair[0] }); });
+      chips.appendChild(b);
+    });
+    if (document.activeElement !== $("note")) $("note").value = v.note || "";
+    if (dbState === "none") $("saved").textContent = "Your reads are saved on this device only.";
+  }
+
+  // ---------- your read: saved to the page's shared store when available ----------
+  var writing = {};
+  function saveRead(patch) {
+    var id = cur.id, now = verdicts[id] || {};
+    var next = { verdict: patch.verdict !== undefined ? patch.verdict : (now.verdict || null), note: patch.note !== undefined ? patch.note : (now.note || ""), at: Date.now() };
+    var empty = !next.verdict && !next.note;
+    if (empty) delete verdicts[id]; else verdicts[id] = next;
+    renderRead();
+    renderRows();
+    if (!db) { store.set("tr.reads", verdicts); $("saved").textContent = "Saved on this device only."; return; }
+    $("saved").textContent = "Saving.";
+    var ref = db.doc("reviews/" + id);
+    writing[id] = (writing[id] || Promise.resolve()).then(function () { return empty ? ref.delete() : ref.set({ verdict: next.verdict, note: next.note, at: next.at, coin: byId[id].coin, entry_t: byId[id].entry_t }); })
+      .then(function () { if (cur && cur.id === id) $("saved").textContent = "Saved."; })
+      .catch(function () { if (cur && cur.id === id) $("saved").textContent = "Could not save this one. Tap it again to retry."; });
+  }
+  $("note").addEventListener("change", function () { if (cur) saveRead({ note: $("note").value.trim() }); });
+  function startStore() {
+    var use = window.claude && typeof window.claude.use === "function" ? window.claude.use("db") : Promise.resolve(null);
+    Promise.resolve(use).then(function (handle) {
+      if (!handle) { dbState = "none"; verdicts = store.get("tr.reads", {}) || {}; renderRows(); if (cur) renderRead(); return; }
+      db = handle;
+      dbState = "ok";
+      db.collection("reviews").onSnapshot(function (snap) {
+        var map = {};
+        snap.docs.forEach(function (d) { var x = d.data(); if (x) map[d.id] = { verdict: x.verdict || null, note: x.note || "", at: x.at || 0 }; });
+        verdicts = map;
+        renderRows();
+        if (cur) renderRead();
+      }, function () { dbState = "none"; db = null; if (cur) renderRead(); });
+    }).catch(function () { dbState = "none"; });
+  }
+
+  // ---------- list + filters ----------
+  var F = { status: $("f-status"), result: $("f-result"), side: $("f-side"), tf: $("f-tf"), read: $("f-read") };
+  function passes(t) {
+    var s = F.status.value, r = F.result.value, d = F.side.value, f = F.tf.value, y = F.read.value;
+    if (s === "filled" && !t.filled) return false;
+    if (s === "lost" && t.filled) return false;
+    if (r === "target" && t.outcome !== "target") return false;
+    if (r === "stop" && t.outcome !== "stop") return false;
+    if (r === "later" && !(t.outcome === "stop" && t.later && t.later.first === "target")) return false;
+    if (r === "bot" && t.outcome !== "flip" && t.outcome !== "bot_exit") return false;
+    if (r === "open" && t.outcome !== "open") return false;
+    if (d !== "both" && t.dir !== d) return false;
+    if (f !== "all" && t.tf !== f) return false;
+    var has = !!verdicts[t.id];
+    if (y === "none" && has) return false;
+    if (y === "some" && !has) return false;
+    return true;
+  }
+  function renderRows() {
+    list = trades.filter(passes);
+    var box = $("rows"), keep = box.scrollTop;
+    box.textContent = "";
+    $("count").textContent = "Showing " + list.length + " of " + trades.length;
+    if (!list.length) { box.appendChild(el("div", "empty", "No trades match these filters.")); updatePos(); return; }
+    list.forEach(function (t) {
+      var b = el("button", "row");
+      b.type = "button";
+      b.id = "row-" + t.id;
+      if (cur && cur.id === t.id) b.setAttribute("aria-current", "true");
+      var when = el("span", "when num");
+      when.appendChild(document.createTextNode(fDay.format(new Date(t.entry_t * 1000))));
+      when.appendChild(el("br"));
+      when.appendChild(document.createTextNode(fHM.format(new Date(t.entry_t * 1000))));
+      b.appendChild(when);
+      var what = el("span", "what");
+      what.appendChild(el("b", null, coinName(t.coin)));
+      what.appendChild(el("span", null, "  " + (t.dir === "up" ? "long" : "short") + "  " + TF_LABEL[t.tf] + "  " + t.pattern + (t.filled ? "" : "  (replay)")));
+      b.appendChild(what);
+      b.appendChild(el("span", "res num " + tone(t), t.r !== null ? rText(t.r) : "open"));
+      var v = verdicts[t.id], bits = [];
+      if (t.outcome === "stop" && t.later && t.later.first === "target") bits.push("reached target " + t.later.hours + " h after the stop");
+      if (v && v.verdict) bits.push("your read: " + VERDICT_LABEL[v.verdict]);
+      if (v && v.note) bits.push(v.note);
+      if (bits.length) b.appendChild(el("span", "tag", bits.join("  |  ")));
+      b.addEventListener("click", function () { select(t.id, true); });
+      box.appendChild(b);
+    });
+    box.scrollTop = keep;
+    updatePos();
+  }
+  // Scroll the list box only, never the page: on a phone the list sits under the chart.
+  function revealRow(row) {
+    var box = $("rows"), top = row.offsetTop;
+    if (top < box.scrollTop || top + row.offsetHeight > box.scrollTop + box.clientHeight) box.scrollTop = Math.max(0, top - box.clientHeight / 2 + row.offsetHeight / 2);
+  }
+  function updatePos() {
+    var i = cur ? list.indexOf(cur) : -1;
+    $("pos").textContent = i >= 0 ? (i + 1) + " / " + list.length : "- / " + list.length;
+    $("b-prev").disabled = i <= 0;
+    $("b-next").disabled = i < 0 || i >= list.length - 1;
+  }
+  function step(n) {
+    var i = cur ? list.indexOf(cur) : -1;
+    var j = i < 0 ? 0 : i + n;
+    if (j >= 0 && j < list.length) select(list[j].id, false);
+  }
+
+  // ---------- selection ----------
+  function renderTf() {
+    var seg = $("tfseg");
+    seg.textContent = "";
+    TF.forEach(function (k) {
+      var b = el("button", null, TF_LABEL[k]);
+      b.type = "button";
+      b.setAttribute("aria-pressed", k === tf ? "true" : "false");
+      b.addEventListener("click", function () { tf = k; renderTf(); draw(true); });
+      seg.appendChild(b);
+    });
+  }
+  function select(id, fromList) {
+    var t = byId[id];
+    if (!t) return;
+    var prev = cur;
+    cur = t;
+    tf = t.tf;
+    store.set("tr.last", id);
+    try { history.replaceState(null, "", "#" + id); } catch (e) { /* hash is optional */ }
+    if (prev) { var pr = $("row-" + prev.id); if (pr) pr.removeAttribute("aria-current"); }
+    var row = $("row-" + id);
+    if (row) { row.setAttribute("aria-current", "true"); if (!fromList) revealRow(row); }
+    $("saved").textContent = "";
+    renderTf();
+    renderPanel();
+    updatePos();
+    if (!chart) return;
+    var my = ++seq;
+    dataNow = null;
+    showState("Loading candles for " + coinName(t.coin) + ".");
+    load(t.file).then(function (d) { if (my !== seq) return; dataNow = d; draw(true); })
+      .catch(function () { if (my !== seq) return; showState("Could not load the candles for " + coinName(t.coin) + ".", function () { select(id, true); }); });
+  }
+
+  // ---------- wiring ----------
+  Object.keys(F).forEach(function (k) {
+    F[k].addEventListener("change", function () {
+      renderRows();
+      if (list.length && list.indexOf(cur) < 0) select(list[0].id, true);
+    });
+  });
+  $("b-prev").addEventListener("click", function () { step(-1); });
+  $("b-next").addEventListener("click", function () { step(1); });
+  $("b-fit").addEventListener("click", fit);
+  $("b-all").addEventListener("click", function () { if (chart) chart.timeScale().fitContent(); });
+  $("c-strat").addEventListener("change", function () { stratOn = $("c-strat").checked; store.set("tr.strat", stratOn); draw(false); });
+  document.addEventListener("keydown", function (e) {
+    var tag = (e.target && e.target.tagName) || "";
+    if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
+    if (e.key === "ArrowLeft") step(-1);
+    if (e.key === "ArrowRight") step(1);
+  });
+  new MutationObserver(retheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  if (window.matchMedia) { var mq = window.matchMedia("(prefers-color-scheme: dark)"); if (mq.addEventListener) mq.addEventListener("change", retheme); }
+
+  initChart();
+  renderRows();
+  var want = (location.hash || "").replace("#", "");
+  var first = byId[want] ? want : byId[store.get("tr.last", "")] ? store.get("tr.last", "") : null;
+  if (!first) {
+    var eg = trades.filter(function (t) { return t.filled && t.outcome === "stop" && t.later && t.later.first === "target"; })[0] ||
+      trades.filter(function (t) { return t.outcome === "stop" && t.later && t.later.first === "target"; })[0] || trades[0];
+    first = eg.id;
+  }
+  select(first, false);
+  startStore();
+})();
+</script>
