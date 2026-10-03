@@ -97,3 +97,6 @@ docs/thestrat_ai/
 # .mcp.json is TRACKED here on purpose: the tradingview + openmemory blocks
 # contain NO secrets, so committing makes the MCP wiring reproducible on clone.
 # (This fixes the vbt-workspace gotcha where gitignored .mcp.json did not travel.)
+
+# Parallax PAPER raw account exports + candle caches (large, owner-local, regenerable)
+analysis/parallax/exports/
