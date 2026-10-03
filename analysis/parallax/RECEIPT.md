@@ -51,10 +51,14 @@ immutable per experiment; a new experiment is needed to test what the name says.
 - 3-2 reversals: 13 of 24 trades, 1 win (weekend 1 in August: 12 trades, 2 wins). Two sightings,
   both direction-confounded and tiny.
 - Three flips (BTC, ETH, TAO) fired inside two minutes of each other at 00:30Z on 09-28, half an
-  hour after the daily roll; SOL flipped ten minutes after an hourly open. The TVB-32 coupling
-  mechanism: all four stack timeframes re-read from a shared fresh open.
-- Bar-close exits: none in the v2 adapter. The flip evaluates the four forming candles'
-  close-against-open on every 5 s poll; the Type 3 invalidation is live too.
+  hour after the roll; SOL flipped ten minutes after an hourly open. The TVB-32 coupling
+  mechanism: 09-28 was a MONDAY, so at 00:00Z the weekly, daily, 4h, 1h and 15m candles all opened
+  together and the whole five-timeframe stack re-read from one fresh open (skill 4.5: coupled
+  timeframes are one observation).
+- Bar-close exits: none in the v2 adapter. The flip evaluates the forming candles of the
+  configured stack (15m, 1h, 4h, 1d and 1w in the v2 package; the scanner's four in v1) for
+  close-against-open on every 5 s poll, and fires only when ALL are against the trade; the Type 3
+  invalidation is live too. (Corrected 2026-10-03: this line first said "four".)
 
 ## 3. The lost book: 116 qualified signals the platform never filled
 
@@ -138,7 +142,7 @@ the qualified pool behind it.
 ## 6. Lead's assessment, 2026-10-02
 
 The round-3 package as an autonomous mechanical book -- scanner-published pattern breaks on
-1h/4h/1d, four-timeframe continuity gate, structural stop, T1 target, flip exit -- is dead in the
+1h/4h/1d, five-timeframe continuity gate (15m to 1w), structural stop, T1 target, flip exit -- is dead in the
 water. Reasoning:
 
 1. Four live ledgers, every one negative or flat: weekend 1 -$6.85 on 34; round 2 -$0.82 net on
