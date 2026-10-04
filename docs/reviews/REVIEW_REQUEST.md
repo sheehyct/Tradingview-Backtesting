@@ -29,7 +29,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `3f087b0..__HEAD_SHA__` (pre-session sha .. head): fdee294 (September receipt + replay), 9895c61 (regime labels + sharp-move study), a9c55b1 (review page builder), 3dc8cf9 (stop what-if), plus the session-end docs commit(s). Verify with `git diff --name-status 3f087b0..__HEAD_SHA__`. |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `3f087b0..ecc4d6c` (pre-session sha .. head): fdee294 (September receipt + replay), 9895c61 (regime labels + sharp-move study), a9c55b1 (review page builder), 3dc8cf9 (stop what-if), plus the session-end docs commit(s). Verify with `git diff --name-status 3f087b0..ecc4d6c`. |
 
 No sibling-repo commits this session. The paper platform repo was READ, never
 written; the raw account exports and candle caches are owner-local

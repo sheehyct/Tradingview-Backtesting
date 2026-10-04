@@ -418,8 +418,8 @@ You are right, and I overstepped: I turned "many stops come back" into a verdict
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: `3f087b0..__HEAD_SHA__` on `main` (pre-session sha ..
-  head; verify with `git diff --name-status 3f087b0..__HEAD_SHA__`). This repo
+- Commits to review: `3f087b0..ecc4d6c` on `main` (pre-session sha ..
+  head; verify with `git diff --name-status 3f087b0..ecc4d6c`). This repo
   only; no sibling-repo commits this session.
 - Scope / what changed: analysis scripts and receipts over one month of paper
   data (reconstruction, bracket-only replay of unfilled signals, random-walk
