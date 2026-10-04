@@ -12,73 +12,80 @@
 
 - Status: REQUESTED
   <!-- REQUESTED | RETURNED (audit file written) -->
-- Session under review: TVB-35 -- round-3 monitoring from the raw journals
-  and the venue record, two journal-only shadow columns on the executor
-  (hourly/daily immediate-control verdict; order-book spread on seat-stage
-  rows), the round-3 halt (KILL_FLAT on the user's word), the public
-  prereg / ledger amendments, and the week's pause for regime-detection
-  design.
-- Requested: 2026-09-08
-- Write the audit to: `docs/reviews/tvb35-codex-audit.md` (copy
+- Session under review: TVB-36 -- one month of paper-platform data pulled and
+  decomposed; the signals the platform never filled replayed through their own
+  brackets; a random-walk baseline; two no-human regime labels; a sharp-move
+  event study; a stop what-if; a trade review page builder; and the session
+  docs, which carry the owner's correction that several "readings" in these
+  receipts are the lead's conclusions, not settled findings.
+- Requested: 2026-10-04
+- Write the audit to: `docs/reviews/tvb36-codex-audit.md` (copy
   `docs/reviews/_TEMPLATE.md`)
-- NOTE: TVB-31, TVB-32, TVB-33 and TVB-34 audits were never returned and stay
-  open. The DEEP-DIVE review (docs/reviews/deep-dive-2026-09-05-astra.md) was
-  RETURNED and FOLDED in TVB-34; do not re-review it.
+- NOTE: TVB-31, TVB-32, TVB-33, TVB-34 and TVB-35 audits were never returned
+  and stay open. The DEEP-DIVE review (docs/reviews/deep-dive-2026-09-05-astra.md)
+  was RETURNED and FOLDED in TVB-34; do not re-review it.
 
 ## Commits to review
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `848db00..HEAD` = 5b028a5 + the sha-pin follow-up on top -- docs only: HANDOFF TVB-35, startup prompt, this file, prereg amendment 2026-09-07a, ARM_LEDGER round-3 halt card (verify with `git diff --name-status 848db00..HEAD`) |
-| hip3-executor (PRIVATE; local transport only) | `C:\Strat_Trading_Bot\hip3-executor` | main `5cd2b0d..fc90368`: 098cff1 (amendment 2026-09-07a: `HD_STACK`, `SEAT_STAGE_REASONS`, `book_summary`, `book_top` on both brokers, `_book_shadow` in the engine, 16 tests), 7dc011f (README STATUS 2026-09-07: the halt, labels, restart checklist), fc90368 (runs/2026-09-06_round3_aborted/ slices + README) |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `3f087b0..__HEAD_SHA__` (pre-session sha .. head): fdee294 (September receipt + replay), 9895c61 (regime labels + sharp-move study), a9c55b1 (review page builder), 3dc8cf9 (stop what-if), plus the session-end docs commit(s). Verify with `git diff --name-status 3f087b0..__HEAD_SHA__`. |
+
+No sibling-repo commits this session. The paper platform repo was READ, never
+written; the raw account exports and candle caches are owner-local
+(`analysis/parallax/exports/`, gitignored), so numbers are checked against the
+committed `results/*.json` and by re-running the scripts where the public
+candle API still serves the window.
 
 ## Read first (in this order)
 
-1. `CLAUDE.md`; charter Section 0. Then the TVB-35 HANDOFF entry.
-2. Executor README amendment 2026-09-07a and STATUS 2026-09-07; PREREG.md
-   amendment 2026-09-07a (runs/2026-09-04_replay1/PREREG.md).
-3. Executor `src/hip3_executor/rules.py` (HD_STACK, SEAT_STAGE_REASONS,
-   book_summary), `engine.py` (`_scan_candidates`, `_book_shadow`,
-   BOOK_CALLS_PER_POLL), `broker.py` (`book_top` x2),
-   `tests/test_shadows_hd_book.py`, `tests/conftest.py` (FakeBroker.book_top).
-4. The aborted-run copy `runs/2026-09-06_round3_aborted/live/` (local; may be
-   gitignored) for the numbers quoted in the HANDOFF and ARM_LEDGER.
+1. `CLAUDE.md`; charter Section 0. Then the TVB-36 HANDOFF entry, starting
+   with "READ FIRST: the owner's correction at close".
+2. `analysis/parallax/RECEIPT.md`, then `lostbook.py` and `census.py`.
+3. `analysis/regime/REGIME_LABELS_SEPT_RECEIPT.md` with `venue_mrc.py` and
+   `index_continuity.py`; `analysis/momentum/SHARP_MOVE_RECEIPT.md` with
+   `sharp_move_study.py`.
+4. `analysis/parallax/review/build_review.py`, `stop_whatif.py`,
+   `trade_review.template.html`.
 
 ## Focus areas (scrutinize these)
 
-1. Seat-stage gating of the order-book read: `SEAT_STAGE_REASONS` =
-   {no_slot_free, cooldown, day_cap_reached}. Should `already_in_position`
-   or `counter_drift` count as "competed"? Is anything journaled on a row
-   that did NOT reach the seat stage?
-2. The per-poll cache is keyed by coin while `mid` is read per row: two
-   signals on one coin in one poll share one book read but could carry
-   different mids -- is spread_bps then consistent? (Same poll, same served
-   coin dict, so mid should be identical; verify.)
-3. `l2_snapshot(name)` for builder-dex coins (`xyz:AAPL` naming) -- does the
-   SDK call accept the dex-qualified name? No live check was made; every
-   failure path returns None by design, so a silent None on every xyz row
-   would be the failure mode.
-4. The rate-budget claim: at most 20 l2Book reads per 5 s poll; is that
-   within the venue's per-IP budget alongside the loop's own calls?
-5. The claim that the weekly dot duplicates the daily on Sunday/Monday: the
-   served 1w candle's open vs the scanner's week boundary (UTC Monday? the
-   user's "Sunday 20:00 ET new week"?). Only 2/91 continuity refusals were
-   the weekly's; is the coupling explanation right or was the week simply
-   aligned?
-6. Labor Day labeling: `session` = "rth" on 09-07 for 394 xyz rows; the
-   README states the missing holiday calendar as an accepted limitation.
-   Is the SK Hynix entry correctly described (Korean session also closed at
-   09:31 ET)?
-7. The ZEC liquidation (2026-09-06 04:46:32Z) sits before the ledger window
-   (open 19:52:53Z); confirm the window definition excludes it and that the
-   phone-app framing is right.
-8. request.security: NO Pine file changed -- verify none did.
+1. `lostbook.py`: entry at the order's reference price (no slippage),
+   bracket-only (the continuity flip is not replayed), a candle touching both
+   levels counts as the stop, deduplication by signal key across accounts, and
+   the 17-of-17 calibration. Is "bracket-only is pessimistic for the flip
+   class" supported by the seven flip-exited trades alone?
+2. `census.py`: the random-walk baseline P(target first) = 1 / (1 + R:R) and
+   the z-score. The trades cluster in time and by coin; is z = -3.1 overstated
+   by treating them as independent? Is "worse than a coin flip" a fair
+   sentence for one month?
+3. `mfe.py` / `trades.py`: software exits are matched to entries by symbol
+   and time, and four of seven have no logged reason. Any mis-match?
+4. `venue_mrc.py`: fidelity to `tv_indicators/pine/macro_risk_conditions_v1_2.pine`
+   (change horizon, population stdev, EMA holding through gaps, staleness
+   multiple, the DXY-weighted basket) and the completed-bar timing. The TLT
+   series starts about 09-18; is the pre-09-18 label described honestly?
+5. `index_continuity.py`: UTC day / week / month opens against the venue's
+   candle boundaries, equality handling, the coupled-day count (56 of 135).
+6. `sharp_move_study.py`: ATR(14)[1] by Wilder RMA, the volume confirmation
+   on the two lower tiers, per-bar clustering t-stats with overlapping
+   horizons, the universe chosen by September volume (survivorship), and
+   whether every quoted post-hoc cut is labeled post-hoc.
+7. `build_review.py`: the "reached the original target within 72 h after the
+   stop" tag (15m candles, the bar containing the exit instant). `stop_whatif.py`:
+   the R convention and the "resized" column.
+8. The READING paragraphs in all four receipts against the owner's correction
+   in the HANDOFF: flag every sentence that states a conclusion the arithmetic
+   does not carry.
+9. Public-repo hygiene: no hosted platform URL, no review-page link, no
+   secret, no personal remark; `analysis/parallax/exports/` ignored.
+10. request.security: NO Pine file changed -- verify none did.
 
 ## Output contract
 
-- Verbatim audit -> `docs/reviews/tvb35-codex-audit.md` (template:
+- Verbatim audit -> `docs/reviews/tvb36-codex-audit.md` (template:
   `docs/reviews/_TEMPLATE.md`, skeptic preamble included).
 - Be concrete; cite `file:line`. Never paste a secret/IP/account value: the VPS
-  IP, the master wallet address and the agent address stay out (this repo is
-  public).
+  IP, the master wallet address, the agent address, the paper platform's host
+  and the review page's link stay out (this repo is public).
 - The critical synthesis is written by the NEXT session into `docs/HANDOFF.md`.

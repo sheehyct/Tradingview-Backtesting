@@ -468,6 +468,49 @@ Live executor family, after ledger replay 1 (2026-09-05):
 - Sizing makes dollars and percentage points disagree (A2: +$0.50 and
   -12.6pp vs control). Read both or neither.
 
+PAPER MONTH (TVB-36; the round-3 package on the paper platform, 2026-09-14
+to 10-02, no human input). Not a new arm: the same book, forward on paper.
+Trader's read first, then numbers; receipts in analysis/parallax/RECEIPT.md.
+- **The platform barely traded it.** 195 entry orders, 26 fills. One account
+  was blocked from 09-29 by a missed funding check; another lost 51 of 56
+  entries because the order arrived after the scanner's 15-second window. So
+  most of the month is a record of what the book WANTED to do.
+- **What it wanted to do, replayed.** The 116 signals it qualified and never
+  filled, walked through their own stop and first target on public candles
+  (the replay first reproduced all 17 actual stop and target outcomes): 25
+  reached target, 77 stopped, 14 still open; -41.1R. Winners were 25% of
+  resolved trades where a coin flip inside the same brackets wins 40%.
+  Filled and unfilled together: 140 trades, -47.7R. Entries were at the
+  break (a median 0.01R past the trigger), not late.
+- **The 24 that did trade:** 6 winners, -6.6R. 11 full stops, 6 targets, 7
+  bot exits (all losers, averaging about -0.4R; under stop and target only,
+  6 of the 7 would have gone on to the stop). Losers ran a median 0.6R in
+  favor before failing; winners first went a median 0.75R against.
+- **Patterns do reach their targets -- the owner's data point.** Of 88
+  stopped trades (filled and replayed), 35 touched their ORIGINAL target
+  within 72 hours of the stop. The owner's correction (2026-10-04): this is
+  the observation, not an argument for moving stops and not a verdict; the
+  higher-timeframe context of those trades has not been looked at yet.
+- **The bell refused most of the stock-perp tape.** 82% of stock-perp signals
+  were refused because New York was closed; the Korea names peak at the KRX
+  open. Owner ruling: start the next test with NO session calendar and look
+  afterwards at what a calendar would have done.
+- **Two no-human regime labels, tried on these trades:** a macro impulse
+  label built from venue perps was quiet 82-88% of the time and separated
+  nothing; index continuity (BTC or the Nasdaq-100 perp against its own day,
+  week and month open) found 73 of 135 entries taken with the index mixed,
+  holding 28 of 43R lost. The owner's read: the macro composite's pieces
+  fight each other, and index agreement matters as an EVENT (every index
+  breaking the same way after a hammer or shooter), not as a standing filter.
+- **The lead's call (2026-10-02, invited by the owner):** as an autonomous
+  book this package is dead in the water. The owner has not adopted that as
+  a conclusion and asked for no jumping to conclusions; what replaces or
+  extends it is the TVB-37 design discussion (higher-timeframe context,
+  where the stop sits when the target timeframe is bumped up, which
+  higher-timeframe event ends a trade).
+Numbers on WEEK5 / SEATS4 / RISK100 / RANK: the paper month ran those
+settings at $1 risk, but with 26 fills they stay unread as arms.
+
 ## Maintenance rule
 
 Every round: add a card per new arm (trader terms FIRST, then numbers),

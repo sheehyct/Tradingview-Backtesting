@@ -5,6 +5,448 @@
 
 ---
 
+## Session TVB-36: paper-month receipt, the kill call on the round-3 mechanical book, regime and momentum receipts, the trade review page, and the higher-timeframe question left open (COMPLETE)
+
+**Date:** 2026-10-02 .. 2026-10-04
+**Status:** COMPLETE -- the owner redirected the session away from the planned
+regime-design work to what they had watched on the paper platform. The hosted
+ledger was pulled and decomposed, the unfilled signals were replayed, four
+characterization receipts were committed, a visual trade review page was
+published, and the session closed on the owner's caution against jumping to
+conclusions plus an open design question about higher-timeframe context.
+**The next session starts from the verbatim closing discussion in this entry.**
+
+### READ FIRST: the owner's correction at close
+
+Two framings in this session were the LEAD'S, not the owner's, and the owner
+pushed back on both at close:
+
+- The stop what-if (wider or no stop on every trade) was NOT requested as a
+  test of moving stops. The owner's "maybe our stops are too tight" was a
+  thought. The data point to carry is the plain one: **patterns do reach their
+  targets** (35 of 88 stopped trades touched their ORIGINAL target within 72 h
+  of the stop). In the owner's words, "even that is not enough".
+- "The entries are worse than a coin flip, so it is not the fix" was a
+  conclusion the lead attached to that what-if. The owner: "the one thing I
+  would emphasize here is not jumping to conclusions."
+
+What this session settles is arithmetic on one month of paper data. It does
+not settle what the strategy should become. The receipts stand as receipts;
+their "reading" paragraphs are the lead's and are open to the next session.
+
+### Reminder the owner asked for: the as-built continuity and step-up rules
+
+Verified 2026-10-04 in the rules as vendored into the paper platform (executor
+pin fc90368: `signal_tfs`, `stack_tfs`, `htf_reversal_backing`, `TF_ORDER`).
+Trader terms. This is what the bot DOES today, not what it should do.
+
+1. **What is traded.** Entries only on the 1-hour, 4-hour and daily. The
+   weekly and monthly are never traded.
+2. **What the weekly and monthly do today.** (a) The weekly is one of the five
+   continuity votes. (b) A weekly or monthly REVERSAL can sponsor a
+   lower-timeframe continuation (item 4). (c) The monthly also rides every row
+   inside the journaled 60 / day / week / month "sheet" verdict, which never
+   gates anything.
+3. **Continuity at entry.** Price must be on the trade's side of its own open
+   on ALL FIVE of 15-minute, 1-hour, 4-hour, daily and weekly. So every trade
+   on the review page had all five aligned at entry, by rule. The page does
+   not show it, and the monthly was neither required nor recorded.
+4. **Stepping up, as built: for PERMISSION only.** A continuation on the
+   1-hour, 4-hour or daily is allowed only when a higher timeframe holds a
+   live REVERSAL in the same direction that is still in force (price past its
+   trigger and short of its target). The search climbs from the next
+   timeframe up, through the weekly, to the monthly, and stops at the FIRST
+   timeframe that qualifies. A higher-timeframe continuation never licenses
+   anything. A sponsor whose own forming bar has gone outside is dead (1-3s
+   exempt).
+5. **Not built: stepping the target or the stop up.** Every trade keeps the
+   stop and first target of its own entry-timeframe pattern and exits in full
+   at that first target. The sponsor's target is journaled as evidence and
+   never used.
+6. **Exits as built.** A resting stop; a resting limit at the first target;
+   an at-market exit if the entry bar goes outside; an at-market exit when all
+   five timeframes are against the trade (mixed holds). Nothing exits on the
+   week alone turning, on a weekly close, or on a daily close.
+7. **What was tried on step-up in replay** (round-2 and weekend-1 ledgers,
+   `docs/ARM_LEDGER.md`): walking the stop up the timeframes (A6) gave money
+   back on the trades it shared with the control; banking half at the first
+   target and running the rest to the next pivot (A7) was neutral on shared
+   trades; licensing continuations by day / week / month continuity instead of
+   a reversal (A3) was a small positive inside the noise of a dozen trades.
+   The round-3 ruling deferred the walk-up to "a daily-entries-only variant".
+   A round-3 STRAT ruling is on record for the next scanner release: a 3-1-2
+   continuation's target is the outside bar's wick first, then a
+   higher-timeframe pattern's target.
+8. **Coupling.** At Monday 00:00 UTC the weekly, daily, 4-hour, 1-hour and
+   15-minute candles share one open (on the 1st, the monthly too), so the five
+   votes are one observation then. Three September flips fired half an hour
+   after a Monday roll.
+
+Against the owner's two assumptions in the closing message: (1) is correct.
+(2) is partly correct: the bot does step up, but only to find a reversal that
+licenses a continuation; it stops at the first higher timeframe that has one;
+and continuations ARE traded in that licensed form (25 of the 116 unfilled
+September signals were continuations).
+
+### What was accomplished
+
+- Session start: charter S0, startup prompt, HANDOFF TVB-35, CLAUDE.md; tests
+  288 pass. TVB-35 audit NOT returned (TVB-31..35 all open). The owner opened
+  by saying priorities had changed: they had been watching the strategy on the
+  paper platform and an adjustment or overhaul comes first. A prop-firm note
+  was logged to private memory at the owner's request (not discussed).
+- **Paper ledger pulled** (read-only, the owner's hosted paper platform, three
+  HIP-3 accounts; host never committed). `analysis/parallax/RECEIPT.md`:
+  195 entry orders, 26 filled. The forward pilot filled nothing after 09-28 (a
+  missed funding-boundary check blocked every later entry); the prop test lost
+  51 of 56 entries to the scanner's 15-second permission window (orders were
+  created a median 13.3 s after the observation); its $250 entry cap made the
+  $100-risk setting about $10. 24 closed trades, 6 winners, -6.6R; losers'
+  median best excursion 0.6R; no bar-close exit exists in the v2 rules.
+- **The unfilled signals replayed** (`lostbook.py`): 116 distinct signals the
+  strategy qualified and the platform never filled, walked through their own
+  stop and target on public candles. The simulator first reproduced all 17
+  actual stop and target outcomes. Result: 25 target, 77 stop, 14 open,
+  -41.1R; 25% of resolved trades won against 40% for a driftless walk inside
+  the same brackets (z -3.12); entries sat a median 0.01R past the trigger.
+  Month, filled plus unfilled: 140 trades, -47.7R.
+- **Session clock census:** 11,846 of 14,490 stock-perp signals (82%) were
+  refused because the US underlying was closed; the Korea names peak at 00Z,
+  the KRX opening cross.
+- **The lead's call, on the owner's explicit invitation to say so:** the
+  round-3 package as an AUTONOMOUS mechanical book is dead in the water
+  (RECEIPT.md section 6). Read it with the correction at the top of this
+  entry: the owner has not adopted that as a conclusion.
+- **Stack map for the owner** ("between this space and the HL paper trading
+  space I dont want to get them confused"): the scanner detects, the executor
+  rules decide, the paper platform runs a pinned copy of those rules; this
+  repo holds the design record and a different research family and executes
+  nothing. Recorded in private memory.
+- **Three more receipts** (definitions fixed in each docstring before reading):
+  `analysis/regime/REGIME_LABELS_SEPT_RECEIPT.md` -- the Tightening half of
+  the owner's Macro Risk Conditions indicator rebuilt from venue perps is
+  defined at 140 of 140 entries but quiet 82-88% of the time, no separation;
+  index continuity (BTC or the Nasdaq-100 perp against its own day, week and
+  month open) had 73 of 135 entries taken with the index mixed, holding 28 of
+  43 R lost. `analysis/momentum/SHARP_MOVE_RECEIPT.md` -- entering with a
+  sharp bar at its close did not pay on 40 liquid crypto perps; post-hoc, sharp
+  down bars bounced. The owner then explained how they ACTUALLY use each tool
+  (verbatim below), which corrects the framing of all three tests.
+- **Trade review page** (private page, link in private memory; builder
+  `analysis/parallax/review/build_review.py`): all 142 September trades on
+  candlestick charts with entry, stop and target lines, the exit marked, a
+  15m / 1h / 4h / daily switch, inside and outside bars outlined, filters,
+  and one-tap verdicts saved to the page's own store (collection `reviews`).
+  Chart colors validated for colorblind separation in both themes.
+- **Stop what-if** (`stop_whatif.py`), see the correction above: hindsight
+  swing +91.6R; applied to every trade at the same size the month reads -54R
+  as traded, -65R at 1.5x, -59R at 2x, -53R at 3x, -28R with no stop.
+- **Owner rulings this session:** no session calendar to start, "just to
+  test", then look at what a calendar would have done; weekends are altcoins
+  only; stock perps on weekends are held until the Friday-close oracle is
+  investigated in depth; index simultaneous breaks trade both directions; the
+  one to three symbols are still to come from the owner; replies stay
+  condensed and in trader terms until the owner signals a deep dive.
+- **Corrections recorded:** the flip exit reads five timeframes in the v2
+  package, not four; the 09-28 flips fired after a MONDAY roll.
+
+### Closing discussion, verbatim
+
+Kept word for word at the owner's request so the next session can explore it
+fully. Three short personal asides are removed from the owner's messages and
+marked in place; nothing about trading is changed. Typos are the originals.
+The lead's long replies of 10-02 and 10-03 (the kill call, the stack map, the
+indicator brainstorm) are in the receipts and are not repeated here.
+
+**Owner, 2026-10-02, after the paper ledger read-out (the invitation and the
+discretionary context):**
+
+```text
+Lets do it - now I will explicity flag this and it is okay for you to say so, ill leave it just at that for now. But at anytime you consider the strategy dead in the water say so, and give your reasoning for it. No
+hard feelings. This is a discrentionary strategy trying to be coded. Not easy. It doesnt take into account the fact that a trader knows treasury yields are at multi decade high, it doesnt see the exact moment the
+dollar spikes and holds or spikes and falls and the implications that come along with it, it has tickers that could trade the asia session cleanly and somehow stands at the sideline as a perp for equities at 00:00
+utc while the korea/china session is getting at hand. It doesnt realize the fact that almost all price action has come from this and the rise/fall of oil and its velocity everyday which almost always happens in non
+US market standard hours. honestly? strat gives you the framework - it doesnt give you the golden ticket - this is the discrenionary part. alot of strat traders including myself take the things above as granted or
+things in the back of their head that barely register as strategy. its just a correlation they know when price action moves. they either recognize it (think human machine learning maybe?) or they try to understand
+it - they find the correlation and extreme minor "blips" of market inefficiency for THEM and just them. that might be realizing TFC nearing a crucial level, seeing CL spike, wathcing 10Y1! break a high from a decade
+ago all while watching VIX spike 4 percent or more, while also knowing houthi strikes on saudi pipelines and other macro ecnomoinc context. all that can be calculated in under a minute or fractions of a second -
+something that seems to me at least impossible to code without spending thousands of dollars.
+
+And the kicker? were doing perps - 24/7 regime distinction? throw away your scholary articles - they have been replicated and arbitraged away or just dont have much of a place in what we do.
+
+Feel free to ask questions.
+```
+
+**Owner, 2026-10-03 (the indicators and the first rulings):**
+
+```text
+1. Explain just exactly what the mechanical book is - between this space and the HL paper trading space I dont want to get them confused
+2. Ideally it would be nice for me to not be the regime input - though im not against the idea, brainstorming this would be interesting - there is a macro indicator I can provide - one that combines yields, dxy, oil and vix.  There is also one for jpy/usd (or maybe the other way - the one that is most common - I have not played around with this yet)
+ - momentum strategy complimented would be nice too to play with - especially with altcoins lately - I have a "sharp move detector" - not sure if combining this somehow with bolliger bands with strat levels as targets/areas of exhaustion would be worth exploring
+3. Ill look and provide and provide these soon - [personal aside omitted] so I want to be accurate here
+4.  I would say start with no session calendar - just to test - based off results see what would have happened with a session calendar
+
+Indicators (plus any that COULD be relevant ill let you look)
+- "C:\Strat_Trading_Bot\tv_indicators\pine\macro_risk_conditions_v1_2.pine"
+- "C:\Strat_Trading_Bot\tv_indicators\pine\Yen_Cross_Assest_Monitor.pine" (some symbols were incorrectly listed in this indicator not on tradingview as listed - easy switch as I found their actual tickers available quickly)
+- "C:\Strat_Trading_Bot\tv_indicators\pine\sharp_move_detector_v2.pine"
+- "C:\Strat_Trading_Bot\tv_indicators\pine\memory_complex_composite.pine"
+
+All others are in that folder
+```
+
+**Owner, 2026-10-03 (how each tool is actually used; the working-style ask):**
+
+```text
+Few things based off personal experience, and I likely am missing some things as I haven't got a chance and likely won't [personal aside omitted] until tomorrow. One thing I noticed though and a few thoughts
+
+1. Macro risk conditions - too many signals meshing and clashing together. This was discussed before with Claude and I believe I tailored the indicator to use less clashing symbols. Oil, dxy and yields are things that always and typically don't rise in tandem. Oil can fall yields can fall, dxy can go up. Oil can rise, economic eats can make yields fall, maybe another factor makes dxy go up. Middle east developments can make oil and vix spike - but economic data again can make day and yields fall. This together makes the indicator useless as a lot of the time they fight each other leading to small to neutral overall moves.
+
+2. Index continuity - honestly only good for short trades on simultaneous breaks. All indices (nq/es/mym/iwm) break together one way to the upside or downside with an actionable signal such as a strong hammer/shooter coming first and closing as such (hammer - 33 percent of body is wick extreme high has no wick indicating heavy buying into the close of the bar) shooter is the same just in reverse. This is not very common but a strong move - can discuss more in detail later.
+
+3. Sharp move detector has to be paired with something else - when I see it live it is usually a symbol that might be a 2U-2U continuation (not always just some things I notice) that also breaks a previous week/month high or low. Bollinger bands would be on a higher timeframe such as 4 hour. Lower timeframe again is noise. Sharp move detector is the "let me look, not base a decision) next comes "did something important happen price action wise or are we still inside on the daily timeframe? " Bollinger bands are simply assessing the retail trader sentiment.
+
+4. Yen monitor - hadn't played with it as mentioned. Just provided it in case there was anything good in there.
+
+5. I played around with this some not much. Not a huge or great signal - but notices any drift between memory name or if memory names are in alignment strengthing their case. Can also potentially indicate agreement/disagreement with things like EWY/KOPSI/KORU if the Korean memory complex is moving too. All other memory names strengthens the argument.
+
+6. Weekends - I like altcoin tests here. The major crypto names have a tendency especially on weekends to trade in a very very tight range, maybe spike one way then the other but typically a lot of higher timeframe inside bars or daily breaks with very very little target.
+
+7. I'm working currently on the HL paper trading space. It's hard to navigate, hard to look as past trades visually for good data, seems Claude there also has reservations about pushing account risk and leverage when it is a place where this can be a playground.
+
+Let me know if I did or did not hit your points. The more condense and it trader terms your responses are from here until I pretty much say [personal aside omitted: the owner's own phrase for "I have time for a deep dive"] helps both of us so things aren't skipped over. I can always ask for more clarity and so can you.
+```
+
+**Lead's reply:**
+
+```text
+You hit every point, and three of them correct how I tested things. Your numbering:
+
+1. Macro composite. Agreed, and the data shows it. The label sat neutral over 80% of the time because the pieces cancel. Dropped as a gate. If anything survives, it is one driver at a time, never the average.
+2. Index. Yours is an event: every index breaking the same way after a hammer or shooter closes. I tested the standing version, which only limited damage. Yours is untested. On the venue only the Nasdaq and S&P perps exist. Dow and Russell need TradingView.
+3. Sharp move detector. I tested it as an entry, which is not how you use it. Your read is alarm first, then one question: did it take out last week's or last month's high or low, or is the daily still inside? Bands go on the 4-hour for sentiment. That is a different test, and I can run it.
+4. Yen monitor. Parked.
+5. Memory names. Supporting evidence, not a signal. EWY, the KOSPI 200 and KORU are all on the venue, so the Korea cross-check is available.
+6. Weekends. Altcoins, majors out. Noted for the weekend test.
+7. Paper space. It is a playground, so push it. My own reservation two days ago was misplaced for paper. One mechanical point for that session: leverage alone changes nothing, because size comes from risk per trade. Raise risk per trade and the max entry size together. The $250 entry cap is what turned your $100 risk into about $10.
+
+Unless you say otherwise, I am treating the old book as retired.
+
+Two one-word answers when you can:
+- Point 2, "short trades": quick trades in either direction, or shorts only?
+- Weekends: stock perps too, or crypto alts only?
+
+Parked for the detailed talk: your hammer adds "closes at the extreme, no wick", which the written rule does not require.
+
+One offer: I can build a page showing every September trade on a chart with entry, stop, target and exit marked, since reviewing trades visually is the pain point.
+```
+
+**Owner:**
+
+```text
+1. Short trades - yes short and long
+2. Weekends for now altcoins. Reasoning: Currently majors seem tied largely to BTC, which itself seems tied to the regular market. Equity perps have the Oracle concept from Friday Close, which we would need to investigate very in depth before anything was implemented here. So that's why I am saying hold off on that for now. I would say Sundays around noon in the future they potentially could be implemented but I can tell you that Saturdays typically are very very dead in a very tight small range Sundays only open up usually if there is some type of geopolitical or macro economic event tied to it that happened during the weekend.
+
+And sure, I'll take you up on the visual part as I have a feeling that we probably are getting stopped out early while the move probably on some higher time frame might go in our favor. But no need to dig that deep. I'll look at it when I see it visually, which will help to see where we are going wrong.
+```
+
+**Lead's reply (the review page; link kept in private memory):**
+
+```text
+Noted on both. Simultaneous breaks trade both ways. Weekends are altcoins only, with no stock perps until the Friday-close oracle is understood, and Saturdays skipped as dead.
+
+The review page is live: September Trade Review [link omitted from this public file]
+
+- Every trade on a chart. All 142, with entry, stop and target lines and the exit marked. 26 were filled. The other 116 are orders the platform refused, replayed through their own stop and target.
+- Step up the timeframe. Buttons for 15m, 1h, 4h and daily on the same trade, so you can see whether the bigger picture went your way after the stop.
+- Inside and outside bars are outlined. Switch it off if it is noise.
+- Tap a verdict. Stopped too early, bad entry, target too far, good trade, should have skipped, plus an optional note. It saves, and I can read your verdicts back next session, so you do not have to type up what you saw.
+
+On your hunch: 35 of the 88 stopped trades reached their original target within three days after the stop. There is a filter for exactly those, and the page opens on one. Treat it as a list of charts to look at, not proof. With stops and targets this close, random chop produces about that many. The bot's own early exits look better: 6 of the 7 went on to hit the stop anyway.
+
+I tested the saving by writing, reading back and deleting one test row. I previewed the charts locally in dark theme only. I could not click through the hosted page itself, so tell me if anything looks off on your phone.
+```
+
+**Owner:**
+
+```text
+so how would the trades that reached their target have affected the overall return vs the previous numbers?
+```
+
+**Lead's reply (the what-if the owner later said was not what they meant to test):**
+
+```text
+On paper it is huge. Counting those 35 as winners swings the month by about 92R, from -48R to +44R. But that is hindsight. No rule knows in advance which stops come back.
+
+The honest test is to widen the stop on every trade and let the ones that never come back lose more:
+
+| Stop | Trades that hit target | Month, same position size | Month, size cut to keep risk equal |
+|---|---|---|---|
+| As traded | 24% | -54R | -54R |
+| 1.5x wider | 33% | -65R | -44R |
+| 2x wider | 44% | -59R | -30R |
+| 3x wider | 60% | -53R | -18R |
+| No stop | 70 of 142 | -28R | not applicable |
+
+- Same size: wider stops win more often, but each loss is bigger, so the month does not improve.
+- Size cut to match: it loses less at every step, and still never turns positive.
+- No stop: half reach target. The other half sit on open losses averaging about -1.9R, with the worst at -12.7R.
+
+The "as traded" row reads -54R, not -48R, because every row here uses the same simple replay of stop and target only. The recorded -48R includes the bot's early exits, which saved a few R.
+
+So your eye is right that many stops come back. It is not the fix. A wider stop mostly trades many small losses for fewer large ones, and the entries are still worse than a coin flip.
+```
+
+**Owner, 2026-10-04 (THE CLOSING MESSAGE: start here next session):**
+
+```text
+So the one thing I would emphasize here is not jumping to conclusions. The what if on the stop/target information isn't and wasn't meant by me to test moving stops. While I believe I might have mentioned something like "maybe our stops are too tight" that was more a thought. The main data point here to focus on isn't R it's taking the data point of patterns do hit their target. But yes even that is not enough.
+
+I briefly am looking through the trades now. I may have to be reminded of our current timeframe continuity rules and stepping up time-frames in trades.
+
+Just by browsing I can't tell exactly the full context of the trade as continuity is unknown. A 4HR 3-2U CAN be a good trade, but emphasis on the can.
+
+A few ways to go from here - and you can give me your thoughts. Here are just a few quick ones of mine.
+
+1. I'm assuming we decided at some point to not trade time-frames higher than daily, leaving weekly and monthly only for context. This is an assumption I can be wrong
+2. Due to this, and even if the above is not true, we are not stepping up time-frames looking for the bigger trade on anything larger than a daily, or if we do we possibly even stop at the first higher timeframe that shows a continuation pattern, since we currently don't implement those. The reasoning behind this was more to ensure accuracy of detection first which has gotten immensely better.
+3. The question then becomes: "what did we miss in the higher context? With the small amount we are risking, how far can our stop go if we bump up the target timeframe? If it's a weekly timeframe trade do we place our stop at a daily pivot? Or keep it at the same timeframe? If we are trading a daily pattern, do we stay in the trade until the week flips red, or the week is red upon that daily closes bar, or stay in until the weekly bar closes red? (With the same scenario being applied to the other different timeframe)"
+
+This isn't a "let's overfit this". Trading to an extent is over fitting from previous pattern matching. But what this step is, is the "how do we code rules that a discretionary trader can see very fast, and occasionally even maybe drift from the rules (such as staying in a trade past its target when a higher timeframe trade is triggered too?) ?"
+
+Drifting from rules is more a term I used for what might be referred to as something like " trader intuition ". Not something you can ever code as a system automatically, but a chance parts of it can be taken.
+
+I would say due to context of 689k tokens we can not answer this right now. I would say now is a good time to run session end and try to leave as much of the latter parts of this conversation, especially what we are discussing now, verbatim in the handoff document to have to chance to fully explore next session
+```
+
+**Lead's reply at close:**
+
+```text
+You are right, and I overstepped: I turned "many stops come back" into a verdict on stops and entries when the observation that matters is the simpler one, patterns do reach their targets. I will record it that way.
+```
+
+### Context for next session
+
+- Begin with the closing message above and the reminder section. Restate the
+  as-built rules to the owner in trader terms and confirm them before any
+  design talk; the owner's assumption 2 differs from the code in the ways
+  listed there.
+- The owner's three questions are DESIGN questions in the STRAT STOP-and-ASK
+  zone: load the strat-methodology skill, plan mode, dual language, a-priori
+  definitions, prereg before code. Relevant skill sections: 4.5 (domino
+  cascade, "can this trigger the week? the month?"), 5.1 (pivot ladder, "an
+  HTF signal taking over justifies continuation" at magnitude), 5.4
+  (management profiles; "a 60-minute flip against = reduce, not exit").
+- The owner said they cannot judge a trade on the review page because the
+  continuity and higher context are not shown. The cheapest useful first step
+  is to PUT that context on the page: the five-timeframe continuity at entry
+  (aligned by rule) plus the monthly; the daily, weekly and monthly bar type
+  and color at the entry instant; prior week and month high and low lines; and
+  the sponsoring timeframe on continuations. The per-coin daily history
+  already on the page (150 days) is enough to build the weekly and monthly.
+- Read the owner's verdicts from the page's `reviews` collection first
+  (private memory holds the link and the tool call). They are the owner's own
+  read of where it goes wrong.
+- Keep replies condensed and in trader terms until the owner signals they
+  have time for a deep dive. Do not attach conclusions to the owner's
+  thoughts; report the data point asked for and stop.
+- The paper platform's blockers (funding-boundary block, order latency, the
+  prop test's entry cap) belong to the owner's other session in that repo; any
+  forward number from it is not comparable until they are fixed.
+
+### Files created/modified
+
+- analysis/parallax/: RECEIPT.md, trades.py, mfe.py, lostbook.py, census.py,
+  results/{trades_*,mfe_mae,lostbook,census,stop_whatif}.json,
+  review/{build_review.py, stop_whatif.py, trade_review.template.html}
+- analysis/regime/: venue_mrc.py, venue_mrc.json, index_continuity.py,
+  index_continuity.json, REGIME_LABELS_SEPT_RECEIPT.md
+- analysis/momentum/: sharp_move_study.py, sharp_move_study.json,
+  SHARP_MOVE_RECEIPT.md, top40_main.json, as_of.json
+- .gitignore (analysis/parallax/exports/ stays local)
+- docs/HANDOFF.md, .session_startup_prompt.md, docs/reviews/REVIEW_REQUEST.md,
+  docs/ARM_LEDGER.md (paper-month card)
+- Not in this repo: the published review page (private) and its data files;
+  raw account exports and candle caches under analysis/parallax/exports/.
+- No Pine file changed. No change to the executor, the scanner or the paper
+  platform repos (the paper platform was read, never written).
+
+### Open
+
+- [ ] Design discussion on the owner's closing message: higher-timeframe
+      context, where the stop sits when the target timeframe is bumped up, and
+      which higher-timeframe event ends a trade. Deep dive only on the owner's
+      signal.
+- [ ] Read the owner's verdicts from the review page store before that
+      discussion.
+- [ ] Add the higher-timeframe context to the review page (continuity at
+      entry with the monthly, higher-timeframe bar types, prior week and month
+      levels, continuation sponsor).
+- [ ] The owner supplies the one to three symbols.
+- [ ] No-session-calendar test: define it (session journaled, not gated;
+      weekends altcoins only; stock perps on weekends held). It needs a new
+      experiment identity on the paper platform, in that repo.
+- [ ] Friday-close oracle for stock perps: in-depth investigation before any
+      weekend stock-perp trading (owner's condition).
+- [ ] Sharp-move alarm tested the way the owner uses it (alarm, then prior
+      week or month level taken out, daily not inside, 4-hour bands as
+      sentiment): offered, not run.
+- [ ] Index simultaneous break (all indices together after a hammer or
+      shooter, both directions): untested; Dow and Russell are not on the
+      venue; confirm the hammer definition detail (the owner adds "no wick at
+      the extreme"; skill R20 does not).
+- [ ] The flush-bounce observation: a design candidate only, STOP-and-ASK.
+- [ ] Paper platform (other repo): funding-boundary block, order latency
+      against the 15-second window, the prop test's $250 entry cap.
+- [ ] HANDOFF.md is far over 1,500 lines: archive TVB-27..TVB-32 to
+      docs/session_archive/ on the owner's word (asked at TVB-34, TVB-35 and
+      again now).
+- [ ] TVB-31..TVB-35 session reviews still unreturned; TVB-36 requested.
+- [ ] Carried from TVB-35: fresh wallet and executor restart checklist (only
+      on the owner's word; the executor stays DOWN under KILL_FLAT); holiday
+      calendar for the xyz clock; scanner release with the three STRAT rulings
+      plus PR-B / PR-A; the 1-3 trigger convention ruling (far side vs
+      reclaim); round-3 close-out replay and the 12-continuation replay;
+      score-picker and cost-picker receipts; executor-side secret scan; July
+      A0b anchor; prospective halfway generator; slippage model; TVB-18
+      repairs; month-end fresh-window regen.
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb36-codex-audit.md.
+> See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: `3f087b0..__HEAD_SHA__` on `main` (pre-session sha ..
+  head; verify with `git diff --name-status 3f087b0..__HEAD_SHA__`). This repo
+  only; no sibling-repo commits this session.
+- Scope / what changed: analysis scripts and receipts over one month of paper
+  data (reconstruction, bracket-only replay of unfilled signals, random-walk
+  baseline, two regime labels, a sharp-move event study, a stop what-if), a
+  trade review page builder, and the session docs. No strategy code, no Pine.
+- Focus areas (scrutinize these): (1) `lostbook.py` -- entry at the order's
+  reference price, bracket-only, both-touch counts as stop, the 17-of-17
+  calibration, deduplication by signal key across accounts; (2) `census.py` --
+  the 1/(1+R:R) random-walk baseline and whether a z-score over trades that
+  cluster in time is overstated; (3) `mfe.py` -- matching software exits to
+  entries by symbol; (4) `venue_mrc.py` -- fidelity to the Pine script (change
+  horizon, population stdev, EMA through gaps, staleness, DXY weights) and the
+  completed-bar timing; (5) `index_continuity.py` -- UTC day / week / month
+  opens and the coupled-day count; (6) `sharp_move_study.py` -- ATR[1] by
+  Wilder RMA, the volume confirmation, per-bar clustering, and whether the
+  post-hoc cuts are labeled everywhere they are quoted; (7)
+  `build_review.py` -- the 72-hour "reached target after the stop" tag;
+  `stop_whatif.py` conventions; (8) the READING paragraphs in the receipts
+  against the owner's correction at the top of the HANDOFF entry -- flag any
+  sentence that states a conclusion the arithmetic does not carry; (9)
+  public-repo hygiene: no hosted platform URL, no page link, no secret; (10)
+  no Pine file changed (verify).
+- Reviewed by: pending
+- Findings: (blank until docs/reviews/tvb36-codex-audit.md exists)
+
+---
+
 ## Session TVB-35: round-3 monitoring, two shadows added, round 3 HALTED on the user's word, deployment paused for regime-detection design (COMPLETE)
 
 **Date:** 2026-09-07/08
