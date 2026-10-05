@@ -10,8 +10,13 @@
 
 ## Status
 
-- Status: REQUESTED
-  <!-- REQUESTED | RETURNED (audit file written) -->
+- Status: N/A -- WAIVED by the owner 2026-10-04 at TVB-37 session start (was
+  REQUESTED). Reason: receipts only, no strategy code and no Pine, and no rule
+  rests on these numbers. No audit is expected for this range unless the owner
+  re-requests it. In lieu, the public-repo hygiene item was self-checked: the
+  only URLs added in the range are the public Hyperliquid API, a chart-library
+  CDN and a fonts CDN; no Pine file changed; the exports folder is ignored.
+  <!-- REQUESTED | RETURNED (audit file written) | N/A -->
 - Session under review: TVB-36 -- one month of paper-platform data pulled and
   decomposed; the signals the platform never filled replayed through their own
   brackets; a random-walk baseline; two no-human regime labels; a sharp-move

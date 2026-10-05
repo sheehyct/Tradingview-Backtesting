@@ -417,7 +417,8 @@ You are right, and I overstepped: I turned "many stops come back" into a verdict
 > below) and write a verbatim assessment to docs/reviews/tvb36-codex-audit.md.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: REQUESTED
+- Review status: N/A -- waived by the owner 2026-10-04 at TVB-37 session
+  start (was REQUESTED); see docs/reviews/REVIEW_REQUEST.md
 - Commits to review: `3f087b0..ecc4d6c` on `main` (pre-session sha ..
   head; verify with `git diff --name-status 3f087b0..ecc4d6c`). This repo
   only; no sibling-repo commits this session.
