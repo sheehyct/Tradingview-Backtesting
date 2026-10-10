@@ -100,3 +100,54 @@ venue's 1h history is a separate, later product). No underlying-equity
 mirror run (the Underlying-RTH mirror rule applies to performance tests; the
 confound is stated in the receipt). No tuning of the 0.25% band, the 10%
 sliver or the 1 million floor on what the count shows.
+
+## Amendments after the external audit (2026-10-10, post-hoc, labelled)
+
+The Codex audit of commit 8b800a7 (`docs/reviews/tvb37-codex-audit.md`, verdict
+NEEDS-CHANGES) found engine defects and wording gaps. The definitions above are
+NOT changed; the items below say how the code now resolves cases the text left
+implicit, and every one was fixed before any outcomes product reused the
+engine. Each is tagged with the audit finding it answers.
+
+- **Gaps and duplicates (F1).** A day whose previous calendar day has no closed
+  candle carries no event (there is no daily level), and is counted as
+  "skipped, no yesterday". A duplicate candle for the same day keeps the LAST
+  copy; a timestamp off the 00:00 UTC grid is dropped; both are counted and
+  reported. A week / month / quarter is COMPLETE only when every calendar day
+  of it is present exactly once. "Shared open" means the day IS the calendar
+  first day of the new bar, not merely the first day observed. (The cached
+  venue history had zero gaps, duplicates or off-grid stamps, so the
+  committed numbers do not move; the engine now proves it instead of assuming
+  it.)
+- **Nesting check (F2).** Any week / month / quarter first break on a day
+  without a daily break is a violation, whatever the rank. The old check only
+  looked at rank 2+.
+- **Boundaries (F3, F6).** The 0.25%, 1% and 10% comparisons are made on the
+  prices as decimals (the strings the venue printed), so a gap of exactly
+  0.25% is NEAR, exactly 1% is WITHIN 1%, and a wick of exactly one tenth of
+  the range is STRICT. Binary floats put those cases one band out.
+- **Units (F4).** The event-row field is `gap_pct`, in PERCENT of the lowest
+  level (0.5 = half a percent). It was a fraction under a `_pct` name.
+- **Setup-kind denominators (F5).** A setup bar with no classifiable
+  predecessor (the first bars of a listing) is counted as "not classified" and
+  shown beside the percentages, which are of CLASSIFIED setups only. Its shape
+  flags still enter the all-setup reference counters.
+- **Equality to the open (F7).** A broken level exactly AT the quarter's,
+  month's or week's open is "against" (not the trade's colour). Definitions 9
+  and 10 say "on the break's side", which equality is not.
+- **Events versus days (F8).** An outside day breaks both ways and is TWO
+  events. "Of all breaks" means of all directional events; "per 100 days"
+  divides by eligible comparison days (closed days minus each coin's first).
+  The receipt now also reports distinct days with a break and with a rank 2+
+  break, so both denominators are visible.
+- **Universe exclusions (F9, F10).** Every coin the run could not use is
+  listed with its reason (fetch failure, fewer than three closed days). The
+  universe is live listings only, so the count is SURVIVORS ONLY: a coin
+  delisted before the run is absent from its whole history. LIQUID is today's
+  membership applied to each coin's full history, not a historical label.
+- **Venue era (F11, provenance).** The venue's candle API serves ZERO-volume
+  daily candles from before a coin first traded (BTC back to 2020-08-19; its
+  first traded day is 2023-02-26). Those bars are index prices, not venue
+  bars. A second split, VENUE ERA, starts each coin at its first traded day
+  and is reported beside ALL so the reader can see what the backfill
+  contributes. Declared as a provenance check, not a new definition.

@@ -37,6 +37,7 @@ import sys
 import time
 from collections import Counter
 from datetime import datetime, timezone
+from decimal import Decimal
 from pathlib import Path
 
 HERE = Path(__file__).parent
@@ -45,9 +46,9 @@ RESULTS = HERE / "results"
 INFO = "https://api.hyperliquid.xyz/info"
 DAY = 86_400_000
 TFS = ("D", "W", "M", "Q")
-NEAR_BAND = 0.0025  # the dashboard's domino band
-WITHIN_BAND = 0.01
-SLIVER = 0.10  # TA-Lib's "very short shadow" figure, measured on the bar's OWN range
+NEAR_BAND = Decimal("0.0025")  # the dashboard's domino band (fraction of the lowest level)
+WITHIN_BAND = Decimal("0.01")
+SLIVER = Decimal("0.10")  # TA-Lib's "very short shadow" figure, measured on the bar's OWN range
 LIQUID_USD = 1_000_000.0
 LIQUID_DAYS = 30
 MAX_CANDLES = 5000
@@ -149,25 +150,45 @@ def next_start(tf: str, key: int) -> int:
 START = {"W": week_start, "M": month_start, "Q": quarter_start}
 
 
-def normalize(rows: list[dict], now_ms: int) -> list[dict]:
-    """Closed daily bars only, ascending, numeric. The forming day (its end is in the future) is cut."""
-    out = []
+def normalize(rows: list[dict], now_ms: int, stats: dict | None = None) -> list[dict]:
+    """Closed daily bars only, ascending, numeric, one bar per calendar day.
+
+    The forming day (its end is in the future) is cut. A timestamp that is not a 00:00 UTC day
+    start is dropped, and when the venue returns the same day twice the LAST copy wins; both are
+    counted in `stats` so the run can disclose them (audit F1). Gaps are never filled.
+    """
+    by_t: dict[int, dict] = {}
+    dup = unaligned = 0
     for r in rows:
         t = int(r["t"])
         if t + DAY > now_ms:
             continue
-        out.append(
-            {
-                "t": t,
-                "o": float(r["o"]),
-                "h": float(r["h"]),
-                "l": float(r["l"]),
-                "c": float(r["c"]),
-                "v": float(r.get("v", 0.0)),
-            }
-        )
-    out.sort(key=lambda x: x["t"])
+        if t % DAY != 0:
+            unaligned += 1
+            continue
+        if t in by_t:
+            dup += 1
+        by_t[t] = {
+            "t": t,
+            "o": float(r["o"]),
+            "h": float(r["h"]),
+            "l": float(r["l"]),
+            "c": float(r["c"]),
+            "v": float(r.get("v", 0.0)),
+        }
+    out = [by_t[t] for t in sorted(by_t)]
+    if stats is not None:
+        stats["duplicates"] = dup
+        stats["unaligned"] = unaligned
+        stats["gap_days"] = gap_days(out)
     return out
+
+
+def gap_days(daily: list[dict]) -> int:
+    """Calendar days missing between the first and the last closed bar (0 when contiguous)."""
+    if len(daily) < 2:
+        return 0
+    return (daily[-1]["t"] - daily[0]["t"]) // DAY + 1 - len(daily)
 
 
 def aggregate(daily: list[dict], tf: str) -> list[dict]:
@@ -202,8 +223,11 @@ def aggregate(daily: list[dict], tf: str) -> list[dict]:
         buckets.pop(0)
     last_end = daily[-1]["t"] + DAY if daily else 0
     for b in buckets:
-        expected = (b["end"] - b["t"]) // DAY
-        b["complete"] = b["end"] <= last_end and len(b["days"]) == expected
+        have = [daily[i]["t"] for i in b["days"]]
+        want = list(range(b["t"], b["end"], DAY))
+        # complete = every calendar day of the bucket present exactly once (audit F1: a duplicate
+        # masking a missing day used to pass on the count alone)
+        b["complete"] = b["end"] <= last_end and have == want
     return buckets
 
 
@@ -234,35 +258,55 @@ def setup_kind(prev_type: str | None, direction: str) -> str | None:
     return "continuation" if with_break else "reversal"
 
 
+def nesting_violation(broken: dict[str, float]) -> bool:
+    """A week / month / quarter first break on a day that did not break the daily level.
+
+    Impossible on contiguous data (yesterday either sits inside the higher bar, so its high is
+    at or under the running high, or it closed the previous bar, so its high is at or under that
+    bar's high), so any hit is a bug. Audit F2: the old check only looked at rank 2+ events, so a
+    week-only hit was counted as a rank 1 event with no violation.
+    """
+    return "D" not in broken and any(tf in broken for tf in ("W", "M", "Q"))
+
+
+def _dec(x: float) -> Decimal:
+    """The price as the decimal the venue printed (str(float) is the shortest round-trip form), so
+    a wick of exactly 10% or a gap of exactly 0.25% lands ON the boundary (audit F3, F6)."""
+    return Decimal(str(x))
+
+
 def shape_flags(bar: dict, direction: str) -> tuple[bool, bool]:
     """(THIRD, STRICT) for the bar as a hammer (up break) or shooter (down break)."""
-    rng = bar["h"] - bar["l"]
+    h, lo, o, c = _dec(bar["h"]), _dec(bar["l"]), _dec(bar["o"]), _dec(bar["c"])
+    rng = h - lo
     if rng <= 0:
         return False, False
-    top = max(bar["o"], bar["c"])
-    bot = min(bar["o"], bar["c"])
+    top = max(o, c)
+    bot = min(o, c)
     if direction == "up":
-        third = bot >= bar["h"] - rng / 3.0
-        wick = bar["h"] - top
+        third = (bot - lo) * 3 >= rng * 2  # body entirely in the top third
+        wick = h - top
     else:
-        third = top <= bar["l"] + rng / 3.0
-        wick = bot - bar["l"]
-    strict = third and wick <= SLIVER * rng
+        third = (h - top) * 3 >= rng * 2  # body entirely in the bottom third
+        wick = bot - lo
+    strict = third and wick <= rng * SLIVER
     return third, strict
 
 
 def distance_band(levels: list[float]) -> tuple[float, str]:
-    lo, hi = min(levels), max(levels)
-    pct = (hi - lo) / lo if lo > 0 else 0.0
-    if pct == 0.0:
+    """Largest gap between the broken levels as a FRACTION of the lowest (0.01 = 1%), and its band.
+    Boundaries are inclusive: exactly 0.25% is NEAR, exactly 1% is WITHIN 1%."""
+    lo, hi = _dec(min(levels)), _dec(max(levels))
+    frac = (hi - lo) / lo if lo > 0 else Decimal(0)
+    if frac == 0:
         band = "exact"
-    elif pct <= NEAR_BAND:
+    elif frac <= NEAR_BAND:
         band = "near"
-    elif pct <= WITHIN_BAND:
+    elif frac <= WITHIN_BAND:
         band = "within1"
     else:
         band = "spread"
-    return pct, band
+    return float(frac), band
 
 
 # ----------------------------------------------------------------------------- per-coin engine
@@ -303,7 +347,8 @@ def _context(daily: list[dict], buckets: dict[str, list[dict]]) -> dict[str, dic
                     "open": b["o"],
                     "run_h": run_h,
                     "run_l": run_l,
-                    "is_first_day": di == b["days"][0],
+                    "is_first_day": daily[di]["t"]
+                    == b["t"],  # the calendar open, not the first bar seen
                 }
                 d = daily[di]
                 run_h = d["h"] if run_h is None else max(run_h, d["h"])
@@ -345,6 +390,9 @@ def analyze_coin(daily: list[dict]) -> dict:
         "shape": Counter(),  # (tf, kind, flag) -> n, flag in third/strict/any
         "ref": Counter(),  # (tf, ref_type) -> n for reversal setups
         "violations": 0,
+        "skipped_no_yesterday": 0,  # days whose previous calendar day is missing (audit F1)
+        "break_days": 0,  # distinct days with at least one event, either direction (audit F8)
+        "rank2plus_days": 0,  # distinct days with at least one rank 2+ event
         "complete_w": sum(1 for b in buckets["W"] if b["complete"]),
         "complete_m": sum(1 for b in buckets["M"] if b["complete"]),
         "complete_q": sum(1 for b in buckets["Q"] if b["complete"]),
@@ -353,8 +401,16 @@ def analyze_coin(daily: list[dict]) -> dict:
     for i in range(1, len(daily)):
         d = daily[i]
         pd = daily[i - 1]
-        pd_type = classify(pd, daily[i - 2]) if i >= 2 else None
-        pd_ref = classify(daily[i - 2], daily[i - 3]) if i >= 3 else None
+        if pd["t"] != d["t"] - DAY:
+            # no closed bar for yesterday: the day has no daily level, so it carries no event
+            # (audit F1: the previous array element used to stand in for yesterday across a gap)
+            agg["skipped_no_yesterday"] += 1
+            continue
+        adj2 = i >= 2 and daily[i - 2]["t"] == pd["t"] - DAY
+        adj3 = adj2 and i >= 3 and daily[i - 3]["t"] == daily[i - 2]["t"] - DAY
+        pd_type = classify(pd, daily[i - 2]) if adj2 else None
+        pd_ref = classify(daily[i - 2], daily[i - 3]) if adj3 else None
+        day_hit = day_hit2 = False
         shared = {
             "W": ctx["W"].get(i, {}).get("is_first_day", False),
             "M": ctx["M"].get(i, {}).get("is_first_day", False),
@@ -385,27 +441,31 @@ def analyze_coin(daily: list[dict]) -> dict:
                     setups[tf] = (c["prev_type"], c["prev"], c["ref_type"])
             if not broken:
                 continue
+            day_hit = True
             rank = len(broken)
-            if rank >= 2 and "D" not in broken:
+            if nesting_violation(broken):
                 agg["violations"] += 1
             agg["rank"][(direction, rank)] += 1
             kinds = {}
             for tf, (ptype, sbar, ref) in setups.items():
                 kind = setup_kind(ptype, direction)
                 kinds[tf] = kind
-                if kind is None:
-                    continue
-                agg["kind"][(tf, kind)] += 1
+                # a setup bar with no classifiable predecessor is counted as "unknown" so the
+                # setup-kind denominators are disclosed (audit F5); its shape still goes to the
+                # all-setup reference counters
+                key = kind or "unknown"
+                agg["kind"][(tf, key)] += 1
                 third, strict = shape_flags(sbar, direction)
-                agg["shape"][(tf, kind, "any")] += 1
+                agg["shape"][(tf, key, "any")] += 1
                 if third:
-                    agg["shape"][(tf, kind, "third")] += 1
+                    agg["shape"][(tf, key, "third")] += 1
                 if strict:
-                    agg["shape"][(tf, kind, "strict")] += 1
+                    agg["shape"][(tf, key, "strict")] += 1
                 if kind == "reversal" and ref is not None:
                     agg["ref"][(tf, ref)] += 1
             if rank < 2:
                 continue
+            day_hit2 = True
             pct, band = distance_band(list(broken.values()))
             day_level = broken["D"] if "D" in broken else list(broken.values())[0]
             support = {}
@@ -438,7 +498,8 @@ def analyze_coin(daily: list[dict]) -> dict:
                     "rank": rank,
                     "tfs": "+".join(tf for tf in TFS if tf in broken),
                     "levels": {tf: broken[tf] for tf in TFS if tf in broken},
-                    "distance_pct": pct,
+                    "gap_pct": 100.0
+                    * pct,  # PERCENT of the lowest level (audit F4: was a fraction)
                     "band": band,
                     "kinds": kinds,
                     "flags": flags,
@@ -447,6 +508,8 @@ def analyze_coin(daily: list[dict]) -> dict:
                     "shared_open": "+".join(tf for tf in ("W", "M", "Q") if shared[tf]) or "",
                 }
             )
+        agg["break_days"] += int(day_hit)
+        agg["rank2plus_days"] += int(day_hit2)
     return {"agg": agg, "rows": rows}
 
 
@@ -479,10 +542,14 @@ def summarize(coins: list[dict]) -> dict:
     rates = []
     days_total = 0
     violations = 0
+    skipped = break_days = rank2_days = 0
     for c in coins:
         a = c["agg"]
         days_total += a["days"]
         violations += a["violations"]
+        skipped += a.get("skipped_no_yesterday", 0)
+        break_days += a.get("break_days", 0)
+        rank2_days += a.get("rank2plus_days", 0)
         for k, v in a["rank"].items():
             rank[k] += v
         for k, v in a["kind"].items():
@@ -533,7 +600,10 @@ def summarize(coins: list[dict]) -> dict:
         }
     return {
         "coins": len(coins),
-        "coin_days": days_total,
+        "coin_days": days_total,  # eligible comparison days: closed days minus each coin's first
+        "skipped_no_yesterday": skipped,
+        "break_days": break_days,
+        "rank2plus_days": rank2_days,
         "violations": violations,
         "rank": ser(rank),
         "composition": ser(comp),
@@ -552,6 +622,11 @@ def summarize(coins: list[dict]) -> dict:
 def tables(name: str, s: dict) -> str:
     out = [
         f"## {name}: {s['coins']} coins, {s['coin_days']:,} coin-days, nesting violations {s['violations']}",
+        "",
+        f"Days with at least one break (either direction): {s.get('break_days', 0):,}; days with a "
+        f"rank 2+ break: {s.get('rank2plus_days', 0):,}; days skipped because the previous calendar "
+        f"day is missing: {s.get('skipped_no_yesterday', 0):,}. An outside day breaks both ways and "
+        "counts as two events, so event counts exceed day counts.",
         "",
     ]
     out.append("### Events by rank and direction")
@@ -586,18 +661,24 @@ def tables(name: str, s: dict) -> str:
             f"{s['band_by_rank'].get(f'4|{b}', 0):,} | {s['band'].get(f'up|{b}', 0):,} | {s['band'].get(f'down|{b}', 0):,} |"
         )
     out.append("")
-    out.append("### Setup kind per timeframe (all events, the previous bar vs its own predecessor)")
-    out.append("| timeframe | reversal | continuation | inside break | outside break |")
-    out.append("|---|---|---|---|---|")
+    out.append(
+        "### Setup kind per timeframe (the previous bar vs its own predecessor; percentages are of "
+        "CLASSIFIED setups, the last column has no classifiable predecessor and sits outside them)"
+    )
+    out.append(
+        "| timeframe | reversal | continuation | inside break | outside break | not classified |"
+    )
+    out.append("|---|---|---|---|---|---|")
     for tf in TFS:
         n = {
             k: s["kind"].get(f"{tf}|{k}", 0)
             for k in ("reversal", "continuation", "inside", "outside")
         }
         d = sum(n.values())
+        unk = s["kind"].get(f"{tf}|unknown", 0)
         out.append(
             f"| {tf} | {n['reversal']:,} ({_pct(n['reversal'], d).strip()}) | {n['continuation']:,} ({_pct(n['continuation'], d).strip()}) | "
-            f"{n['inside']:,} ({_pct(n['inside'], d).strip()}) | {n['outside']:,} ({_pct(n['outside'], d).strip()}) |"
+            f"{n['inside']:,} ({_pct(n['inside'], d).strip()}) | {n['outside']:,} ({_pct(n['outside'], d).strip()}) | {unk:,} |"
         )
     out.append("")
     out.append("### Hammer / shooter flags on REVERSAL setup bars (the resource's normal hammer)")
@@ -688,25 +769,59 @@ def main() -> None:
         flush=True,
     )
     coins = []
+    excluded = []  # audit F9: every coin the census could not use, with the reason
+    quality = Counter()
     for n, u in enumerate(uni, 1):
         try:
             raw = fetch_daily(u["coin"], as_of)
         except Exception as exc:  # noqa: BLE001
             print(f"  skip {u['coin']}: {exc}", flush=True)
+            excluded.append({"coin": u["coin"], "dex": u["dex"], "reason": f"fetch failed: {exc}"})
             continue
-        daily = normalize(raw, as_of)
+        st: dict = {}
+        daily = normalize(raw, as_of, st)
+        quality.update(st)
         if len(daily) < 3:
+            excluded.append(
+                {
+                    "coin": u["coin"],
+                    "dex": u["dex"],
+                    "reason": f"{len(daily)} closed day(s), fewer than the 3 a break needs",
+                }
+            )
             continue
         res = analyze_coin(daily)
+        # venue era: the venue serves ZERO-volume candles from before a coin first traded (BTC
+        # back to 2020-08-19 with no trade until 2023-02-26); those days are index prices, not
+        # venue bars, so a second pass starts at each coin's first traded day (audit F11)
+        first_traded = next((k for k, d in enumerate(daily) if d["v"] > 0), None)
+        if first_traded is None:
+            venue = None
+        elif first_traded == 0:
+            venue = res
+        else:
+            venue = analyze_coin(daily[first_traded:]) if len(daily) - first_traded >= 3 else None
         coins.append(
             {
                 "coin": u["coin"],
                 "dex": u["dex"],
                 "liquid": liquid(daily),
                 "days": res["agg"]["days"],
+                "duplicates": st["duplicates"],
+                "unaligned": st["unaligned"],
+                "gap_days": st["gap_days"],
                 "first_day": datetime.fromtimestamp(daily[0]["t"] / 1000, tz=timezone.utc).strftime(
                     "%Y-%m-%d"
                 ),
+                "venue_first_day": (
+                    None
+                    if first_traded is None
+                    else datetime.fromtimestamp(
+                        daily[first_traded]["t"] / 1000, tz=timezone.utc
+                    ).strftime("%Y-%m-%d")
+                ),
+                "backfill_days": first_traded or 0,
+                "venue": venue,
                 "complete_w": res["agg"]["complete_w"],
                 "complete_m": res["agg"]["complete_m"],
                 "complete_q": res["agg"]["complete_q"],
@@ -721,16 +836,21 @@ def main() -> None:
         "LIQUID": [c for c in coins if c["liquid"]],
         "ALL main dex": [c for c in coins if c["dex"] == "main"],
         "ALL xyz dex": [c for c in coins if c["dex"] == "xyz"],
+        "VENUE ERA (from each coin's first traded day)": [
+            c["venue"] for c in coins if c["venue"] is not None
+        ],
     }
     out = {
         "as_of_utc": datetime.fromtimestamp(as_of / 1000, tz=timezone.utc).strftime("%Y-%m-%d"),
         "definitions": "docs/experiments/tvb37_domino_census_prereg.md",
         "bands": {
-            "near": NEAR_BAND,
-            "within": WITHIN_BAND,
-            "sliver": SLIVER,
+            "near": float(NEAR_BAND),
+            "within": float(WITHIN_BAND),
+            "sliver": float(SLIVER),
             "liquid_usd": LIQUID_USD,
         },
+        "excluded": excluded,
+        "data_quality": dict(quality),  # duplicates / unaligned timestamps dropped, gap days seen
         "coins": [
             {
                 k: c[k]
@@ -739,7 +859,12 @@ def main() -> None:
                     "dex",
                     "liquid",
                     "days",
+                    "duplicates",
+                    "unaligned",
+                    "gap_days",
                     "first_day",
+                    "venue_first_day",
+                    "backfill_days",
                     "complete_w",
                     "complete_m",
                     "complete_q",
@@ -762,7 +887,7 @@ def main() -> None:
                 "direction",
                 "rank",
                 "tfs",
-                "distance_pct",
+                "gap_pct",
                 "band",
                 "levels",
                 "kinds",
@@ -783,7 +908,7 @@ def main() -> None:
                         r["direction"],
                         r["rank"],
                         r["tfs"],
-                        f"{r['distance_pct']:.6f}",
+                        f"{r['gap_pct']:.6f}",
                         r["band"],
                         json.dumps(r["levels"]),
                         json.dumps(r["kinds"]),

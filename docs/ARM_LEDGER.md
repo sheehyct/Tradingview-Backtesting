@@ -520,12 +520,20 @@ settings at $1 risk, but with 26 fills they stay unread as arms.
   close did those levels sit? Built on calendar bars from daily candles (Monday weeks, calendar
   months and quarters). Pre-registered: `docs/experiments/tvb37_domino_census_prereg.md`.
   Receipt: `analysis/domino/RECEIPT.md`.
-- **Numbers:** 292 coins, 214,861 coin-days. Rank 2+ (two or more levels in one day) = 31,501
-  events, 15.9% of all breaks, a median 14.7 per coin per 100 days; day + week = 78% of them.
-  Stacked (same price or within 0.25%) = 21% of rank 2+; the same-price ones sit almost only on
-  shared-open days (5,003 of 5,056). Three- and four-level days: 1.7% and 0.3% of events.
-  Reversal setups about 29% per timeframe; hammer / shooter on those: top-third 17-21%, strict
-  (sliver wick) about 8%.
+- **Numbers:** 292 coins, 214,861 coin-days, 175,891 of them with a break. Rank 2+ (two or
+  more levels in one directional break) = 31,501 events, 15.9% of all directional breaks and
+  17.8% of break days (an outside day breaks both ways and is two events), a median 14.7 per
+  coin per 100 days; day + week = 78% of them. Stacked (same price or within 0.25%) = 21% of
+  rank 2+; the same-price ones sit almost only on shared-open days (5,003 of 5,056). Three- and
+  four-level events: 1.7% and 0.3%; down's share rises with rank (52%, 61%, 71%). Reversal
+  setups 29-30% of classified setups on the day, week and month, 35% on the quarter; hammer /
+  shooter on those: top-third 17-21%, strict (sliver wick) 8-9%. Re-run from each coin's first
+  traded day (48,331 zero-volume index-price days removed) moves no day or week share by more
+  than half a point.
+- **Audit:** Codex, 2026-10-10 (`docs/reviews/tvb37-codex-audit.md`): NEEDS-CHANGES, twelve
+  findings (gap and duplicate handling, a nesting check that skipped rank 1, float boundaries,
+  denominators, wording). Engine fixed, 16 hand vectors, re-run the same day; the counts moved
+  by at most four hammer flags. Synthesis in the TVB-37 HANDOFF entry.
 - **What it is for:** sample sizes and the shape of the domino space before any rule is
   written. It ranks nothing and promotes nothing.
 

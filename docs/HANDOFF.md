@@ -5,6 +5,159 @@
 
 ---
 
+## Session TVB-37: the data redirect -- daily / weekly / monthly domino census, its external audit and fold, and the chance-comparison design (IN PROGRESS)
+
+**Date:** 2026-10-04 .. 2026-10-10 (open)
+**Status:** IN PROGRESS. The owner redirected the workspace to data products on
+the daily, weekly and monthly timeframes ("step back to focus on the data
+aspect"; any paper or live run is data only; rank entries by how many
+higher-timeframe levels break together, the domino). First product: a
+pre-registered census of multi-level breaks on every live perp. It was built,
+run, externally audited the same day, fixed on every finding and re-run. The
+second product, a pattern-matched "chance" comparison, is designed in trader
+terms below and waits on two owner answers.
+
+### Rulings collected this session (owner, dated)
+
+- 2026-10-04: paper and live = data only; trade D / W / M only; rank by levels
+  broken together; quarter = context; monthly broadening-formation target =
+  later; hierarchy and hammer definition go to design work; TVB-36 review
+  waived. Domino = at least two levels stacked, any time, not only at shared
+  opens; timeframes outside the stack "still in your direction" = support.
+- 2026-10-05: quarter = CALENDAR quarter, context only (prefer in favour,
+  ideally not inside, if inside the trade's colour). Hammer = the resource's
+  basic shape (body in the far third), momo left out "to keep it simple";
+  SOXL is a hard reference (leveraged fund vs perp).
+- 2026-10-09: a sliver of wick allowed (coded as at most one tenth of the
+  bar's own range); every D / W / M break of the prior bar's high or low is
+  taken for data, continuations included ("take both for data"). Census card
+  approved: "Yes the card reads right we can go when ready".
+- 2026-10-10: intraday pass not needed yet; the hierarchy rulings need a
+  comparison first. Hypothesis 1: stacks that exist only because yesterday was
+  the last candle of the week or month (shared opens) underperform. Compare the
+  same pattern with and without the stacked level (an "A+ setup" against its
+  plain version). Levels must be exact; any wiggle room only in the trade's
+  direction, and only for candle accuracy. Drop the quarter as a rule at
+  first. Add the momo hammer for testing (a 2U sold hard inside the bar that
+  held the prior low, closed as a hammer, then 2U again). Keep trader language
+  in every data report.
+
+### Product 1: the domino census (DONE, audited, folded)
+
+- Prereg `docs/experiments/tvb37_domino_census_prereg.md` (definitions before
+  code; labelled post-audit amendments appended). Engine
+  `analysis/domino/census.py`; tests `tests/test_domino_census.py` (16 hand
+  vectors); receipt `analysis/domino/RECEIPT.md` with a trader's glossary;
+  ledger card under "Data products (counts, not arms)". Commit 8b800a7, then
+  the audit fold.
+- Headline, in chart terms: of all days that took out yesterday's high or
+  low, about one in six also took last week's or last month's level for the
+  first time. Four in five of those are day plus week. Same-price stacks are a
+  shared-open phenomenon (99%: the old bar closed on its extreme). Two thirds
+  of multi-level days have the levels more than 1% apart. Down's share rises
+  with rank (52% / 61% / 71%). Reversal setups are under a third of classified
+  setups on the day, week and month; a hammer or shooter sits on about one in
+  six of them by the 33% rule, one in twelve with the sliver wick. Most breaks
+  happened while the quarter had already taken out its low.
+- Provenance found during the fold: the venue's API serves zero-volume
+  index-price candles from before a coin traded (BTC from 2020-08-19, first
+  trade 2023-02-26); 94 coins, 48,331 coin-days. A VENUE ERA split (each coin
+  from its first traded day) sits beside ALL; no day or week share moves by
+  more than half a point.
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb37-codex-audit.md.
+> See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: ADDRESSED (mid-session audit of the census, owner-requested;
+  the fold commit and the chance-comparison work will get their own request at
+  session end)
+- Commits to review: `ecc4d6c..8b800a7` on `main` (the census); the fold is
+  the commit after ea58c6c
+- Scope / what changed: census prereg, engine, tests, receipt, ledger card
+- Focus areas (scrutinize these): calendar aggregation, first-break-only and
+  strict comparisons, the shared-open exact stack, nesting check, bands,
+  setup kinds, hammer flags, quarter states, denominators, LIQUID notional,
+  data fetch, receipt honesty, tests, hygiene
+- Reviewed by: local Codex CLI (`codex exec -s read-only`, third run; the
+  first two could not start their Windows sandbox and returned a tooling
+  BLOCK, not recorded)
+- Findings: `docs/reviews/tvb37-codex-audit.md` -- NEEDS-CHANGES, 12 findings
+  (F1 HIGH, F2 F3 F6 F8 F9 F11 F12 MEDIUM, F4 F5 F7 F10 LOW)
+
+### Critical synthesis of the audit (where the session agrees, disputes, acts)
+
+- **F1 HIGH, gaps and duplicates -- AGREE, fixed.** The engine trusted the
+  array order: a missing day made the previous element "yesterday", a
+  duplicate could mask a gap in a "complete" bar, and the first bar seen in a
+  bucket passed as the shared open. Now: a day without an adjacent yesterday
+  carries no event and is counted; duplicates keep the last copy and are
+  counted; off-grid stamps are dropped and counted; complete means every
+  calendar day present exactly once; shared open means the calendar first day.
+  The cached history has zero gaps, duplicates or off-grid stamps (the engine
+  now reports this), so the committed counts did not move.
+- **F2 MEDIUM, nesting check -- AGREE, fixed.** The old check only fired at
+  rank 2+, so a week-only hit would have been a silent rank 1 event. Now any
+  higher-timeframe hit without a daily hit is a violation (still 0).
+- **F3 / F6 MEDIUM, float boundaries -- AGREE, fixed.** Exactly 0.25%, exactly
+  1% and a wick of exactly one tenth were falling one band out in binary
+  floats. Comparisons now run on the venue's decimal prices; four hammer flags
+  moved onto the inclusive boundary. No band in the 31,501 rows changed.
+- **F4 LOW, units -- AGREE, fixed.** The row field is `gap_pct`, in percent.
+- **F5 LOW, denominators -- AGREE, fixed.** Setups without a classifiable
+  predecessor (250 / 261 / 231 / 194 by timeframe) are shown beside the
+  percentages, which are of classified setups.
+- **F7 LOW, equality to the open -- AGREE, documented.** A level exactly at
+  the open is "against"; the prereg amendment says so.
+- **F8 MEDIUM, events vs days -- AGREE, fixed in the receipt.** 15.9% of
+  directional events; 17.8% of break days; outside days count twice as events.
+  Both denominators are now in the tables.
+- **F9 / F10 MEDIUM / LOW, exclusions and survivorship -- AGREE, fixed.** The
+  run records excluded coins (none) and data quality; the receipt says
+  survivors only and that LIQUID is today's membership applied backwards.
+- **F11 MEDIUM, receipt wording -- AGREE on every item.** "Under a third"
+  hid the quarter's 34.7%; "down leads slightly" hid 61% / 71%; "no share
+  moves more than a point" was false for the monthly and quarterly hammer
+  rows; "most xyz coins lack a prior quarter" confused coins with events (84
+  of 114 have one); "history to 2023" was wrong -- 2020-08-19, which led to
+  the provenance finding above. All corrected and tagged in the receipt.
+- **F12 MEDIUM, tests -- AGREE, nine vectors added**, including the audit's
+  four reproduced failures and the denominators.
+- **Disputed: nothing.** One nuance: the reviewer's "the 53 plain-day exact
+  stacks are valid" is accepted and is now explained in the receipt (yesterday
+  retouched the higher level without breaking it).
+
+### Product 2: the chance comparison (DESIGN, awaiting two owner answers)
+
+Proposed to the owner 2026-10-10 in trader terms: entry at the broken level
+the instant it breaks, stop at the other side of the setup bar, chance of one
+R before the stop within 1 / 3 / 5 bars of the pattern's timeframe (coin flip
+= 50%), plus next-bar follow-through and furthest travel for and against in
+R. Same pattern against itself: plain (yesterday's level only) vs A+ (the
+higher level taken together), with the A+ side split into shared-open exact
+stacks (hypothesis 1), in-favour near stacks, and spread. Weekly and monthly
+patterns likewise. Splits fixed a priori: long / short, year, liquid, month's
+open with or against. Quarter recorded, not ruled. Momo hammer recorded in
+both forms (2U-2U hammer, and the resource's inside-bar hammer), kept apart.
+Pessimistic same-day rule (stop and one R both touched = stop). Survivors
+only; RTH mirror not run, confound stated. Every chance with a count and an
+interval; no split picked afterwards.
+
+Open to the owner: (1) the in-favour wiggle reading (the higher level sits at
+or a hair BEYOND yesterday's level in the trade's direction, within a quarter
+percent; a level a hair short does not count): yes or no; (2) the card: go or
+edit. Nothing is coded until both are answered.
+
+### Carried items (untouched this session)
+
+Fresh wallet / executor restart checklist, scanner STRAT rulings, intraday
+order pass (owner: not yet), paper rule set / prereg for the other workspace,
+monthly BF target, Friday-close oracle / SOXL off-hours pricing research.
+
+---
+
 ## Session TVB-36: paper-month receipt, the kill call on the round-3 mechanical book, regime and momentum receipts, the trade review page, and the higher-timeframe question left open (COMPLETE)
 
 **Date:** 2026-10-02 .. 2026-10-04

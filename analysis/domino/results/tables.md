@@ -7,6 +7,8 @@
 
 ## ALL: 292 coins, 214,861 coin-days, nesting violations 0
 
+Days with at least one break (either direction): 175,891; days with a rank 2+ break: 31,356; days skipped because the previous calendar day is missing: 0. An outside day breaks both ways and counts as two events, so event counts exceed day counts.
+
 ### Events by rank and direction
 | rank | up | down | share of all events |
 |---|---|---|---|
@@ -34,19 +36,19 @@
 | WITHIN 1% | 4,119 | 280 | 31 | 2,148 | 2,282 |
 | SPREAD (> 1%) | 17,118 | 2,870 | 476 | 9,332 | 11,132 |
 
-### Setup kind per timeframe (all events, the previous bar vs its own predecessor)
-| timeframe | reversal | continuation | inside break | outside break |
-|---|---|---|---|---|
-| D | 57,912 (29.2%) | 80,784 (40.7%) | 41,406 (20.9%) | 18,344 (9.2%) |
-| W | 7,999 (28.8%) | 10,989 (39.6%) | 6,129 (22.1%) | 2,624 (9.5%) |
-| M | 1,757 (29.7%) | 2,422 (40.9%) | 1,225 (20.7%) | 519 (8.8%) |
-| Q | 535 (34.7%) | 606 (39.4%) | 341 (22.1%) | 58 (3.8%) |
+### Setup kind per timeframe (the previous bar vs its own predecessor; percentages are of CLASSIFIED setups, the last column has no classifiable predecessor and sits outside them)
+| timeframe | reversal | continuation | inside break | outside break | not classified |
+|---|---|---|---|---|---|
+| D | 57,912 (29.2%) | 80,784 (40.7%) | 41,406 (20.9%) | 18,344 (9.2%) | 250 |
+| W | 7,999 (28.8%) | 10,989 (39.6%) | 6,129 (22.1%) | 2,624 (9.5%) | 261 |
+| M | 1,757 (29.7%) | 2,422 (40.9%) | 1,225 (20.7%) | 519 (8.8%) | 231 |
+| Q | 535 (34.7%) | 606 (39.4%) | 341 (22.1%) | 58 (3.8%) | 194 |
 
 ### Hammer / shooter flags on REVERSAL setup bars (the resource's normal hammer)
 | timeframe | reversal setups | THIRD (top/bottom third) | STRICT (third + sliver wick) |
 |---|---|---|---|
-| D | 57,912 | 10,283 (17.8%) | 4,921 (8.5%) |
-| W | 7,999 | 1,344 (16.8%) | 636 (8.0%) |
+| D | 57,912 | 10,285 (17.8%) | 4,923 (8.5%) |
+| W | 7,999 | 1,344 (16.8%) | 637 (8.0%) |
 | M | 1,757 | 363 (20.7%) | 135 (7.7%) |
 | Q | 535 | 106 (19.8%) | 46 (8.6%) |
 
@@ -86,6 +88,8 @@
 
 ## LIQUID: 141 coins, 105,907 coin-days, nesting violations 0
 
+Days with at least one break (either direction): 86,936; days with a rank 2+ break: 15,597; days skipped because the previous calendar day is missing: 0. An outside day breaks both ways and counts as two events, so event counts exceed day counts.
+
 ### Events by rank and direction
 | rank | up | down | share of all events |
 |---|---|---|---|
@@ -113,19 +117,19 @@
 | WITHIN 1% | 2,224 | 153 | 15 | 1,252 | 1,140 |
 | SPREAD (> 1%) | 8,345 | 1,350 | 211 | 4,691 | 5,215 |
 
-### Setup kind per timeframe (all events, the previous bar vs its own predecessor)
-| timeframe | reversal | continuation | inside break | outside break |
-|---|---|---|---|---|
-| D | 28,558 (29.1%) | 40,001 (40.7%) | 20,280 (20.6%) | 9,406 (9.6%) |
-| W | 4,054 (29.5%) | 5,460 (39.8%) | 2,949 (21.5%) | 1,258 (9.2%) |
-| M | 866 (29.7%) | 1,168 (40.1%) | 610 (21.0%) | 267 (9.2%) |
-| Q | 275 (36.5%) | 261 (34.6%) | 183 (24.3%) | 35 (4.6%) |
+### Setup kind per timeframe (the previous bar vs its own predecessor; percentages are of CLASSIFIED setups, the last column has no classifiable predecessor and sits outside them)
+| timeframe | reversal | continuation | inside break | outside break | not classified |
+|---|---|---|---|---|---|
+| D | 28,558 (29.1%) | 40,001 (40.7%) | 20,280 (20.6%) | 9,406 (9.6%) | 119 |
+| W | 4,054 (29.5%) | 5,460 (39.8%) | 2,949 (21.5%) | 1,258 (9.2%) | 131 |
+| M | 866 (29.7%) | 1,168 (40.1%) | 610 (21.0%) | 267 (9.2%) | 123 |
+| Q | 275 (36.5%) | 261 (34.6%) | 183 (24.3%) | 35 (4.6%) | 94 |
 
 ### Hammer / shooter flags on REVERSAL setup bars (the resource's normal hammer)
 | timeframe | reversal setups | THIRD (top/bottom third) | STRICT (third + sliver wick) |
 |---|---|---|---|
-| D | 28,558 | 4,999 (17.5%) | 2,280 (8.0%) |
-| W | 4,054 | 718 (17.7%) | 324 (8.0%) |
+| D | 28,558 | 5,001 (17.5%) | 2,280 (8.0%) |
+| W | 4,054 | 718 (17.7%) | 325 (8.0%) |
 | M | 866 | 193 (22.3%) | 76 (8.8%) |
 | Q | 275 | 37 (13.5%) | 15 (5.5%) |
 
@@ -165,6 +169,8 @@
 
 ## ALL main dex: 178 coins, 195,803 coin-days, nesting violations 0
 
+Days with at least one break (either direction): 160,750; days with a rank 2+ break: 28,582; days skipped because the previous calendar day is missing: 0. An outside day breaks both ways and counts as two events, so event counts exceed day counts.
+
 ### Events by rank and direction
 | rank | up | down | share of all events |
 |---|---|---|---|
@@ -192,19 +198,19 @@
 | WITHIN 1% | 3,512 | 238 | 27 | 1,813 | 1,964 |
 | SPREAD (> 1%) | 15,793 | 2,723 | 461 | 8,650 | 10,327 |
 
-### Setup kind per timeframe (all events, the previous bar vs its own predecessor)
-| timeframe | reversal | continuation | inside break | outside break |
-|---|---|---|---|---|
-| D | 53,154 (29.5%) | 74,431 (41.2%) | 37,280 (20.7%) | 15,597 (8.6%) |
-| W | 7,191 (28.4%) | 9,973 (39.4%) | 5,747 (22.7%) | 2,395 (9.5%) |
-| M | 1,650 (29.7%) | 2,284 (41.1%) | 1,134 (20.4%) | 494 (8.9%) |
-| Q | 527 (35.0%) | 589 (39.1%) | 334 (22.2%) | 57 (3.8%) |
+### Setup kind per timeframe (the previous bar vs its own predecessor; percentages are of CLASSIFIED setups, the last column has no classifiable predecessor and sits outside them)
+| timeframe | reversal | continuation | inside break | outside break | not classified |
+|---|---|---|---|---|---|
+| D | 53,154 (29.5%) | 74,431 (41.2%) | 37,280 (20.7%) | 15,597 (8.6%) | 142 |
+| W | 7,191 (28.4%) | 9,973 (39.4%) | 5,747 (22.7%) | 2,395 (9.5%) | 165 |
+| M | 1,650 (29.7%) | 2,284 (41.1%) | 1,134 (20.4%) | 494 (8.9%) | 148 |
+| Q | 527 (35.0%) | 589 (39.1%) | 334 (22.2%) | 57 (3.8%) | 145 |
 
 ### Hammer / shooter flags on REVERSAL setup bars (the resource's normal hammer)
 | timeframe | reversal setups | THIRD (top/bottom third) | STRICT (third + sliver wick) |
 |---|---|---|---|
-| D | 53,154 | 9,466 (17.8%) | 4,514 (8.5%) |
-| W | 7,191 | 1,188 (16.5%) | 564 (7.8%) |
+| D | 53,154 | 9,468 (17.8%) | 4,516 (8.5%) |
+| W | 7,191 | 1,188 (16.5%) | 565 (7.9%) |
 | M | 1,650 | 351 (21.3%) | 131 (7.9%) |
 | Q | 527 | 104 (19.7%) | 45 (8.5%) |
 
@@ -244,6 +250,8 @@
 
 ## ALL xyz dex: 114 coins, 19,058 coin-days, nesting violations 0
 
+Days with at least one break (either direction): 15,141; days with a rank 2+ break: 2,774; days skipped because the previous calendar day is missing: 0. An outside day breaks both ways and counts as two events, so event counts exceed day counts.
+
 ### Events by rank and direction
 | rank | up | down | share of all events |
 |---|---|---|---|
@@ -271,13 +279,13 @@
 | WITHIN 1% | 607 | 42 | 4 | 335 | 318 |
 | SPREAD (> 1%) | 1,325 | 147 | 15 | 682 | 805 |
 
-### Setup kind per timeframe (all events, the previous bar vs its own predecessor)
-| timeframe | reversal | continuation | inside break | outside break |
-|---|---|---|---|---|
-| D | 4,758 (26.5%) | 6,353 (35.3%) | 4,126 (22.9%) | 2,747 (15.3%) |
-| W | 808 (33.2%) | 1,016 (41.7%) | 382 (15.7%) | 229 (9.4%) |
-| M | 107 (29.6%) | 138 (38.2%) | 91 (25.2%) | 25 (6.9%) |
-| Q | 8 (24.2%) | 17 (51.5%) | 7 (21.2%) | 1 (3.0%) |
+### Setup kind per timeframe (the previous bar vs its own predecessor; percentages are of CLASSIFIED setups, the last column has no classifiable predecessor and sits outside them)
+| timeframe | reversal | continuation | inside break | outside break | not classified |
+|---|---|---|---|---|---|
+| D | 4,758 (26.5%) | 6,353 (35.3%) | 4,126 (22.9%) | 2,747 (15.3%) | 108 |
+| W | 808 (33.2%) | 1,016 (41.7%) | 382 (15.7%) | 229 (9.4%) | 96 |
+| M | 107 (29.6%) | 138 (38.2%) | 91 (25.2%) | 25 (6.9%) | 83 |
+| Q | 8 (24.2%) | 17 (51.5%) | 7 (21.2%) | 1 (3.0%) | 49 |
 
 ### Hammer / shooter flags on REVERSAL setup bars (the resource's normal hammer)
 | timeframe | reversal setups | THIRD (top/bottom third) | STRICT (third + sliver wick) |
@@ -320,3 +328,84 @@
 | plain day | 1,490 | 5 | 213 | 374 | 898 |
 
 ### Rank 2+ events per 100 closed days, per coin (coins with >= 100 days: 84): min 11.9, lower quartile 13.7, median 14.8, upper quartile 15.6, max 18.4
+
+## VENUE ERA (from each coin's first traded day): 292 coins, 166,530 coin-days, nesting violations 0
+
+Days with at least one break (either direction): 136,458; days with a rank 2+ break: 24,271; days skipped because the previous calendar day is missing: 0. An outside day breaks both ways and counts as two events, so event counts exceed day counts.
+
+### Events by rank and direction
+| rank | up | down | share of all events |
+|---|---|---|---|
+| 1 | 63,378 | 66,479 |  84.2% |
+| 2 | 10,070 | 11,350 |  13.9% |
+| 3 | 966 | 1,573 |   1.6% |
+| 4 | 111 | 313 |   0.3% |
+
+### Rank 2+ composition (which levels broke together)
+| timeframes | up | down |
+|---|---|---|
+| D+M | 1,033 | 866 |
+| D+Q | 185 | 210 |
+| D+W | 8,852 | 10,274 |
+| D+M+Q | 84 | 239 |
+| D+W+M | 807 | 1,258 |
+| D+W+Q | 75 | 76 |
+| D+W+M+Q | 111 | 313 |
+
+### Rank 2+ by stack distance (largest gap between the broken levels)
+| band | rank 2 | rank 3 | rank 4 | up | down |
+|---|---|---|---|---|---|
+| EXACT (same price) | 3,855 | 79 | 8 | 1,817 | 2,125 |
+| NEAR (<= 0.25%) | 1,196 | 70 | 10 | 635 | 641 |
+| WITHIN 1% | 3,257 | 220 | 26 | 1,654 | 1,849 |
+| SPREAD (> 1%) | 13,112 | 2,170 | 380 | 7,041 | 8,621 |
+
+### Setup kind per timeframe (the previous bar vs its own predecessor; percentages are of CLASSIFIED setups, the last column has no classifiable predecessor and sits outside them)
+| timeframe | reversal | continuation | inside break | outside break | not classified |
+|---|---|---|---|---|---|
+| D | 44,717 (29.0%) | 62,981 (40.9%) | 31,799 (20.7%) | 14,459 (9.4%) | 284 |
+| W | 6,151 (28.6%) | 8,457 (39.3%) | 4,769 (22.2%) | 2,143 (10.0%) | 246 |
+| M | 1,321 (29.6%) | 1,848 (41.4%) | 898 (20.1%) | 395 (8.9%) | 249 |
+| Q | 399 (36.5%) | 451 (41.2%) | 210 (19.2%) | 34 (3.1%) | 199 |
+
+### Hammer / shooter flags on REVERSAL setup bars (the resource's normal hammer)
+| timeframe | reversal setups | THIRD (top/bottom third) | STRICT (third + sliver wick) |
+|---|---|---|---|
+| D | 44,717 | 7,888 (17.6%) | 3,803 (8.5%) |
+| W | 6,151 | 1,022 (16.6%) | 502 (8.2%) |
+| M | 1,321 | 275 (20.8%) | 96 (7.3%) |
+| Q | 399 | 87 (21.8%) | 38 (9.5%) |
+
+### The bar before a reversal setup bar (recorded only)
+| timeframe | 2 against the break | 2 with the break | inside | outside |
+|---|---|---|---|---|
+| (per direction the labels differ; raw types below) | | | | |
+| D | 2U 15,972 | 2D 15,597 | 1 8,532 | 3 4,565 |
+| W | 2U 1,848 | 2D 2,230 | 1 1,291 | 3 716 |
+| M | 2U 352 | 2D 542 | 1 227 | 3 138 |
+| Q | 2U 34 | 2D 237 | 1 63 | 3 12 |
+
+### Quarter state at rank 2+ breaks
+| state | up | down |
+|---|---|---|
+| breaks_today | 455 | 838 |
+| broken_out_before | 1,280 | 4,073 |
+| inside_with | 3,085 | 2,639 |
+| inside_against | 880 | 1,592 |
+| opposite | 3,116 | 1,226 |
+| both | 137 | 188 |
+| unknown | 2,194 | 2,680 |
+
+### Week and month outside the stack (rank 2+ events where that timeframe did not break)
+| timeframe | level on the break's side of the open | other side | already broken that way | not yet | unknown |
+|---|---|---|---|---|---|
+| W | 2,587 | 30 | 2,617 | 0 | 0 |
+| M | 13,600 | 4,746 | 6,133 | 12,213 | 1,326 |
+
+### Rank 2+ on shared-open days (a new week, month or quarter opened with the day) vs plain days
+| day type | all | exact | near | within 1% | spread |
+|---|---|---|---|---|---|
+| shared open | 10,423 | 3,908 | 448 | 1,293 | 4,774 |
+| plain day | 13,960 | 34 | 828 | 2,210 | 10,888 |
+
+### Rank 2+ events per 100 closed days, per coin (coins with >= 100 days: 258): min 11.7, lower quartile 14.1, median 14.7, upper quartile 15.3, max 18.4

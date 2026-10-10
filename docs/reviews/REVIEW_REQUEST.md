@@ -10,7 +10,8 @@
 
 ## Status
 
-- Status: REQUESTED
+- Status: RETURNED -- audit written 2026-10-10 to `docs/reviews/tvb37-codex-audit.md`
+  (verdict NEEDS-CHANGES, 12 findings, 1 HIGH); synthesis in the TVB-37 HANDOFF entry.
   <!-- REQUESTED | RETURNED (audit file written) | N/A -->
 - Session under review: TVB-37 (IN PROGRESS -- mid-session request by the owner,
   2026-10-10). The work under review is the daily / weekly / monthly domino
