@@ -537,6 +537,27 @@ settings at $1 risk, but with 26 fills they stay unread as arms.
 - **What it is for:** sample sizes and the shape of the domino space before any rule is
   written. It ranks nothing and promotes nothing.
 
+### TVB-37 chance comparison (declared 2026-10-10) -- no arm, no P&L
+
+- **In trader terms:** take every daily, weekly and monthly break on every live perp (venue era
+  only), label it by its STRAT setup (2-2 reversal, 2-2 continuation, 1-2, 3-2) and by whether
+  the setup bar was a hammer or shooter (normal on the reversal, momo on the continuation and
+  the inside bar), enter at the level the instant it breaks with the stop at the other side of
+  the setup bar, and ask: what is the chance of one R before the stop within 1, 3 and 5 bars,
+  and does the next bar follow through? Then put the SAME pattern side by side: yesterday's level
+  alone (plain) against yesterday's level stacked with last week's or last month's (the A+
+  setup), with the stack split into same-price-at-the-open, same-price-midweek, within a quarter
+  percent, within one percent, and spread. Pre-registered:
+  `docs/experiments/tvb37_chance_comparison_prereg.md`. Receipt: `analysis/domino/CHANCE_RECEIPT.md`.
+- **Owner inputs folded in:** in-favour wiggle yes (and the nesting arithmetic makes the higher
+  level never sit short of the daily one); no coin-flip baseline, the owner's one-in-three
+  "a 2 going 3" reference recorded; the weekly-bar stop logged as the owner's idea and run as
+  one variant table; quarter recorded, not ruled; momo hammer in both forms, kept apart.
+- **Hypothesis 1 (owner):** stacks that exist only because yesterday closed the old bar on its
+  extreme (same price at the open) do WORSE than the plain pattern and than the midweek stacks.
+- **Numbers:** (filled when the run is receipted)
+- **What it is for:** the comparison the hierarchy rulings need. It picks no cell.
+
 ## Maintenance rule
 
 Every round: add a card per new arm (trader terms FIRST, then numbers),
