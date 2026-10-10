@@ -511,6 +511,24 @@ Trader's read first, then numbers; receipts in analysis/parallax/RECEIPT.md.
 Numbers on WEEK5 / SEATS4 / RISK100 / RANK: the paper month ran those
 settings at $1 risk, but with 26 fills they stay unread as arms.
 
+## Data products (counts, not arms)
+
+### TVB-37 domino census (2026-10-10) -- no arm, no P&L
+
+- **In trader terms:** on every live perp, every day that broke yesterday's high or low, did it
+  also take out last week's, last month's or last quarter's level for the first time, and how
+  close did those levels sit? Built on calendar bars from daily candles (Monday weeks, calendar
+  months and quarters). Pre-registered: `docs/experiments/tvb37_domino_census_prereg.md`.
+  Receipt: `analysis/domino/RECEIPT.md`.
+- **Numbers:** 292 coins, 214,861 coin-days. Rank 2+ (two or more levels in one day) = 31,501
+  events, 15.9% of all breaks, a median 14.7 per coin per 100 days; day + week = 78% of them.
+  Stacked (same price or within 0.25%) = 21% of rank 2+; the same-price ones sit almost only on
+  shared-open days (5,003 of 5,056). Three- and four-level days: 1.7% and 0.3% of events.
+  Reversal setups about 29% per timeframe; hammer / shooter on those: top-third 17-21%, strict
+  (sliver wick) about 8%.
+- **What it is for:** sample sizes and the shape of the domino space before any rule is
+  written. It ranks nothing and promotes nothing.
+
 ## Maintenance rule
 
 Every round: add a card per new arm (trader terms FIRST, then numbers),

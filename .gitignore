@@ -100,3 +100,8 @@ docs/thestrat_ai/
 
 # Parallax PAPER raw account exports + candle caches (large, owner-local, regenerable)
 analysis/parallax/exports/
+
+# TVB-37 domino census: raw daily-candle cache (public venue data, re-fetchable)
+analysis/domino/data/
+analysis/domino/results/events_rank2plus.csv.gz
+analysis/domino/results/run.log
