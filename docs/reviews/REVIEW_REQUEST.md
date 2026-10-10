@@ -10,114 +10,117 @@
 
 ## Status
 
-- Status: RETURNED -- audit written 2026-10-10 to `docs/reviews/tvb37-codex-audit.md`
-  (verdict NEEDS-CHANGES, 12 findings, 1 HIGH); synthesis in the TVB-37 HANDOFF entry.
+- Status: REQUESTED
   <!-- REQUESTED | RETURNED (audit file written) | N/A -->
-- Session under review: TVB-37 (IN PROGRESS -- mid-session request by the owner,
-  2026-10-10). The work under review is the daily / weekly / monthly domino
-  CENSUS: a pre-registered count of how often the venue's perps take out
-  yesterday's level together with last week's, last month's or last quarter's
-  level for the first time, with the distance between the levels, the setup kind
-  (2-2 reversal, 2-2 continuation, 1-2, 3-2), hammer / shooter flags on the
-  setup bar, and the quarter state. No entry, stop, target, outcome or P&L exists
-  in this range.
-- Why it is reviewed now: the next data product (a pattern-matched "chance"
-  comparison -- the same pattern with and without the stacked higher-timeframe
-  level) will reuse this engine's event definitions and rows. A definitional
-  bug here propagates into everything downstream. The owner asked for this
-  review explicitly.
+- Session under review: TVB-37 (IN PROGRESS -- second mid-session request by the
+  owner, 2026-10-10). The work under review is the CHANCE COMPARISON: for every
+  daily, weekly and monthly level break on every live perp (venue era), the
+  chance of one R before the stop within 1 / 3 / 5 bars, with the same STRAT
+  pattern put side by side plain (yesterday's level alone) and stacked (an
+  unbroken weekly or monthly level at or just beyond the trigger). Gross, no
+  fees, no sizing, no P&L. The census audit (first request) is folded and
+  ADDRESSED; do not re-review it.
+- Why it is reviewed now: the owner will read the receipt's comparisons and a
+  hypothetical-book view is being built on the same unit rows. A look-ahead
+  defect was already caught and fixed by the session (prereg amendments A1 and
+  A2): the first version classed a daily trigger by which higher levels BROKE
+  THAT DAY. The reviewer's first job is to hunt for any REMAINING look-ahead or
+  selection-on-outcome in a condition column.
 - Requested: 2026-10-10
-- Write the audit to: `docs/reviews/tvb37-codex-audit.md` (copy
+- Write the audit to: `docs/reviews/tvb37-chance-codex-audit.md` (copy
   `docs/reviews/_TEMPLATE.md`)
-- NOTE: the TVB-37 HANDOFF entry does not exist yet (the session is open); the
-  prereg and the receipt named below are the session record for this request.
-  TVB-31 .. TVB-35 audits were never returned and stay open; TVB-36 was waived
-  by the owner (N/A). Do not re-review those ranges.
+- NOTE: the first TVB-37 audit is `docs/reviews/tvb37-codex-audit.md`
+  (census, folded in commit 4560e7c). Files in the working tree that are NOT in
+  the range below (for example `analysis/domino/book.py`, `BOOK_RECEIPT.md`)
+  are being written while you review; ignore them.
 
 ## Commits to review
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `ecc4d6c..8b800a7`. The code is all in 8b800a7 (census prereg, engine, tests, receipt, ledger card, .gitignore). 342b319 and b22d77a are doc moves (HANDOFF archive, TVB-36 waiver) -- skim only. Verify with `git diff --name-status ecc4d6c..8b800a7`. |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `4560e7c..c0f1826`: 25a8ac5 (chance prereg + ledger card, before code), c0f1826 (engine `analysis/domino/chance.py`, tests, receipt, prereg amendments A1 / A2, HANDOFF, ledger numbers, and a refactor of `analysis/domino/census.py` that exposes `day_events` / `shared_opens` for reuse). Verify with `git diff --name-status 4560e7c..c0f1826`. |
 
-No sibling-repo commits. The candle cache (`analysis/domino/data/`) and the
-rank 2+ event rows (`analysis/domino/results/events_rank2plus.csv.gz`) are
-gitignored; `uv run python analysis/domino/census.py` regenerates both from the
-public candle API (about 25 minutes cold; the cache makes re-runs fast).
-Committed numbers: `analysis/domino/results/census.json` and `results/tables.md`.
+The unit rows (`analysis/domino/results/trades.csv.gz`, 29 MB) and the candle
+cache are gitignored; `uv run python -m analysis.domino.chance` regenerates them
+from the cache in about three minutes (no API call beyond the universe list).
+Committed numbers: `analysis/domino/results/chance.json` (headline cells) and
+`results/chance_tables.md` (every table, every split, every sample).
 
 ## Read first (in this order)
 
-1. `CLAUDE.md`; charter Section 0 (`docs/ATLAS_Timeframe_Continuity_Charter.md`).
-2. `docs/experiments/tvb37_domino_census_prereg.md` -- the definitions, fixed
-   before the code. The code must implement THESE, not a reasonable variant.
-3. `analysis/domino/RECEIPT.md` -- the numbers and the "What the arithmetic
-   says" paragraph.
-4. `analysis/domino/census.py`, then `tests/test_domino_census.py`.
-5. `docs/ARM_LEDGER.md`, section "Data products (counts, not arms)".
+1. `docs/experiments/tvb37_chance_comparison_prereg.md` -- definitions, then
+   amendments A1 and A2 at the end. The code must implement the amended
+   definitions exactly.
+2. `analysis/domino/CHANCE_RECEIPT.md`.
+3. `analysis/domino/chance.py`; `analysis/domino/census.py` for `day_events`,
+   `shared_opens`, `_context`, `aggregate`, `shape_flags`, `setup_kind`.
+4. `tests/test_domino_chance.py`.
+5. `docs/ARM_LEDGER.md` (the chance card) and the TVB-37 entry in
+   `docs/HANDOFF.md` (section "Product 2").
 
 ## Focus areas (scrutinize these)
 
-1. **Calendar bars from dailies** (`aggregate`, `week_start`, `month_start`,
-   `quarter_start`, `next_start`): week opens Monday 00:00 UTC, month on the 1st,
-   quarter on Jan / Apr / Jul / Oct 1; the partial first bucket is dropped; the
-   forming day is excluded. Look for off-by-one at bucket edges (a coin listed
-   mid-week, a 31-day month, a missing day in the venue history, a duplicate
-   candle). Does a GAP in the daily series (no candle for a day) leave the bar's
-   high / low honest, or does it shift a day into the wrong bucket?
-2. **Levels and first-break-only** (`_context`, `analyze_coin`): the level is
-   the previous COMPLETE bar's high / low; a break counts only if the running
-   extreme of the current bar BEFORE today had not already exceeded the level.
-   On the first day of a new week the running extreme is empty. Is the
-   comparison strict everywhere (equality never breaks, ruling R10), including
-   the "had not already exceeded" test?
-3. **The shared-open EXACT stack**: on a Monday the daily level is Sunday's
-   high / low, which can equal the weekly level. Is that distance exactly zero
-   (prices parsed consistently so equal prices compare equal as floats), and
-   does the daily break then imply the weekly break? The receipt reports 5,003
-   of 5,056 exact stacks on shared-open days and 53 on plain days -- what
-   produces the 53?
-4. **Nesting invariant**: every week / month / quarter first break must also be
-   a daily break that day (reported 0 violations). Is the check itself sound,
-   or could it pass vacuously?
-5. **Distance band** (`distance_band`): largest pairwise gap among the broken
-   levels as a percent of the lowest level; bands EXACT / NEAR <= 0.25% /
-   WITHIN 1% / SPREAD. Boundary inclusivity as declared in the prereg?
-6. **Setup kind** (`classify`, `setup_kind`): the previous bar of each
-   timeframe classified against ITS predecessor (2U / 2D / 1 / 3); REVERSAL =
-   a 2 against the break, CONTINUATION = a 2 with it, INSIDE BREAK = 1,
-   OUTSIDE BREAK = 3. For week / month / quarter, are BOTH bars complete bars?
-7. **Hammer / shooter flags** (`shape_flags`): THIRD = open and close both in
-   the far third of the setup bar's own range (top third when the break is up,
-   so the 2D setup bar is tested as a hammer; bottom third for a down break, a
-   shooter); STRICT = THIRD plus the wick beyond the body on the far side at
-   most 10% of the bar's range. Zero-range bars. Are the flags reported on
-   REVERSAL setups only, as the receipt table says?
-8. **Quarter state** (`_quarter_state`): the seven states are exhaustive and
-   mutually exclusive? "unknown" iff no complete prior quarter?
-9. **Counting and denominators**: one coin-day can carry an up AND a down event
-   (an outside day). Is that disclosed and handled consistently in the rates?
-   The headline "15.9% of all breaks" uses events as the denominator, "14.7 per
-   100 days" uses closed days -- are both computed as stated?
-10. **LIQUID** (`liquid`): median over the last 30 closed days of candle volume
-    times close. Is the venue's candle `v` base-asset volume, so that `v * c` is
-    USD notional? If `v` were already notional the floor is wrong by a factor
-    of price.
-11. **Data fetch** (`fetch_daily`): the 5000-candle cap and paging, the forming
-    day exclusion, cache staleness, delisted names excluded (survivorship --
-    is it stated in the receipt?).
-12. **Receipt honesty**: does every sentence in "What the arithmetic says (and
-    nothing more)" follow from the tables? Flag any sentence that reads as a
-    conclusion the count does not carry (owner's standing correction, TVB-36).
-13. **Tests**: which of the behaviors above have NO hand vector (quarter state,
-    LIQUID, month aggregation, gap days)? Name the missing vectors.
-14. **Public-repo hygiene**: only the public candle API URL is added; no secret,
-    no host, no personal remark; the data and event-row files are ignored.
-15. **request.security**: NO Pine file changed -- verify none did.
+1. **Remaining look-ahead.** Every column used as a CONDITION or a SPLIT must
+   be knowable at the entry instant (the strict break of the unit's level):
+   `kind`, `flag` (shape of the setup bar, the PREVIOUS bar), `cls` via
+   `entry_class` (daily) and `stack_class` (weekly / monthly), `near_tf`,
+   `m_support`, `quarter`, `year`, `liquid` (today's membership applied
+   backwards, disclosed), `direction`. Is `cls` for a WEEKLY unit truly
+   entry-time (yesterday's level vs the weekly level at the weekly break)? Is
+   the "spread" class of a weekly unit a momentum condition (the day already
+   ran 1%+) rather than a look-ahead? Is `stack` used anywhere as a condition?
+2. **The nesting assertion** (`stack_class`, `entry_class`): the claim that an
+   unbroken higher level is never short of yesterday's level on the same bar.
+   Is the argument in the prereg correct on the first day of a new bar (Monday
+   / the 1st) and on a plain day? Could a gap day or an off-grid stamp break it
+   (the census engine now rejects both)?
+3. **The walker** (`walk`): pessimistic same-day rule (stop and target the same
+   day = stop), orders fill on touch (equality fills; R10 is about breaks, not
+   fills), the entry bar included in every horizon, `res_j <= end`, censoring
+   when `end is None`, MFE / MAE as price travel from the level, `stop0`. Is the
+   entry-day stop touch counted even when the day's low came BEFORE the break
+   (declared pessimistic) and is that disclosed?
+4. **Horizons** (`horizon_ends`): daily = i + N; weekly / monthly = the last day
+   of bucket b + N only if that bucket is complete. Is bucket adjacency
+   guaranteed (the census engine excludes coins with gaps)? What happens when
+   the entry bar itself is the incomplete last bucket?
+5. **Follow-through** (`next_bar`): daily next bar vs the entry day; weekly /
+   monthly next bucket vs the entry bucket, both complete. Correct mapping to
+   with / against for shorts?
+6. **Units are not pooled across timeframes**: a D + W day is one daily unit
+   and one weekly unit; every table filters on `tf`. Any place they mix?
+7. **Variant stop**: `vstop` = last week's low (long) / high (short); wrong-side
+   units counted and excluded; R for the variant is a different distance and
+   the receipt says the two are not compared. Anything misleading?
+8. **Cell statistics** (`cell`, `wilson`, `diff_interval`): denominators
+   exclude censored and n/a; nested flag levels (THIRD includes STRICT)
+   disclosed; the MIN_CELL greying; `flag_mask`. The difference table's base:
+   plain for daily, within1 + spread for weekly / monthly. The hypothesis-1
+   table. Any sign error for shorts?
+9. **venue_era**: first day with volume > 0; a coin with zero-volume days AFTER
+   its first trade keeps them; is that stated? ALL vs VENUE ERA as a check line.
+10. **The census refactor**: `day_events` + `shared_opens` extracted from
+    `analyze_coin`; the session re-ran the census and reports byte-identical
+    `splits` and `coins`. Read the diff and confirm the extraction preserves
+    every branch (the skipped-day count, the violation check, the unknown-kind
+    counters).
+11. **Receipt honesty** (`CHANCE_RECEIPT.md`, "What the arithmetic says"): does
+    every sentence follow from the tables? Are the R-size confound, the
+    clustering caveat and the pessimistic rule stated where they bite? Is the
+    TRAP table labelled so that it cannot be read as a result? Is "hypothesis 1
+    reads as supported on the weekly" a fair sentence given the R-size
+    difference (24% vs 14-20%)?
+12. **Tests** (`tests/test_domino_chance.py`): which behaviours have NO vector
+    (weekly / monthly `stack_class` classes, a short-side walker with equality
+    fills, censoring on the daily side, `cell` denominators, `flag_mask`,
+    `venue_era` with later zero days, the variant stop wrong-side count)?
+13. **Public-repo hygiene**: no secret, host or personal remark in the range;
+    `trades.csv.gz` and `chance_run.log` ignored.
+14. **request.security**: NO Pine file changed -- verify none did.
 
 ## Output contract
 
-- Verbatim audit -> `docs/reviews/tvb37-codex-audit.md` (template:
+- Verbatim audit -> `docs/reviews/tvb37-chance-codex-audit.md` (template:
   `docs/reviews/_TEMPLATE.md`, skeptic preamble included).
 - Be concrete; cite `file:line`. Never paste a secret/IP/account value (this
   repo is public).
