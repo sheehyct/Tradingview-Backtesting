@@ -379,6 +379,57 @@ def _quarter_state(tf_ctx: dict | None, in_s: bool, direction: str, day_level: f
     return "inside_with" if day_level < tf_ctx["open"] else "inside_against"
 
 
+def shared_opens(ctx: dict[str, dict[int, dict]], i: int) -> dict[str, bool]:
+    """Which of week / month / quarter opened with day i (its calendar first day)."""
+    return {tf: ctx[tf].get(i, {}).get("is_first_day", False) for tf in ("W", "M", "Q")}
+
+
+def day_events(daily: list[dict], i: int, ctx: dict[str, dict[int, dict]]) -> list[tuple] | None:
+    """The events of day i, the single source of event detection (census and chance study).
+
+    Returns [(direction, broken, setups)] with broken = {tf: level} for every timeframe whose
+    level day i broke for the first time (strict, R10) and setups = {tf: (setup bar's type vs its
+    predecessor or None, the setup bar, the type of the bar before it or None)}. Directions with
+    nothing broken are left out. Returns None when the previous calendar day has no closed bar
+    (the day has no daily level; audit F1).
+    """
+    d = daily[i]
+    pd = daily[i - 1]
+    if pd["t"] != d["t"] - DAY:
+        return None
+    adj2 = i >= 2 and daily[i - 2]["t"] == pd["t"] - DAY
+    adj3 = adj2 and i >= 3 and daily[i - 3]["t"] == daily[i - 2]["t"] - DAY
+    pd_type = classify(pd, daily[i - 2]) if adj2 else None
+    pd_ref = classify(daily[i - 2], daily[i - 3]) if adj3 else None
+    out = []
+    for direction in ("up", "down"):
+        broken: dict[str, float] = {}
+        setups: dict[str, tuple[str | None, dict, str | None]] = {}
+        # the day itself
+        lvl = pd["h"] if direction == "up" else pd["l"]
+        hit = d["h"] > lvl if direction == "up" else d["l"] < lvl
+        if hit:
+            broken["D"] = lvl
+            setups["D"] = (pd_type, pd, pd_ref)
+        for tf in ("W", "M", "Q"):
+            c = ctx[tf].get(i)
+            if c is None or c["prev"] is None:
+                continue
+            lvl = c["prev"]["h"] if direction == "up" else c["prev"]["l"]
+            if direction == "up":
+                fresh = c["run_h"] is None or c["run_h"] <= lvl
+                hit = fresh and d["h"] > lvl
+            else:
+                fresh = c["run_l"] is None or c["run_l"] >= lvl
+                hit = fresh and d["l"] < lvl
+            if hit:
+                broken[tf] = lvl
+                setups[tf] = (c["prev_type"], c["prev"], c["ref_type"])
+        if broken:
+            out.append((direction, broken, setups))
+    return out
+
+
 def analyze_coin(daily: list[dict]) -> dict:
     """Events for one coin from its closed daily bars. Returns aggregates plus rank 2+ rows."""
     buckets = {tf: aggregate(daily, tf) for tf in ("W", "M", "Q")}
@@ -400,47 +451,15 @@ def analyze_coin(daily: list[dict]) -> dict:
     rows: list[dict] = []
     for i in range(1, len(daily)):
         d = daily[i]
-        pd = daily[i - 1]
-        if pd["t"] != d["t"] - DAY:
+        evs = day_events(daily, i, ctx)
+        if evs is None:
             # no closed bar for yesterday: the day has no daily level, so it carries no event
             # (audit F1: the previous array element used to stand in for yesterday across a gap)
             agg["skipped_no_yesterday"] += 1
             continue
-        adj2 = i >= 2 and daily[i - 2]["t"] == pd["t"] - DAY
-        adj3 = adj2 and i >= 3 and daily[i - 3]["t"] == daily[i - 2]["t"] - DAY
-        pd_type = classify(pd, daily[i - 2]) if adj2 else None
-        pd_ref = classify(daily[i - 2], daily[i - 3]) if adj3 else None
         day_hit = day_hit2 = False
-        shared = {
-            "W": ctx["W"].get(i, {}).get("is_first_day", False),
-            "M": ctx["M"].get(i, {}).get("is_first_day", False),
-            "Q": ctx["Q"].get(i, {}).get("is_first_day", False),
-        }
-        for direction in ("up", "down"):
-            broken: dict[str, float] = {}
-            setups: dict[str, tuple[str | None, dict, str | None]] = {}
-            # the day itself
-            lvl = pd["h"] if direction == "up" else pd["l"]
-            hit = d["h"] > lvl if direction == "up" else d["l"] < lvl
-            if hit:
-                broken["D"] = lvl
-                setups["D"] = (pd_type, pd, pd_ref)
-            for tf in ("W", "M", "Q"):
-                c = ctx[tf].get(i)
-                if c is None or c["prev"] is None:
-                    continue
-                lvl = c["prev"]["h"] if direction == "up" else c["prev"]["l"]
-                if direction == "up":
-                    fresh = c["run_h"] is None or c["run_h"] <= lvl
-                    hit = fresh and d["h"] > lvl
-                else:
-                    fresh = c["run_l"] is None or c["run_l"] >= lvl
-                    hit = fresh and d["l"] < lvl
-                if hit:
-                    broken[tf] = lvl
-                    setups[tf] = (c["prev_type"], c["prev"], c["ref_type"])
-            if not broken:
-                continue
+        shared = shared_opens(ctx, i)
+        for direction, broken, setups in evs:
             day_hit = True
             rank = len(broken)
             if nesting_violation(broken):

@@ -129,26 +129,45 @@ terms below and waits on two owner answers.
   stacks are valid" is accepted and is now explained in the receipt (yesterday
   retouched the higher level without breaking it).
 
-### Product 2: the chance comparison (DESIGN, awaiting two owner answers)
+### Product 2: the chance comparison (DONE 2026-10-10, receipted)
 
-Proposed to the owner 2026-10-10 in trader terms: entry at the broken level
-the instant it breaks, stop at the other side of the setup bar, chance of one
-R before the stop within 1 / 3 / 5 bars of the pattern's timeframe (coin flip
-= 50%), plus next-bar follow-through and furthest travel for and against in
-R. Same pattern against itself: plain (yesterday's level only) vs A+ (the
-higher level taken together), with the A+ side split into shared-open exact
-stacks (hypothesis 1), in-favour near stacks, and spread. Weekly and monthly
-patterns likewise. Splits fixed a priori: long / short, year, liquid, month's
-open with or against. Quarter recorded, not ruled. Momo hammer recorded in
-both forms (2U-2U hammer, and the resource's inside-bar hammer), kept apart.
-Pessimistic same-day rule (stop and one R both touched = stop). Survivors
-only; RTH mirror not run, confound stated. Every chance with a count and an
-interval; no split picked afterwards.
+The owner answered the two questions (in-favour wiggle YES; the card GO) and
+added two notes: no coin-flip baseline ("a 2 going 3" makes the reference
+about one in three, recorded not asserted), and a stop idea (stop at the
+weekly bar, exit when a higher timeframe goes against the trade, let trades
+run until invalidated, then size against liquidation) logged as the OWNER'S
+IDEA and run as one variant table, with the setup-bar stop as the primary.
 
-Open to the owner: (1) the in-favour wiggle reading (the higher level sits at
-or a hair BEYOND yesterday's level in the trade's direction, within a quarter
-percent; a level a hair short does not count): yes or no; (2) the card: go or
-edit. Nothing is coded until both are answered.
+- Prereg `docs/experiments/tvb37_chance_comparison_prereg.md` with labelled
+  amendments A1 and A2; engine `analysis/domino/chance.py` (event detection
+  shared with the census through `census.day_events`; the census was
+  refactored to expose it and re-run byte-identical); tests
+  `tests/test_domino_chance.py` (9 vectors); receipt
+  `analysis/domino/CHANCE_RECEIPT.md`; ledger card updated.
+- **Defect caught before any number was reported (A1):** the daily "stack
+  class" was first decided by which higher levels BROKE THAT DAY. That selects
+  on the day's own travel (the "spread" cells read 60-80% one-R). A trader at
+  the daily break cannot know it. The class is now the distance to the nearest
+  UNBROKEN weekly or monthly level at the daily break. The same leak sat in
+  the month-open and quarter context columns (A2). The look-ahead version is
+  kept in the tables once, headed TRAP. Nesting guarantees a fresh higher
+  level never sits short of yesterday's level, so the owner's "wiggle only in
+  favour" is automatic.
+- **What the arithmetic says, in chart terms (venue era):** the same-price
+  stack at the Monday / 1st open adds nothing to a 2-2 continuation on the
+  daily (32.9% vs 34.4% one R by 3 bars, more stops) and costs on the weekly
+  (29% vs 42%, -12 points). A 2-2 continuation with an unbroken higher level
+  within a quarter percent beyond the trigger did better (+6 points); the same
+  compression hurt inside-bar breaks (-5). The hammer shape on the setup bar
+  lifted every pattern by four to seven points with fewer stops. One in four
+  to one in three daily units traded their stop on the entry day (the owner's
+  "2 going 3"), all counted as stops. Nothing flips across direction, year,
+  liquidity or the month's open. Hypothesis 1 reads as supported on the
+  weekly, weak on the daily, untestable on reversals (7 shared-open exact
+  reversal stacks in the whole sample: a bar that closes the week on its
+  extreme is a 2 or a 3, not a reversal setup).
+- Not done, flagged: an R-matched comparison (exact shared-open stacks carry
+  the biggest setup bars); fees / funding / sizing; the Underlying-RTH mirror.
 
 ### Carried items (untouched this session)
 

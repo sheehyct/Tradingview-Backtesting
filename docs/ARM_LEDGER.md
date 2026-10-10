@@ -555,7 +555,18 @@ settings at $1 risk, but with 26 fills they stay unread as arms.
   one variant table; quarter recorded, not ruled; momo hammer in both forms, kept apart.
 - **Hypothesis 1 (owner):** stacks that exist only because yesterday closed the old bar on its
   extreme (same price at the open) do WORSE than the plain pattern and than the midweek stacks.
-- **Numbers:** (filled when the run is receipted)
+- **Numbers (venue era, one R by 3 bars):** 153,931 daily, 21,520 weekly, 4,462 monthly units.
+  Plain 2-2 continuation 34.4% (55,976); same-price stack at the Monday / 1st open 32.9%
+  (3,619; -1.5 [-3, +0], -2.2 by 5 bars, stops 50.7% vs 46.0%); an unbroken higher level within a
+  quarter percent beyond the trigger 40.8% (804; +6.4 [+3, +10]); within 1% 38.6% (2,555; +4.2).
+  Inside-bar breaks with a level just beyond: -5.2 (231). Weekly 2-2 continuation broken on the
+  shared open 29.1% vs 41.6% for the rest (-12.2 [-15, -10]); weekly reversal -4.6 [-8, -1].
+  Hammer flag on plain daily setups: reversal 38.0% vs 34.3%, continuation 41.1% vs 34.4%,
+  inside 43.6% vs 38.3%, fewer stops. Stop traded on the entry day: 14-32% of plain units,
+  all counted as stops. Splits flip nothing. The first run's look-ahead class (60-80%) is kept
+  in the tables as a labelled TRAP. Amendments A1 / A2 in the prereg.
+- **Audit:** not yet requested for this product (the census audit is folded); goes in the
+  session-end review request.
 - **What it is for:** the comparison the hierarchy rulings need. It picks no cell.
 
 ## Maintenance rule

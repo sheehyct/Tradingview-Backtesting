@@ -134,3 +134,41 @@ idea is recorded, not tested). No intraday ordering (the daily candle decides
 pessimistically). No Underlying-RTH mirror run (the confound is stated). No
 tuning of the 0.25% / 1% bands, the sliver, the horizons or the one-R target on
 what the outcomes show. No cell is promoted.
+
+## Amendment A1 (2026-10-10, post-hoc, labelled): the daily stack class is decided at ENTRY TIME
+
+The first run classed a daily unit by which higher levels BROKE THAT DAY
+(definition 4 as first written). Reading the first tables showed the defect
+before any number was reported: a "spread" or "within 1%" stack under that
+definition means today's range already ran through a level 1% or more beyond
+the entry, so those cells select on the day's own travel, which a trader at
+the daily break cannot know. Their one-R chances (60-80%) are the selection,
+not a finding. The EXACT class was unaffected (both levels break at the same
+instant) and the weekly / monthly classes were unaffected (at the weekly
+break, yesterday's level is already behind price).
+
+Definition 4 for DAILY units now reads: the class is the distance from
+yesterday's level to the nearest weekly or monthly level that is still
+UNBROKEN in its bar at the time of the daily break, whether or not today
+reaches it: EXACT (same price; shared open or plain day), NEAR (within 0.25%
+beyond), WITHIN 1%, else PLAIN (no fresh higher level within 1%). The
+nesting argument still holds (a fresh higher level is never short of
+yesterday's level; asserted). The first run's class is kept per unit as
+`cls_la` and shown once, labelled as the trap, so nobody rebuilds it. Which
+levels actually broke today is recorded as outcome-side information
+(`stack`). The walker also records whether the stop level traded on the entry
+day itself, so the size of the pessimistic same-day call is visible per cell.
+The corrected numbers were not read before this amendment was written.
+
+## Amendment A2 (2026-10-10, post-hoc, labelled): the context splits are entry-time too
+
+The same defect sat in two recorded splits. "The month's open relative to the
+trade" had an "in stack" value (the month broke today) and the quarter state
+had "breaks today"; both are decided by the day's own travel and showed the
+same inflated chances (60-77%) in the first corrected tables. Both splits now
+use only what is known at the daily break: the broken level's side of the
+month's open (with / against / unknown; equality = against) and the quarter's
+state BEFORE today (unknown / already broken out the trade's way / inside with
+/ inside against / opposite / both). Whether the month or quarter broke today
+stays in `stack` as outcome-side information. Read before this amendment:
+the first corrected tables, which are discarded; nothing in them was reported.
