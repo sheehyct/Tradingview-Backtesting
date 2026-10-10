@@ -14,6 +14,28 @@ Data: the venue's public daily candles, full available history per coin, read 20
 00:00 UTC; the 1st; Jan / Apr / Jul / Oct). Universe: every live perp on the main dex and the xyz
 dex, 292 coins. LIQUID = median daily notional over the last 30 closed days of at least 1M USD.
 
+## Trader's glossary for the tables
+
+| term in the tables | what it means on the chart |
+|---|---|
+| event | one coin, one day, one direction: the day traded through yesterday's high (up) or yesterday's low (down) |
+| rank 1 | the day took only yesterday's level |
+| rank 2 / 3 / 4 | the day also took last week's, last month's and/or last quarter's high (or low) for the first time in that bar |
+| day + week | yesterday's high and last week's high both taken today (mirror for lows) |
+| EXACT | yesterday's level and the higher-timeframe level are the same price |
+| NEAR | the levels sit within a quarter percent of each other |
+| WITHIN 1% / SPREAD | up to 1% apart / more than 1% apart |
+| shared open | a Monday, the 1st of the month or the 1st of a quarter: the new bar opened with the day, and yesterday was the last day of the old bar |
+| plain day | any other day |
+| reversal | the bar before the break was a 2 the other way, so today's break prints a 2-2 reversal |
+| continuation | the bar before was a 2 the same way: a 2-2 continuation |
+| inside break | the bar before was an inside bar: a 1-2 |
+| outside break | the bar before was an outside bar: a 3-2 |
+| THIRD | the setup bar closed in its far third: a hammer (up break) or a shooter (down break) by the 33% rule |
+| STRICT | THIRD, and no wick beyond the body on the far side except a sliver (one tenth of the bar's range or less) |
+| quarter states | where price sits against last quarter's high and low at the moment of the break: taking it today, already through it the break's way, still inside on the break's side of the quarter's open, inside on the other side, already through it the OTHER way, both sides already taken, or no full prior quarter yet |
+| month outside the stack | the month did not break today: is price on the break's side of this month's open, and had the month already broken that way earlier this month |
+
 ## Depth
 
 | coins | with a complete prior week | prior month | prior quarter | liquid |
