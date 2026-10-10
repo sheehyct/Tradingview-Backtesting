@@ -562,11 +562,21 @@ settings at $1 risk, but with 26 fills they stay unread as arms.
   Inside-bar breaks with a level just beyond: -5.2 (231). Weekly 2-2 continuation broken on the
   shared open 29.1% vs 41.6% for the rest (-12.2 [-15, -10]); weekly reversal -4.6 [-8, -1].
   Hammer flag on plain daily setups: reversal 38.0% vs 34.3%, continuation 41.1% vs 34.4%,
-  inside 43.6% vs 38.3%, fewer stops. Stop traded on the entry day: 14-32% of plain units,
-  all counted as stops. Splits flip nothing. The first run's look-ahead class (60-80%) is kept
+  inside 43.6% vs 38.3%, outside about -3 by 3 bars; fewer stops on all but the continuation. Stop traded on the entry day: 14-32% of plain units,
+  all counted as stops. Splits: the continuation stack stays within two points of plain except 2023 (+4.7 [-1, +11]); the inside-bar stack reads worst on longs. The first run's look-ahead class (60-80%) is kept
   in the tables as a labelled TRAP. Amendments A1 / A2 in the prereg.
-- **Audit:** not yet requested for this product (the census audit is folded); goes in the
-  session-end review request.
+- **Book view (2b, amendment A3, same rows):** one unit per trade, no leverage / fees /
+  funding, closed at one R or the stop, marked at the fifth bar. Every plain daily pattern loses:
+  2-2 reversal -0.84% per trade (43,442), 2-2 continuation -0.43%, inside break -0.54%, outside
+  -0.21%; the hammer flag brings each to about flat (-0.10% to +0.31%); the stacked continuation
+  is the one A+ class in the black (+0.44% near, +0.33% within 1%); the same-price-at-the-open
+  stack loses more than plain (-1.19%, outside -2.23%) and on the weekly loses on every setup
+  (-0.9% to -3.2%). R-matched: the daily near-continuation gap survives (+4.7 [+1, +8]), the
+  daily shared-open gap vanishes (-0.7 [-2, +1]), the weekly shared-open deficit keeps two thirds
+  of its size (-8.0 [-10, -6]) in every bar-size bin. Receipt `analysis/domino/BOOK_RECEIPT.md`;
+  a private chart page draws the same numbers (link not in the repo).
+- **Audit:** chance engine reviewed by Codex 2026-10-10 (`docs/reviews/tvb37-chance-codex-audit.md`, NEEDS-CHANGES, 8 findings, no remaining look-ahead) and FOLDED the same day (decimal fills, valid-count greying, wording);
+  the book view and chart page go in the session-end request.
 - **What it is for:** the comparison the hierarchy rulings need. It picks no cell.
 
 ## Maintenance rule

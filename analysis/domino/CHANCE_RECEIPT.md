@@ -19,8 +19,18 @@ weekly or monthly level at the moment of the daily break, whether or not the day
 same leak sat in two context columns (the month "in stack", the quarter "breaks today") and was
 removed. The first version is kept in the tables once, headed TRAP, so nobody rebuilds it. The
 weekly and monthly units were clean by construction (at the weekly break, yesterday's level is
-already behind price). The exact same-price stack was clean in both versions (both levels break at
-the same instant).
+already behind price). The exact same-price stack was NEARLY clean in the first version: both
+levels break at the same instant, but the old class took the largest gap among the levels that
+broke, so a same-price weekly stack left the exact cell when the day also reached a farther
+monthly level (292 of today's exact-shared units; second audit F6). The entry-time class fixed it.
+
+**Second audit, folded (`docs/reviews/tvb37-chance-codex-audit.md`, NEEDS-CHANGES, eight
+findings, no remaining look-ahead found):** the target and stop are now compared to the bar's
+prices as decimals, so a high exactly one R above the entry fills (F1; the re-run moved 24 of 483
+cells by at most eight wins and no headline share at one decimal); every table shows the VALID
+count per horizon and greys on it (F2); censored counts are per sample (F3); the sentences the
+reviewer called over-general are corrected below and tagged [F4] [F5]; prereg amendment A4 states
+the reporting contract as built.
 
 ## Trader's glossary for the tables
 
@@ -56,8 +66,11 @@ the same instant).
 292 coins. Dropped and counted: 779 setup bars without a classifiable predecessor, 25 zero-range
 setup bars, 0 nesting violations, 0 days skipped, 9,052 daily units whose variant stop sat on the
 wrong side of the entry (last week's bar entirely beyond yesterday's). LIQUID (141 coins, 85,501
-units) and ALL (with the index-price prefix, 232,085 units) are in `chance_tables.md`; their
-headline shares sit within two points of the venue era everywhere a cell has 100+ units.
+units) and ALL (with the index-price prefix, 232,085 units) are in `chance_tables.md`. In the
+all-flag daily and weekly cells their one-R shares sit within two points of the venue era; flagged
+subsets and small weekly cells differ by up to six points (plain outside STRICT by 1 bar: 23.9% vs
+29.9% LIQUID; weekly reversal THIRD within 1% by 5: 33.3% vs 39.7% ALL) [F4]. Venue era removes
+only the zero-volume prefix before a coin's first traded day; a later zero-volume day stays [F8].
 
 Daily units by class: plain 143,423; exact at a shared open 4,261; exact on a plain day 40; near
 1,410; within 1% 4,797. Exact shared-open stacks are almost all 2-2 continuations (3,619) and
@@ -187,25 +200,32 @@ needs an exit rule and a sizing rule before it can be tested as a trade.
   by 5 (-2.2 [-4, -1]), and stopped out more (50.7% vs 46.0%). On the weekly units the gap is
   wide: a weekly 2-2 continuation broken on that Monday open reached one R 29% of the time against
   42% for the rest (-12 [-15, -10]), with the next week going against it 41% of the time. The
-  owner's hypothesis 1 reads as supported on the weekly, weakly on the daily (no gain, more stops),
-  and untestable on reversal and inside-bar setups (too few). The setup bars of these stacks are
-  the biggest in the tables (median R 7.2% daily, 24% weekly), so one R is also a bigger move;
-  that confound is noted, not resolved.
+  owner's hypothesis 1 was declared on DAILY units: there it reads weak (no gain, more stops) and
+  is untestable on reversal and inside-bar setups (too few). The weekly shared-open result is a
+  separate descriptive comparison, not a test of it [F5]. The setup bars of these stacks are the
+  biggest in the tables (median R 7.2% daily, 24% weekly), so one R is also a bigger move; the
+  R-matched check in `BOOK_RECEIPT.md` keeps two thirds of the weekly gap and none of the daily one.
 - **A level just beyond the trigger helped the 2-2 continuation and hurt the inside break.** A
   2-2 continuation with an unbroken weekly or monthly level within a quarter percent beyond
   yesterday's high reached one R 40.8% of the time by 3 bars against 34.4% plain (+6.4 [+3,
   +10]); within 1%, +4.2 [+2, +6]. Those triggers are tighter bars (median R 4.9% vs 6.9%). The
   same compression under a level made inside-bar breaks worse (-5.2, -3.9) with more stops (64%
   vs 55%) and more entry-day stop touches (44% vs 32%). Outside breaks: about 0.
-- **The hammer shape lifted every pattern by four to seven points.** A top-third close on the
-  setup bar: 2-2 reversal 38.0% vs 34.3% by 3 bars, 2-2 continuation 41.1% vs 34.4%, inside break
-  43.6% vs 38.3%, with fewer stops and far fewer entry-day stop touches (reversal 14.8% vs 25.9%).
-  STRICT (sliver wick) added nothing over THIRD.
-- **One in four to one in three plain daily units traded their stop on the entry day** (reversal
-  25.9%, inside break 32.2%, continuation 18.3%, outside 13.9%), the owner's "a 2 going 3". Every
-  one counts as a stop here, the pessimistic call; the daily candle cannot order them.
-- **Across splits nothing flips.** Direction, year, liquidity and the month's open leave the
-  continuation stack within two points of plain; the inside-bar stack reads worst on longs.
+- **The hammer shape lifted the reversal, the continuation and the inside break by four to seven
+  points and the outside break by about three [F5].** A top-third close on the setup bar: 2-2
+  reversal 38.0% vs 34.3% by 3 bars, 2-2 continuation 41.1% vs 34.4%, inside break 43.6% vs 38.3%,
+  outside break 28.9% vs 31.7% by 3 but 33.2% vs 36.5% by 5 (2.6 points under, not over, at 3
+  bars; read the table). Stops fell on the reversal (43.5% vs 51.7%), the inside break (49.9% vs
+  55.1%) and the outside break (39.3% vs 41.2%), not on the continuation (48.3% vs 46.0%).
+  Entry-day stop touches fell everywhere (reversal 14.8% vs 25.9%). STRICT (sliver wick) added
+  nothing over THIRD.
+- **Between one in seven and one in three plain daily units traded their stop on the entry day
+  [F5]** (reversal 25.9%, inside break 32.2%, continuation 18.3%, outside 13.9%), the owner's "a 2
+  going 3". Every one counts as a stop here, the pessimistic call; the daily candle cannot order
+  them.
+- **Across splits the continuation stack stays within two points of plain [F5]** by direction,
+  liquidity and the month's open, and by year except 2023 (+4.7 [-1, +11], 267 units). The
+  inside-bar stack reads worst on longs (-10.5 [-18, -3], 123 units).
 - **The look-ahead version of the class is in the tables under TRAP**: 60-80% one-R, the day's
   own travel, not a setup.
 

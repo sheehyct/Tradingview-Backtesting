@@ -107,3 +107,5 @@ analysis/domino/results/events_rank2plus.csv.gz
 analysis/domino/results/run.log
 analysis/domino/results/trades.csv.gz
 analysis/domino/results/chance_run.log
+analysis/domino/results/book_run.log
+analysis/domino/results/chance_book_page.html

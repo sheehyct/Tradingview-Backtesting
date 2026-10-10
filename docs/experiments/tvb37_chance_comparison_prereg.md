@@ -172,3 +172,81 @@ state BEFORE today (unknown / already broken out the trade's way / inside with
 / inside against / opposite / both). Whether the month or quarter broke today
 stays in `stack` as outcome-side information. Read before this amendment:
 the first corrected tables, which are discarded; nothing in them was reported.
+
+## Amendment A3 (2026-10-10, declared BEFORE computing): product 2b, two views of the same rows
+
+Owner request after the receipt: an R-matched check, and the results in terms
+they can see -- a hypothetical book in percent and charts ("it is hard for me
+to understand the impact ... unless talking in terms of p/l or percent
+performance even if it's a hypothetical account (no leverage, no fees, single
+buy)"). Both are VIEWS of the unit rows product 2 already produced; no new
+condition, no new cut, nothing promoted. Engine: `analysis/domino/book.py`,
+reading the same units through `chance.coin_units`. Receipt:
+`analysis/domino/BOOK_RECEIPT.md`.
+
+- **R-matched check.** Within each (timeframe, setup), units are binned by
+  setup-bar size (R as a percent of price) into five bins whose edges are the
+  quintiles of the comparison base (PLAIN for daily units; WITHIN 1% + SPREAD
+  for weekly and monthly). For each bin, stacked minus base one-R chance at 3
+  and 5 bars. The R-matched difference = those bin differences weighted by the
+  STACKED group's bin shares, i.e. the base reweighted to the stacked group's
+  bar sizes. Reported beside the raw difference; stacked groups under 30 units
+  greyed. Bins are declared here, not tuned.
+- **The book view.** Every unit is traded at ONE unit of notional, long or
+  short as the break's direction: no leverage, no fees, no funding, no
+  slippage, every trade taken, no compounding. A trade closes at +R% of
+  notional on one R, at -R% on the stop, and otherwise is marked to the close
+  of the horizon's last bar (3 bars and 5 bars of the unit's timeframe);
+  censored units are left out. Per cell: trades, average and median return per
+  trade in percent, hit rate, expectancy in R, and on a 1,000-dollar-per-trade
+  book the total and the maximum drawdown of the cumulative P/L by entry date,
+  plus distinct dates. Because every trade is taken at full size, the book
+  holds many positions at once and its dollar total is NOT an account balance;
+  it is the sum of equal-size trades, shown so the chances can be read as
+  money. The pessimistic same-day rule carries straight into it.
+- **Curves and charts.** Cumulative P/L curves for a declared handful of
+  cells: daily 2-2 continuation plain / exact shared open / near / within 1%;
+  daily 2-2 reversal plain all vs THIRD; weekly 2-2 continuation exact shared
+  open vs the rest; weekly 2-2 reversal exact shared open vs the rest. A
+  private chart page renders the same numbers for the owner. The page is a
+  view; `BOOK_RECEIPT.md` and `results/book_tables.md` are the record. No
+  number is read from the charts that is not in the tables.
+
+## Amendment A4 (2026-10-10, post-hoc, labelled): the second Codex audit, folded
+
+`docs/reviews/tvb37-chance-codex-audit.md` (NEEDS-CHANGES, eight findings, no
+remaining look-ahead found) changes the following, each tagged:
+
+- **Touch fills in decimals (F1).** The target and the stop are compared to the
+  bar's prices as decimals (the strings the venue prints), so a bar whose high
+  is exactly one R above the entry fills. Binary floats put a few exact
+  touches a hair short. The engine is re-run; moved cells are listed in the
+  receipt.
+- **Reporting contract, corrected (F2).** Definition 12 said every proportion
+  carries an interval and every count its distinct dates. As built: the one-R
+  chances and their differences carry Wilson / normal intervals; the stop,
+  neither and next-bar shares are shown with the valid count they are taken
+  from, without intervals, to keep the tables readable. Every table now shows
+  the VALID count per horizon (censored and n/a excluded) beside the unit
+  count, greys a cell when that horizon's valid count is under 30, and greys a
+  difference when either side's valid count is under 30. Distinct dates are
+  shown in the pattern tables; the difference tables show the two valid
+  counts. This is the contract; the earlier sentence was the intent.
+- **Split bookkeeping (F3).** Dropped-unit counters are universe-level and are
+  printed once, under the headline sample; censored counts are computed per
+  sample.
+- **The original exact class was not fully clean (F6).** The first run's class
+  took the largest gap among the levels that broke that day, so a same-price
+  weekly stack could leave the exact cell when the day also reached a farther
+  monthly level (292 of today's exact-shared units sat elsewhere). The
+  entry-time class fixed this; the receipt's "exact was clean in both versions"
+  is corrected to "nearly".
+- **Zero-volume days (F8).** Only the prefix before a coin's first traded day
+  is removed; a later zero-volume day stays in the sample.
+- **Bug test 13, reconciled.** The entry-time classes partition the DAILY units
+  (plain + exact + near + within 1% = all daily units after the unclassified
+  and zero-R drops); they no longer map onto the census rank counts, which
+  counted levels that broke. The census reconciliation is retired as a test.
+- **Hypothesis 1 scope (F5).** It was declared on DAILY units. The weekly
+  shared-open comparison is a descriptive result of the weekly tables, read
+  with its R-matched check, not a test of hypothesis 1.

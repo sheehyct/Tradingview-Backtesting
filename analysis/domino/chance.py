@@ -200,7 +200,10 @@ def walk(daily: list[dict], i: int, direction: str, level: float, stop: float, e
     from the level, in R, through each horizon (price travel, not a trade's).
     """
     r = abs(level - stop)
-    target = level + r if direction == "up" else level - r
+    # touch tests in the venue's decimals, so a high exactly one R above the entry fills (second
+    # audit, F1: binary floats put a few exact touches a hair short)
+    lv, st = _dec(level), _dec(stop)
+    tgt = lv + abs(lv - st) if direction == "up" else lv - abs(lv - st)
     res, res_j = None, None
     run_fav = run_adv = 0.0
     stop0 = False  # the stop level traded on the entry day itself (order unknown: pessimistic)
@@ -209,12 +212,13 @@ def walk(daily: list[dict], i: int, direction: str, level: float, stop: float, e
     last = max(valid_ends) if valid_ends else i
     for j in range(i, last + 1):
         bar = daily[j]
+        bh, bl = _dec(bar["h"]), _dec(bar["l"])
         if direction == "up":
             fav, adv = (bar["h"] - level) / r, (level - bar["l"]) / r
-            hit_s, hit_t = bar["l"] <= stop, bar["h"] >= target
+            hit_s, hit_t = bl <= st, bh >= tgt
         else:
             fav, adv = (level - bar["l"]) / r, (bar["h"] - level) / r
-            hit_s, hit_t = bar["h"] >= stop, bar["l"] <= target
+            hit_s, hit_t = bh >= st, bl <= tgt
         run_fav, run_adv = max(run_fav, fav), max(run_adv, adv)
         if hit_s and j == i:
             stop0 = True
@@ -429,13 +433,17 @@ def _p(x: float) -> str:
 
 
 def _ci(c: dict, n: int) -> str:
-    if c[f"n{n}"] == 0:
+    """One-R chance, its interval and the VALID count it is taken from; greyed under 30 valid
+    (second audit, F2: greying used to look at the unit count, not the horizon's denominator)."""
+    m = c[f"n{n}"]
+    if m == 0:
         return "-"
-    return f"{_p(c[f'one_r{n}'])} [{100 * c[f'lo{n}']:.0f}, {100 * c[f'hi{n}']:.0f}]"
+    txt = f"{_p(c[f'one_r{n}'])} [{100 * c[f'lo{n}']:.0f}, {100 * c[f'hi{n}']:.0f}] n={m:,}"
+    return txt if m >= MIN_CELL else f"({txt})"
 
 
-def _grey(c: dict, text: str) -> str:
-    return f"({text})" if c["n"] < MIN_CELL else text
+def _grey(c: dict, text: str, n: int = 5) -> str:
+    return f"({text})" if c[f"n{n}"] < MIN_CELL else text
 
 
 def table_pattern_by_class(
@@ -450,7 +458,7 @@ def table_pattern_by_class(
     lines = [f"### {title}", ""]
     hz = " | ".join(f"one R by {n}" for n in HORIZONS)
     lines.append(
-        f"| setup | flag | class | n | dates | {hz} | stopped by 5 | stop traded on entry day | "
+        f"| setup | flag | class | units | dates | {hz} | stopped by 5 | stop traded on entry day | "
         "next bar with / against / inside / outside | median R % |"
     )
     lines.append("|---|---|---|---|---|" + "---|" * len(HORIZONS) + "---|---|---|---|")
@@ -466,17 +474,18 @@ def table_pattern_by_class(
                 if part.empty:
                     continue
                 c = cell(part, out_prefix)
-                cis = " | ".join(_grey(c, _ci(c, n)) for n in HORIZONS)
-                nbs = f"{_p(c['nb_with'])} / {_p(c['nb_against'])} / {_p(c['nb_inside'])} / {_p(c['nb_outside'])}"
+                cis = " | ".join(_ci(c, n) for n in HORIZONS)
+                nbs = f"{_p(c['nb_with'])} / {_p(c['nb_against'])} / {_p(c['nb_inside'])} / {_p(c['nb_outside'])} (n={c['nb_n']:,})"
                 lines.append(
                     f"| {kind} | {level} | {cls} | {c['n']:,} | {c['dates']:,} | {cis} | "
                     f"{_grey(c, _p(c['stop5']))} | {_p(c['stop0'])} | {nbs} | {c['r_pct_med']:.2f} |"
                 )
     lines.append("")
     lines.append(
-        "Cells in parentheses hold fewer than 30 units: counted, not read. Brackets are Wilson 95% "
-        "intervals per unit; units on the same day across coins move together, so read them with the "
-        "distinct-date count."
+        "n= is the VALID count at that horizon (censored units excluded); a cell in parentheses has "
+        "fewer than 30 valid units and is counted, not read. Brackets are Wilson 95% intervals per "
+        "unit; units on the same day across coins move together, so read them with the distinct-date "
+        "count. Stop, entry-day and next-bar shares carry their count, not an interval (prereg A4)."
     )
     lines.append("")
     return lines
@@ -486,7 +495,7 @@ def table_differences(df: pd.DataFrame, tf: str, title: str) -> list[str]:
     """A+ class minus PLAIN (daily) or stacked minus the rest (weekly / monthly), per kind x flag."""
     lines = [f"### {title}", ""]
     lines.append(
-        "| setup | flag | comparison | n A+ | n base | "
+        "| setup | flag | comparison | units A+ (valid by 5) | units base (valid by 5) | "
         + " | ".join(f"diff by {n} [95%]" for n in HORIZONS)
         + " |"
     )
@@ -534,11 +543,10 @@ def table_differences(df: pd.DataFrame, tf: str, title: str) -> list[str]:
                         if math.isnan(d)
                         else f"{100 * d:+.1f} [{100 * lo:+.0f}, {100 * hi:+.0f}]"
                     )
-                    diffs.append(txt if min(ca["n"], cb["n"]) >= MIN_CELL else f"({txt})")
+                    diffs.append(txt if min(ca[f"n{n}"], cb[f"n{n}"]) >= MIN_CELL else f"({txt})")
                 lines.append(
-                    f"| {kind} | {level} | {name} {label} | {ca['n']:,} | {cb['n']:,} | "
-                    + " | ".join(diffs)
-                    + " |"
+                    f"| {kind} | {level} | {name} {label} | {ca['n']:,} ({ca['n5']:,}) | "
+                    f"{cb['n']:,} ({cb['n5']:,}) | " + " | ".join(diffs) + " |"
                 )
     lines.append("")
     return lines
@@ -551,7 +559,7 @@ def table_hypothesis1(df: pd.DataFrame) -> list[str]:
         "",
     ]
     lines.append(
-        "| setup | flag | n exact shared | one R by 1 / 3 / 5 | minus plain by 1 / 3 / 5 | minus near by 1 / 3 / 5 |"
+        "| setup | flag | units exact shared (valid by 5) | one R by 1 / 3 / 5 | minus plain by 1 / 3 / 5 | minus near by 1 / 3 / 5 |"
     )
     lines.append("|---|---|---|---|---|---|")
     sub = df[df["tf"] == "D"]
@@ -566,21 +574,26 @@ def table_hypothesis1(df: pd.DataFrame) -> list[str]:
                 cell(base[base["cls"] == "plain"]),
                 cell(base[base["cls"] == "near"]),
             )
-            own = " / ".join(_p(ce[f"one_r{n}"]) for n in HORIZONS)
+            own = " / ".join(
+                _p(ce[f"one_r{n}"]) if ce[f"n{n}"] >= MIN_CELL else f"({_p(ce[f'one_r{n}'])})"
+                for n in HORIZONS
+            )
 
             def diffs(cb):
                 parts = []
                 for n in HORIZONS:
                     d, lo, hi = diff_interval(ce[f"k{n}"], ce[f"n{n}"], cb[f"k{n}"], cb[f"n{n}"])
-                    parts.append(
+                    txt = (
                         "-"
                         if math.isnan(d)
                         else f"{100 * d:+.1f} [{100 * lo:+.0f}, {100 * hi:+.0f}]"
                     )
+                    parts.append(txt if min(ce[f"n{n}"], cb[f"n{n}"]) >= MIN_CELL else f"({txt})")
                 return " / ".join(parts)
 
-            row = f"| {kind} | {level} | {ce['n']:,} | {own} | {diffs(cp)} | {diffs(cn)} |"
-            lines.append(row if ce["n"] >= MIN_CELL else row.replace("| " + own, "| (" + own + ")"))
+            lines.append(
+                f"| {kind} | {level} | {ce['n']:,} ({ce['n5']:,}) | {own} | {diffs(cp)} | {diffs(cn)} |"
+            )
     lines.append("")
     return lines
 
@@ -589,7 +602,7 @@ def table_split(df: pd.DataFrame, col: str, title: str) -> list[str]:
     """One-R chance by 3 bars, stacked vs plain (daily) per kind, within each value of `col`."""
     lines = [f"### {title}", ""]
     lines.append(
-        "| split | setup | n plain | plain one R by 3 | n stacked | stacked one R by 3 | diff [95%] |"
+        "| split | setup | valid plain by 3 | plain one R by 3 | valid stacked by 3 | stacked one R by 3 | diff [95%] |"
     )
     lines.append("|---|---|---|---|---|---|---|")
     sub = df[df["tf"] == "D"]
@@ -602,10 +615,10 @@ def table_split(df: pd.DataFrame, col: str, title: str) -> list[str]:
                 continue
             d, lo, hi = diff_interval(cs["k3"], cs["n3"], cp["k3"], cp["n3"])
             txt = "-" if math.isnan(d) else f"{100 * d:+.1f} [{100 * lo:+.0f}, {100 * hi:+.0f}]"
-            if min(cp["n"], cs["n"]) < MIN_CELL:
+            if min(cp["n3"], cs["n3"]) < MIN_CELL:
                 txt = f"({txt})"
             lines.append(
-                f"| {val} | {kind} | {cp['n']:,} | {_p(cp['one_r3'])} | {cs['n']:,} | {_p(cs['one_r3'])} | {txt} |"
+                f"| {val} | {kind} | {cp['n3']:,} | {_p(cp['one_r3'])} | {cs['n3']:,} | {_p(cs['one_r3'])} | {txt} |"
             )
     lines.append("")
     return lines
@@ -618,7 +631,7 @@ def table_variant(df: pd.DataFrame) -> list[str]:
         "",
     ]
     lines.append(
-        "| setup | class | n (variant) | median R % primary / variant | primary one R by 1 / 3 / 5 | variant one R by 1 / 3 / 5 | variant stopped by 5 |"
+        "| setup | class | units (valid by 5) | median R % primary / variant | primary one R by 1 / 3 / 5 | variant one R by 1 / 3 / 5 | variant stopped by 5 |"
     )
     lines.append("|---|---|---|---|---|---|---|")
     sub = df[(df["tf"] == "D") & (df["vout1"] != "n/a")]
@@ -628,13 +641,13 @@ def table_variant(df: pd.DataFrame) -> list[str]:
             if part.empty:
                 continue
             cp, cv = cell(part), cell(part, "vout")
-            pr = " / ".join(_p(cp[f"one_r{n}"]) for n in HORIZONS)
-            vr = " / ".join(_p(cv[f"one_r{n}"]) for n in HORIZONS)
-            row = (
-                f"| {kind} | {cls} | {cv['n']:,} | {cp['r_pct_med']:.2f} / {float(part['v_r_pct'].median()):.2f} | "
-                f"{pr} | {vr} | {_p(cv['stop5'])} |"
+            g = lambda c, n, t: t if c[f"n{n}"] >= MIN_CELL else f"({t})"  # noqa: E731
+            pr = " / ".join(g(cp, n, _p(cp[f"one_r{n}"])) for n in HORIZONS)
+            vr = " / ".join(g(cv, n, _p(cv[f"one_r{n}"])) for n in HORIZONS)
+            lines.append(
+                f"| {kind} | {cls} | {cv['n']:,} ({cv['n5']:,}) | {cp['r_pct_med']:.2f} / {float(part['v_r_pct'].median()):.2f} | "
+                f"{pr} | {vr} | {g(cv, 5, _p(cv['stop5']))} |"
             )
-            lines.append(row if cv["n"] >= MIN_CELL else row.replace(f"| {pr} |", f"| ({pr}) |"))
     lines.append("")
     lines.append(
         "R is a different distance under the variant (measured to the weekly bar), so one R is not the same target."
@@ -666,25 +679,30 @@ def cells_json(df: pd.DataFrame) -> list[dict]:
     return out
 
 
-def report(name: str, df: pd.DataFrame, counts: Counter, full: bool) -> list[str]:
+def report(name: str, df: pd.DataFrame, counts: Counter | None, full: bool) -> list[str]:
     lines = [
         f"## {name}: {df['coin'].nunique()} coins, {len(df):,} units ({', '.join(f'{tf} {int((df.tf == tf).sum()):,}' for tf in PATTERN_TFS)})",
         "",
     ]
-    lines.append(
-        f"Dropped and counted: unclassified setups "
-        f"{sum(v for k, v in counts.items() if k.startswith('unclassified'))}, zero-R setups "
-        f"{sum(v for k, v in counts.items() if k.startswith('zero_r'))}, nesting violations "
-        f"{counts.get('nesting_violation', 0)}, days skipped for a missing yesterday "
-        f"{counts.get('skipped_no_yesterday', 0)}, variant stops on the wrong side "
-        f"{counts.get('variant_stop_wrong_side', 0)}. Censored units by horizon: "
-        + ", ".join(
-            f"{tf} {n}: {counts.get(f'censored_{tf}_{n}', 0):,}"
-            for tf in PATTERN_TFS
-            for n in HORIZONS
-        )
-        + "."
+    # censored counts come from THIS sample's rows (second audit, F3: the LIQUID report used to
+    # repeat the universe's counters); the dropped-unit counters are universe-level and printed only
+    # where a universe's counter is passed
+    censored = ", ".join(
+        f"{tf} {n}: {int(((df['tf'] == tf) & (df[f'out{n}'] == 'censored')).sum()):,}"
+        for tf in PATTERN_TFS
+        for n in HORIZONS
     )
+    lines.append(f"Censored units by horizon, this sample: {censored}.")
+    if counts is not None:
+        lines.append("")
+        lines.append(
+            f"Universe-level bookkeeping for this sample's universe (not per split): unclassified "
+            f"setups {sum(v for k, v in counts.items() if k.startswith('unclassified'))}, zero-R "
+            f"setups {sum(v for k, v in counts.items() if k.startswith('zero_r'))}, nesting "
+            f"violations {counts.get('nesting_violation', 0)}, days skipped for a missing yesterday "
+            f"{counts.get('skipped_no_yesterday', 0)}, variant stops on the wrong side "
+            f"{counts.get('variant_stop_wrong_side', 0)}."
+        )
     lines.append("")
     lines += table_pattern_by_class(
         df, "D", "Daily units: setup x shape flag x stack class (ENTRY-TIME class, amendment A1)"
@@ -774,7 +792,7 @@ def main() -> None:
         "",
     ]
     md += report("VENUE ERA (headline)", df_v, counts_venue, full=True)
-    md += report("VENUE ERA, LIQUID only", df_v[df_v["liquid"]], counts_venue, full=False)
+    md += report("VENUE ERA, LIQUID only", df_v[df_v["liquid"]], None, full=False)
     md += report("ALL (with the index-price prefix; check line)", df_a, counts_all, full=False)
     (RESULTS / "chance_tables.md").write_text("\n".join(md), encoding="utf-8")
     out = {

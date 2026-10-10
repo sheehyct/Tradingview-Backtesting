@@ -10,7 +10,8 @@
 
 ## Status
 
-- Status: REQUESTED
+- Status: RETURNED -- audit written 2026-10-10 to `docs/reviews/tvb37-chance-codex-audit.md`
+  (verdict NEEDS-CHANGES, 8 findings, no remaining look-ahead found); synthesis in the TVB-37 HANDOFF entry.
   <!-- REQUESTED | RETURNED (audit file written) | N/A -->
 - Session under review: TVB-37 (IN PROGRESS -- second mid-session request by the
   owner, 2026-10-10). The work under review is the CHANCE COMPARISON: for every

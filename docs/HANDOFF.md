@@ -129,6 +129,74 @@ terms below and waits on two owner answers.
   stacks are valid" is accepted and is now explained in the receipt (yesterday
   retouched the higher level without breaking it).
 
+### External Review, second request (the chance comparison)
+
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb37-chance-codex-audit.md.
+> See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: ADDRESSED (owner-requested mid-session; folded the same day)
+- Commits to review: `4560e7c..c0f1826` on `main` (chance prereg + engine +
+  census refactor); the fold is the commit after cff7932
+- Scope / what changed: `analysis/domino/chance.py`, its tests, receipt,
+  prereg amendments A1 / A2, the `day_events` refactor of the census
+- Focus areas (scrutinize these): remaining look-ahead in any condition or
+  split column; the walker; horizons; follow-through; unit separation; the
+  variant stop; cell statistics; venue era; the refactor's equivalence;
+  receipt honesty; tests; hygiene
+- Reviewed by: local Codex CLI (`codex exec -s read-only`, unelevated sandbox)
+- Findings: `docs/reviews/tvb37-chance-codex-audit.md` -- NEEDS-CHANGES, 8
+  findings (F1 F2 F4 F5 MEDIUM, F3 F6 F7 F8 LOW); **no remaining look-ahead
+  found**; 477 committed cells and the full tables reproduced from the saved
+  rows; the census refactor confirmed equivalent on 80 extra sequences
+
+### Critical synthesis of the second audit
+
+- **Look-ahead hunt -- clean.** The reviewer's first job was to find any
+  remaining selection-on-outcome in a condition column after amendments A1 and
+  A2. None found: the entry-time class, the weekly / monthly class, the
+  flags, the month-open and quarter columns all read only what is known at the
+  break. The retrospective `liquid` label and the survivor universe are
+  disclosed, not leaks.
+- **F1 MEDIUM, decimal touch fills -- AGREE, fixed.** The target was computed
+  in binary floats, so a high exactly one R above the entry could read a hair
+  short and miss the fill. Stop and target are now compared to the bar's
+  prices as decimals (the same fix the census got for its bands). Re-run;
+  moved cells listed in the receipt.
+- **F2 MEDIUM, counts and greying -- AGREE, fixed.** Tables showed the unit
+  count and greyed on it; the chance's denominator is the valid count at that
+  horizon (censored excluded), which can be far smaller on monthly cells.
+  Every table now shows the valid count beside each chance and greys on it;
+  differences grey when either side is under 30 valid. The prereg's "every
+  proportion carries an interval" was the intent, not what was built: the
+  contract is restated in amendment A4 (intervals on the one-R chances and
+  their differences; stop, entry-day and next-bar shares carry their count).
+- **F3 LOW, LIQUID bookkeeping -- AGREE, fixed.** Censored counts are now
+  computed per sample; the dropped-unit counters are labelled universe-level.
+- **F4 MEDIUM, the "within two points" sentence -- AGREE, corrected.** It was
+  false for some flagged cells (a plain outside STRICT cell differs by 6 points
+  between venue era and LIQUID). Replaced with the scoped statement.
+- **F5 MEDIUM, over-general sentences -- AGREE, corrected.** "Nothing flips
+  across splits" ignored +4.7 in 2023; "every pattern by four to seven points"
+  ignored the outside break's 2.6; "with fewer stops" was false for the
+  continuation THIRD cell; "one in four to one in three" was the reversal and
+  inside figures only; hypothesis 1 was declared on DAILY units, so the weekly
+  shared-open result is a descriptive comparison, not a test of it. Receipt,
+  ledger and this entry now say so.
+- **F6 LOW, "exact was clean in both versions" -- AGREE, corrected to
+  "nearly".** The first run's class took the largest gap among the levels
+  that broke, so a same-price weekly stack could leave the exact cell when the
+  day also reached a farther monthly level (292 units). The entry-time class
+  fixed it.
+- **F7 LOW, tests -- AGREE, eight vectors added** in
+  `tests/test_domino_chance_audit2.py` (decimal fills both sides, monthly
+  horizons and follow-through, weekly / monthly classes, A2 invariance of the
+  context columns under a changed entry day, cell denominators and greying,
+  flag mask on a non-default index, later zero-volume days, the variant's
+  wrong-side counter). The obsolete bug test 13 is retired in A4.
+- **F8 LOW, later zero-volume days -- AGREE, stated** in the receipt and A4.
+- **Disputed: nothing.**
+
 ### Product 2: the chance comparison (DONE 2026-10-10, receipted)
 
 The owner answered the two questions (in-favour wiggle YES; the card GO) and
@@ -159,7 +227,7 @@ IDEA and run as one variant table, with the setup-bar stop as the primary.
   (29% vs 42%, -12 points). A 2-2 continuation with an unbroken higher level
   within a quarter percent beyond the trigger did better (+6 points); the same
   compression hurt inside-bar breaks (-5). The hammer shape on the setup bar
-  lifted every pattern by four to seven points with fewer stops. One in four
+  lifted the reversal, continuation and inside break by four to seven points (the outside break by about three), with fewer stops on all but the continuation (second audit F5). One in four
   to one in three daily units traded their stop on the entry day (the owner's
   "2 going 3"), all counted as stops. Nothing flips across direction, year,
   liquidity or the month's open. Hypothesis 1 reads as supported on the
@@ -168,6 +236,54 @@ IDEA and run as one variant table, with the setup-bar stop as the primary.
   extreme is a 2 or a 3, not a reversal setup).
 - Not done, flagged: an R-matched comparison (exact shared-open stacks carry
   the biggest setup bars); fees / funding / sizing; the Underlying-RTH mirror.
+
+### Product 2b: the book view, the R-matched check and the chart page (DONE 2026-10-10)
+
+Owner, after the chance receipt: "it is hard for me to understand the impact of
+some of things unless talking in terms of p/l or percent performance even if
+it's a hypothetical account (no leverage, no fees, single buy)", and "a
+visualization of some of this would help ... like you reading data vs charts".
+Declared as prereg amendment A3 BEFORE computing: two VIEWS of the same unit
+rows, no new condition, nothing promoted. Engine `analysis/domino/book.py`
+(reads the units through `chance.coin_units`); tests `tests/test_domino_book.py`
+(3 vectors); receipt `analysis/domino/BOOK_RECEIPT.md`; tables
+`results/book_tables.md`; page builder `analysis/domino/chart_page.py`
+(output gitignored; the private claude.ai page is linked only in the lead's
+memory, never in this public repo). New standing feedback saved: every data
+product gets a book view and a chart page beside the receipt.
+
+- **The book's rules:** one unit of notional per trade, long or short as the
+  break, entry at the level, stop at the other side of the setup bar, one-R
+  target, otherwise marked at the close of the fifth bar; no leverage, fees,
+  funding or slippage; every trade taken; dollar figures are the SUM of
+  1,000-dollar trades, not an account balance.
+- **What it says, in money (venue era, 5 bars):** every plain daily pattern
+  loses: 2-2 reversal -0.84% per trade (43,442 trades), 2-2 continuation
+  -0.43%, inside break -0.54%, outside break -0.21%, with hit rates of 36-41%
+  against stop rates of 41-55% (the pessimistic same-day call inside them).
+  The hammer shape brings each pattern to about flat (-0.10% to +0.31%). The
+  stacked 2-2 continuation is the one daily A+ class in the black (+0.44% with
+  a level within a quarter percent beyond the trigger, +0.33% within 1%). The
+  same-price stack at the Monday / 1st open loses more than plain (-1.19%;
+  outside -2.23%) and on the weekly loses on every setup (-0.9% to -3.2%). The
+  weekly 2-2 continuation whose day had already run 1%+ before the level broke
+  is the biggest positive (+1.75% over 4,492 trades, +78k on the book, -31k
+  drawdown).
+- **R-matched (bar size held equal in five bins):** the daily near-continuation
+  gap survives (+4.7 [+1, +8] by 3 bars, +6.0 [+3, +10] by 5); the daily
+  shared-open gap vanishes (-0.7 [-2, +1]); the weekly shared-open deficit keeps
+  two thirds of its size (-8.0 [-10, -6]) and holds in every bar-size bin.
+- **Reading, kept to the arithmetic:** with a fixed one-R target and the
+  setup-bar stop, the plain patterns are a losing book before fees; the hammer
+  shape and the compression of a 2-2 continuation under an unbroken higher
+  level are the two entry-time conditions that lift it to flat or slightly
+  positive; the shared-open stack is not one of them. None of this tests STRAT
+  trade management (targets at structure, running until invalidated), which is
+  the owner's stated way of trading these.
+- **Charts:** the private page draws the daily bars with intervals, the book
+  curves for the daily continuation classes, the hammer split, the weekly bars
+  and curves, the R-matched bars and the book table. Rebuild with
+  `uv run python -m analysis.domino.chart_page` and republish to the same url.
 
 ### Carried items (untouched this session)
 
