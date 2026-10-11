@@ -413,7 +413,7 @@ product gets a book view and a chart page beside the receipt.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: `ea58c6c..{head}` on `main` (pinned after the push). Of
+- Commits to review: `ea58c6c..9e0f95e` on `main` (pinned 2026-10-10 after the push). Of
   these, 25a8ac5 and c0f1826 were already covered by the second mid-session
   audit (`4560e7c..c0f1826`); the UNREVIEWED commits are 4560e7c (the census
   audit fold), cff7932 (a request pointer), dadf8ef (the book view, the

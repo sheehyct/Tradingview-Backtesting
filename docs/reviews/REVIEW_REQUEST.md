@@ -32,7 +32,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `{pending push}` -- will be pinned as `ea58c6c..{head}`. Unreviewed inside it: 4560e7c (census audit fold), cff7932 (request pointer), dadf8ef (book view + R-matched + chart-page builder + second audit fold), and the close-out docs commits. Already reviewed inside it: 25a8ac5, c0f1826. Verify with `git diff --name-status ea58c6c..{head}`. |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `ea58c6c..9e0f95e`. Unreviewed inside it: 4560e7c (census audit fold), cff7932 (request pointer), dadf8ef (book view + R-matched + chart-page builder + second audit fold), and the close-out docs commits. Already reviewed inside it: 25a8ac5, c0f1826. Verify with `git diff --name-status ea58c6c..9e0f95e`. |
 
 No sibling-repo commits. The candle cache, the unit rows (`trades.csv.gz`), the
 page output (`chance_book_page.html`) and the run logs are gitignored;
