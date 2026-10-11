@@ -96,3 +96,13 @@ conflicts with the charter or code, STOP and ASK rather than guess.
 
 Ticket prefix `TVB-NNN`. Contracts: `docs/EXTERNAL_REVIEW_PROTOCOL.md`,
 `docs/guides/TRADINGVIEW_MCP_SETUP.md`.
+
+## User Notes and Preferences
+
+- Use trader specific, easy to understand plain english when explaining strategy outcomes
+- Visualization tools should be used to assist user in verifying strategy accuracy before moving forward
+- Purposeful overfitting is okay and reccomenned during initial strategy development, those overfit numbers are then tested to fail - this is for data collection only
+- Take any strategy results and fully analyze them, talk in terms of theoretical P/L, this is an example of using trader language
+- Test any strategy decisions with the users approved plan while also testing what Claude would change about the strategy based on the data, do not proceed until the decisons are mutually agreed upon
+- Understand initial poor performance metrics of strategy is typically due to a gap in the discrentionary side of the strategy in comparison to the coded side of the strategy
+- Always ask clarifying questions with suggestions, never proceed if confused on any aspect of the strategy
