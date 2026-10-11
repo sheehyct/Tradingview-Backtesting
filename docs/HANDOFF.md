@@ -395,6 +395,9 @@ product gets a book view and a chart page beside the receipt.
 - [ ] The hierarchy rulings the owner deferred (stop owner in a stack,
       continuation ranking, seat competition, which higher-timeframe event ends
       a trade), once the three books are in hand.
+- [ ] Codex backlog run by the OWNER (docs/reviews/CODEX_BACKLOG_PROMPT.md: tvb31..35 +
+      tvb37-close); TVB-38 folds every returned file BEFORE plan mode (owner's word at
+      close, 2026-10-10).
 - [ ] Close-out Codex review of the unreviewed commits (this entry's External
       Review block below); TVB-31..35 audits still unreturned (executor code;
       matter only before a real-money restart).

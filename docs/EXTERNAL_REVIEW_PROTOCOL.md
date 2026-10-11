@@ -23,13 +23,36 @@ reference it.
 Either transport writes its findings to the same place; `/session-start` reads
 them the same way.
 
+## Who runs the audit (nobody automatically)
+
+No hook, routine or CI runs Codex in this repo. An audit happens one of two
+ways:
+
+1. **Claude, inside a session**, runs the local Codex CLI read-only against the
+   working tree and captures the final message into `docs/reviews/`. Recipe
+   (learned 2026-10-10; the elevated Windows sandbox cannot start from the
+   Claude Code shell):
+   `codex exec -s read-only -c 'windows.sandbox="unelevated"' -C <repo>
+   --color never -o <scratch>/audit.md - < prompt.txt`. Used twice in TVB-37,
+   both mid-session at the owner's request.
+2. **The owner**, in Codex CLI started in the repo, invokes the `session-review`
+   skill (`~/.codex/skills/session-review/SKILL.md`; it reads
+   `docs/reviews/REVIEW_REQUEST.md` first, then the newest HANDOFF block) or
+   pastes `docs/reviews/CODEX_BACKLOG_PROMPT.md` (every open request at once,
+   one audit file per session).
+
+Either way the NEXT Claude session folds the findings (critical synthesis in
+the HANDOFF, fixes committed) before new work. "REQUESTED" in a HANDOFF block
+means nobody has run it yet; it is not a queue anything drains on its own.
+
 ## The current-request pointer: `docs/reviews/REVIEW_REQUEST.md`
 
-A stable single file external reviewers are pointed at (e.g. the Codex
-`/session-review` custom prompt -- `~/.codex/prompts/session-review.md` -- reads
-exactly this path; do NOT name the prompt `review.md`, Codex CLI has a NATIVE
-built-in `/review` that shadows same-named custom prompts and only diffs the
-working tree against a base branch). It always describes the LATEST requested
+A stable single file external reviewers are pointed at (e.g. the owner's Codex
+`session-review` SKILL -- `~/.codex/skills/session-review/SKILL.md`, not a
+`prompts/` file as this doc said until 2026-10-10 -- reads exactly this path;
+do NOT name anything `review`, Codex CLI has a NATIVE built-in `/review` that
+shadows same-named custom prompts and only diffs the working tree against a
+base branch). It always describes the LATEST requested
 review: status, session, pinned commit ranges (including sibling-repo commits
 reviewable only via the local transport), scope, focus areas, read-first order,
 and the audit output path.

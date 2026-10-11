@@ -89,6 +89,22 @@ minutes in all). Committed numbers: `analysis/domino/results/*.json` and
    personal remark; `chance_book_page.html`, `trades.csv.gz`, run logs ignored.
 10. **request.security**: NO Pine file changed -- verify none did.
 
+## Backlog (also open, never returned; one audit file each)
+
+The owner runs these with `docs/reviews/CODEX_BACKLOG_PROMPT.md`. Ranges are
+pinned in each session's HANDOFF External Review block (TVB-31 / 32 in
+`docs/session_archive/HANDOFF_TVB27-TVB32.md`); sibling-repo ranges are local
+transport only.
+
+| session | this repo | hip3-executor (private, local) | audit file |
+|---|---|---|---|
+| TVB-31 | `0d7437c^..7bfde0f` | `4e384bb^..4e384bb` (+ scanner d0fe9e7 / 7723462) | `tvb31-codex-audit.md` |
+| TVB-32 | `5b194a2..7a29dad` | fd4db97, 35a73a4, 2dc9490, 68dca79, cbea184 -> e2a91ad, 4b5d248 | `tvb32-codex-audit.md` |
+| TVB-33 | `7a29dad..7ad92f4` (first commit = TVB-32's pin) | `4b5d248..d8a07b0` (derived; confirm) | `tvb33-codex-audit.md` |
+| TVB-34 | `7ad92f4..00d243e` | `d8a07b0..5cd2b0d` | `tvb34-codex-audit.md` |
+| TVB-35 | `848db00..3f087b0` | `5cd2b0d..fc90368` | `tvb35-codex-audit.md` |
+| TVB-36 | waived (N/A) | -- | -- |
+
 ## Output contract
 
 - Verbatim audit -> `docs/reviews/tvb37-close-codex-audit.md` (template:
