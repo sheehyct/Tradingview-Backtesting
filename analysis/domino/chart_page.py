@@ -38,6 +38,90 @@ CLS_LABEL = {
 BASE_LABEL = {"plain": "plain", "within1 + spread": "the rest (within 1% + spread)"}
 
 
+BOOK_KEYS = ("A", "B", "C", "D", "ref")
+
+
+def management_data(m: dict) -> dict:
+    """The product-3 numbers the page draws, read from manage.json and nothing else: reach bars
+    (T1 before the exit vs any time inside the cap), the five books per daily cell, the curves
+    for the declared cells and the hypothesis read-out."""
+    cells = {(c["tf"], c["kind"], c["flag"], c["cls"]): c for c in m["cells"]}
+
+    def reach(c: dict, key: str) -> dict | None:
+        r = c.get(key)
+        if not r or not r.get("n"):
+            return None
+        return {"p": r["p"], "lo": r["lo"], "hi": r["hi"], "n": r["n"], "small": r["n"] < MIN_CELL}
+
+    reach_rows = {}
+    for kind in KINDS:
+        c = cells.get(("D", kind, "all", "plain"))
+        if not c or not c.get("n"):
+            continue
+        reach_rows[kind] = {
+            "exit": reach(c, "reach1"),
+            "cap": reach(c, "ceil1"),
+            "t2": reach(c, "reach2"),
+        }
+    book_rows = []
+    hyp = []
+    for kind in KINDS:
+        for cls in ("plain", "near", "within1"):
+            c = cells.get(("D", kind, "all", cls))
+            if not c or not c.get("book_rows"):
+                continue
+            for b in BOOK_KEYS:
+                st = c["books"][b]
+                if not st.get("n"):
+                    continue
+                d = c["diff"].get(f"{b}_minus_ref") if b != "ref" else None
+                book_rows.append(
+                    {
+                        "setup": KIND_LABEL[kind],
+                        "cls": CLS_LABEL[cls],
+                        "book": m["book_label"][b],
+                        "n": st["n"],
+                        "small": st["n"] < MIN_CELL,
+                        "avg": st["avg_pct"],
+                        "med": st["med_pct"],
+                        "win": st["win"],
+                        "at_target": st["at_target"],
+                        "total": st["total_usd"],
+                        "dd": st["max_dd_usd"],
+                        "days": st["med_days"],
+                        "diff": None if d is None else d["diff"],
+                        "lo": None if d is None else d["lo"],
+                        "hi": None if d is None else d["hi"],
+                    }
+                )
+            if cls == "plain":
+                d = c["diff"]["D_minus_ref"]
+                died = c["died"]
+                hyp.append(
+                    {
+                        "setup": KIND_LABEL[kind],
+                        "n": d["n"],
+                        "diff": d["diff"],
+                        "lo": d["lo"],
+                        "hi": d["hi"],
+                        "later1": died["later1"],
+                        "stop_saw": died["stop_saw"],
+                        "tail1": c["tail"]["mae_gt1"],
+                        "tail2": c["tail"]["mae_gt2"],
+                        "worst": c["tail"]["worst_pct"],
+                    }
+                )
+    return {
+        "cap": m["cap_daily_bars"],
+        "units": m["units"],
+        "book_label": m["book_label"],
+        "reach": reach_rows,
+        "books": book_rows,
+        "hyp": hyp,
+        "curves": m["curves"],
+    }
+
+
 def build_data(results: Path = RESULTS) -> dict:
     """The page's numbers, read from chance.json and book.json and nothing else.
 
@@ -110,8 +194,12 @@ def build_data(results: Path = RESULTS) -> dict:
                 "conditional": r["conditional"],
             }
         )
+    manage = None
+    if (results / "manage.json").exists():
+        manage = management_data(json.load(open(results / "manage.json")))
     return {
         "as_of": chance["as_of_utc"],
+        "manage": manage,
         "units": chance["units"]["venue_era"],
         "unit_usd": book["unit_usd"],
         "kind_label": KIND_LABEL,
@@ -183,7 +271,7 @@ tr.small td { opacity: 0.45; }
 <header>
   <div class="eyebrow">TVB-37 &middot; venue era &middot; as of __ASOF__ UTC</div>
   <h1>Domino Chance Book</h1>
-  <p>Every daily, weekly and monthly level break on 292 live perps, traded at one unit each with the stop at the other side of the setup bar and a one-R target. No leverage, no fees, no funding. The same STRAT pattern is shown plain and stacked on a higher-timeframe level. Numbers are the receipt's; this page only draws them.</p>
+  <p>Every daily, weekly and monthly level break on 292 live perps, traded at one unit each with the stop at the other side of the setup bar and a one-R target. No leverage, no fees, no funding. The same STRAT pattern is shown plain and stacked on a higher-timeframe level. Numbers are the receipt's; this page only draws them. The management book (no stop, a close exit, a ladder of targets) sits at the bottom.</p>
 </header>
 
 <section>
@@ -230,6 +318,35 @@ tr.small td { opacity: 0.45; }
   <div class="panel tbl"><table id="bookTable"><thead><tr><th>setup</th><th>class</th><th>trades</th><th>avg % / trade</th><th>hit</th><th>stopped</th><th>exp. R</th><th>total $</th><th>max DD $</th><th>median R %</th></tr></thead><tbody></tbody></table></div>
 </section>
 
+<section id="manage" hidden>
+  <h2>The management book: no stop, a close exit, a ladder of targets</h2>
+  <p class="read">Same trades, managed the STRAT way instead of with a setup-bar stop: no price stop; out at the close of a day that closed red with the week red at that close (under Monday's open), filled at that close; T1 = the pattern's own magnitude (the far side of the bar before the pattern for a reversal; the first unbroken weekly or monthly level for the 2-2 continuation, the with-trend inside bar and the 3-2), T2 and T3 the next unbroken higher levels; trades still open after 20 days marked there. Plain daily setups. The left bar of each group is the share that touched T1 before the exit; the middle bar ignores the exit (touched any time inside 20 days): the gap between them is what the exit costs in targets.</p>
+  <div class="panel"><div class="chart"><canvas id="barsReach"></canvas></div>
+  <ul class="legend"><li style="--c:var(--plain)">T1 before the exit</li><li style="--c:var(--spread)">T1 any time in 20 days</li><li style="--c:var(--near)">T2 after T1, before the exit</li></ul></div>
+</section>
+
+<section id="manageCurves" hidden>
+  <h2>Five books on the same trades: plain daily setups</h2>
+  <p class="read">A takes everything off at T1. B passes through T1 and takes T2 (or the exit). C has no target, the exit only. D keeps the chance book's one-R target and swaps the stop for the close exit: only the loss side changes. The reference is the chance book itself (one R or the setup-bar stop, marked at the fifth bar) on the identical trades. Each trade's final return sits on its ENTRY date; the lines are sums of equal-size trades, not an account.</p>
+  <div class="panel"><div class="chart tall"><canvas id="curvesManageRev"></canvas></div>
+  <ul class="legend" id="legendManageRev"></ul></div>
+  <div class="panel" style="margin-top:12px"><div class="chart tall"><canvas id="curvesManageCont"></canvas></div>
+  <ul class="legend" id="legendManageCont"></ul></div>
+  <div class="panel" style="margin-top:12px"><div class="chart tall"><canvas id="curvesManageIns"></canvas></div>
+  <ul class="legend" id="legendManageIns"></ul></div>
+</section>
+
+<section id="manageHyp" hidden>
+  <h2>The suspect, read as declared</h2>
+  <p class="read">H2 (the owner's): swapping the stop for the close exit (book D minus the reference, average % per trade, paired on the same trades, 95% interval). H3 (the lead's counter): the close exit is itself an early exit; of the trades it closed before T1, how many touched T1 later inside 20 days, beside the chance book's stopped-then-saw-one-R share on the same trades. The tail columns are where a stopless book bleeds: trades whose adverse travel passed one and two setup-bar R before the exit, and the worst single trade.</p>
+  <div class="panel tbl"><table id="hypTable"><thead><tr><th>setup</th><th>trades</th><th>D minus reference</th><th>95% interval</th><th>exited, touched T1 later</th><th>stopped, saw one R</th><th>MAE over 1R</th><th>over 2R</th><th>worst trade</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section id="manageTable" hidden>
+  <h2>The management books by cell, daily triggers</h2>
+  <div class="panel tbl"><table id="manageBookTable"><thead><tr><th>setup</th><th>class</th><th>book</th><th>trades</th><th>avg % / trade</th><th>median %</th><th>in profit</th><th>at target</th><th>total $</th><th>max DD $</th><th>days</th><th>minus reference</th></tr></thead><tbody></tbody></table></div>
+</section>
+
 <section>
   <h2>Read with these in mind</h2>
   <ul class="notes">
@@ -238,7 +355,8 @@ tr.small td { opacity: 0.45; }
     <li>Faded bars and table rows hold fewer than 30 valid trades at the horizon shown: counted, not read.</li>
     <li>Units on the same day across coins move together; the intervals are tighter than the truth.</li>
     <li>Survivors only (coins listed today), venue era only (each coin from its first traded day). No fees, funding, slippage or sizing. Nothing here is a rule.</li>
-    <li>Record: analysis/domino/CHANCE_RECEIPT.md and BOOK_RECEIPT.md in the research repo.</li>
+    <li>The management book has no price stop: its losses are bounded only by the close exit and the 20-day cap; nothing here sizes against liquidation. Days held differ by book (shown), so a book against the reference is rule against rule; only D isolates the stop.</li>
+    <li>Record: analysis/domino/CHANCE_RECEIPT.md, BOOK_RECEIPT.md and MANAGE_RECEIPT.md in the research repo.</li>
   </ul>
 </section>
 </div>
@@ -373,6 +491,38 @@ function table() {
     <td class="num neg">${usd(r.dd)}</td><td class="num">${r.r.toFixed(2)}</td></tr>`).join("");
 }
 
+const sgn = (x, d) => (x == null ? "-" : (x >= 0 ? "+" : "") + x.toFixed(d));
+
+function manageCurves(id, legendId, key) {
+  const C = DATA.manage.curves[key] || {};
+  const L = DATA.manage.book_label;
+  const col = { A: "--near", B: "--within", C: "--plain", D: "--stack", ref: "--spread" };
+  curves(id, legendId, ["A", "B", "C", "D", "ref"].filter((b) => C[b]).map((b) => ({ label: L[b], color: col[b], points: C[b] })), "cumulative P/L, 1,000 $ per trade");
+}
+
+function manage() {
+  const M = DATA.manage;
+  if (!M) return;
+  ["manage", "manageCurves", "manageHyp", "manageTable"].forEach((id) => { document.getElementById(id).hidden = false; });
+  const K = DATA.kind_label;
+  groupedBars("barsReach", Object.keys(M.reach).map((k) => ({ label: K[k], cells: M.reach[k] })),
+    [{ key: "exit", color: "--plain", label: "T1 before the exit" }, { key: "cap", color: "--spread", label: "T1 any time in 20 days" },
+     { key: "t2", color: "--near", label: "T2 after T1" }], "share of trades (%)", 100);
+  manageCurves("curvesManageRev", "legendManageRev", "D|reversal|all|plain");
+  manageCurves("curvesManageCont", "legendManageCont", "D|continuation|all|plain");
+  manageCurves("curvesManageIns", "legendManageIns", "D|inside|all|plain");
+  const ht = document.querySelector("#hypTable tbody");
+  ht.innerHTML = M.hyp.map((r) => `<tr><td>${r.setup}</td><td class="num">${r.n.toLocaleString()}</td>
+    <td class="num ${r.diff < 0 ? "neg" : ""}">${sgn(r.diff, 2)}%</td><td class="num">[${sgn(r.lo, 2)}, ${sgn(r.hi, 2)}]</td>
+    <td class="num">${pct(r.later1.p)} (n ${r.later1.n.toLocaleString()})</td><td class="num">${pct(r.stop_saw.p)} (n ${r.stop_saw.n.toLocaleString()})</td>
+    <td class="num">${pct(r.tail1)}</td><td class="num">${pct(r.tail2)}</td><td class="num neg">${sgn(r.worst, 1)}%</td></tr>`).join("");
+  const tb = document.querySelector("#manageBookTable tbody");
+  tb.innerHTML = M.books.map((r) => `<tr class="${r.small ? "small" : ""}"><td>${r.setup}</td><td>${r.cls}</td><td>${r.book}</td><td class="num">${r.n.toLocaleString()}</td>
+    <td class="num ${r.avg < 0 ? "neg" : ""}">${sgn(r.avg, 2)}%</td><td class="num ${r.med < 0 ? "neg" : ""}">${sgn(r.med, 2)}%</td><td class="num">${pct(r.win)}</td><td class="num">${pct(r.at_target)}</td>
+    <td class="num ${r.total < 0 ? "neg" : ""}">${usd(r.total)}</td><td class="num neg">${usd(r.dd)}</td><td class="num">${r.days.toFixed(0)}</td>
+    <td class="num">${r.diff == null ? "-" : sgn(r.diff, 2) + " [" + sgn(r.lo, 2) + ", " + sgn(r.hi, 2) + "]"}</td></tr>`).join("");
+}
+
 function draw() {
   charts.splice(0).forEach((c) => c.destroy());
   const K = DATA.kind_label;
@@ -405,6 +555,7 @@ function draw() {
   ], "cumulative P/L, 1,000 $ per trade");
   matchedBars("barsMatched");
   table();
+  manage();
 }
 draw();
 window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw);

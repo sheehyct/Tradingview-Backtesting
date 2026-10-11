@@ -5,6 +5,153 @@
 
 ---
 
+## Session TVB-38: the Codex backlog folded, then product 3 -- the STRAT-management book (no stop, a close exit, a ladder of targets) built and receipted (COMPLETE)
+
+**Date:** 2026-10-11
+**Status:** COMPLETE -- two pieces of work. First, the six-audit Codex backlog the owner ran
+overnight (TVB-31..35 and the TVB-37 close-out) was folded in one commit (5e6c59a: syntheses in
+each entry, the book's drawdown column and the regime labeler's look-ahead fixed here, the
+executor findings recorded for the private repo; see the TVB-37 close-out synthesis and the
+archived entries). Second, product 3 of the TVB-37 data redirect: the owner ruled both forks
+run for the data, agreed the headline combination, said "run it as is" and that the numbers
+will be taken with a grain of salt until they can sit down with the charts; the prereg and the
+ledger card went in before code (caaba12), the engine was built on the chance units with 14 hand
+vectors first, run offline on the 2026-10-10 snapshot, receipted, drawn on the private page and
+sent to Codex. Nothing is promoted.
+
+### What was accomplished
+
+- **Backlog fold (item 0, morning):** `docs/reviews/tvb31..35-codex-audit.md` and
+  `tvb37-close-codex-audit.md` read, synthesised (agree / dispute / act) into their HANDOFF
+  entries, fixed where the code lives here (book drawdown from zero, 110 cells; regime receipt
+  labelled on completed 60m bars only, 12 of 84 composites moved, the old positive macro cell
+  now negative; receipt sentences corrected; strict JSON; `--as-of` offline reruns), statuses
+  flipped, pushed. The executor repairs owed before any real-money restart are listed in the
+  TVB-31..35 syntheses (headline: malformed inner position rows prove flat; partial close during
+  protection loss unretryable; unbounded book_top read before the safety loop; replay parity
+  not pinned to roll_freeze_ms; builder fee double-counted; decoupled flip counterfactual
+  unreachable; backing_invalidated never journaled; NaN size passes stop coverage).
+- **Owner rulings, 2026-10-11:** both forks of product 3 run as declared variants ("I believe it
+  involved both forks for the data"; "try both and see the results"); headline = the
+  continuation's T1 at the next unbroken higher level + the daily close with the week's colour
+  as the exit clock for every trade ("Yes we may proceed with this"); the lead's seven declared
+  calls stood (against = the candle's colour; equality not against; the entry day can exit; the
+  ladder is week and month levels only, fixed at entry; a zero-magnitude reversal has no T1; the
+  monthly own-bar clock has no higher confirmation; cap 20 daily bars); book D (one R or the
+  exit, the lead's addition) kept. "We can run it as is ... we'll take them with a grain of salt
+  for now until I can kind of sit down and visualize some of it and break down the numbers
+  myself."
+- **Prereg before code:** `docs/experiments/tvb37_management_book_prereg.md` (17 definitions,
+  hypotheses H2 / H3 with direction, 15 hand vectors, bug tests) and the ARM_LEDGER card
+  (trader restatement, the owner's go), commit caaba12.
+- **`census.day_events` extended** to return the bar before the setup bar with its prices (the
+  fourth element of each setups tuple); `_context` carries `ref`; the census gained `--as-of`
+  and `--out` for offline reruns (the cache helpers moved into census, re-exported by chance).
+  The census was rerun offline before and after the extension: `census.json` byte-identical,
+  and the offline baseline's `splits` equal the committed live run's.
+- **`analysis/domino/manage.py`** (the engine): ladder, structural T1 per the resource's
+  reversal anatomy (confirmed in the corpus: "the target is always the high or low of the bar
+  prior to the trigger bar"; the 3-2 and the with-trend 2-2 "take their target from the higher
+  timeframe"), the measured move as the two-bar range, one walk per unit recording target
+  touches, travel and both exit clocks, settlement at either cap, five books on the same rows,
+  paired differences, reach / death / tail tables, both fork tables, hypothesis read-out,
+  splits. `tests/test_domino_manage.py`: 14 vectors (the 15 declared; v13 and v14 share a
+  vector with v2 / v3), all green before the data run. Suite 358 passed, 2 skipped.
+- **Run and reconciliation:** 179,498 units (product 2's 179,913 less 415 daily units with no
+  week open to test against); one BTC short reconciled by hand against the raw candles; the
+  rerun that added two columns moved no number. Receipt `analysis/domino/MANAGE_RECEIPT.md`;
+  tables `results/manage_tables.md`; `results/manage.json`.
+- **The private chart page** gained four sections (reach bars, five-book curves for the three
+  plain daily patterns, the hypothesis table, the management book table) and was republished
+  to the same link (version 3; the link stays in the lead's memory only).
+
+### The finding (trader terms; the receipt has every table)
+
+Taking the stop away turns every plain daily pattern from a loser into roughly flat: the chance
+book lost -0.27 to -0.84 per trade, the management books sit between -0.24 and +0.24, and on the
+same trades the stop swap alone (book D minus the chance book, paired) is worth +0.45 to +0.93
+with intervals clear of zero. H2 (the owner's suspect) holds in sign on all four patterns. It
+is not a money machine: the median trade still loses in every book that holds past T1, two
+trades in three close red on the exit-only book, and the averages are of the same order as a
+round-trip taker fee. The close exit fires inside a median two to three days and is itself an
+early exit: of the trades it closes before one R, 45-61% touch one R later inside the cap,
+against the stop's 24-48% (H3, the lead's counter, holds too; both are true because the close
+exit's losers average 0.6-1.0 R while the stop's are a full R). The tail is the price: 32-55%
+of trades travel more than one R against before the exit, 6-20% more than two R, worst single
+trades -88% to -143% (shorts on doublings), unsized. T1 before the exit: reversal 63.8% (its T1
+is the bar before the pattern, a median 2.6% away), inside 53.6%, outside 38.7%, continuation
+36.2% (T1 a median 9.8% away, beyond its own R: the one pattern management does not get into the
+black). The hammer flag adds little on top of its already-flat cells; the stacked continuation
+stays the one A+ in the black under every rule; shared-open stacks lose under every book. Weekly
+and monthly units traded on the daily clock close in 1-5 days and lose to the chance book's
+five-bar hold where that hold won; the own-bar clock holds 13-27 days and loses more on ten of
+sixteen weekly cells. Fork 1: the measured move and the level sit at the same distance on plain
+continuations (A +0.02 against -0.23); on stacked cells the level is next door and the measured
+move is the real target. An entry-time split worth the owner's eye: a continuation entered
+against the week reaches T1 14.7% of the time against 39.4% with it (reversal 50.4% against
+72.3%).
+
+### What the lead would test next (not done; the owner decides)
+
+- The week's side at entry as a declared entry-time condition (the one split with a large gap
+  that a trader can see at the break); the hourly as the exit clock (the daily close is blunt);
+  half at T1 and the rest on the exit (the ATLAS ladder shape); fees at the venue's taker rate
+  on every book; the exit test on the close against the ENTRY price (under water) as the
+  declared alternative reading of "against".
+- The owner's own pass over the charts and the per-trade rows (`manage_trades.csv.gz` has every
+  target, touch day, exit day and fill) before any of the hierarchy rulings are read from these
+  tables.
+
+### Files created/modified
+
+- New: `analysis/domino/manage.py`, `analysis/domino/MANAGE_RECEIPT.md`,
+  `analysis/domino/results/{manage.json,manage_tables.md}`,
+  `docs/experiments/tvb37_management_book_prereg.md`, `tests/test_domino_manage.py`,
+  `docs/reviews/tvb31..35-codex-audit.md`, `docs/reviews/tvb37-close-codex-audit.md`.
+- Modified: `analysis/domino/census.py` (ref bar, `--as-of`, `--out`, cache helpers),
+  `analysis/domino/chance.py` (imports; `_refbar` unpacking), `analysis/domino/chart_page.py`
+  (management sections), `analysis/domino/book.py` (drawdown, strict JSON, `--as-of`, fold),
+  `analysis/regime/receipt.py` and `scripts/tvb35_regime_harvest.mjs` (fold),
+  `tests/test_domino_book_audit.py`, `docs/ARM_LEDGER.md` (product 3 card with numbers),
+  `docs/HANDOFF.md`, `docs/reviews/REVIEW_REQUEST.md`, `.session_startup_prompt.md`,
+  `.gitignore`, `CLAUDE.md` (owner's notes section, a0c52df).
+- Gitignored, regenerable: `results/manage_trades.csv.gz`, `results/manage_run.log`, the page.
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb38-codex-audit.md.
+> See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED (see docs/reviews/REVIEW_REQUEST.md for the pinned range)
+- Commits to review: `a0c52df..HEAD` on `main` (the prereg commit caaba12 and the product-3
+  build; the backlog fold 5e6c59a is the fold of six returned audits and needs no second audit
+  unless the reviewer disputes a synthesis)
+- Scope / what changed: the management-book prereg, the `day_events` extension, the engine,
+  its tests, the receipt, the ledger card, the chart-page sections
+- Focus areas (scrutinize these): look-ahead in the ladder and the exit (every level and both
+  exit tests must be knowable at the instant they are used); the T1 rules against the skill
+  and the resource; target-before-close ordering inside a day and on the entry day; the
+  same-rows claim for the five books; the paired-difference interval; the fork-2 settlement
+  at the long cap; censoring; the receipt's sentences against the tables; the page's data
+  against manage.json; hygiene
+- Reviewed by: (pending)
+- Findings: (pending)
+
+### Open
+
+- [ ] The owner's own pass over the management book (charts and rows) before anything is read
+      into the hierarchy rulings; the lead's "would test next" list above awaits a word.
+- [ ] The hierarchy rulings the owner deferred (stop owner in a stack, continuation ranking,
+      seat competition, which higher-timeframe event ends a trade).
+- [ ] Codex review of this session's range (block above); fold next session.
+- [ ] HANDOFF is over the 1,500-line limit (TVB-33..34 are the next archive candidates):
+      archiving asks the owner.
+- [ ] Executor repairs owed before any real-money restart (TVB-31..35 syntheses); fresh
+      wallet; scanner STRAT rulings; the carried list in the TVB-37 entry.
+
+---
+
 ## Session TVB-37: the data redirect -- domino census, chance comparison, equal-size book and chart page, two Codex audits folded (COMPLETE)
 
 **Date:** 2026-10-04 .. 2026-10-10
@@ -399,21 +546,16 @@ product gets a book view and a chart page beside the receipt.
 
 ### Open
 
-- [ ] Product 3, the STRAT-management book: the owner's two one-word answers
-      on the forks (continuation T1: level or leg; weekly / monthly exit clock:
-      daily or own), then prereg + ledger card, then code, run, receipt, book,
-      chart page, Codex review.
-- [ ] Extend `census.day_events` to return the anchor bar's OHLC (needed for
-      structural targets); re-run the census and confirm byte-identical splits.
+- [x] Product 3, the STRAT-management book: DONE in TVB-38 (owner ruled both forks run;
+      prereg, card, engine, receipt, page; see the TVB-38 entry).
+- [x] Extend `census.day_events` to return the anchor bar's OHLC: DONE in TVB-38, census
+      byte-identical before and after.
 - [ ] The hierarchy rulings the owner deferred (stop owner in a stack,
       continuation ranking, seat competition, which higher-timeframe event ends
-      a trade), once the three books are in hand.
-- [ ] Codex backlog run by the OWNER (docs/reviews/CODEX_BACKLOG_PROMPT.md: tvb31..35 +
-      tvb37-close); TVB-38 folds every returned file BEFORE plan mode (owner's word at
-      close, 2026-10-10).
-- [ ] Close-out Codex review of the unreviewed commits (this entry's External
-      Review block below); TVB-31..35 audits still unreturned (executor code;
-      matter only before a real-money restart).
+      a trade), now that the books are in hand (carried to TVB-38's Open block).
+- [x] Codex backlog run by the OWNER: returned 2026-10-10 / 11, folded by TVB-38 (5e6c59a).
+- [x] Close-out Codex review: returned and folded by TVB-38 (5e6c59a); TVB-31..35 folded
+      the same day (executor findings recorded for the private repo).
 - [ ] An R-matched follow-up (date / coin held equal) only if the owner asks.
 - [ ] Carried from earlier sessions, untouched: intraday-order pass on 1h
       history (owner: not yet); paper rule set / prereg for the other

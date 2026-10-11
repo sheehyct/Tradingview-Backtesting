@@ -628,9 +628,38 @@ settings at $1 risk, but with 26 fills they stay unread as arms.
   equals the trigger has no T1 and sits in the exit-only book; the measured move's leg is the
   two bars already held; the monthly own-bar clock has no higher confirmation because the
   quarter is context only; the cap is 20 daily bars for the headline.
-- **Numbers:** none yet; filled after the run.
-- **What it is for:** the direct comparison the setup-bar stop needs, and the tables the
-  deferred hierarchy rulings will be read from. It picks no cell.
+- **Numbers (built 2026-10-11, 179,498 units, plain daily cells, same trades as the chance
+  book):** the chance book lost -0.27 to -0.84 per trade on every plain daily pattern; the
+  management books sit between -0.24 and +0.24 (2-2 reversal A -0.05 / B +0.12 / C +0.22 /
+  D +0.08 against -0.84; continuation -0.23 / -0.24 / -0.24 / +0.01 against -0.45; inside
+  +0.02 / -0.07 / -0.02 / +0.24 against -0.52; outside -0.00 / +0.18 / +0.18 / +0.18 against
+  -0.27). The stop swap alone (D minus reference, paired) is +0.93 [+0.87, +0.98] on the
+  reversal, +0.46 on the continuation, +0.76 on the inside break, +0.45 on the outside break:
+  H2 holds in sign. The exit is fast and blunt: median 2-3 days held, 99% of trades closed
+  before day 20, 12-20% at the entry close; of the trades it closes before one R, 45-61% touch
+  one R later inside the cap against the stop's 24-48% (H3 holds too; both are true because the
+  close exit's losers average 0.6-1.0 R, the stop's a full R). T1 before the exit: reversal
+  63.8% (its T1 is the bar before the pattern, a median 2.6% away), inside 53.6%, outside 38.7%,
+  continuation 36.2% (T1 a median 9.8% away); T2 after T1 24-40%. The tail: 32-55% of trades
+  travel more than one R against before the exit, 6-20% more than two R, worst single trades
+  -88% to -143% (shorts on doublings); nothing sizes it. Median trade negative in B and C on
+  every pattern (the average rides the right tail); a round-trip taker fee is of the same order
+  as the averages. Hammer flag: management adds a tenth to a third on top of the already-flat
+  THIRD cells, two of four intervals touching zero. Stacked: the near / within-1% continuation
+  stays the one A+ in the black under every rule (D +0.87 / +0.77); shared-open stacks lose
+  under every book. Weekly and monthly units: the daily clock closes them in 1-5 days and loses
+  to the chance book's five-bar hold on the classes where that hold won (weekly continuation
+  spread A -1.18 [-1.92, -0.44]; monthly reversal spread D -5.74 [-8.64, -2.85]). Fork 1: the
+  measured move sits at the level's distance on plain continuations (A +0.02 against -0.23);
+  on stacked cells the level is next door. Fork 2: the own-bar clock holds a weekly trade 13-27
+  days, reaches T1 more often (48-65% against 28-50%) and loses more on ten of sixteen cells.
+  Week's side at entry (known at the break): a continuation against the week reaches T1 14.7%
+  against 39.4%; a reversal 50.4% against 72.3%. Receipt `analysis/domino/MANAGE_RECEIPT.md`;
+  tables `results/manage_tables.md`; a private chart page draws the books beside the chance
+  book's (link not in the repo).
+- **What it is for:** the direct comparison the setup-bar stop needed (it has it: the stop was
+  the suspect and the suspect is guilty of a full R per loser, not of the pattern's edge), and
+  the tables the deferred hierarchy rulings will be read from. It picks no cell.
 
 ## Maintenance rule
 

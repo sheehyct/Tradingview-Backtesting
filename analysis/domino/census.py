@@ -29,6 +29,7 @@ Everything here is counting. No entry, stop, target, outcome or P&L exists in th
 
 from __future__ import annotations
 
+import argparse
 import csv
 import gzip
 import json
@@ -74,6 +75,28 @@ def post(body: dict, attempts: int = 6) -> object:
             last = exc
             time.sleep(3 * (attempt + 1))
     raise RuntimeError(f"venue request failed {body.get('type')}: {last}")
+
+
+def parse_as_of(text: str) -> int:
+    """'YYYY-MM-DD' -> that day's 00:00 UTC in ms (the pinned as_of of a cached rerun)."""
+    dt = datetime.strptime(text, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    return day_start(int(dt.timestamp()) * 1000)
+
+
+def cached_universe(as_of_ms: int) -> list[dict]:
+    """The universe as the candle cache recorded it on as_of: one entry per cached file stamped
+    that day, main dex first, then xyz, each alphabetical. No venue call; with every file
+    present, fetch_daily then reads the cache only, so the data window cannot move. Raises if
+    the stamp has no files. (The venue's own listing order is not recorded, so float sums can
+    differ from a live-order run in the last bits; counts cannot.)"""
+    stamp = datetime.fromtimestamp(as_of_ms / 1000, tz=timezone.utc).strftime("%Y%m%d")
+    suffix = f"_1d_{stamp}.json"
+    names = sorted(p.name[: -len(suffix)] for p in CACHE.glob(f"*{suffix}"))
+    if not names:
+        raise FileNotFoundError(f"no cached candles stamped {stamp} in {CACHE}")
+    main = [{"coin": nm, "dex": "main"} for nm in names if not nm.startswith("xyz_")]
+    xyz = [{"coin": "xyz:" + nm[4:], "dex": "xyz"} for nm in names if nm.startswith("xyz_")]
+    return main + xyz
 
 
 def universe() -> list[dict]:
@@ -344,6 +367,7 @@ def _context(daily: list[dict], buckets: dict[str, list[dict]]) -> dict[str, dic
                     "prev": prev,
                     "prev_type": prev_type,
                     "ref_type": ref_type,
+                    "ref": prev2,  # the bar before the setup bar, with its prices (product 3 targets)
                     "open": b["o"],
                     "run_h": run_h,
                     "run_l": run_l,
@@ -389,7 +413,9 @@ def day_events(daily: list[dict], i: int, ctx: dict[str, dict[int, dict]]) -> li
 
     Returns [(direction, broken, setups)] with broken = {tf: level} for every timeframe whose
     level day i broke for the first time (strict, R10) and setups = {tf: (setup bar's type vs its
-    predecessor or None, the setup bar, the type of the bar before it or None)}. Directions with
+    predecessor or None, the setup bar, the type of the bar before it or None, the bar before it
+    with its prices or None)}. The fourth element was added for product 3's structural targets
+    (TVB-38); the census output was re-run and byte-identical before and after. Directions with
     nothing broken are left out. Returns None when the previous calendar day has no closed bar
     (the day has no daily level; audit F1).
     """
@@ -410,7 +436,7 @@ def day_events(daily: list[dict], i: int, ctx: dict[str, dict[int, dict]]) -> li
         hit = d["h"] > lvl if direction == "up" else d["l"] < lvl
         if hit:
             broken["D"] = lvl
-            setups["D"] = (pd_type, pd, pd_ref)
+            setups["D"] = (pd_type, pd, pd_ref, daily[i - 2] if adj2 else None)
         for tf in ("W", "M", "Q"):
             c = ctx[tf].get(i)
             if c is None or c["prev"] is None:
@@ -424,7 +450,7 @@ def day_events(daily: list[dict], i: int, ctx: dict[str, dict[int, dict]]) -> li
                 hit = fresh and d["l"] < lvl
             if hit:
                 broken[tf] = lvl
-                setups[tf] = (c["prev_type"], c["prev"], c["ref_type"])
+                setups[tf] = (c["prev_type"], c["prev"], c["ref_type"], c["ref"])
         if broken:
             out.append((direction, broken, setups))
     return out
@@ -466,7 +492,7 @@ def analyze_coin(daily: list[dict]) -> dict:
                 agg["violations"] += 1
             agg["rank"][(direction, rank)] += 1
             kinds = {}
-            for tf, (ptype, sbar, ref) in setups.items():
+            for tf, (ptype, sbar, ref, _refbar) in setups.items():
                 kind = setup_kind(ptype, direction)
                 kinds[tf] = kind
                 # a setup bar with no classifiable predecessor is counted as "unknown" so the
@@ -504,7 +530,7 @@ def analyze_coin(daily: list[dict]) -> dict:
                 support[tf] = {"colour_with": colour_with, "broke_before": broke_before}
             q_state = _quarter_state(ctx["Q"].get(i), "Q" in broken, direction, day_level)
             flags = {}
-            for tf, (ptype, sbar, ref) in setups.items():
+            for tf, (ptype, sbar, ref, _refbar) in setups.items():
                 third, strict = shape_flags(sbar, direction)
                 flags[tf] = {"third": third, "strict": strict}
             rows.append(
@@ -778,13 +804,30 @@ def tables(name: str, s: dict) -> str:
 # ----------------------------------------------------------------------------- main
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
+    ap = argparse.ArgumentParser(description="TVB-37 domino census")
+    ap.add_argument(
+        "--as-of",
+        help="YYYY-MM-DD: rerun OFFLINE on the cached candle snapshot of that date (no venue call); "
+        "default = today with the live universe and a fresh fetch",
+    )
+    ap.add_argument(
+        "--out",
+        default="census",
+        help="results file stem (default census -> results/census.json + tables.md)",
+    )
+    args = ap.parse_args(argv)
     RESULTS.mkdir(parents=True, exist_ok=True)
-    now_ms = int(time.time() * 1000)
-    as_of = day_start(now_ms)
-    uni = universe()
+    if args.as_of:
+        as_of = parse_as_of(args.as_of)
+        uni = cached_universe(as_of)
+        src = "cached perps (offline)"
+    else:
+        as_of = day_start(int(time.time() * 1000))
+        uni = universe()
+        src = "live perps"
     print(
-        f"universe: {len(uni)} live perps; as_of {datetime.fromtimestamp(as_of / 1000, tz=timezone.utc):%Y-%m-%d} UTC",
+        f"universe: {len(uni)} {src}; as_of {datetime.fromtimestamp(as_of / 1000, tz=timezone.utc):%Y-%m-%d} UTC",
         flush=True,
     )
     coins = []
@@ -894,8 +937,13 @@ def main() -> None:
         ],
         "splits": {name: summarize(cs) for name, cs in splits.items()},
     }
-    json.dump(out, open(RESULTS / "census.json", "w"), indent=1)
-    with gzip.open(RESULTS / "events_rank2plus.csv.gz", "wt", newline="") as fh:
+    json.dump(out, open(RESULTS / f"{args.out}.json", "w"), indent=1)
+    with gzip.open(
+        RESULTS
+        / ("events_rank2plus.csv.gz" if args.out == "census" else f"{args.out}_events.csv.gz"),
+        "wt",
+        newline="",
+    ) as fh:
         w = csv.writer(fh)
         w.writerow(
             [
@@ -960,7 +1008,8 @@ def main() -> None:
     md.append("")
     for name, s in out["splits"].items():
         md.append(tables(name, s))
-    (RESULTS / "tables.md").write_text("\n".join(md), encoding="utf-8")
+    tables_name = "tables.md" if args.out == "census" else f"{args.out}_tables.md"
+    (RESULTS / tables_name).write_text("\n".join(md), encoding="utf-8")
     print("\n".join(md))
 
 

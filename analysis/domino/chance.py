@@ -42,11 +42,12 @@ from pathlib import Path
 import pandas as pd
 
 from analysis.domino.census import (
-    CACHE,
     NEAR_BAND,
     WITHIN_BAND,
     _context,
     _dec,
+    cached_universe,
+    parse_as_of,
     _quarter_state,
     aggregate,
     classify,
@@ -268,28 +269,6 @@ def next_bar(
 # ----------------------------------------------------------------------------- offline rerun
 
 
-def parse_as_of(text: str) -> int:
-    """'YYYY-MM-DD' -> that day's 00:00 UTC in ms (the pinned as_of of a cached rerun)."""
-    dt = datetime.strptime(text, "%Y-%m-%d").replace(tzinfo=timezone.utc)
-    return day_start(int(dt.timestamp()) * 1000)
-
-
-def cached_universe(as_of_ms: int) -> list[dict]:
-    """The universe as the candle cache recorded it on as_of: one entry per cached file stamped
-    that day, main dex first, then xyz, each alphabetical. No venue call; with every file
-    present, fetch_daily then reads the cache only, so the data window cannot move. Raises if
-    the stamp has no files. (The venue's own listing order is not recorded, so float sums can
-    differ from a live-order run in the last bits; counts cannot.)"""
-    stamp = datetime.fromtimestamp(as_of_ms / 1000, tz=timezone.utc).strftime("%Y%m%d")
-    suffix = f"_1d_{stamp}.json"
-    names = sorted(p.name[: -len(suffix)] for p in CACHE.glob(f"*{suffix}"))
-    if not names:
-        raise FileNotFoundError(f"no cached candles stamped {stamp} in {CACHE}")
-    main = [{"coin": nm, "dex": "main"} for nm in names if not nm.startswith("xyz_")]
-    xyz = [{"coin": "xyz:" + nm[4:], "dex": "xyz"} for nm in names if nm.startswith("xyz_")]
-    return main + xyz
-
-
 def wilson(k: int, n: int, z: float = 1.96) -> tuple[float, float]:
     if n == 0:
         return math.nan, math.nan
@@ -351,7 +330,7 @@ def coin_units(meta: dict, daily: list[dict]) -> tuple[list[dict], Counter]:
             for tf in PATTERN_TFS:
                 if tf not in broken:
                     continue
-                ptype, sbar, _ref = setups[tf]
+                ptype, sbar, _ref, _refbar = setups[tf]
                 kind = setup_kind(ptype, direction)
                 if kind is None:
                     counts[f"unclassified_{tf}"] += 1

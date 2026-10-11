@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from analysis.domino import chance, chart_page
+from analysis.domino import census, chance, chart_page
 from analysis.domino.book import book_cell, matched_txt, r_matched, strict_json, table_r_matched
 
 
@@ -318,7 +318,7 @@ def test_cached_universe_reads_the_stamp_and_maps_the_xyz_prefix(tmp_path, monke
     for name in ("BTC", "xyz_AAPL", "ETH"):
         (tmp_path / f"{name}_1d_20261010.json").write_text("[]")
     (tmp_path / "SOL_1d_20261011.json").write_text("[]")  # another day's snapshot: ignored
-    monkeypatch.setattr(chance, "CACHE", tmp_path)
+    monkeypatch.setattr(census, "CACHE", tmp_path)  # the helper moved into census (TVB-38)
     uni = chance.cached_universe(chance.parse_as_of("2026-10-10"))
     assert uni == [
         {"coin": "BTC", "dex": "main"},

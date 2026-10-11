@@ -10,111 +10,73 @@
 
 ## Status
 
-- Status: ADDRESSED (returned 2026-10-11 05:39 from the owner-run backlog prompt;
-  folded by TVB-38 the same day -- synthesis in the TVB-37 HANDOFF entry, close-out block)
+- Status: REQUESTED
   <!-- REQUESTED | RETURNED (audit file written) | ADDRESSED | N/A -->
-- Session under review: TVB-37 close-out (2026-10-04 .. 2026-10-10) -- the data
-  redirect: a domino census, a chance comparison and an equal-size book view
-  on every daily / weekly / monthly level break across 292 live perps, plus a
-  private chart page builder. Two mid-session audits already covered the
-  census engine (`docs/reviews/tvb37-codex-audit.md`, folded in 4560e7c) and
-  the chance engine (`docs/reviews/tvb37-chance-codex-audit.md`, folded in
-  dadf8ef). THIS request covers what those two did not: the census fold
-  itself, the book view, the R-matched check, the chart-page builder, the
-  second fold, and the close-out docs.
-- Requested: 2026-10-10
-- Write the audit to: `docs/reviews/tvb37-close-codex-audit.md` (copy
-  `docs/reviews/_TEMPLATE.md`)
-- NOTE: the TVB-31 .. TVB-35 backlog returned 2026-10-10 and was folded by
-  TVB-38 on 2026-10-11 (every block flipped to ADDRESSED with a synthesis;
-  executor findings recorded for the private repo). TVB-36 was waived by the
-  owner (N/A).
+- Session under review: TVB-38 (2026-10-11) -- product 3 of the data redirect: the
+  STRAT-management book (no price stop, exit at a daily close against the trade with the week
+  against it, a ladder of structural targets, four books beside the chance book on the same
+  rows, two declared fork variants). The same session also folded the six-audit backlog
+  (TVB-31..35 + the TVB-37 close-out) in 5e6c59a; that commit is a fold of returned audits and
+  needs no second audit unless a synthesis is disputed.
+- Requested: 2026-10-11
+- Write the audit to: `docs/reviews/tvb38-codex-audit.md` (copy `docs/reviews/_TEMPLATE.md`)
 
 ## Commits to review
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `ea58c6c..9e0f95e`. Unreviewed inside it: 4560e7c (census audit fold), cff7932 (request pointer), dadf8ef (book view + R-matched + chart-page builder + second audit fold), and the close-out docs commits. Already reviewed inside it: 25a8ac5, c0f1826. Verify with `git diff --name-status ea58c6c..9e0f95e`. |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `a0c52df..HEAD`: caaba12 (prereg + ledger card, before code) and the product-3 build commit(s) after it. Verify with `git diff --name-status a0c52df..HEAD`. |
 
-No sibling-repo commits. The candle cache, the unit rows (`trades.csv.gz`), the
-page output (`chance_book_page.html`) and the run logs are gitignored;
-`uv run python -m analysis.domino.chance`, then `-m analysis.domino.book`, then
-`-m analysis.domino.chart_page` regenerate them from the cache (about ten
-minutes in all). Committed numbers: `analysis/domino/results/*.json` and
-`results/*_tables.md`.
+No sibling-repo commits. The candle cache, the unit rows (`manage_trades.csv.gz`), the page
+output and the run logs are gitignored; the run is reproducible offline with
+`uv run python -m analysis.domino.manage --as-of 2026-10-10` (3-4 minutes; needs the cached
+`*_1d_20261010.json` files, which the owner's machine has).
 
-## Read first (in this order)
+## What to read first
 
-1. `CLAUDE.md`; charter Section 0. Then the TVB-37 HANDOFF entry: rulings,
-   products 1 / 2 / 2b, both audit syntheses, "Context for next session".
-2. `docs/experiments/tvb37_chance_comparison_prereg.md`, amendments A3 and A4.
-3. `analysis/domino/BOOK_RECEIPT.md`, then `analysis/domino/book.py` and
-   `tests/test_domino_book.py`.
-4. `analysis/domino/chart_page.py` (no tests; the page is a view).
-5. `analysis/domino/RECEIPT.md` and the census fold in `analysis/domino/census.py`
-   against `docs/reviews/tvb37-codex-audit.md` F1-F12.
+1. `docs/experiments/tvb37_management_book_prereg.md` -- the contract: definitions 1-17, the
+   two forks, hypotheses H2 / H3, the declared hand vectors and bug tests.
+2. `analysis/domino/manage.py` -- the engine (module docstring = the short form).
+3. `tests/test_domino_manage.py` -- the vectors; check each against the prereg's definition 16.
+4. `analysis/domino/MANAGE_RECEIPT.md` and `results/manage_tables.md` -- every sentence in the
+   receipt should trace to a table cell.
+5. `analysis/domino/census.py` (`_context`, `day_events`) and `chance.py` -- the extension and
+   the moved helpers; the HANDOFF entry records the byte-identical census check.
+6. `analysis/domino/chart_page.py` (`management_data`, the four new sections).
 
-## Focus areas (scrutinize these)
+## Focus areas
 
-1. **Book arithmetic** (`book.coin_book_rows`, `book_cell`): +R% on one R, -R%
-   on the stop, the signed move to the horizon's last close when neither
-   (sign for shorts), censored units excluded, the by-entry-date cumulative sum
-   and its drawdown, the dollar figures labelled as sums of equal-size trades
-   and not an account balance.
-2. **R-matched check** (`r_matched`): quintile edges on the BASE, `searchsorted`
-   with `side="right"`, the weighting by the stacked group's bin shares, the
-   renormalisation when a bin has no base units, the variance formula and the
-   95% interval, `covered`. Is "reweight the base to the stacked group's bar
-   sizes" what the code does?
-3. **Curves** (`_curve_points`): downsampling keeps the last point; dates are
-   entry dates; many trades open at once.
-4. **Chart page** (`chart_page.build_data`): every number on the page comes
-   from `chance.json` or `book.json`; `hit` is the one-R share; the matched
-   rows filter (`flag == all`, `n_stacked >= 30`); labels match the receipts'
-   vocabulary; nothing invented. No test covers it -- say so.
-5. **The census fold** (4560e7c) against audit findings F1-F12: gap / duplicate
-   proofing, the any-rank nesting check, decimal bands, the events-vs-days
-   denominators, exclusions recorded, the venue-era split. Re-run claims
-   (byte-identical splits after the `day_events` refactor) -- plausible from
-   the diff?
-6. **Receipt honesty** (`BOOK_RECEIPT.md`): each sentence of "What the
-   arithmetic says" against the tables; the pessimistic same-day caveat; the
-   R-size and clustering caveats; "the one daily A+ class in the black" --
-   does the table support it; the weekly "biggest positive" sentence.
-7. **Prereg A3 / A4**: do the engines implement A3 as written (bins, book
-   rules, horizons 3 and 5) and does A4 describe the tables as built?
-8. **Tests**: `tests/test_domino_book.py` (3 vectors) -- which book behaviours
-   have no vector (short-side mark-to-market, censored exclusion in
-   `book_cell`, `r_matched` renormalisation, `_curve_points`)?
-9. **Public-repo hygiene**: no claude.ai artifact link anywhere in the range
-   (it lives only in the lead's private memory), no host, no secret, no
-   personal remark; `chance_book_page.html`, `trades.csv.gz`, run logs ignored.
-10. **request.security**: NO Pine file changed -- verify none did.
+- **Look-ahead.** Every ladder rung is a previous complete weekly / monthly bar's extreme that
+  is still unbroken in its current bar BEFORE the entry day, strictly beyond L; the exit tests
+  use the day's own open / close and the calendar week's open. Find anything that uses the
+  entry day's travel or a later bar's information at decision time.
+- **T1 rules.** Reversal = the far wick of the bar before the setup bar; inside break off a 2
+  against or a 3 = that bar's far wick; with-trend inside, 2-2 continuation, 3-2, stacked inside
+  = the first rung. Check `structural()` and `targets()` against the prereg and the
+  strat-methodology skill 5.1 / the resource's reversal anatomy.
+- **Intraday order.** Targets are intraday, the exit is at the close; on the entry day the
+  break precedes any target touch (perp bars open at the prior close). Check `walk()` and
+  `book_fill()`; equality fills on targets (decimals); equality on the exit tests = not
+  against.
+- **Same rows.** The five books are computed on units with a T1 and a non-null 5-bar reference
+  return; book C on every unit is one extra line. Check the paired-difference interval and that
+  the reference equals the book view's `ret5` on the same rows.
+- **Settlement.** `settle()` at the headline cap and the long cap under both clocks; censoring
+  only when the data ends before both the exit and the cap; OPEN marked at the cap's close.
+- **Fork 2.** Own-bar clock: weekly = last day of a COMPLETE week bucket, close against the
+  week's open AND the month's open; monthly = close against the month's open alone. Check
+  `own_close_days()` and the `confirm` dict; units with no month context are n/a, counted.
+- **Reach denominators.** T2 after T1 among units that reached T1 and HAVE a T2; T3 likewise;
+  the ceiling among units with a cap end; `died` among units with a T1 that exited before it;
+  `died_r` among units that exited before one R.
+- **Receipt honesty.** The "finding" paragraph and every table against `manage_tables.md`; the
+  fee sentence; the tail sentence (shorts beyond -100%); the weekly / monthly sentence.
+- **Page.** `management_data()` reads only `manage.json`; cells under 30 faded; the hypothesis
+  table's fields exist on every row.
+- **Hygiene.** ruff, tests (358 passed, 2 skipped), no secrets, no private link in the repo,
+  the `.gitignore` additions, the census `--out` routing.
 
-## Backlog (RETURNED 2026-10-10, ADDRESSED 2026-10-11 by TVB-38)
+## What is NOT in scope
 
-Run by the owner with `docs/reviews/CODEX_BACKLOG_PROMPT.md`. Ranges are
-pinned in each session's HANDOFF External Review block (TVB-31 / 32 in
-`docs/session_archive/HANDOFF_TVB27-TVB32.md`), where each block now carries
-its critical synthesis. Verdicts: all NEEDS-CHANGES, no CRITICAL. Fixed in
-this repo: TVB-31 F4 (HyPaper spike wording), TVB-35 F6-F9 (regime labeler
-look-ahead, three-state whipsaw, availability counts, harvest identity).
-Recorded for the private executor repo (before any real-money restart):
-TVB-31 F1/F3, TVB-32 F1-F5, TVB-33 F1-F3, TVB-34 F1-F3, TVB-35 F1-F5.
-
-| session | this repo | hip3-executor (private, local) | audit file |
-|---|---|---|---|
-| TVB-31 | `0d7437c^..7bfde0f` | `4e384bb^..4e384bb` (+ scanner d0fe9e7 / 7723462) | `tvb31-codex-audit.md` |
-| TVB-32 | `5b194a2..7a29dad` | fd4db97, 35a73a4, 2dc9490, 68dca79, cbea184 -> e2a91ad, 4b5d248 | `tvb32-codex-audit.md` |
-| TVB-33 | `7a29dad..7ad92f4` (first commit = TVB-32's pin) | `4b5d248..d8a07b0` (derived; confirm) | `tvb33-codex-audit.md` |
-| TVB-34 | `7ad92f4..00d243e` | `d8a07b0..5cd2b0d` | `tvb34-codex-audit.md` |
-| TVB-35 | `848db00..3f087b0` | `5cd2b0d..fc90368` | `tvb35-codex-audit.md` |
-| TVB-36 | waived (N/A) | -- | -- |
-
-## Output contract
-
-- Verbatim audit -> `docs/reviews/tvb37-close-codex-audit.md` (template:
-  `docs/reviews/_TEMPLATE.md`, skeptic preamble included).
-- Be concrete; cite `file:line`. Never paste a secret/IP/account value or the
-  chart page's link (this repo is public).
-- The critical synthesis is written by the NEXT session into `docs/HANDOFF.md`.
+The TVB-31..35 executor findings (private repo); the chance / book engines (audited twice in
+TVB-37 and folded); the regime receipt fold (folded 2026-10-11 from the TVB-35 audit).

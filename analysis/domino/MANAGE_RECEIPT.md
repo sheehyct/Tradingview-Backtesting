@@ -1,0 +1,268 @@
+# The STRAT-management book -- RECEIPT (TVB-37 product 3, built in TVB-38, 2026-10-11)
+
+**What this is:** the chance comparison's unit rows (`CHANCE_RECEIPT.md`, `BOOK_RECEIPT.md`)
+traded a third way, declared in `docs/experiments/tvb37_management_book_prereg.md` before any
+number below was computed: no price stop, out at a daily close against the trade with the week
+against it at that close, profits at a ladder of structural targets. It exists because the chance
+book lost on every plain daily pattern while the targets were in fact reached, which made the
+setup-bar stop the SUSPECT. Engine `analysis/domino/manage.py`; tests `tests/test_domino_manage.py`
+(14 hand vectors, written before the engine ran on data); every table
+`results/manage_tables.md`; cells and curves `results/manage.json`; per-trade rows
+`results/manage_trades.csv.gz` (regenerable, ignored). Run offline on the 2026-10-10 snapshot
+(`uv run python -m analysis.domino.manage --as-of 2026-10-10`), so every count reconciles with
+product 2. The private chart page draws these numbers beside the chance book's (link not in the
+repo). Nothing here is a rule; no cell is promoted.
+
+## Glossary, in trader terms
+
+- **The trade:** every daily, weekly and monthly level break on the 292 live perps, venue era,
+  long or short as the break, entered at the level the instant it breaks. Same trades as the
+  chance book, same labels (2-2 reversal, 2-2 continuation, inside break, outside break), same
+  hammer flags, same stack classes.
+- **No stop.** Nothing takes you out intraday except a target. On these trades the setup-bar
+  stop and STRAT's "the entry bar went outside" invalidation are the same price, so both are gone.
+- **The exit:** at the close of a day that closed against you (a red candle for a long) with the
+  week also against you at that close (price under Monday's open). You are filled at that
+  close. On a Monday the two tests are one. The entry day counts.
+- **T1, the pattern's own magnitude:** for a 2-2 reversal the far side of the bar before the
+  pattern (where the "compound 3" completes); for an inside-bar break off a 2 against or a 3,
+  that bar's far side; the 2-2 continuation, the with-trend inside bar and the 3-2 have no
+  magnitude of their own and take the first unbroken weekly or monthly level beyond the entry.
+  **T2, T3:** the next unbroken weekly / monthly levels beyond T1. Ladder fixed at entry.
+- **Cap:** 20 trading days after the entry day; still open there = marked at that close (OPEN).
+- **The books (percent of notional, one unit per trade, no leverage, fees or funding):** A all
+  out at T1; B hold through T2 with the exit live; C exit only, no target; D one R or the exit
+  (the chance book's target with the close exit in place of its stop: only the loss side
+  changes); **reference** = the chance book itself on the identical trades (one R or the
+  setup-bar stop, marked at the fifth bar). Dollar columns are sums of equal-size trades at
+  1,000 dollars each, never an account balance.
+- **R** keeps its chance-book meaning (the setup bar's far side to the entry) and is only a
+  measuring stick here. **MAE / MFE** = the furthest adverse / favourable travel from the entry.
+
+## The finding, in one breath
+
+Taking the stop away and managing the STRAT way turns every plain daily pattern from a loser into
+roughly flat: the chance book lost -0.27% to -0.84% per trade, the management books sit between
+-0.24% and +0.24%, and on the same trades the stop swap alone (book D) is worth +0.45 to +0.93
+per trade with intervals clear of zero (H2, the owner's suspect, holds in sign). It is not a
+money machine: the median trade still loses in every book that holds past T1, two trades in
+three close in the red on the exit-only book, and the averages are carried by the right tail.
+The close exit is a blunt instrument: it fires inside a median two to three days, closes 99% of
+trades before the cap, and of the trades it closes before one R, 45% to 61% go on to touch one R
+inside the 20 days, more than the stop's 24% to 48% (H3, the lead's counter, holds too). The
+price of no stop is the tail: two trades in five travel more than one setup-bar R against you
+before the close exit, one in ten more than two R, and the worst single trades are shorts that
+closed down 88% to 143% of notional. On weekly and monthly trades the daily clock cuts the
+trade short and loses to the chance book's five-bar hold; the own-bar clock holds longer and
+loses more. The stacked continuation stays the one A+ in the black under every rule.
+
+## Reach rates, plain daily setups (headline clock, 20-day cap)
+
+| setup | units | T1 median distance (R) | T1 before the exit | T1 any time in 20 days | T2 after T1 | T3 after T2 | exit at the entry close | median days held |
+|---|---|---|---|---|---|---|---|---|
+| 2-2 reversal | 43,475 | 2.64% (5.95%) | 63.8% [63, 64] | 87.5% | 40.4% | 27.5% | 20.3% | 2 |
+| 2-2 continuation | 55,384 | 9.81% (6.87%) | 36.2% [36, 37] | 57.7% | 26.3% | - | 12.2% | 3 |
+| inside break | 30,482 | 3.52% (4.61%) | 53.6% [53, 54] | 76.8% | 29.3% | 28.6% | 18.7% | 2 |
+| outside break | 12,723 | 8.50% (8.01%) | 38.7% [38, 40] | 61.8% | 24.5% | - | 16.8% | 3 |
+
+Every plain daily cell exits 99.2% to 99.5% of its trades before the cap; 0.5% to 0.8% are
+marked open at day 20. The continuation has a T1 on 81% of its units (the rest had no unbroken
+higher level beyond the entry); a reversal's T1 sits at the trigger on 110 units (no magnitude,
+exit-only book only). The reversal's T1 is close (the bar before the pattern, a median 2.6% away,
+less than half its R), which is why it is reached so often and why book A on reversals takes
+small profits: 66% of its trades close in the black for an average of -0.05%.
+
+## How the pre-T1 exits died, plain daily
+
+| setup | exited before T1 | at the entry close | median days | avg % | avg R | touched T1 later inside the cap | book D: exited before one R, touched one R later | chance book on the same trades: stopped, saw one R anyway |
+|---|---|---|---|---|---|---|---|---|
+| 2-2 reversal | 15,709 | 41.4% | 1 | -4.86 | -0.78 | 62.7% [62, 63] | 56.6% [56, 57] | 35.9% [35, 37] |
+| 2-2 continuation | 28,585 | 20.9% | 2 | -4.43 | -0.68 | 32.8% [32, 33] | 47.0% [46, 48] | 28.9% [28, 30] |
+| inside break | 12,849 | 33.3% | 1 | -3.75 | -0.98 | 47.8% [47, 49] | 60.9% [60, 62] | 47.5% [47, 48] |
+| outside break | 6,809 | 27.7% | 2 | -4.28 | -0.59 | 35.9% [35, 37] | 45.3% [44, 46] | 23.8% [23, 25] |
+
+The trades the close exit kills before T1 lose about four percent each (0.6 to 1.0 R), and a
+third to two thirds of them would have touched their target inside the cap. Against the same
+target (one R, book D's column against the chance book's), the close exit is the earlier exit on
+every pattern. The stop was not the only thing throwing winners away; the close exit does it
+more often, and still comes out ahead because its losers are smaller than a full R on average
+while the stop's losers are always a full R.
+
+## The tail, plain daily (no stop: this is where the book lives or dies)
+
+| setup | MAE over 1R | over 2R | over 3R | median MAE R | median MFE R | worst single trade | held to the cap |
+|---|---|---|---|---|---|---|---|
+| 2-2 reversal | 42.5% | 9.7% | 3.7% | 0.92 | 0.82 | -88.2% | 0.6% |
+| 2-2 continuation | 42.5% | 10.9% | 3.7% | 0.89 | 0.89 | -125.1% | 0.6% |
+| inside break | 54.8% | 19.6% | 8.2% | 1.09 | 1.11 | -111.2% | 0.5% |
+| outside break | 32.0% | 6.4% | 2.2% | 0.77 | 0.74 | -143.2% | 0.8% |
+
+A trade beyond -100% is a short whose coin more than doubled before a green close with the week
+green ended it. Nothing here sizes against liquidation; at any leverage a book with this tail has
+a liquidation question this receipt states and does not answer.
+
+## The books, plain daily, on the same trades (units with a T1 and a reference return)
+
+| setup | book | trades | avg % per trade | median % | closed in profit | closed at the target | total $ (1,000 per trade) | max drawdown $ | median days | minus reference [95%] |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2-2 reversal | A, all out at T1 | 43,209 | -0.05 | +0.84 | 66.3% | 63.8% | -20,344 | -81,073 | 2 | +0.80 [+0.73, +0.86] |
+| | B, hold through T2 | | +0.12 | -1.39 | 40.3% | 23.1% | +51,539 | -48,952 | 2 | +0.96 [+0.88, +1.05] |
+| | C, exit only | | +0.22 | -1.90 | 34.1% | - | +97,097 | -48,787 | 2 | +1.07 [+0.95, +1.18] |
+| | D, one R or the exit | | +0.08 | -0.30 | 49.0% | 44.4% | +36,326 | -60,928 | 2 | +0.93 [+0.87, +0.98] |
+| | reference (chance book) | | -0.84 | -2.41 | 43.3% | 38.2% | -364,408 | -365,217 | 5 | - |
+| 2-2 continuation | A | 44,673 | -0.23 | -0.65 | 47.3% | 36.2% | -102,624 | -186,087 | 3 | +0.22 [+0.15, +0.29] |
+| | B | | -0.24 | -2.10 | 36.1% | 5.2% | -107,650 | -242,151 | 3 | +0.21 [+0.11, +0.30] |
+| | C | | -0.24 | -2.15 | 35.4% | - | -107,701 | -268,190 | 3 | +0.21 [+0.09, +0.32] |
+| | D | | +0.01 | +0.55 | 51.1% | 46.7% | +4,853 | -83,696 | 3 | +0.46 [+0.41, +0.51] |
+| | reference | | -0.45 | -1.83 | 46.0% | 39.4% | -199,465 | -201,265 | 5 | - |
+| inside break | A | 27,623 | +0.02 | +0.49 | 60.3% | 53.6% | +6,017 | -24,191 | 2 | +0.54 [+0.47, +0.62] |
+| | B | | -0.07 | -1.56 | 35.9% | 12.8% | -19,310 | -68,162 | 2 | +0.45 [+0.34, +0.57] |
+| | C | | -0.02 | -1.79 | 32.9% | - | -6,854 | -88,599 | 2 | +0.50 [+0.35, +0.65] |
+| | D | | +0.24 | +1.17 | 55.6% | 52.6% | +65,021 | -17,504 | 2 | +0.76 [+0.70, +0.82] |
+| | reference | | -0.52 | -1.72 | 43.0% | 40.8% | -144,381 | -145,054 | 5 | - |
+| outside break | A | 11,050 | -0.00 | -0.51 | 48.2% | 38.9% | -550 | -21,607 | 3 | +0.26 [+0.12, +0.41] |
+| | B | | +0.18 | -2.17 | 35.6% | 5.6% | +20,351 | -39,238 | 3 | +0.45 [+0.26, +0.65] |
+| | C | | +0.18 | -2.23 | 35.0% | - | +20,133 | -44,041 | 3 | +0.45 [+0.24, +0.66] |
+| | D | | +0.18 | -0.85 | 47.0% | 41.6% | +20,205 | -19,578 | 3 | +0.45 [+0.34, +0.56] |
+| | reference | | -0.27 | -1.04 | 47.5% | 37.0% | -29,728 | -31,648 | 5 | - |
+
+Read it as a trader: on the 2-2 reversal, taking the near target (A) wins two trades in three
+and still nets nothing, because the one-in-three losers lose four percent against the winners'
+one or two; holding for structure (B, C) wins one trade in three and nets a little because the
+winners run; keeping the one-R target and only swapping the stop (D) is the clean comparison, and
+it is worth almost a full percent per trade over the chance book. The continuation is the one
+pattern where management does not get into the black: its T1 is far (a median 9.8% away, beyond
+its own R) and its losers are as large as everyone else's. The exit-only book on every unit
+(with or without a T1) is within three hundredths of the same-rows figure on every pattern.
+
+A round trip at the venue's taker fee is a few hundredths of a percent per trade, of the same
+order as these averages, on a book whose median trade lasts two to three days. The paired
+differences against the reference are not fee-free either: the reference holds five bars.
+
+## The hammer flag (THIRD), plain daily
+
+| setup | reference | A | C | D | D minus reference [95%] |
+|---|---|---|---|---|---|
+| 2-2 reversal, THIRD (7,620) | -0.12 | -0.20 | -0.07 | +0.02 | +0.14 [+0.01, +0.26] |
+| 2-2 continuation, THIRD (788) | +0.13 | +0.17 | +0.04 | +0.44 | +0.32 [-0.02, +0.65] |
+| inside break, THIRD (2,169) | -0.08 | +0.17 | +0.01 | +0.26 | +0.34 [+0.16, +0.52] |
+| outside break, THIRD (697) | +0.31 | +0.28 | +0.22 | +0.49 | +0.18 [-0.24, +0.60] |
+
+The hammer flag had already brought the chance book to about flat; management adds little on
+top of it (a tenth to a third of a percent, two of four intervals touching zero). The stop swap's
+value sits in the non-hammer bulk, where the setup bar is large and the stop far.
+
+## The stacked daily cells (the A+ axis)
+
+| setup, class | trades | reference | A | B | C | D | D minus reference [95%] |
+|---|---|---|---|---|---|---|---|
+| 2-2 continuation, near (level within 0.25%) | 778 | +0.44 | +0.06 | +0.18 | +0.23 | +0.87 | +0.43 [+0.11, +0.76] |
+| 2-2 continuation, within 1% | 2,507 | +0.33 | +0.07 | +0.63 | +0.74 | +0.77 | +0.44 [+0.27, +0.62] |
+| 2-2 continuation, same price at the Monday / 1st open | 1,863 | -1.19 | -1.28 | -1.75 | -1.75 | -0.69 | +0.50 [+0.26, +0.74] |
+| 2-2 reversal, within 1% | 723 | -0.98 | +0.04 | -0.63 | -1.05 | -0.18 | +0.80 [+0.49, +1.11] |
+| inside break, near | 229 | -1.25 | +0.04 | -1.10 | -1.35 | -0.56 | +0.70 [+0.20, +1.20] |
+| outside break, same price at the open | 372 | -2.57 | -1.27 | -1.25 | -1.25 | -1.28 | +1.29 [+0.75, +1.84] |
+
+On a near or within-1% stack the first rung IS T1 and sits a few tenths of a percent away, so
+book A fills it on 97% to 89% of trades for next to nothing; the money in those cells comes from
+holding (B, C) or from the one-R target with the close exit (D), and the stacked continuation
+stays the one A+ in the black under every rule. The shared-open stacks lose under every book;
+no management rescues a level that was only the old bar's last-day extreme.
+
+## Weekly and monthly units (headline clock)
+
+Weekly, exit-only book C by class: 2-2 reversal shared open -1.66, near -0.31, within 1% -0.64,
+spread -0.57; 2-2 continuation shared open -2.15, near -0.01, within 1% +1.35, spread +0.74;
+inside shared open -1.41, spread +0.47. The daily clock closes a weekly trade inside a median one
+to five days, and on the classes where the chance book held five weeks and won (the continuation
+spread +1.70, the reversal within 1% +0.91) the management books lose to it (A -1.18 [-1.92,
+-0.44] on the continuation spread). Monthly: the reversal spread's reference +4.51 against A
+-1.11 and D -1.23 (-5.74 [-8.64, -2.85]); the inside spread's reference +7.72 against C -2.54.
+A weekly or monthly level break traded on a daily exit clock is a daily trade with a worse
+entry; the chance book's five-bar hold did better on these units than anything with a daily
+close exit.
+
+## Fork 1: the measured move beside the level (declared variant, same units, same exit)
+
+| setup, class | units | median T1 distance: level / move | T1 reached before the exit: level / move | book A: level / move | book B: level / move |
+|---|---|---|---|---|---|
+| continuation, plain | 44,673 | 9.83% / 9.46% | 36.2% / 35.1% | -0.23 / +0.02 | -0.24 / -0.22 |
+| continuation, near | 778 | 0.12% / 7.18% | 97.0% / 43.8% | +0.06 / +0.93 | +0.18 / +0.16 |
+| continuation, within 1% | 2,507 | 0.61% / 7.34% | 88.4% / 42.6% | +0.07 / +0.85 | +0.63 / +0.95 |
+| with-trend inside, plain | 7,593 | 9.37% / 8.10% | 33.5% / 36.9% | -0.11 / +0.12 | -0.19 / -0.08 |
+| weekly continuation, spread | 2,225 | 14.07% / 26.19% | 37.0% / 14.7% | +0.53 / +1.10 | +0.74 / +0.66 |
+
+On plain daily continuations the two targets sit at the same distance and are reached as often;
+the measured move's book A is a quarter point better (it fills exactly at its projection, the
+level fills at whatever the higher bar's extreme was). On the stacked cells the level is next
+door and the measured move is the real target. On weekly units the two-bar range projects a
+26% move that is rarely reached. Both shown; neither promoted.
+
+## Fork 2: the exit clock on weekly and monthly units (declared variant, 20 own bars)
+
+Weekly units, own-bar clock (a red weekly close with the month red) against the daily clock at
+the same cap: the own clock holds a median 13 to 27 days against 1 to 5, reaches T1 before its
+exit more often (48% to 65% against 28% to 50%), and loses more on the exit-only book on ten of
+sixteen cells (continuation shared open -2.67 [-4.13, -1.20], continuation within 1% -2.55
+[-3.92, -1.19], inside shared open -3.03 [-4.43, -1.63], inside spread -2.06 [-3.06, -1.06];
+reversal shared open +1.28 [-0.88, +3.45]). Monthly units: the own clock holds 30 to 105 days;
+differences are wide and mostly cross zero (continuation shared open -10.20 [-19.16, -1.23] on
+114; inside shared open +22.70 [+0.17, +45.23] on 34). The lowest timeframe in the stack takes
+the trade off early; the own-bar clock gives a weekly trade its week and pays for it in the
+average. Both shown; neither promoted.
+
+## The hypotheses, as declared
+
+| setup | H2: D minus reference | H3: D's exited-before-one-R that touched one R later | chance book: stopped then saw one R |
+|---|---|---|---|
+| 2-2 reversal | +0.93 [+0.87, +0.98] | 56.6% | 35.9% |
+| 2-2 continuation | +0.46 [+0.41, +0.51] | 47.0% | 28.9% |
+| inside break | +0.76 [+0.70, +0.82] | 60.9% | 47.5% |
+| outside break | +0.45 [+0.34, +0.56] | 45.3% | 23.8% |
+
+H2 holds in sign on all four patterns: swapping the setup-bar stop for the close exit lifts the
+average trade. H3 holds too: the close exit throws away a target-bound trade more often than the
+stop did. Both are true at once because the close exit's losers are smaller than a full R.
+
+## Splits worth a trader's eye (plain daily, book D and the reference)
+
+- **The week's side at entry.** A continuation entered against the week (price under Monday's
+  open for a long) reaches T1 before the exit 14.7% of the time against 39.4% with the week;
+  book D -0.24 against +0.05; the reference -0.85 against -0.39. A reversal against the week:
+  T1 50.4% against 72.3%, D -0.16 against +0.24. Entry-time, known at the break.
+- **Direction.** Shorts and longs are within a tenth of a point on every book but the
+  continuation's book B (+0.04 up, -0.52 down); the reference is a little worse on longs.
+- **Year.** 2024 was the management books' year (continuation B +1.10, outside B +1.21); 2025
+  the continuation's bad one (B -1.26, D -0.32); 2026 is near zero everywhere.
+- **The entry day went outside (OUTCOME-SIDE: the entry day's own travel).** When it did, every
+  book loses 1.7 to 3.1 per trade and the reference 5.5 to 5.9; when it did not, every book
+  gains 0.5 to 1.3 and so does the reference (+0.7 to +0.9). The invalidation the stop encoded
+  was real information; it just cost a full R to act on it.
+
+## Limitations, stated
+
+- No fees, funding, slippage, sizing or liquidation arithmetic. The averages are of the same
+  order as a round-trip taker fee; the tail is unsized.
+- The exit fill is the daily close; a trader watching the hourly would act sooner or later.
+- Days held differ by book (shown); a book against the reference is rule against rule, and
+  only D isolates the stop.
+- Equal-size sums by entry date, hundreds of trades open at once, correlated across coins on
+  the same day: intervals are tighter than the truth.
+- Survivors only, venue era, 2023-02 to 2026-10; the last 20 days are censored (1,027 daily
+  units).
+- The ladder is the weekly and monthly levels only, fixed at entry; no daily pivots, no
+  quarter, no rolling.
+
+## Provenance
+
+288 coins, 179,498 units (D 153,516, W 21,520, M 4,462): product 2's 179,913 less 415 daily
+units in a coin's leading partial week (no week open to test the exit against). Censored at the
+cap: 1,027 D, 231 W, 37 M. Anchors: reversal 44,516 anchor / 110 zero; inside 17,295 anchor /
+10,519 ladder (with-trend) / 3,749 stacked / 68 zero / 14 unknown; continuation 62,822 ladder;
+outside 14,423 ladder. The `census.day_events` extension (the bar before the setup bar) was
+checked by rerunning the census offline before and after: `census.json` byte-identical. One BTC
+short (2025-06-17) was reconciled by hand against the raw candles: anchor T1 at Sunday's low,
+T2 at the prior week's low, T1 touched on the entry day, one R on day 4, the exit at the Monday
+close when the day and the new week both turned green, every book's fill as printed. The
+numbers above did not move between the first run and the rerun that added the book-D early-exit
+column and the T1 distance.
