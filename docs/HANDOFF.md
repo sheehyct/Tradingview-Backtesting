@@ -5,17 +5,116 @@
 
 ---
 
-## Session TVB-37: the data redirect -- daily / weekly / monthly domino census, its external audit and fold, and the chance-comparison design (IN PROGRESS)
+## Session TVB-37: the data redirect -- domino census, chance comparison, equal-size book and chart page, two Codex audits folded (COMPLETE)
 
-**Date:** 2026-10-04 .. 2026-10-10 (open)
-**Status:** IN PROGRESS. The owner redirected the workspace to data products on
+**Date:** 2026-10-04 .. 2026-10-10
+**Status:** COMPLETE -- the owner redirected the workspace to data products on
 the daily, weekly and monthly timeframes ("step back to focus on the data
-aspect"; any paper or live run is data only; rank entries by how many
-higher-timeframe levels break together, the domino). First product: a
-pre-registered census of multi-level breaks on every live perp. It was built,
-run, externally audited the same day, fixed on every finding and re-run. The
-second product, a pattern-matched "chance" comparison, is designed in trader
-terms below and waits on two owner answers.
+aspect"; paper and live are data only; rank entries by how many
+higher-timeframe levels break together, the domino). Three products were
+pre-registered, built, receipted and pushed: the domino census, the chance
+comparison (the same STRAT pattern plain against stacked), and the equal-size
+book with its R-matched check and a private chart page. Two mid-session Codex
+audits were requested by the owner and folded the same day. The session closed
+on the design of product 3, the STRAT-management book, with two forks awaiting
+the owner's one-word answers. The owner's closing words: "this was a hard one.
+Very very impressed, great work."
+
+### What was accomplished
+
+- HANDOFF archived under the 1,500-line limit at the owner's word (TVB-27..32 to
+  `docs/session_archive/HANDOFF_TVB27-TVB32.md`); the TVB-36 review waived.
+- Owner rulings collected and dated (below): domino, calendar quarter as
+  context, the hammer's shape and sliver wick, every D / W / M break taken for
+  data, the in-favour wiggle, no coin-flip baseline, the weekly-stop idea
+  logged as an idea, trader language and a book-and-charts view in every
+  report.
+- **Product 1, the census** (commit 8b800a7): 292 live perps, 214,861
+  coin-days; one directional break in six also took a higher-timeframe level
+  for the first time; same-price stacks are a shared-open phenomenon; down's
+  share rises with rank. Codex audit (12 findings, 1 HIGH) folded in 4560e7c;
+  the fold uncovered that the venue's API serves zero-volume index-price
+  candles before a coin first traded (94 coins, 48,331 coin-days), hence the
+  VENUE ERA split used by everything after.
+- **Product 2, the chance comparison** (c0f1826): one-R-before-the-stop by 1 /
+  3 / 5 bars, the same pattern plain against stacked, hammer flags, weekly and
+  monthly units, the owner's variant stop. A look-ahead defect was caught by
+  the session before any number was reported (classing a daily trigger by
+  which levels BROKE TODAY; amendments A1 / A2). Codex audit (8 findings, no
+  remaining look-ahead) folded in dadf8ef.
+- **Product 2b, the book, the R-matched check and the chart page** (dadf8ef):
+  every plain daily pattern loses under a fixed one-R target and the setup-bar
+  stop (-0.21% to -0.84% per trade before fees); the hammer shape brings each
+  to about flat; the stacked 2-2 continuation is the one daily A+ class in the
+  black; the shared-open stack loses more than plain on the daily and on every
+  weekly setup; the daily near-stack edge survives bar-size matching, the
+  daily shared-open gap does not, the weekly shared-open deficit keeps two
+  thirds. A private chart page draws the same numbers (link in the lead's
+  memory only).
+- The data point that opened product 3: price reached a full R within 5 bars
+  in 57% of plain reversals and 67% of inside-bar breaks, against 38% and 41%
+  recorded as one R first; a third to a half of the stopped trades saw the
+  target anyway. The stop, not the target, is what loses.
+- Tests 295 -> 324 passing (census 16, chance 9 + 8, book 3 hand vectors).
+  Memory: three new standing items (trader language reinforced, book + charts,
+  the Codex exec recipe), the chart page reference, the project record.
+
+### Context for next session
+
+**Product 3, the STRAT-management book (card drafted, two forks open).** Same
+units and entry as the chance comparison. No price stop. Exit at a daily close
+when that day closed against the trade AND the week sits against it at that
+moment (below its open for a long); the exit fill is that close; on a Monday
+the two conditions are one. Target ladder: T1 = the pattern's own structural
+magnitude on its timeframe (skill 5.1: the anchor bar's far wick for a 2-2
+reversal and for a 1-2 off a reversal context; the 3-2 and the 2-2
+continuation have none and use the ladder's next rung), T2 = the next unbroken
+higher-timeframe level, T3 = the one above. Cap 20 daily bars, mark open
+trades there. Report the share reaching T1 before the exit, T2 after T1, T3
+after T2, how pre-T1 exits died, MFE, and three books in percent: all out at
+T1, hold through T2 with the exit, exit only. Same receipt, book and chart
+treatment; Codex review after.
+
+The two forks, with the lead's recommendation (owner asked for it, has not
+ruled): (1) the continuation's T1 -- recommend the next unbroken
+higher-timeframe LEVEL (the owner's own ladder language, known at entry, no
+leg definition needed); the measured move runs beside it as a declared
+variant. (2) the exit clock for weekly and monthly trades -- recommend the
+DAILY close with the week's colour for every trade (the lowest timeframe in the
+stack carries the risk; a weekly trade that checks itself only on Friday has
+no risk control for a week); the own-bar clock runs as a declared variant.
+Both variants are cheap (same rows); the prereg names one headline
+combination (level + daily clock) and shows each variant in one table, nothing
+promoted afterwards.
+
+Mechanics the next session needs: `census.day_events` returns the bar before
+the setup bar only as a type; structural targets need its OHLC, so extend it
+and re-run the census to confirm `splits` and `coins` stay byte-identical (the
+TVB-37 refactor did exactly this). `chance.coin_units` yields the unit rows;
+`book.coin_book_rows` shows how to attach outcomes to them;
+`chart_page.build_data` shows how the page is fed. Runs are
+`uv run python -m analysis.domino.<module>` (cache-based, 3-4 minutes each).
+The Codex exec recipe and the chart page link are in the lead's private
+memory. The owner reads impact as a hypothetical equal-size book in percent
+and as charts; chance tables alone do not land.
+
+### Files created/modified
+
+- New: `analysis/domino/{census,chance,book,chart_page}.py`,
+  `analysis/domino/{RECEIPT,CHANCE_RECEIPT,BOOK_RECEIPT}.md`,
+  `analysis/domino/results/{census.json,tables.md,chance.json,chance_tables.md,
+  book.json,book_tables.md}`, `docs/experiments/tvb37_domino_census_prereg.md`,
+  `docs/experiments/tvb37_chance_comparison_prereg.md`,
+  `docs/reviews/tvb37-codex-audit.md`, `docs/reviews/tvb37-chance-codex-audit.md`,
+  `docs/session_archive/HANDOFF_TVB27-TVB32.md`,
+  `tests/test_domino_{census,chance,chance_audit2,book}.py`.
+- Modified: `docs/HANDOFF.md`, `docs/ARM_LEDGER.md` (new "Data products"
+  section, three cards), `docs/reviews/REVIEW_REQUEST.md`,
+  `.session_startup_prompt.md`, `.gitignore` (candle cache, unit rows, run
+  logs, the page output).
+- Gitignored, regenerable: `analysis/domino/data/` (candle cache),
+  `results/events_rank2plus.csv.gz`, `results/trades.csv.gz`,
+  `results/chance_book_page.html`, run logs.
 
 ### Rulings collected this session (owner, dated)
 
@@ -285,11 +384,59 @@ product gets a book view and a chart page beside the receipt.
   and curves, the R-matched bars and the book table. Rebuild with
   `uv run python -m analysis.domino.chart_page` and republish to the same url.
 
-### Carried items (untouched this session)
+### Open
 
-Fresh wallet / executor restart checklist, scanner STRAT rulings, intraday
-order pass (owner: not yet), paper rule set / prereg for the other workspace,
-monthly BF target, Friday-close oracle / SOXL off-hours pricing research.
+- [ ] Product 3, the STRAT-management book: the owner's two one-word answers
+      on the forks (continuation T1: level or leg; weekly / monthly exit clock:
+      daily or own), then prereg + ledger card, then code, run, receipt, book,
+      chart page, Codex review.
+- [ ] Extend `census.day_events` to return the anchor bar's OHLC (needed for
+      structural targets); re-run the census and confirm byte-identical splits.
+- [ ] The hierarchy rulings the owner deferred (stop owner in a stack,
+      continuation ranking, seat competition, which higher-timeframe event ends
+      a trade), once the three books are in hand.
+- [ ] Close-out Codex review of the unreviewed commits (this entry's External
+      Review block below); TVB-31..35 audits still unreturned (executor code;
+      matter only before a real-money restart).
+- [ ] An R-matched follow-up (date / coin held equal) only if the owner asks.
+- [ ] Carried from earlier sessions, untouched: intraday-order pass on 1h
+      history (owner: not yet); paper rule set / prereg for the other
+      workspace; monthly broadening-formation target; Friday-close oracle /
+      SOXL off-hours pricing; fresh wallet and executor restart checklist;
+      scanner STRAT rulings; holiday calendar for the xyz clock; the TVB-36
+      startup prompt's longer carried list.
+
+### External Review, close-out (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb37-close-codex-audit.md.
+> See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: `ea58c6c..{head}` on `main` (pinned after the push). Of
+  these, 25a8ac5 and c0f1826 were already covered by the second mid-session
+  audit (`4560e7c..c0f1826`); the UNREVIEWED commits are 4560e7c (the census
+  audit fold), cff7932 (a request pointer), dadf8ef (the book view, the
+  R-matched check, the chart-page builder, the second audit's fold) and the
+  close-out docs commits.
+- Scope / what changed: `analysis/domino/book.py` (equal-size book, R-matched
+  reweighting, curves), `analysis/domino/chart_page.py` (page data mapping),
+  the census fold in `census.py` (gap / duplicate proofing, any-rank nesting,
+  decimal bands, venue-era split), `BOOK_RECEIPT.md`, prereg amendments A3 /
+  A4, the ledger cards, this entry, the startup prompt.
+- Focus areas (scrutinize these): the book's return arithmetic (sign for
+  shorts, mark-to-market at the horizon close, censored exclusion, the summed
+  equal-size dollars labelled as not an account); `r_matched` (quintile edges
+  on the base, searchsorted side, renormalisation when a bin has no base
+  units, the variance formula); `book_cell` drawdown on a by-date cumulative
+  sum; `chart_page.build_data` (hit = one-R share, every number traceable to
+  a table, no number invented on the page); the census fold against audit
+  findings F1-F12; every sentence of `BOOK_RECEIPT.md` "What the arithmetic
+  says" against its tables; tests missing for `chart_page`; public-repo
+  hygiene (no claude.ai artifact link, no host, no secret; page output and run
+  logs ignored); no Pine file changed.
+- Reviewed by: pending
+- Findings: (blank until docs/reviews/tvb37-close-codex-audit.md exists)
 
 ---
 
