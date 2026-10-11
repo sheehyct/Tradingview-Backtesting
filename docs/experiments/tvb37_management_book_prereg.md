@@ -215,3 +215,51 @@ tests on what the outcomes show. No cell is promoted; the hierarchy rulings the 
 (who owns the stop in a stack, whether continuation breaks rank, seat competition, which
 higher-timeframe event ends a trade) are read from these tables in a design session, not
 decided by the engine.
+
+## Amendment A1 (2026-10-11, post-hoc, labelled): the Codex audit of the build, folded
+
+`docs/reviews/tvb38-codex-audit.md` (NEEDS-CHANGES; F1 F2 HIGH, F3-F7 MEDIUM, F8 LOW; no
+look-ahead and no T1-rule error found) changes the following, each tagged. The engine was rerun;
+the receipt lists every number that moved.
+
+- **Projected targets in the venue's decimals (F1).** One R and the measured move were built
+  as binary floats, so an exact touch could land a hair beyond the printed price and miss. Both
+  are now built in decimals exactly as the chance walker builds its target; hand vectors for the
+  exact touch, long and short, and for the measured move were added.
+- **Book D5, the stop-isolating line (F2).** Definition 12 called book D "only the loss side
+  changes"; D also extends the horizon from the reference's five bars to the 20-day cap, so its
+  difference includes returns earned after the reference marked. A sixth book, **D5 = one R or
+  the exit, settled at the reference's own five-bar horizon**, is added on the same rows: the
+  same target, the same horizon, the same mark day, only the stop swapped for the close exit.
+  H2 is read on D5 first and on D second. The fee sentence is corrected: the fee is per fill,
+  not per day held.
+- **H3 on matched cohorts and windows (F2, F3).** The chance book's "stopped, saw one R" is read
+  on units with a T1 over its five-bar travel; book D's early-exit counterpart was read on every
+  unit over 20 days, and the 20-day follow-up flags were set FALSE when the cap was not yet
+  reachable in the data. Now: `later_r5` = D5's exits before one R that touched one R inside the
+  same five bars, on the T1 cohort (the like-for-like H3 read); the 20-day flags (`later1`,
+  `later_r`) are UNKNOWN (null, excluded from the denominator) when the 20-day follow-up is
+  incomplete, and reported as such.
+- **Each book's own holding time (F4).** "Median days" showed the exit-only duration for A, B
+  and D and a constant five for the reference. Each book now records the day its target filled,
+  else its exit or mark day; the reference its own stop / one-R / fifth-bar day (the stop first,
+  or the same day as one R, as the chance walker decides it).
+- **Exit-only cells keep their line (F5).** Cells with no five-book cohort (every monthly
+  continuation and outside-break cell) dropped out of the book tables; the "C on every unit"
+  line is now printed regardless.
+- **LIQUID is retrospective (F6).** The census's LIQUID label is the median notional over the
+  LAST 30 days of the snapshot, inherited for parity with products 1 and 2; the split footnote
+  says so and the split is not read as entry-time information.
+- **Receipt sentences corrected against the tables (F7):** the weekly / monthly sentence
+  narrowed (the weekly continuation within 1% beat the reference under B and C); the own-clock
+  count stated by the mean and by the interval; the direction and year bullets rewritten from
+  the split table's actual columns (A, C, D, reference; there is no B column); the entry-day-
+  outside ranges include every pattern; "the median trade loses in every book that holds past
+  T1" narrowed to B and C.
+- **Page (F8):** hypothesis-table rows and share cells fade on their own denominators.
+- **Vectors (audit open questions):** v7's setup bar had an open above its high (fixed); v10's
+  two equality tests are now each tested alone; v11 tests the month veto on its own; v5 / v9 /
+  v13 assert their counters; decimal-touch vectors long and short added.
+- **Noted, not changed:** the entry day's adverse extreme is counted in MAE although a daily bar
+  cannot say whether it came before the break; the tail is therefore a conservative daily-bar
+  bound (receipt limitation added).

@@ -55,8 +55,10 @@ sent to Codex. Nothing is promoted.
   timeframe"), the measured move as the two-bar range, one walk per unit recording target
   touches, travel and both exit clocks, settlement at either cap, five books on the same rows,
   paired differences, reach / death / tail tables, both fork tables, hypothesis read-out,
-  splits. `tests/test_domino_manage.py`: 14 vectors (the 15 declared; v13 and v14 share a
-  vector with v2 / v3), all green before the data run. Suite 358 passed, 2 skipped.
+  splits. `tests/test_domino_manage.py`: 14 vectors before the data run (the 15 declared;
+  v13 and v14 shared a vector with v2 / v3), 18 after the audit fold (decimal touches long and
+  short, the month veto alone, each equality test alone, the counters). Suite 361 passed, 2
+  skipped after the fold.
 - **Run and reconciliation:** 179,498 units (product 2's 179,913 less 415 daily units with no
   week open to test against); one BTC short reconciled by hand against the raw candles; the
   rerun that added two columns moved no number. Receipt `analysis/domino/MANAGE_RECEIPT.md`;
@@ -75,8 +77,11 @@ is not a money machine: the median trade still loses in every book that holds pa
 trades in three close red on the exit-only book, and the averages are of the same order as a
 round-trip taker fee. The close exit fires inside a median two to three days and is itself an
 early exit: of the trades it closes before one R, 45-61% touch one R later inside the cap,
-against the stop's 24-48% (H3, the lead's counter, holds too; both are true because the close
-exit's losers average 0.6-1.0 R while the stop's are a full R). The tail is the price: 32-55%
+against the stop's 24-48% on a 20-day follow-up; on the like-for-like read the audit forced
+(book D5, the same one-R target and the same five-bar window, T1 units only) the close exit
+throws away FEWER target-bound trades than the stop did (16-32% against 24-48%), so H3, the
+lead's counter, does not hold; the stop swap's lift is the same on the five-bar horizon (D5
+minus reference +0.48 to +0.92). The tail is the price: 32-55%
 of trades travel more than one R against before the exit, 6-20% more than two R, worst single
 trades -88% to -143% (shorts on doublings), unsized. T1 before the exit: reversal 63.8% (its T1
 is the bar before the pattern, a median 2.6% away), inside 53.6%, outside 38.7%, continuation
@@ -123,8 +128,9 @@ against the week reaches T1 14.7% of the time against 39.4% with it (reversal 50
 > below) and write a verbatim assessment to docs/reviews/tvb38-codex-audit.md.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: REQUESTED (see docs/reviews/REVIEW_REQUEST.md for the pinned range)
-- Commits to review: `a0c52df..HEAD` on `main` (the prereg commit caaba12 and the product-3
+- Review status: ADDRESSED (returned the same session via `codex exec`, folded the same day;
+  the fold commit itself is unreviewed and carries into the next request)
+- Commits to review: `a0c52df..058395f` on `main` (the prereg commit caaba12 and the product-3
   build; the backlog fold 5e6c59a is the fold of six returned audits and needs no second audit
   unless the reviewer disputes a synthesis)
 - Scope / what changed: the management-book prereg, the `day_events` extension, the engine,
@@ -135,8 +141,68 @@ against the week reaches T1 14.7% of the time against 39.4% with it (reversal 50
   same-rows claim for the five books; the paired-difference interval; the fork-2 settlement
   at the long cap; censoring; the receipt's sentences against the tables; the page's data
   against manage.json; hygiene
-- Reviewed by: (pending)
-- Findings: (pending)
+- Reviewed by: local Codex CLI 0.162.1 (`codex exec -s read-only`, unelevated sandbox), same
+  session, before the fold
+- Findings: `docs/reviews/tvb38-codex-audit.md` -- NEEDS-CHANGES, 8 findings (F1 F2 HIGH,
+  F3-F7 MEDIUM, F8 LOW); "what I checked and found sound" covers the T1 rules, the ladder
+  look-ahead, the intraday ordering, the same-rows join (179,498 matches, no mismatches), the
+  aggregation invariants, settlement and clocks, the tail arithmetic, the page and hygiene
+
+### Critical synthesis of the audit (where the session agrees, disputes, acts)
+
+All eight accepted; none disputed. Folded the same afternoon (prereg amendment A1, the fold
+commit after 058395f); the engine rerun and every moved number listed in the receipt.
+
+- **F1 HIGH, decimal targets -- AGREE, fixed.** One R and the measured move were built as
+  binary floats (`level + r`), so a target at a printed price could sit a hair beyond it and
+  an exact touch could miss; the reviewer reproduced it (L 0.1, stop 0.09, high 0.11: the
+  chance book filled, book D did not). Both projections are now decimals, as the chance walker
+  builds its own; exact-touch vectors long and short added. The anchor and ladder targets were
+  raw printed prices and were never affected.
+- **What moved in the rerun:** book D's averages by less than a hundredth of a point and its
+  target-hit shares by less than 0.01 pp (F1: the exact-touch misses were rare); the "median
+  days" column (F4: A 0-1 days, D 1, the reference 0-2, not the 2-3 shown before); the 20-day
+  follow-up denominators (F3); and the H3 read, which REVERSED on the matched five-bar window
+  (D5's early exits 16-32% against the stop's 24-48%). Nothing else moved.
+- **F2 HIGH, D does not isolate the stop -- AGREE, fixed by addition.** D keeps the one-R
+  target but runs to the 20-day cap while the reference marks at five bars, so "only the loss
+  side changes" was overstated (1,330 plain daily rows where the reference marked `neither` and
+  D filled one R after day five). Book D5 (one R or the exit, settled at the reference's own
+  five-bar horizon) is added on the same rows and is the stop-isolating read; D stays as the
+  20-day variant. H3's cohorts and windows are matched the same way (D5's early exits inside
+  the five bars, T1 units only, against the chance book's stopped-then-saw share). The fee
+  sentence is corrected: fees are per fill, not per day held.
+- **F3 MEDIUM, incomplete follow-up recorded as false -- AGREE, fixed.** A unit that exited
+  but whose 20-day window ran past the data end had `later1 = False` even when the touch was
+  observed (733 observed T1 touches among plain daily units). The 20-day flags are now UNKNOWN
+  (null, excluded from the denominator) when the cap is not reachable; the five-bar flag is
+  the matched read.
+- **F4 MEDIUM, holding periods -- AGREE, fixed.** A, B and D showed the exit-only duration and
+  the reference a constant five; each book now records its own fill day (target, else exit or
+  mark), the reference its stop / one-R / fifth-bar day. The reviewer's recomputed medians (A
+  0-1 day, D 1 day) were right.
+- **F5 MEDIUM, exit-only cells dropped from the book tables -- AGREE, fixed.** The loop skipped
+  a cell with no five-book cohort before printing "C on every unit"; every monthly continuation
+  and outside-break cell was missing (monthly continuation spread: 1,434 trades, +0.94%). The
+  line is now printed regardless.
+- **F6 MEDIUM, LIQUID is retrospective -- AGREE, labelled.** The census label is the median
+  notional over the LAST 30 days of the snapshot, inherited for parity; the split footnote
+  says so and the table title no longer calls it entry-time.
+- **F7 MEDIUM, receipt sentences -- AGREE, corrected.** The weekly / monthly sentence was too
+  broad (the weekly continuation within 1% beat the reference under B and C); the own-clock
+  count was wrong (14 of 16 by the mean; the receipt now states both the mean count and the
+  interval count); the direction and year bullets quoted book C as B and missed two cells
+  (the split table has no B column); the entry-day-outside ranges omitted the inside break;
+  "the median trade loses in every book that holds past T1" narrowed to B and C. The ledger
+  card and this entry were resynchronised.
+- **F8 LOW, hypothesis-table fading -- AGREE, fixed.** Rows and share cells fade on their own
+  denominators.
+- **Open questions:** the vector weaknesses (v7's invalid OHLC, v10 and v11 not isolating
+  their tests, v5 / v9 / v13 not asserting counters, no decimal or short-side vectors) are all
+  fixed in `tests/test_domino_manage.py` (18 vectors now). The MAE caveat (the entry day's
+  adverse extreme may predate the break) is added to the receipt's limitations. The claims the
+  reviewer could not verify (vectors before the data run, the byte-identical census, numbers
+  unchanged between runs) stand as recorded in this entry.
 
 ### Open
 

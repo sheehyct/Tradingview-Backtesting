@@ -38,6 +38,7 @@ import sys
 import time
 from collections import Counter
 from datetime import datetime, timezone
+from decimal import Decimal
 from pathlib import Path
 
 import pandas as pd
@@ -70,6 +71,7 @@ from analysis.domino.chance import (
     PATTERN_TFS,
     STACKED,
     flag_mask,
+    horizon_ends,
     venue_era,
     wilson,
 )
@@ -79,12 +81,13 @@ RESULTS = HERE / "results"
 CAP = 20  # headline cap: daily bars after the entry bar
 CAP_OWN = 20  # fork-2 table: bars of the unit's own timeframe
 RUNGS = {"D": ("W", "M"), "W": ("M",), "M": ()}
-BOOKS = ("A", "B", "C", "D", "ref")
+BOOKS = ("A", "B", "C", "D", "D5", "ref")
 BOOK_LABEL = {
     "A": "A: all out at T1",
     "B": "B: hold through T2, exit rule live",
     "C": "C: exit only, no target",
     "D": "D: one R or the exit",
+    "D5": "D5: one R or the exit, five-bar horizon (the stop-isolating line)",
     "ref": "reference: one R or the setup-bar stop, 5 bars",
 }
 T_SRC_LABEL = {
@@ -205,13 +208,17 @@ def measured_move(
     """Fork-1 variant: the two-bar range (setup bar + the bar before it) projected from L."""
     if refbar is None:
         return None
-    rng = max(sbar["h"], refbar["h"]) - min(sbar["l"], refbar["l"])
+    # built in the venue's decimals so an exact touch fills (audit F1: a float projection can
+    # land a hair beyond the printed price)
+    rng = max(_dec(sbar["h"]), _dec(refbar["h"])) - min(_dec(sbar["l"]), _dec(refbar["l"]))
     if rng <= 0:
         return None
-    t1 = level + rng if direction == "up" else level - rng
+    t1_d = _dec(level) + rng if direction == "up" else _dec(level) - rng
+    t1 = float(t1_d)
     rest = [r for r in rungs if beyond(r[0], t1, direction)]
     return {
         "t1": t1,
+        "t1_d": t1_d,
         "t1_src": "mm",
         "t2": rest[0][0] if rest else None,
         "t2_src": rest[0][1] if rest else None,
@@ -247,7 +254,9 @@ def walk(
     own-bar-clock exit day: {'close_days': {j: open}, 'confirm': {j: higher open} or None}.
     """
     lv = _dec(level)
-    tgt = {k: _dec(p) for k, p in prices.items() if p is not None}
+    tgt = {
+        k: (p if isinstance(p, Decimal) else _dec(p)) for k, p in prices.items() if p is not None
+    }
     touch: dict[str, int | None] = dict.fromkeys(prices, None)
     fav: list[float] = []
     adv: list[float] = []
@@ -265,7 +274,10 @@ def walk(
         adv.append(run_a)
         for k, p in tgt.items():
             if touch[k] is None:
-                hit = bh >= p if direction == "up" else bl <= p
+                if k == "stop":  # the chance book's stop sits on the far side of the entry
+                    hit = bl <= p if direction == "up" else bh >= p
+                else:
+                    hit = bh >= p if direction == "up" else bl <= p
                 if hit:
                     touch[k] = j
         if exit_d is None:
@@ -382,14 +394,17 @@ def coin_manage_rows(meta: dict, daily: list[dict]) -> tuple[list[dict], Counter
         mm = None
         if u["kind"] == "continuation" or (u["kind"] == "inside" and tg["anchor"] == "ladder"):
             mm = measured_move(direction, level, sbar, refbar, rungs)
-        r = abs(level - u["stop"])
-        one_r = level + r if direction == "up" else level - r
+        # one R in the venue's decimals, exactly as the chance walker builds it (audit F1)
+        r_d = (_dec(level) - _dec(u["stop"])).copy_abs()
+        one_r_d = _dec(level) + r_d if direction == "up" else _dec(level) - r_d
+        one_r = float(one_r_d)
         prices = {
             "t1": tg["t1"],
             "t2": tg["t2"],
             "t3": tg["t3"],
-            "one_r": one_r,
-            "mm1": mm["t1"] if mm else None,
+            "one_r": one_r_d,
+            "stop": u["stop"],  # the chance book's stop, for the reference's own fill day
+            "mm1": mm["t1_d"] if mm else None,
             "mm2": mm["t2"] if mm else None,
             "mm3": mm["t3"] if mm else None,
         }
@@ -411,8 +426,13 @@ def coin_manage_rows(meta: dict, daily: list[dict]) -> tuple[list[dict], Counter
             if tf == "W" and ctx["M"].get(i) is None:
                 own = None
                 counts["no_month_context_W"] += 1
+        # the reference's horizon (five bars of the unit's timeframe): book D5 settles there
+        ref_end = horizon_ends(tf, i, daily, buckets, bucket_of)[5]
+        if ref_end is not None and ref_end > last:
+            last = ref_end
         w = walk(daily, i, direction, level, prices, ctx, last, own)
         s = settle(w, daily, i, direction, level, cap_end, "daily")
+        s5 = settle(w, daily, i, direction, level, ref_end, "daily")
         wk = ctx["W"][i]
         if direction == "up":
             w_support = "with" if level > wk["open"] else "against"
@@ -434,9 +454,21 @@ def coin_manage_rows(meta: dict, daily: list[dict]) -> tuple[list[dict], Counter
                 "ret_ref": u["ret5"],
             }
         )
-        for k in ("t1", "t2", "t3", "one_r", "mm1"):
+        for k in ("t1", "t2", "t3", "one_r", "mm1", "stop"):
             j = w["touch"][k]
             row[f"{k}_k"] = None if j is None else j - i  # first touch, offset from entry
+        row["ref_k"] = None if ref_end is None else ref_end - i
+        # the reference's own fill day: the stop (first, or the same day as one R), else one R,
+        # else its fifth-bar mark (audit F4)
+        sk, rk, fk = row["stop_k"], row["one_r_k"], row["ref_k"]
+        if fk is None:
+            row["days_ref"] = None
+        elif sk is not None and sk <= fk and (rk is None or sk <= rk):
+            row["days_ref"] = sk
+        elif rk is not None and rk <= fk:
+            row["days_ref"] = rk
+        else:
+            row["days_ref"] = fk
         if s["status"] != "censored":
             row.update(
                 {
@@ -452,6 +484,12 @@ def coin_manage_rows(meta: dict, daily: list[dict]) -> tuple[list[dict], Counter
             row["ret_A"], row["hit_A"] = book_fill(s, w, "t1", tg["t1"], direction, level)
             row["ret_B"], row["hit_B"] = book_fill(s, w, "t2", tg["t2"], direction, level)
             row["ret_D"], row["hit_D"] = book_fill(s, w, "one_r", one_r, direction, level)
+            # each book's own holding time: the day it filled its target, else the exit / mark
+            # day (audit F4)
+            row["days_A"] = row["t1_k"] if row["hit_A"] else s["days"]
+            row["days_B"] = row["t2_k"] if row["hit_B"] else s["days"]
+            row["days_C"] = s["days"]
+            row["days_D"] = row["one_r_k"] if row["hit_D"] else s["days"]
             end = s["end"]
             row["reached1"] = (
                 tg["t1"] is not None and w["touch"]["t1"] is not None and w["touch"]["t1"] <= end
@@ -468,25 +506,30 @@ def coin_manage_rows(meta: dict, daily: list[dict]) -> tuple[list[dict], Counter
                 and w["touch"]["t3"] is not None
                 and w["touch"]["t3"] <= end
             )
-            # the exit's own "saw the target anyway": T1 touched after the exit, inside the cap
+            # the exit's own "saw the target anyway": T1 touched after the exit, inside the cap.
+            # None (unknown) when the 20-day follow-up is not complete (audit F3)
             j1 = w["touch"]["t1"]
-            row["later1"] = (
-                s["status"] == "exit"
-                and not row["reached1"]
-                and tg["t1"] is not None
-                and j1 is not None
-                and cap_end is not None
-                and end < j1 <= cap_end
-            )
+            if cap_end is None:
+                row["later1"] = None
+            else:
+                row["later1"] = (
+                    s["status"] == "exit"
+                    and not row["reached1"]
+                    and tg["t1"] is not None
+                    and j1 is not None
+                    and end < j1 <= cap_end
+                )
             # book D's own early exit: one R touched after the exit, inside the cap
             jr = w["touch"]["one_r"]
-            row["later_r"] = (
-                s["status"] == "exit"
-                and not row["hit_D"]
-                and jr is not None
-                and cap_end is not None
-                and end < jr <= cap_end
-            )
+            if cap_end is None:
+                row["later_r"] = None
+            else:
+                row["later_r"] = (
+                    s["status"] == "exit"
+                    and not row["hit_D"]
+                    and jr is not None
+                    and end < jr <= cap_end
+                )
             # the no-exit ceiling: touched any time inside the cap
             if cap_end is not None:
                 row["ceil1"] = tg["t1"] is not None and j1 is not None and j1 <= cap_end
@@ -506,6 +549,26 @@ def coin_manage_rows(meta: dict, daily: list[dict]) -> tuple[list[dict], Counter
                 row["ceil1"] = row["ceil2"] = row["ceil3"] = None
             # product 2's stopped-then-saw-the-target on the same rows (5-bar travel >= 1R)
             row["stop_saw"] = u["out5"] == "stop" and u["mfe5"] is not None and u["mfe5"] >= 1.0
+            # book D5: the same target and the same five-bar horizon as the reference, only the
+            # stop swapped for the close exit (audit F2); its own early-exit flag is read inside
+            # that same window, so H3 compares like with like
+            row["status5"] = s5["status"]
+            if s5["status"] != "censored":
+                row["ret_D5"], row["hit_D5"] = book_fill(s5, w, "one_r", one_r, direction, level)
+                row["days_D5"] = row["one_r_k"] if row["hit_D5"] else s5["days"]
+                # unknown (null) when the data ends before the fifth bar: the window is incomplete
+                row["later_r5"] = (
+                    None
+                    if ref_end is None
+                    else (
+                        s5["status"] == "exit"
+                        and not row["hit_D5"]
+                        and jr is not None
+                        and s5["end"] < jr <= ref_end
+                    )
+                )
+            else:
+                row["ret_D5"] = row["hit_D5"] = row["days_D5"] = row["later_r5"] = None
             # fork 1: the measured move
             if mm is not None:
                 row["mm_t1"] = mm["t1"]
@@ -648,10 +711,16 @@ def cell(df: pd.DataFrame) -> dict:
         "stop_saw": share(t1u[t1u["out5"] == "stop"]["stop_saw"]),
         "stopped5": float((t1u["out5"] == "stop").mean()),
     }
-    died_r = live[(~live["hit_D"].astype(bool)) & (live["status"] == "exit")]
+    # book D's early exits, on the T1 cohort the stop comparison uses (audit F2): the 20-day
+    # window (unknown without a complete cap, audit F3) and the five-bar window matched to the
+    # chance book's stopped-then-saw-one-R
+    died_r = t1u[(~t1u["hit_D"].astype(bool)) & (t1u["status"] == "exit")]
+    died_r5 = t1u[(t1u["status5"] == "exit") & (~t1u["hit_D5"].fillna(False).astype(bool))]
     c["died_r"] = {
         "n": int(len(died_r)),
         "later_r": share(died_r["later_r"]) if len(died_r) else {"k": 0, "n": 0, "p": math.nan},
+        "n5": int(len(died_r5)),
+        "later_r5": share(died_r5["later_r5"]) if len(died_r5) else {"k": 0, "n": 0, "p": math.nan},
     }
     c["med_t1_pct"] = (
         float(((t1u["t1"] - t1u["level"]).abs() / t1u["level"] * 100).median())
@@ -677,12 +746,12 @@ def cell(df: pd.DataFrame) -> dict:
     c["has_t2_in_books"] = float(rows["t2"].notna().mean()) if len(rows) else math.nan
     c["books"] = {}
     for b in BOOKS:
-        hit = {"A": "hit_A", "B": "hit_B", "D": "hit_D", "C": None, "ref": None}[b]
+        hit = {"A": "hit_A", "B": "hit_B", "D": "hit_D", "D5": "hit_D5", "C": None, "ref": None}[b]
         st = book_stats(
             rows[f"ret_{b}"],
             rows["date"],
             None if hit is None else rows[hit],
-            rows["days"] if b != "ref" else pd.Series(5.0, index=rows.index),
+            rows[f"days_{b}"],  # each book's own holding time (audit F4)
         )
         if b == "ref" and st.get("n"):
             st["at_target"] = float((rows["out5"] == "one_r").mean())
@@ -690,7 +759,8 @@ def cell(df: pd.DataFrame) -> dict:
     allc = book_stats(live["ret_C"], live["date"], None, live["days"])
     c["book_C_all"] = allc
     c["diff"] = {
-        f"{b}_minus_ref": paired(rows[f"ret_{b}"], rows["ret_ref"]) for b in ("A", "B", "C", "D")
+        f"{b}_minus_ref": paired(rows[f"ret_{b}"], rows["ret_ref"])
+        for b in ("A", "B", "C", "D", "D5")
     }
     # fork 1: the measured move on the units that have it
     if "mm_t1" in live:
@@ -874,9 +944,9 @@ def table_books(
     lines.append("|---|---|---|---|---|---|---|---|---|---|---|---|---|")
     for kind, level, cls, part in iter_cells(df, tf, levels):
         c = cells[(tf, kind, level, cls)]
-        if not c.get("book_rows"):
+        if not c.get("n"):
             continue
-        for b in BOOKS:
+        for b in BOOKS if c.get("book_rows") else ():
             s = c["books"][b]
             if not s.get("n"):
                 continue
@@ -893,7 +963,7 @@ def table_books(
                 f"{g(_usd(s['total_usd']))} | {g(_usd(s['max_dd_usd']))} | {s['med_days']:.0f} | {dtxt} |"
             )
         ca = c["book_C_all"]
-        if ca.get("n") and ca["n"] != c["books"]["C"].get("n"):
+        if ca.get("n") and (not c.get("book_rows") or ca["n"] != c["books"]["C"].get("n")):
             lines.append(
                 f"| {kind} | {level} | {cls} | C on every unit (with or without a T1) | {ca['n']:,} | "
                 f"{_f(ca['avg_pct'])} | {_f(ca['med_pct'])} | {_pct(ca['win'])} | - | {_usd(ca['total_usd'])} | "
@@ -901,9 +971,11 @@ def table_books(
             )
     lines += [
         "",
-        "Same rows for all five books: units with a T1 and a 5-bar reference return. One unit of notional "
+        "Same rows for all six books: units with a T1 and a 5-bar reference return. One unit of notional "
         "per trade, long or short as the break, no leverage, fees, funding or slippage, every trade taken, "
-        "no compounding; open trades marked at the cap's close (day 20), the reference at its fifth bar. "
+        "no compounding; open trades marked at the cap's close (day 20), D5 and the reference at the "
+        "fifth bar of the unit's timeframe. Median days = each book's own holding time (the day its "
+        "target filled, else its exit or mark day). "
         "Dollar columns are the SUM of equal-size trades at 1,000 dollars each, not an account balance. "
         "'Minus reference' is the paired per-trade difference against the chance book on the identical "
         "units, with a normal 95% interval; the holding periods differ (shown), so A / B / C against the "
@@ -976,27 +1048,32 @@ def table_clocks(df: pd.DataFrame, tf: str, title: str, clocks: dict) -> list[st
 def table_hypotheses(cells: dict) -> list[str]:
     lines = ["### Hypotheses, read as declared (plain daily units)", ""]
     lines.append(
-        "| setup | H2: book D minus the reference, avg % per trade [95%] | n | "
-        "H3: pre-T1 exits that touched T1 later inside the cap | book D: exited before one R, touched one R later | "
-        "chance book: stopped then saw one R |"
+        "| setup | n | H2: D5 minus the reference (same target, same five-bar horizon, only the stop swapped) [95%] | "
+        "D minus the reference (20-day cap) [95%] | "
+        "H3: D5 exited before one R, touched one R inside the five bars | chance book: stopped, saw one R inside the five bars | "
+        "D exited before one R, touched one R inside 20 days (complete follow-up only) | pre-T1 exits that touched T1 inside 20 days (complete follow-up only) |"
     )
-    lines.append("|---|---|---|---|---|---|")
+    lines.append("|---|---|---|---|---|---|---|---|")
     for kind in KINDS:
         c = cells.get(("D", kind, "all", "plain"))
         if not c or not c.get("book_rows"):
             continue
         d = c["diff"]["D_minus_ref"]
+        d5 = c["diff"]["D5_minus_ref"]
         lines.append(
-            f"| {kind} | {_f(d['diff'])} [{_f(d['lo'])}, {_f(d['hi'])}] | {d['n']:,} | "
-            f"{_sh(c['died']['later1'])} | {_sh(c['died_r']['later_r'])} | {_sh(c['died']['stop_saw'])} |"
+            f"| {kind} | {d5['n']:,} | {_f(d5['diff'])} [{_f(d5['lo'])}, {_f(d5['hi'])}] | "
+            f"{_f(d['diff'])} [{_f(d['lo'])}, {_f(d['hi'])}] | {_sh(c['died_r']['later_r5'])} | "
+            f"{_sh(c['died']['stop_saw'])} | {_sh(c['died_r']['later_r'])} | {_sh(c['died']['later1'])} |"
         )
     lines += [
         "",
         "H2 (the owner's suspect): swapping the setup-bar stop for the close exit lifts the average trade "
-        "of every plain daily pattern -- read the sign and the interval per row. H3 (the lead's counter): "
-        "the close exit is itself an early exit at least as often as the stop was -- compare the book D "
-        "column (same one-R target, exit in place of the stop) with the chance book's column; the T1 "
-        "column is the same question against the pattern's own magnitude. Neither promotes anything.",
+        "of every plain daily pattern -- D5 is the stop-isolating read (same target, same horizon, same "
+        "mark day as the reference; audit F2); D adds the longer horizon. H3 (the lead's counter): the "
+        "close exit is itself an early exit at least as often as the stop was -- compare D5's column with "
+        "the chance book's (same cohort: units with a T1; same five-bar window); the two right-hand "
+        "columns are the 20-day reads on the units whose follow-up is complete (audit F3). Neither "
+        "promotes anything.",
         "",
     ]
     return lines
@@ -1004,7 +1081,7 @@ def table_hypotheses(cells: dict) -> list[str]:
 
 def table_splits(df: pd.DataFrame, tf: str = "D") -> list[str]:
     lines = [
-        f"### Splits, {tf} units, plain class (entry-time context, plus one outcome-side split)",
+        f"### Splits, {tf} units, plain class (entry-time context, one retrospective label, one outcome-side split)",
         "",
     ]
     lines.append(
@@ -1027,10 +1104,12 @@ def table_splits(df: pd.DataFrame, tf: str = "D") -> list[str]:
                 )
     lines += [
         "",
-        "Every split but the last is known at the break. `stop0` (the entry day traded through the "
-        "far side of the setup bar, the chance book's pessimistic stop) is decided by the entry day's "
-        "own travel and is OUTCOME-SIDE: it shows what the invalidation was worth, it is not a filter "
-        "a trader at the break could apply.",
+        "direction, year, m_support and w_support are known at the break. `liquid` is the census's "
+        "snapshot label (median notional over the LAST 30 days of the data), inherited for parity with "
+        "products 1 and 2 and RETROSPECTIVE: a trader at a 2024 break did not know it (audit F6). "
+        "`stop0` (the entry day traded through the far side of the setup bar, the chance book's "
+        "pessimistic stop) is decided by the entry day's own travel and is OUTCOME-SIDE: it shows what "
+        "the invalidation was worth, it is not a filter a trader at the break could apply.",
         "",
     ]
     return lines

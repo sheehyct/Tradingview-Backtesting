@@ -33,26 +33,26 @@ T1 before the exit = of the units with a T1, the share that touched it on or bef
 
 | setup | class | pre-T1 exits | at the entry close | median days | avg % | avg R | entry day went outside | touched T1 later, inside the cap | book D: exited before one R, touched one R later | chance book on the same units: stopped by 5 | stopped, saw the target anyway |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| reversal | plain | 15,709 | 41.4% | 1 | -4.86 | -0.78 | 33.3% | 62.7% [62, 63] n=15,709 | 56.6% [56, 57] n=24,162 | 51.5% | 35.9% [35, 37] n=22,356 |
+| reversal | plain | 15,709 | 41.4% | 1 | -4.86 | -0.78 | 33.3% | 65.1% [64, 66] n=15,126 | 58.6% [58, 59] n=23,278 | 51.5% | 35.9% [35, 37] n=22,356 |
 | reversal | exact_shared | 0 | (-) | (-) | (-) | (-) | (-) | - | - | - | - |
-| reversal | exact_plain | 0 | (-) | (-) | (-) | (-) | (-) | - | (33.3% [6, 79] n=3) | - | - |
-| reversal | near | 3 | (100.0%) | (0) | (-0.67) | (-0.65) | (66.7%) | (100.0% [44, 100] n=3) | 47.4% [37, 58] n=76 | 53.5% | 35.5% [26, 47] n=76 |
-| reversal | within1 | 79 | 58.2% | 0 | -3.24 | -1.05 | 48.1% | 63.3% [52, 73] n=79 | 53.6% [48, 59] n=364 | 56.2% | 39.6% [35, 44] n=414 |
-| continuation | plain | 28,585 | 20.9% | 2 | -4.43 | -0.68 | 23.7% | 32.8% [32, 33] n=28,585 | 47.0% [46, 48] n=29,672 | 47.3% | 28.9% [28, 30] n=21,187 |
-| continuation | exact_shared | 1,482 | 38.5% | 1 | -3.61 | -0.60 | 25.2% | 27.5% [25, 30] n=1,482 | 45.2% [43, 47] n=2,175 | 54.6% | 26.3% [24, 29] n=1,021 |
-| continuation | exact_plain | 9 | (0.0%) | (2) | (-2.74) | (-0.66) | (11.1%) | (22.2% [6, 55] n=9) | (50.0% [24, 76] n=10) | 38.5% | (0.0% [-0, 43] n=5) |
-| continuation | near | 24 | (50.0%) | (0) | (-2.33) | (-1.32) | (50.0%) | (70.8% [51, 85] n=24) | 49.6% [44, 55] n=347 | 41.4% | 34.8% [30, 40] n=325 |
-| continuation | within1 | 299 | 47.2% | 1 | -3.96 | -1.14 | 47.5% | 54.8% [49, 60] n=299 | 47.5% [45, 50] n=1,170 | 44.3% | 32.5% [30, 35] n=1,119 |
-| inside | plain | 12,849 | 33.3% | 1 | -3.75 | -0.98 | 41.0% | 47.8% [47, 49] n=12,849 | 60.9% [60, 62] n=14,228 | 54.8% | 47.5% [47, 48] n=15,186 |
-| inside | exact_shared | 0 | (-) | (-) | (-) | (-) | (-) | - | (100.0% [21, 100] n=1) | 0.0% | - |
-| inside | exact_plain | 1 | (0.0%) | (1) | (-4.94) | (-0.86) | (100.0%) | (0.0% [0, 79] n=1) | (33.3% [6, 79] n=3) | 50.0% | (0.0% [0, 79] n=1) |
-| inside | near | 10 | (50.0%) | (0) | (-1.69) | (-1.20) | (50.0%) | (60.0% [31, 83] n=10) | 58.8% [50, 67] n=114 | 64.6% | 48.6% [41, 57] n=148 |
-| inside | within1 | 119 | 53.8% | 0 | -3.33 | -1.22 | 52.1% | 68.1% [59, 76] n=119 | 62.9% [58, 68] n=348 | 61.8% | 49.7% [45, 54] n=475 |
-| outside | plain | 6,809 | 27.7% | 2 | -4.28 | -0.59 | 17.3% | 35.9% [35, 37] n=6,809 | 45.3% [44, 46] n=7,474 | 42.1% | 23.8% [23, 25] n=4,680 |
-| outside | exact_shared | 300 | 39.7% | 1 | -4.47 | -0.63 | 17.7% | 22.0% [18, 27] n=300 | 49.9% [45, 55] n=393 | 60.5% | 16.4% [12, 22] n=225 |
-| outside | exact_plain | 2 | (50.0%) | (1) | (-8.74) | (-1.49) | (50.0%) | (0.0% [0, 66] n=2) | (0.0% [0, 49] n=4) | 75.0% | (0.0% [0, 56] n=3) |
-| outside | near | 10 | (50.0%) | (0) | (-1.69) | (-1.41) | (60.0%) | (50.0% [24, 76] n=10) | 45.2% [37, 54] n=124 | 44.1% | 25.5% [18, 35] n=98 |
-| outside | within1 | 119 | 58.8% | 0 | -3.09 | -0.98 | 47.9% | 59.7% [51, 68] n=119 | 46.1% [41, 51] n=388 | 47.1% | 32.8% [28, 38] n=335 |
+| reversal | exact_plain | 0 | (-) | (-) | (-) | (-) | (-) | - | - | - | - |
+| reversal | near | 3 | (100.0%) | (0) | (-0.67) | (-0.65) | (66.7%) | (100.0% [44, 100] n=3) | 50.0% [39, 61] n=70 | 53.5% | 35.5% [26, 47] n=76 |
+| reversal | within1 | 79 | 58.2% | 0 | -3.24 | -1.05 | 48.1% | 67.6% [56, 77] n=74 | 57.3% [52, 62] n=337 | 56.2% | 39.6% [35, 44] n=414 |
+| continuation | plain | 28,585 | 20.9% | 2 | -4.43 | -0.68 | 23.7% | 33.6% [33, 34] n=27,970 | 50.8% [50, 51] n=23,369 | 47.3% | 28.9% [28, 30] n=21,187 |
+| continuation | exact_shared | 1,482 | 38.5% | 1 | -3.61 | -0.60 | 25.2% | 27.7% [26, 30] n=1,471 | 53.9% [51, 57] n=1,106 | 54.6% | 26.3% [24, 29] n=1,021 |
+| continuation | exact_plain | 9 | (0.0%) | (2) | (-2.74) | (-0.66) | (11.1%) | (22.2% [6, 55] n=9) | (57.1% [25, 84] n=7) | 38.5% | (0.0% [-0, 43] n=5) |
+| continuation | near | 24 | (50.0%) | (0) | (-2.33) | (-1.32) | (50.0%) | (77.3% [57, 90] n=22) | 51.5% [46, 57] n=334 | 41.4% | 34.8% [30, 40] n=325 |
+| continuation | within1 | 299 | 47.2% | 1 | -3.96 | -1.14 | 47.5% | 57.5% [52, 63] n=285 | 49.2% [46, 52] n=1,131 | 44.3% | 32.5% [30, 35] n=1,119 |
+| inside | plain | 12,849 | 33.3% | 1 | -3.75 | -0.98 | 41.0% | 49.8% [49, 51] n=12,341 | 63.8% [63, 65] n=12,669 | 54.8% | 47.5% [47, 48] n=15,186 |
+| inside | exact_shared | 0 | (-) | (-) | (-) | (-) | (-) | - | - | 0.0% | - |
+| inside | exact_plain | 1 | (0.0%) | (1) | (-4.94) | (-0.86) | (100.0%) | (0.0% [0, 79] n=1) | (0.0% [0, 79] n=1) | 50.0% | (0.0% [0, 79] n=1) |
+| inside | near | 10 | (50.0%) | (0) | (-1.69) | (-1.20) | (50.0%) | (60.0% [31, 83] n=10) | 59.3% [50, 68] n=113 | 64.6% | 48.6% [41, 57] n=148 |
+| inside | within1 | 119 | 53.8% | 0 | -3.33 | -1.22 | 52.1% | 72.3% [63, 80] n=112 | 65.7% [60, 71] n=332 | 61.8% | 49.7% [45, 54] n=475 |
+| outside | plain | 6,809 | 27.7% | 2 | -4.28 | -0.59 | 17.3% | 37.2% [36, 38] n=6,561 | 48.9% [48, 50] n=6,264 | 42.1% | 23.8% [23, 25] n=4,680 |
+| outside | exact_shared | 300 | 39.7% | 1 | -4.47 | -0.63 | 17.7% | 22.5% [18, 28] n=293 | 53.8% [47, 60] n=236 | 60.5% | 16.4% [12, 22] n=225 |
+| outside | exact_plain | 2 | (50.0%) | (1) | (-8.74) | (-1.49) | (50.0%) | (0.0% [0, 66] n=2) | (0.0% [0, 56] n=3) | 75.0% | (0.0% [0, 56] n=3) |
+| outside | near | 10 | (50.0%) | (0) | (-1.69) | (-1.41) | (60.0%) | (55.6% [27, 81] n=9) | 48.3% [39, 57] n=116 | 44.1% | 25.5% [18, 35] n=98 |
+| outside | within1 | 119 | 58.8% | 0 | -3.09 | -0.98 | 47.9% | 64.0% [55, 72] n=111 | 48.8% [44, 54] n=367 | 47.1% | 32.8% [28, 38] n=335 |
 
 Pre-T1 exits = units with a T1 that exited on the close rule before touching it. 'Touched T1 later' = the exit's own 'saw the target anyway'; beside it, on the same units, the chance book's stop share and its stopped-then-saw-one-R share (5-bar travel).
 
@@ -87,115 +87,135 @@ MAE = the furthest adverse travel from L through the exit (or the cap mark), in 
 
 | setup | flag | class | book | trades | avg % per trade | median % | closed in profit | closed at the target | total $ at 1,000 per trade | max drawdown $ | median days | minus reference [95%] |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| reversal | all | plain | A: all out at T1 | 43,209 | -0.05 | +0.84 | 66.3% | 63.8% | -20,344 | -81,073 | 2 | +0.80 [+0.73, +0.86] |
-| reversal | all | plain | B: hold through T2, exit rule live | 43,209 | +0.12 | -1.39 | 40.3% | 23.1% | +51,539 | -48,952 | 2 | +0.96 [+0.88, +1.05] |
+| reversal | all | plain | A: all out at T1 | 43,209 | -0.05 | +0.84 | 66.3% | 63.8% | -20,344 | -81,073 | 0 | +0.80 [+0.73, +0.86] |
+| reversal | all | plain | B: hold through T2, exit rule live | 43,209 | +0.12 | -1.39 | 40.3% | 23.1% | +51,539 | -48,952 | 1 | +0.96 [+0.88, +1.05] |
 | reversal | all | plain | C: exit only, no target | 43,209 | +0.22 | -1.90 | 34.1% | - | +97,097 | -48,787 | 2 | +1.07 [+0.95, +1.18] |
-| reversal | all | plain | D: one R or the exit | 43,209 | +0.08 | -0.30 | 49.0% | 44.4% | +36,326 | -60,928 | 2 | +0.93 [+0.87, +0.98] |
-| reversal | all | plain | reference: one R or the setup-bar stop, 5 bars | 43,209 | -0.84 | -2.41 | 43.3% | 38.2% | -364,408 | -365,217 | 5 | - |
+| reversal | all | plain | D: one R or the exit | 43,209 | +0.08 | -0.30 | 49.0% | 44.4% | +36,599 | -60,928 | 1 | +0.93 [+0.87, +0.98] |
+| reversal | all | plain | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 43,209 | +0.07 | -0.21 | 49.3% | 43.4% | +31,998 | -65,910 | 1 | +0.92 [+0.86, +0.97] |
+| reversal | all | plain | reference: one R or the setup-bar stop, 5 bars | 43,209 | -0.84 | -2.41 | 43.3% | 38.2% | -364,408 | -365,217 | 1 | - |
 | reversal | all | plain | C on every unit (with or without a T1) | 43,475 | +0.21 | -1.90 | 34.0% | - | +92,880 | -48,830 | 2 | - |
-| reversal | all | near | A: all out at T1 | 142 | +0.09 | +0.10 | 97.9% | 97.9% | +135 | -14 | 3 | +0.89 [-0.02, +1.80] |
-| reversal | all | near | B: hold through T2, exit rule live | 142 | -0.30 | -0.09 | 47.9% | 30.3% | -432 | -1,316 | 3 | +0.49 [-0.47, +1.46] |
+| reversal | all | exact_shared | C on every unit (with or without a T1) | 3 | +7.25 | -1.14 | 33.3% | - | +217 | -31 | 3 | - |
+| reversal | all | exact_plain | C on every unit (with or without a T1) | 4 | +7.92 | -3.79 | 25.0% | - | +317 | -123 | 1 | - |
+| reversal | all | near | A: all out at T1 | 142 | +0.09 | +0.10 | 97.9% | 97.9% | +135 | -14 | 0 | +0.89 [-0.02, +1.80] |
+| reversal | all | near | B: hold through T2, exit rule live | 142 | -0.30 | -0.09 | 47.9% | 30.3% | -432 | -1,316 | 1 | +0.49 [-0.47, +1.46] |
 | reversal | all | near | C: exit only, no target | 142 | +0.40 | -1.15 | 33.8% | - | +571 | -1,381 | 3 | +1.20 [+0.04, +2.35] |
-| reversal | all | near | D: one R or the exit | 142 | -0.21 | -0.05 | 49.3% | 47.9% | -305 | -1,204 | 3 | +0.58 [-0.05, +1.21] |
-| reversal | all | near | reference: one R or the setup-bar stop, 5 bars | 142 | -0.80 | -0.50 | 43.0% | 38.0% | -1,130 | -1,675 | 5 | - |
+| reversal | all | near | D: one R or the exit | 142 | -0.21 | -0.05 | 49.3% | 47.9% | -305 | -1,204 | 1 | +0.58 [-0.05, +1.21] |
+| reversal | all | near | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 142 | -0.34 | -0.05 | 48.6% | 45.8% | -482 | -1,268 | 1 | +0.46 [-0.15, +1.06] |
+| reversal | all | near | reference: one R or the setup-bar stop, 5 bars | 142 | -0.80 | -0.50 | 43.0% | 38.0% | -1,130 | -1,675 | 1 | - |
 | reversal | all | near | C on every unit (with or without a T1) | 144 | +0.35 | -1.15 | 33.3% | - | +506 | -1,384 | 3 | - |
-| reversal | all | within1 | A: all out at T1 | 723 | +0.04 | +0.35 | 89.3% | 89.2% | +285 | -715 | 3 | +1.02 [+0.65, +1.40] |
-| reversal | all | within1 | B: hold through T2, exit rule live | 723 | -0.63 | +0.38 | 55.5% | 45.8% | -4,552 | -6,056 | 3 | +0.35 [-0.11, +0.81] |
+| reversal | all | within1 | A: all out at T1 | 723 | +0.04 | +0.35 | 89.3% | 89.2% | +285 | -715 | 0 | +1.02 [+0.65, +1.40] |
+| reversal | all | within1 | B: hold through T2, exit rule live | 723 | -0.63 | +0.38 | 55.5% | 45.8% | -4,552 | -6,056 | 1 | +0.35 [-0.11, +0.81] |
 | reversal | all | within1 | C: exit only, no target | 723 | -1.05 | -1.23 | 29.3% | - | -7,589 | -9,027 | 3 | -0.07 [-0.57, +0.44] |
-| reversal | all | within1 | D: one R or the exit | 723 | -0.18 | +0.38 | 53.5% | 51.2% | -1,336 | -5,501 | 3 | +0.80 [+0.49, +1.11] |
-| reversal | all | within1 | reference: one R or the setup-bar stop, 5 bars | 723 | -0.98 | -0.87 | 38.7% | 35.4% | -7,107 | -8,125 | 5 | - |
+| reversal | all | within1 | D: one R or the exit | 723 | -0.18 | +0.38 | 53.5% | 51.2% | -1,336 | -5,501 | 1 | +0.80 [+0.49, +1.11] |
+| reversal | all | within1 | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 723 | -0.25 | +0.31 | 53.1% | 49.2% | -1,795 | -5,883 | 1 | +0.73 [+0.44, +1.03] |
+| reversal | all | within1 | reference: one R or the setup-bar stop, 5 bars | 723 | -0.98 | -0.87 | 38.7% | 35.4% | -7,107 | -8,125 | 0 | - |
 | reversal | all | within1 | C on every unit (with or without a T1) | 741 | -1.08 | -1.24 | 29.0% | - | -8,035 | -9,132 | 3 | - |
-| continuation | all | plain | A: all out at T1 | 44,673 | -0.23 | -0.65 | 47.3% | 36.2% | -102,624 | -186,087 | 3 | +0.22 [+0.15, +0.29] |
+| continuation | all | plain | A: all out at T1 | 44,673 | -0.23 | -0.65 | 47.3% | 36.2% | -102,624 | -186,087 | 1 | +0.22 [+0.15, +0.29] |
 | continuation | all | plain | B: hold through T2, exit rule live | 44,673 | -0.24 | -2.10 | 36.1% | 5.2% | -107,650 | -242,151 | 3 | +0.21 [+0.11, +0.30] |
 | continuation | all | plain | C: exit only, no target | 44,673 | -0.24 | -2.15 | 35.4% | - | -107,701 | -268,190 | 3 | +0.21 [+0.09, +0.32] |
-| continuation | all | plain | D: one R or the exit | 44,673 | +0.01 | +0.55 | 51.1% | 46.7% | +4,853 | -83,696 | 3 | +0.46 [+0.41, +0.51] |
-| continuation | all | plain | reference: one R or the setup-bar stop, 5 bars | 44,673 | -0.45 | -1.83 | 46.0% | 39.4% | -199,465 | -201,265 | 5 | - |
+| continuation | all | plain | D: one R or the exit | 44,673 | +0.01 | +0.55 | 51.1% | 46.7% | +5,250 | -83,398 | 1 | +0.46 [+0.41, +0.51] |
+| continuation | all | plain | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 44,673 | +0.06 | +0.70 | 51.8% | 44.6% | +28,413 | -75,086 | 1 | +0.51 [+0.46, +0.56] |
+| continuation | all | plain | reference: one R or the setup-bar stop, 5 bars | 44,673 | -0.45 | -1.83 | 46.0% | 39.4% | -199,465 | -201,265 | 1 | - |
 | continuation | all | plain | C on every unit (with or without a T1) | 55,384 | -0.27 | -2.15 | 36.0% | - | -151,555 | -337,081 | 3 | - |
 | continuation | all | exact_shared | A: all out at T1 | 1,863 | -1.28 | -2.39 | 31.1% | 20.5% | -23,921 | -25,036 | 1 | -0.09 [-0.47, +0.29] |
 | continuation | all | exact_shared | B: hold through T2, exit rule live | 1,863 | -1.75 | -3.23 | 19.6% | 0.0% | -32,654 | -33,698 | 1 | -0.56 [-1.38, +0.27] |
 | continuation | all | exact_shared | C: exit only, no target | 1,863 | -1.75 | -3.23 | 19.6% | - | -32,654 | -33,698 | 1 | -0.56 [-1.38, +0.27] |
-| continuation | all | exact_shared | D: one R or the exit | 1,863 | -0.69 | -1.83 | 40.7% | 40.4% | -12,915 | -18,757 | 1 | +0.50 [+0.26, +0.74] |
-| continuation | all | exact_shared | reference: one R or the setup-bar stop, 5 bars | 1,863 | -1.19 | -3.18 | 40.8% | 38.3% | -22,230 | -24,360 | 5 | - |
+| continuation | all | exact_shared | D: one R or the exit | 1,863 | -0.69 | -1.83 | 40.7% | 40.4% | -12,915 | -18,757 | 0 | +0.50 [+0.26, +0.74] |
+| continuation | all | exact_shared | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 1,863 | -0.67 | -1.79 | 41.4% | 40.0% | -12,570 | -18,894 | 0 | +0.52 [+0.28, +0.76] |
+| continuation | all | exact_shared | reference: one R or the setup-bar stop, 5 bars | 1,863 | -1.19 | -3.18 | 40.8% | 38.3% | -22,230 | -24,360 | 1 | - |
 | continuation | all | exact_shared | C on every unit (with or without a T1) | 3,614 | -1.81 | -3.64 | 20.6% | - | -65,283 | -74,556 | 2 | - |
-| continuation | all | exact_plain | A: all out at T1 | 13 | (-0.15) | (-0.24) | (46.2%) | (23.1%) | (-19) | (-261) | 3 | (-1.17 [-5.29, +2.95]) |
+| continuation | all | exact_plain | A: all out at T1 | 13 | (-0.15) | (-0.24) | (46.2%) | (23.1%) | (-19) | (-261) | 2 | (-1.17 [-5.29, +2.95]) |
 | continuation | all | exact_plain | B: hold through T2, exit rule live | 13 | (+0.33) | (-0.24) | (46.2%) | (0.0%) | (+43) | (-261) | 3 | (-0.69 [-4.80, +3.41]) |
 | continuation | all | exact_plain | C: exit only, no target | 13 | (+0.33) | (-0.24) | (46.2%) | (-) | (+43) | (-261) | 3 | (-0.69 [-4.80, +3.41]) |
-| continuation | all | exact_plain | D: one R or the exit | 13 | (+0.71) | (+2.30) | (53.8%) | (46.2%) | (+93) | (-261) | 3 | (-0.31 [-2.84, +2.22]) |
-| continuation | all | exact_plain | reference: one R or the setup-bar stop, 5 bars | 13 | (+1.02) | (-0.29) | (46.2%) | (46.2%) | (+133) | (-189) | 5 | - |
+| continuation | all | exact_plain | D: one R or the exit | 13 | (+0.71) | (+2.30) | (53.8%) | (46.2%) | (+93) | (-261) | 1 | (-0.31 [-2.84, +2.22]) |
+| continuation | all | exact_plain | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 13 | (+0.57) | (+2.30) | (53.8%) | (38.5%) | (+74) | (-261) | 1 | (-0.46 [-2.79, +1.87]) |
+| continuation | all | exact_plain | reference: one R or the setup-bar stop, 5 bars | 13 | (+1.02) | (-0.29) | (46.2%) | (46.2%) | (+133) | (-189) | 1 | - |
 | continuation | all | exact_plain | C on every unit (with or without a T1) | 25 | +0.13 | -0.89 | 44.0% | - | +32 | -283 | 4 | - |
-| continuation | all | near | A: all out at T1 | 778 | +0.06 | +0.12 | 97.0% | 97.0% | +434 | -130 | 4 | -0.38 [-0.82, +0.06] |
-| continuation | all | near | B: hold through T2, exit rule live | 778 | +0.18 | -0.51 | 44.9% | 14.1% | +1,402 | -2,581 | 4 | -0.26 [-0.80, +0.28] |
+| continuation | all | near | A: all out at T1 | 778 | +0.06 | +0.12 | 97.0% | 97.0% | +434 | -130 | 0 | -0.38 [-0.82, +0.06] |
+| continuation | all | near | B: hold through T2, exit rule live | 778 | +0.18 | -0.51 | 44.9% | 14.1% | +1,402 | -2,581 | 3 | -0.26 [-0.80, +0.28] |
 | continuation | all | near | C: exit only, no target | 778 | +0.23 | -0.85 | 40.7% | - | +1,770 | -3,600 | 4 | -0.21 [-0.86, +0.44] |
-| continuation | all | near | D: one R or the exit | 778 | +0.87 | +1.57 | 60.2% | 55.9% | +6,779 | -2,507 | 4 | +0.43 [+0.11, +0.76] |
-| continuation | all | near | reference: one R or the setup-bar stop, 5 bars | 778 | +0.44 | +0.35 | 51.7% | 46.0% | +3,404 | -2,033 | 5 | - |
+| continuation | all | near | D: one R or the exit | 778 | +0.87 | +1.57 | 60.2% | 55.9% | +6,779 | -2,507 | 1 | +0.43 [+0.11, +0.76] |
+| continuation | all | near | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 778 | +0.78 | +1.37 | 60.4% | 53.7% | +6,056 | -2,496 | 1 | +0.34 [+0.06, +0.62] |
+| continuation | all | near | reference: one R or the setup-bar stop, 5 bars | 778 | +0.44 | +0.35 | 51.7% | 46.0% | +3,404 | -2,033 | 1 | - |
 | continuation | all | near | C on every unit (with or without a T1) | 785 | +0.19 | -0.85 | 40.4% | - | +1,501 | -3,600 | 4 | - |
-| continuation | all | within1 | A: all out at T1 | 2,507 | +0.07 | +0.55 | 88.6% | 88.4% | +1,826 | -643 | 4 | -0.25 [-0.50, -0.01] |
-| continuation | all | within1 | B: hold through T2, exit rule live | 2,507 | +0.63 | -0.93 | 42.2% | 13.4% | +15,804 | -5,160 | 4 | +0.30 [-0.05, +0.65] |
+| continuation | all | within1 | A: all out at T1 | 2,507 | +0.07 | +0.55 | 88.6% | 88.4% | +1,826 | -643 | 0 | -0.25 [-0.50, -0.01] |
+| continuation | all | within1 | B: hold through T2, exit rule live | 2,507 | +0.63 | -0.93 | 42.2% | 13.4% | +15,804 | -5,160 | 3 | +0.30 [-0.05, +0.65] |
 | continuation | all | within1 | C: exit only, no target | 2,507 | +0.74 | -1.22 | 39.1% | - | +18,554 | -6,416 | 4 | +0.41 [-0.13, +0.96] |
-| continuation | all | within1 | D: one R or the exit | 2,507 | +0.77 | +1.36 | 57.6% | 53.7% | +19,251 | -2,422 | 4 | +0.44 [+0.27, +0.62] |
-| continuation | all | within1 | reference: one R or the setup-bar stop, 5 bars | 2,507 | +0.33 | -0.22 | 49.3% | 43.4% | +8,205 | -3,493 | 5 | - |
+| continuation | all | within1 | D: one R or the exit | 2,507 | +0.77 | +1.36 | 57.6% | 53.7% | +19,251 | -2,422 | 1 | +0.44 [+0.27, +0.62] |
+| continuation | all | within1 | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 2,507 | +0.74 | +1.33 | 58.0% | 51.5% | +18,646 | -2,272 | 1 | +0.42 [+0.25, +0.58] |
+| continuation | all | within1 | reference: one R or the setup-bar stop, 5 bars | 2,507 | +0.33 | -0.22 | 49.3% | 43.4% | +8,205 | -3,493 | 1 | - |
 | continuation | all | within1 | C on every unit (with or without a T1) | 2,526 | +0.71 | -1.22 | 38.8% | - | +18,025 | -6,416 | 4 | - |
-| inside | all | plain | A: all out at T1 | 27,623 | +0.02 | +0.49 | 60.3% | 53.6% | +6,017 | -24,191 | 2 | +0.54 [+0.47, +0.62] |
-| inside | all | plain | B: hold through T2, exit rule live | 27,623 | -0.07 | -1.56 | 35.9% | 12.8% | -19,310 | -68,162 | 2 | +0.45 [+0.34, +0.57] |
+| inside | all | plain | A: all out at T1 | 27,623 | +0.02 | +0.49 | 60.3% | 53.6% | +6,017 | -24,191 | 0 | +0.54 [+0.47, +0.62] |
+| inside | all | plain | B: hold through T2, exit rule live | 27,623 | -0.07 | -1.56 | 35.9% | 12.8% | -19,310 | -68,162 | 1 | +0.45 [+0.34, +0.57] |
 | inside | all | plain | C: exit only, no target | 27,623 | -0.02 | -1.79 | 32.9% | - | -6,854 | -88,599 | 2 | +0.50 [+0.35, +0.65] |
-| inside | all | plain | D: one R or the exit | 27,623 | +0.24 | +1.17 | 55.6% | 52.6% | +65,021 | -17,504 | 2 | +0.76 [+0.70, +0.82] |
-| inside | all | plain | reference: one R or the setup-bar stop, 5 bars | 27,623 | -0.52 | -1.72 | 43.0% | 40.8% | -144,381 | -145,054 | 5 | - |
+| inside | all | plain | D: one R or the exit | 27,623 | +0.24 | +1.17 | 55.6% | 52.6% | +65,084 | -17,504 | 1 | +0.76 [+0.70, +0.82] |
+| inside | all | plain | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 27,623 | +0.24 | +1.17 | 55.6% | 51.9% | +66,617 | -17,041 | 1 | +0.76 [+0.70, +0.82] |
+| inside | all | plain | reference: one R or the setup-bar stop, 5 bars | 27,623 | -0.52 | -1.72 | 43.0% | 40.8% | -144,381 | -145,054 | 0 | - |
 | inside | all | plain | C on every unit (with or without a T1) | 30,482 | -0.07 | -1.77 | 33.1% | - | -19,912 | -103,880 | 2 | - |
-| inside | all | exact_shared | A: all out at T1 | 1 | (+3.75) | (+3.75) | (100.0%) | (100.0%) | (+38) | (+0) | 7 | (- [-, -]) |
+| inside | all | exact_shared | A: all out at T1 | 1 | (+3.75) | (+3.75) | (100.0%) | (100.0%) | (+38) | (+0) | 3 | (- [-, -]) |
 | inside | all | exact_shared | B: hold through T2, exit rule live | 1 | (+0.02) | (+0.02) | (100.0%) | (0.0%) | (+0) | (+0) | 7 | (- [-, -]) |
 | inside | all | exact_shared | C: exit only, no target | 1 | (+0.02) | (+0.02) | (100.0%) | (-) | (+0) | (+0) | 7 | (- [-, -]) |
-| inside | all | exact_shared | D: one R or the exit | 1 | (+6.05) | (+6.05) | (100.0%) | (100.0%) | (+60) | (+0) | 7 | (- [-, -]) |
-| inside | all | exact_shared | reference: one R or the setup-bar stop, 5 bars | 1 | (+6.05) | (+6.05) | (100.0%) | (100.0%) | (+60) | (+0) | 5 | - |
+| inside | all | exact_shared | D: one R or the exit | 1 | (+6.05) | (+6.05) | (100.0%) | (100.0%) | (+60) | (+0) | 3 | (- [-, -]) |
+| inside | all | exact_shared | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 1 | (+6.05) | (+6.05) | (100.0%) | (100.0%) | (+60) | (+0) | 3 | (- [-, -]) |
+| inside | all | exact_shared | reference: one R or the setup-bar stop, 5 bars | 1 | (+6.05) | (+6.05) | (100.0%) | (100.0%) | (+60) | (+0) | 3 | - |
 | inside | all | exact_shared | C on every unit (with or without a T1) | 6 | +0.59 | -0.80 | 50.0% | - | +35 | -165 | 2 | - |
-| inside | all | exact_plain | A: all out at T1 | 2 | (-1.60) | (-1.60) | (50.0%) | (50.0%) | (-32) | (-49) | 3 | (-1.27 [-5.35, +2.82]) |
+| inside | all | exact_plain | A: all out at T1 | 2 | (-1.60) | (-1.60) | (50.0%) | (50.0%) | (-32) | (-49) | 0 | (-1.27 [-5.35, +2.82]) |
 | inside | all | exact_plain | B: hold through T2, exit rule live | 2 | (-0.56) | (-0.56) | (50.0%) | (0.0%) | (-11) | (-49) | 3 | (-0.23 [-2.27, +1.82]) |
 | inside | all | exact_plain | C: exit only, no target | 2 | (-0.56) | (-0.56) | (50.0%) | (-) | (-11) | (-49) | 3 | (-0.23 [-2.27, +1.82]) |
-| inside | all | exact_plain | D: one R or the exit | 2 | (+0.08) | (+0.08) | (50.0%) | (50.0%) | (+2) | (-49) | 3 | (+0.41 [-0.39, +1.21]) |
-| inside | all | exact_plain | reference: one R or the setup-bar stop, 5 bars | 2 | (-0.33) | (-0.33) | (50.0%) | (50.0%) | (-7) | (-58) | 5 | - |
+| inside | all | exact_plain | D: one R or the exit | 2 | (+0.08) | (+0.08) | (50.0%) | (50.0%) | (+2) | (-49) | 0 | (+0.41 [-0.39, +1.21]) |
+| inside | all | exact_plain | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 2 | (+0.08) | (+0.08) | (50.0%) | (50.0%) | (+2) | (-49) | 0 | (+0.41 [-0.39, +1.21]) |
+| inside | all | exact_plain | reference: one R or the setup-bar stop, 5 bars | 2 | (-0.33) | (-0.33) | (50.0%) | (50.0%) | (-7) | (-58) | 0 | - |
 | inside | all | exact_plain | C on every unit (with or without a T1) | 6 | -0.50 | -0.41 | 50.0% | - | -30 | -202 | 3 | - |
-| inside | all | near | A: all out at T1 | 229 | +0.04 | +0.11 | 96.1% | 95.6% | +85 | -118 | 2 | +1.29 [+0.69, +1.90] |
-| inside | all | near | B: hold through T2, exit rule live | 229 | -1.10 | -2.19 | 31.9% | 13.5% | -2,510 | -4,394 | 2 | +0.16 [-0.84, +1.16] |
+| inside | all | near | A: all out at T1 | 229 | +0.04 | +0.11 | 96.1% | 95.6% | +85 | -118 | 0 | +1.29 [+0.69, +1.90] |
+| inside | all | near | B: hold through T2, exit rule live | 229 | -1.10 | -2.19 | 31.9% | 13.5% | -2,510 | -4,394 | 1 | +0.16 [-0.84, +1.16] |
 | inside | all | near | C: exit only, no target | 229 | -1.35 | -2.29 | 26.2% | - | -3,081 | -4,516 | 2 | -0.09 [-1.09, +0.91] |
-| inside | all | near | D: one R or the exit | 229 | -0.56 | +0.19 | 52.0% | 50.2% | -1,275 | -1,992 | 2 | +0.70 [+0.20, +1.20] |
-| inside | all | near | reference: one R or the setup-bar stop, 5 bars | 229 | -1.25 | -1.91 | 34.5% | 33.2% | -2,874 | -3,369 | 5 | - |
-| inside | all | within1 | A: all out at T1 | 763 | -0.04 | +0.48 | 85.6% | 84.8% | -338 | -829 | 2 | +1.00 [+0.66, +1.34] |
-| inside | all | within1 | B: hold through T2, exit rule live | 763 | -0.56 | -0.99 | 38.4% | 20.4% | -4,255 | -6,877 | 2 | +0.49 [-0.05, +1.02] |
+| inside | all | near | D: one R or the exit | 229 | -0.56 | +0.19 | 52.0% | 50.2% | -1,275 | -1,992 | 0 | +0.70 [+0.20, +1.20] |
+| inside | all | near | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 229 | -0.49 | +0.19 | 52.0% | 49.8% | -1,121 | -1,834 | 0 | +0.77 [+0.27, +1.26] |
+| inside | all | near | reference: one R or the setup-bar stop, 5 bars | 229 | -1.25 | -1.91 | 34.5% | 33.2% | -2,874 | -3,369 | 0 | - |
+| inside | all | within1 | A: all out at T1 | 763 | -0.04 | +0.48 | 85.6% | 84.8% | -338 | -829 | 0 | +1.00 [+0.66, +1.34] |
+| inside | all | within1 | B: hold through T2, exit rule live | 763 | -0.56 | -0.99 | 38.4% | 20.4% | -4,255 | -6,877 | 1 | +0.49 [-0.05, +1.02] |
 | inside | all | within1 | C: exit only, no target | 763 | -0.43 | -1.50 | 30.9% | - | -3,294 | -6,492 | 2 | +0.61 [+0.02, +1.21] |
-| inside | all | within1 | D: one R or the exit | 763 | -0.38 | +0.46 | 56.0% | 55.2% | -2,936 | -5,808 | 2 | +0.66 [+0.35, +0.97] |
-| inside | all | within1 | reference: one R or the setup-bar stop, 5 bars | 763 | -1.04 | -1.15 | 37.2% | 36.3% | -7,969 | -8,450 | 5 | - |
+| inside | all | within1 | D: one R or the exit | 763 | -0.38 | +0.46 | 56.0% | 55.2% | -2,936 | -5,808 | 0 | +0.66 [+0.35, +0.97] |
+| inside | all | within1 | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 763 | -0.40 | +0.39 | 55.7% | 54.7% | -3,070 | -5,835 | 0 | +0.64 [+0.34, +0.95] |
+| inside | all | within1 | reference: one R or the setup-bar stop, 5 bars | 763 | -1.04 | -1.15 | 37.2% | 36.3% | -7,969 | -8,450 | 0 | - |
 | inside | all | within1 | C on every unit (with or without a T1) | 771 | -0.44 | -1.50 | 30.7% | - | -3,367 | -6,463 | 2 | - |
-| outside | all | plain | A: all out at T1 | 11,050 | -0.00 | -0.51 | 48.2% | 38.9% | -550 | -21,607 | 3 | +0.26 [+0.12, +0.41] |
+| outside | all | plain | A: all out at T1 | 11,050 | -0.00 | -0.51 | 48.2% | 38.9% | -550 | -21,607 | 1 | +0.26 [+0.12, +0.41] |
 | outside | all | plain | B: hold through T2, exit rule live | 11,050 | +0.18 | -2.17 | 35.6% | 5.6% | +20,351 | -39,238 | 3 | +0.45 [+0.26, +0.65] |
 | outside | all | plain | C: exit only, no target | 11,050 | +0.18 | -2.23 | 35.0% | - | +20,133 | -44,041 | 3 | +0.45 [+0.24, +0.66] |
-| outside | all | plain | D: one R or the exit | 11,050 | +0.18 | -0.85 | 47.0% | 41.6% | +20,205 | -19,578 | 3 | +0.45 [+0.34, +0.56] |
-| outside | all | plain | reference: one R or the setup-bar stop, 5 bars | 11,050 | -0.27 | -1.04 | 47.5% | 37.0% | -29,728 | -31,648 | 5 | - |
+| outside | all | plain | D: one R or the exit | 11,050 | +0.18 | -0.85 | 47.0% | 41.6% | +20,413 | -19,578 | 1 | +0.45 [+0.34, +0.56] |
+| outside | all | plain | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 11,050 | +0.21 | -0.51 | 48.2% | 38.9% | +23,742 | -17,007 | 1 | +0.48 [+0.38, +0.59] |
+| outside | all | plain | reference: one R or the setup-bar stop, 5 bars | 11,050 | -0.27 | -1.04 | 47.5% | 37.0% | -29,728 | -31,648 | 2 | - |
 | outside | all | plain | C on every unit (with or without a T1) | 12,723 | +0.11 | -2.25 | 35.0% | - | +14,358 | -54,904 | 3 | - |
-| outside | all | exact_shared | A: all out at T1 | 372 | -1.27 | -3.06 | 27.7% | 19.1% | -4,713 | -6,831 | 2 | +1.31 [+0.42, +2.19] |
+| outside | all | exact_shared | A: all out at T1 | 372 | -1.27 | -3.06 | 27.7% | 19.1% | -4,713 | -6,831 | 1 | +1.31 [+0.42, +2.19] |
 | outside | all | exact_shared | B: hold through T2, exit rule live | 372 | -1.25 | -3.42 | 20.4% | 0.0% | -4,640 | -8,377 | 2 | +1.33 [-0.16, +2.81] |
 | outside | all | exact_shared | C: exit only, no target | 372 | -1.25 | -3.42 | 20.4% | - | -4,640 | -8,377 | 2 | +1.33 [-0.16, +2.81] |
-| outside | all | exact_shared | D: one R or the exit | 372 | -1.28 | -2.80 | 36.6% | 35.5% | -4,762 | -6,375 | 2 | +1.29 [+0.75, +1.84] |
-| outside | all | exact_shared | reference: one R or the setup-bar stop, 5 bars | 372 | -2.57 | -4.88 | 34.7% | 30.9% | -9,579 | -10,398 | 5 | - |
+| outside | all | exact_shared | D: one R or the exit | 372 | -1.28 | -2.80 | 36.6% | 35.5% | -4,762 | -6,375 | 0 | +1.29 [+0.75, +1.84] |
+| outside | all | exact_shared | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 372 | -1.50 | -2.87 | 35.5% | 32.8% | -5,588 | -7,205 | 0 | +1.07 [+0.57, +1.58] |
+| outside | all | exact_shared | reference: one R or the setup-bar stop, 5 bars | 372 | -2.57 | -4.88 | 34.7% | 30.9% | -9,579 | -10,398 | 1 | - |
 | outside | all | exact_shared | C on every unit (with or without a T1) | 633 | -0.72 | -3.26 | 23.4% | - | -4,548 | -8,711 | 2 | - |
-| outside | all | exact_plain | A: all out at T1 | 4 | (-1.96) | (-3.62) | (50.0%) | (50.0%) | (-78) | (-175) | 2 | (+4.77 [-8.96, +18.49]) |
+| outside | all | exact_plain | A: all out at T1 | 4 | (-1.96) | (-3.62) | (50.0%) | (50.0%) | (-78) | (-175) | 0 | (+4.77 [-8.96, +18.49]) |
 | outside | all | exact_plain | B: hold through T2, exit rule live | 4 | (-9.82) | (-8.74) | (25.0%) | (0.0%) | (-393) | (-446) | 2 | (-3.10 [-4.18, -2.01]) |
 | outside | all | exact_plain | C: exit only, no target | 4 | (-9.82) | (-8.74) | (25.0%) | (-) | (-393) | (-446) | 2 | (-3.10 [-4.18, -2.01]) |
 | outside | all | exact_plain | D: one R or the exit | 4 | (-8.79) | (-8.74) | (25.0%) | (25.0%) | (-351) | (-446) | 2 | (-2.06 [-3.65, -0.47]) |
-| outside | all | exact_plain | reference: one R or the setup-bar stop, 5 bars | 4 | (-6.73) | (-6.05) | (25.0%) | (25.0%) | (-269) | (-364) | 5 | - |
+| outside | all | exact_plain | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 4 | (-8.79) | (-8.74) | (25.0%) | (25.0%) | (-351) | (-446) | 2 | (-2.06 [-3.65, -0.47]) |
+| outside | all | exact_plain | reference: one R or the setup-bar stop, 5 bars | 4 | (-6.73) | (-6.05) | (25.0%) | (25.0%) | (-269) | (-364) | 2 | - |
 | outside | all | exact_plain | C on every unit (with or without a T1) | 5 | -8.11 | -8.66 | 20.0% | - | -406 | -459 | 2 | - |
-| outside | all | near | A: all out at T1 | 217 | +0.08 | +0.12 | 95.9% | 95.9% | +166 | -31 | 3 | -0.20 [-1.04, +0.64] |
+| outside | all | near | A: all out at T1 | 217 | +0.08 | +0.12 | 95.9% | 95.9% | +166 | -31 | 0 | -0.20 [-1.04, +0.64] |
 | outside | all | near | B: hold through T2, exit rule live | 217 | +0.58 | -1.15 | 38.2% | 14.7% | +1,253 | -1,750 | 3 | +0.30 [-0.67, +1.27] |
 | outside | all | near | C: exit only, no target | 217 | +0.40 | -1.54 | 33.2% | - | +872 | -2,234 | 3 | +0.12 [-1.15, +1.40] |
-| outside | all | near | D: one R or the exit | 217 | +0.36 | -0.40 | 47.0% | 44.2% | +783 | -829 | 3 | +0.08 [-0.51, +0.68] |
-| outside | all | near | reference: one R or the setup-bar stop, 5 bars | 217 | +0.28 | -0.45 | 46.5% | 37.8% | +601 | -783 | 5 | - |
+| outside | all | near | D: one R or the exit | 217 | +0.36 | -0.40 | 47.0% | 44.2% | +783 | -829 | 1 | +0.08 [-0.51, +0.68] |
+| outside | all | near | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 217 | +0.53 | -0.12 | 49.3% | 41.0% | +1,159 | -829 | 1 | +0.26 [-0.28, +0.79] |
+| outside | all | near | reference: one R or the setup-bar stop, 5 bars | 217 | +0.28 | -0.45 | 46.5% | 37.8% | +601 | -783 | 1 | - |
 | outside | all | near | C on every unit (with or without a T1) | 222 | +0.29 | -1.71 | 32.4% | - | +653 | -2,234 | 3 | - |
-| outside | all | within1 | A: all out at T1 | 699 | +0.01 | +0.54 | 84.1% | 83.7% | +48 | -741 | 3 | +0.32 [-0.15, +0.79] |
-| outside | all | within1 | B: hold through T2, exit rule live | 699 | -0.03 | -1.15 | 36.8% | 12.9% | -202 | -3,821 | 3 | +0.29 [-0.32, +0.89] |
+| outside | all | within1 | A: all out at T1 | 699 | +0.01 | +0.54 | 84.1% | 83.7% | +48 | -741 | 0 | +0.32 [-0.15, +0.79] |
+| outside | all | within1 | B: hold through T2, exit rule live | 699 | -0.03 | -1.15 | 36.8% | 12.9% | -202 | -3,821 | 2 | +0.29 [-0.32, +0.89] |
 | outside | all | within1 | C: exit only, no target | 699 | +0.27 | -1.42 | 34.3% | - | +1,862 | -3,029 | 3 | +0.58 [-0.12, +1.29] |
-| outside | all | within1 | D: one R or the exit | 699 | +0.15 | +0.13 | 50.2% | 45.9% | +1,074 | -1,566 | 3 | +0.47 [+0.12, +0.82] |
-| outside | all | within1 | reference: one R or the setup-bar stop, 5 bars | 699 | -0.32 | -0.66 | 44.1% | 35.5% | -2,212 | -2,313 | 5 | - |
+| outside | all | within1 | D: one R or the exit | 699 | +0.15 | +0.13 | 50.2% | 45.9% | +1,074 | -1,566 | 1 | +0.47 [+0.12, +0.82] |
+| outside | all | within1 | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 699 | +0.30 | +0.37 | 52.5% | 44.3% | +2,122 | -1,400 | 1 | +0.62 [+0.31, +0.93] |
+| outside | all | within1 | reference: one R or the setup-bar stop, 5 bars | 699 | -0.32 | -0.66 | 44.1% | 35.5% | -2,212 | -2,313 | 1 | - |
 | outside | all | within1 | C on every unit (with or without a T1) | 711 | +0.23 | -1.41 | 33.8% | - | +1,614 | -3,029 | 3 | - |
 
-Same rows for all five books: units with a T1 and a 5-bar reference return. One unit of notional per trade, long or short as the break, no leverage, fees, funding or slippage, every trade taken, no compounding; open trades marked at the cap's close (day 20), the reference at its fifth bar. Dollar columns are the SUM of equal-size trades at 1,000 dollars each, not an account balance. 'Minus reference' is the paired per-trade difference against the chance book on the identical units, with a normal 95% interval; the holding periods differ (shown), so A / B / C against the reference is rule against rule, while D changes only the loss side.
+Same rows for all six books: units with a T1 and a 5-bar reference return. One unit of notional per trade, long or short as the break, no leverage, fees, funding or slippage, every trade taken, no compounding; open trades marked at the cap's close (day 20), D5 and the reference at the fifth bar of the unit's timeframe. Median days = each book's own holding time (the day its target filled, else its exit or mark day). Dollar columns are the SUM of equal-size trades at 1,000 dollars each, not an account balance. 'Minus reference' is the paired per-trade difference against the chance book on the identical units, with a normal 95% interval; the holding periods differ (shown), so A / B / C against the reference is rule against rule, while D changes only the loss side.
 
 ### Reach rates, weekly units
 
@@ -228,26 +248,26 @@ T1 before the exit = of the units with a T1, the share that touched it on or bef
 
 | setup | class | pre-T1 exits | at the entry close | median days | avg % | avg R | entry day went outside | touched T1 later, inside the cap | book D: exited before one R, touched one R later | chance book on the same units: stopped by 5 | stopped, saw the target anyway |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| reversal | exact_shared | 450 | 44.4% | 1 | -5.50 | -0.29 | 0.9% | 48.2% [44, 53] n=450 | 26.6% [23, 30] n=627 | 42.5% | 21.0% [17, 26] n=310 |
+| reversal | exact_shared | 450 | 44.4% | 1 | -5.50 | -0.29 | 0.9% | 49.8% [45, 54] n=436 | 27.5% [24, 31] n=603 | 42.5% | 21.0% [17, 26] n=310 |
 | reversal | exact_plain | 7 | (28.6%) | (2) | (-5.87) | (-0.53) | (0.0%) | (0.0% [0, 35] n=7) | (0.0% [-0, 28] n=10) | 69.2% | (11.1% [2, 44] n=9) |
-| reversal | near | 191 | 19.9% | 2 | -4.05 | -0.28 | 1.0% | 37.2% [31, 44] n=191 | 22.7% [18, 28] n=278 | 38.3% | 20.3% [14, 28] n=133 |
-| reversal | within1 | 557 | 15.3% | 2 | -4.92 | -0.34 | 1.4% | 37.3% [33, 41] n=557 | 22.9% [20, 26] n=790 | 38.0% | 24.5% [20, 29] n=375 |
-| reversal | spread | 2,037 | 7.3% | 3 | -7.02 | -0.39 | 4.0% | 32.4% [30, 34] n=2,037 | 23.1% [22, 25] n=3,063 | 41.4% | 23.1% [21, 25] n=1,651 |
-| continuation | exact_shared | 551 | 42.8% | 1 | -4.03 | -0.22 | 0.5% | 31.8% [28, 36] n=551 | 20.4% [19, 22] n=1,715 | 45.7% | 20.6% [17, 25] n=355 |
-| continuation | exact_plain | 3 | (0.0%) | (4) | (-5.37) | (-0.36) | (0.0%) | (33.3% [6, 79] n=3) | (30.0% [11, 60] n=10) | 0.0% | - |
-| continuation | near | 163 | 28.2% | 1 | -2.46 | -0.19 | 0.6% | 26.4% [20, 34] n=163 | 30.5% [26, 35] n=348 | 39.0% | 21.1% [14, 31] n=90 |
-| continuation | within1 | 420 | 20.2% | 2 | -3.01 | -0.21 | 0.7% | 26.9% [23, 31] n=420 | 26.0% [23, 29] n=968 | 40.7% | 26.6% [22, 32] n=252 |
-| continuation | spread | 1,469 | 9.1% | 4 | -4.20 | -0.24 | 3.1% | 21.4% [19, 24] n=1,469 | 21.7% [20, 23] n=3,513 | 38.4% | 25.3% [23, 28] n=898 |
-| inside | exact_shared | 476 | 43.9% | 1 | -4.06 | -0.26 | 1.1% | 40.5% [36, 45] n=476 | 31.2% [28, 35] n=708 | 48.5% | 29.1% [25, 34] n=344 |
-| inside | exact_plain | 2 | (0.0%) | (2) | (-2.97) | (-0.22) | (0.0%) | (50.0% [9, 91] n=2) | (66.7% [30, 90] n=6) | 33.3% | (0.0% [0, 66] n=2) |
-| inside | near | 137 | 27.0% | 1 | -3.71 | -0.29 | 1.5% | 38.0% [30, 46] n=137 | 30.4% [25, 37] n=207 | 41.5% | 42.2% [33, 52] n=102 |
-| inside | within1 | 340 | 26.5% | 2 | -4.37 | -0.37 | 2.4% | 34.7% [30, 40] n=340 | 29.1% [25, 33] n=543 | 43.6% | 37.3% [32, 43] n=268 |
-| inside | spread | 1,133 | 11.2% | 2 | -6.13 | -0.41 | 8.3% | 30.0% [27, 33] n=1,133 | 27.7% [26, 30] n=1,941 | 44.7% | 35.0% [32, 38] n=1,024 |
-| outside | exact_shared | 178 | 33.1% | 1 | -4.72 | -0.19 | 0.6% | 28.1% [22, 35] n=178 | 19.9% [17, 24] n=477 | 42.7% | 5.1% [2, 11] n=117 |
-| outside | exact_plain | 0 | (-) | (-) | (-) | (-) | (-) | - | (0.0% [0, 79] n=1) | - | - |
-| outside | near | 29 | (24.1%) | (3) | (-3.41) | (-0.23) | (0.0%) | (13.8% [5, 31] n=29) | 21.2% [14, 31] n=85 | 43.8% | (4.8% [1, 23] n=21) |
-| outside | within1 | 119 | 16.0% | 3 | -3.39 | -0.18 | 0.8% | 26.1% [19, 35] n=119 | 15.4% [12, 20] n=259 | 35.4% | 8.1% [3, 18] n=62 |
-| outside | spread | 459 | 8.3% | 4 | -5.70 | -0.25 | 2.8% | 23.3% [20, 27] n=459 | 18.5% [16, 21] n=986 | 36.4% | 20.7% [16, 26] n=270 |
+| reversal | near | 191 | 19.9% | 2 | -4.05 | -0.28 | 1.0% | 38.6% [32, 46] n=184 | 23.8% [19, 29] n=265 | 38.3% | 20.3% [14, 28] n=133 |
+| reversal | within1 | 557 | 15.3% | 2 | -4.92 | -0.34 | 1.4% | 39.0% [35, 43] n=533 | 24.1% [21, 27] n=751 | 38.0% | 24.5% [20, 29] n=375 |
+| reversal | spread | 2,037 | 7.3% | 3 | -7.02 | -0.39 | 4.0% | 33.6% [32, 36] n=1,963 | 23.9% [22, 25] n=2,965 | 41.4% | 23.1% [21, 25] n=1,651 |
+| continuation | exact_shared | 551 | 42.8% | 1 | -4.03 | -0.22 | 0.5% | 31.9% [28, 36] n=548 | 28.6% [25, 32] n=682 | 45.7% | 20.6% [17, 25] n=355 |
+| continuation | exact_plain | 3 | (0.0%) | (4) | (-5.37) | (-0.36) | (0.0%) | (33.3% [6, 79] n=3) | (40.0% [12, 77] n=5) | 0.0% | - |
+| continuation | near | 163 | 28.2% | 1 | -2.46 | -0.19 | 0.6% | 26.9% [21, 34] n=160 | 30.4% [24, 37] n=184 | 39.0% | 21.1% [14, 31] n=90 |
+| continuation | within1 | 420 | 20.2% | 2 | -3.01 | -0.21 | 0.7% | 27.6% [24, 32] n=409 | 27.8% [24, 32] n=482 | 40.7% | 26.6% [22, 32] n=252 |
+| continuation | spread | 1,469 | 9.1% | 4 | -4.20 | -0.24 | 3.1% | 21.6% [20, 24] n=1,451 | 22.6% [21, 25] n=1,707 | 38.4% | 25.3% [23, 28] n=898 |
+| inside | exact_shared | 476 | 43.9% | 1 | -4.06 | -0.26 | 1.1% | 40.7% [36, 45] n=474 | 32.1% [28, 36] n=611 | 48.5% | 29.1% [25, 34] n=344 |
+| inside | exact_plain | 2 | (0.0%) | (2) | (-2.97) | (-0.22) | (0.0%) | (50.0% [9, 91] n=2) | (50.0% [15, 85] n=4) | 33.3% | (0.0% [0, 66] n=2) |
+| inside | near | 137 | 27.0% | 1 | -3.71 | -0.29 | 1.5% | 38.8% [31, 47] n=134 | 31.7% [25, 39] n=180 | 41.5% | 42.2% [33, 52] n=102 |
+| inside | within1 | 340 | 26.5% | 2 | -4.37 | -0.37 | 2.4% | 35.1% [30, 40] n=336 | 29.7% [26, 34] n=437 | 43.6% | 37.3% [32, 43] n=268 |
+| inside | spread | 1,133 | 11.2% | 2 | -6.13 | -0.41 | 8.3% | 30.4% [28, 33] n=1,119 | 27.5% [25, 30] n=1,540 | 44.7% | 35.0% [32, 38] n=1,024 |
+| outside | exact_shared | 178 | 33.1% | 1 | -4.72 | -0.19 | 0.6% | 28.2% [22, 35] n=177 | 21.6% [17, 27] n=241 | 42.7% | 5.1% [2, 11] n=117 |
+| outside | exact_plain | 0 | (-) | (-) | (-) | (-) | (-) | - | - | - | - |
+| outside | near | 29 | (24.1%) | (3) | (-3.41) | (-0.23) | (0.0%) | (14.8% [6, 32] n=27) | 13.2% [6, 27] n=38 | 43.8% | (4.8% [1, 23] n=21) |
+| outside | within1 | 119 | 16.0% | 3 | -3.39 | -0.18 | 0.8% | 27.4% [20, 36] n=113 | 20.9% [15, 29] n=134 | 35.4% | 8.1% [3, 18] n=62 |
+| outside | spread | 459 | 8.3% | 4 | -5.70 | -0.25 | 2.8% | 24.2% [20, 28] n=442 | 23.5% [20, 27] n=578 | 36.4% | 20.7% [16, 26] n=270 |
 
 Pre-T1 exits = units with a T1 that exited on the close rule before touching it. 'Touched T1 later' = the exit's own 'saw the target anyway'; beside it, on the same units, the chance book's stop share and its stopped-then-saw-one-R share (5-bar travel).
 
@@ -282,121 +302,141 @@ MAE = the furthest adverse travel from L through the exit (or the cap mark), in 
 
 | setup | flag | class | book | trades | avg % per trade | median % | closed in profit | closed at the target | total $ at 1,000 per trade | max drawdown $ | median days | minus reference [95%] |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| reversal | all | exact_shared | A: all out at T1 | 642 | -1.41 | -1.81 | 40.2% | 37.1% | -9,057 | -9,333 | 1 | -0.50 [-2.08, +1.08] |
+| reversal | all | exact_shared | A: all out at T1 | 642 | -1.41 | -1.81 | 40.2% | 37.1% | -9,057 | -9,333 | 0 | -0.50 [-2.08, +1.08] |
 | reversal | all | exact_shared | B: hold through T2, exit rule live | 642 | -1.49 | -3.06 | 24.6% | 6.1% | -9,542 | -11,645 | 1 | -0.58 [-2.12, +0.97] |
 | reversal | all | exact_shared | C: exit only, no target | 642 | -1.66 | -3.16 | 23.1% | - | -10,629 | -14,049 | 1 | -0.75 [-2.39, +0.90] |
 | reversal | all | exact_shared | D: one R or the exit | 642 | -1.52 | -3.06 | 24.5% | 13.4% | -9,731 | -11,796 | 1 | -0.61 [-2.11, +0.90] |
-| reversal | all | exact_shared | reference: one R or the setup-bar stop, 5 bars | 642 | -0.91 | -3.08 | 48.4% | 40.0% | -5,842 | -8,303 | 5 | - |
+| reversal | all | exact_shared | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 642 | -1.52 | -3.06 | 24.5% | 13.4% | -9,734 | -11,799 | 1 | -0.61 [-2.11, +0.90] |
+| reversal | all | exact_shared | reference: one R or the setup-bar stop, 5 bars | 642 | -0.91 | -3.08 | 48.4% | 40.0% | -5,842 | -8,303 | 11 | - |
 | reversal | all | exact_shared | C on every unit (with or without a T1) | 730 | -1.60 | -3.02 | 22.5% | - | -11,677 | -15,230 | 2 | - |
-| reversal | all | exact_plain | A: all out at T1 | 13 | (-0.78) | (+1.43) | (53.8%) | (38.5%) | (-102) | (-368) | 2 | (+23.97 [+4.22, +43.72]) |
+| reversal | all | exact_plain | A: all out at T1 | 13 | (-0.78) | (+1.43) | (53.8%) | (38.5%) | (-102) | (-368) | 1 | (+23.97 [+4.22, +43.72]) |
 | reversal | all | exact_plain | B: hold through T2, exit rule live | 13 | (-2.47) | (-6.14) | (38.5%) | (0.0%) | (-321) | (-522) | 2 | (+22.28 [+3.13, +41.44]) |
 | reversal | all | exact_plain | C: exit only, no target | 13 | (-2.47) | (-6.14) | (38.5%) | (-) | (-321) | (-522) | 2 | (+22.28 [+3.13, +41.44]) |
 | reversal | all | exact_plain | D: one R or the exit | 13 | (-2.33) | (-6.14) | (38.5%) | (15.4%) | (-303) | (-509) | 2 | (+22.42 [+3.31, +41.53]) |
-| reversal | all | exact_plain | reference: one R or the setup-bar stop, 5 bars | 13 | (-24.75) | (-16.94) | (23.1%) | (23.1%) | (-3,218) | (-3,218) | 5 | - |
-| reversal | all | near | A: all out at T1 | 314 | -0.24 | +0.37 | 53.2% | 44.9% | -752 | -2,227 | 4 | -0.29 [-1.85, +1.28] |
-| reversal | all | near | B: hold through T2, exit rule live | 314 | +0.05 | -1.38 | 39.5% | 9.9% | +154 | -2,681 | 4 | +0.00 [-1.58, +1.58] |
+| reversal | all | exact_plain | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 13 | (-2.13) | (-6.14) | (38.5%) | (23.1%) | (-277) | (-509) | 2 | (+22.62 [+3.59, +41.65]) |
+| reversal | all | exact_plain | reference: one R or the setup-bar stop, 5 bars | 13 | (-24.75) | (-16.94) | (23.1%) | (23.1%) | (-3,218) | (-3,218) | 6 | - |
+| reversal | all | near | A: all out at T1 | 314 | -0.24 | +0.37 | 53.2% | 44.9% | -752 | -2,227 | 1 | -0.29 [-1.85, +1.28] |
+| reversal | all | near | B: hold through T2, exit rule live | 314 | +0.05 | -1.38 | 39.5% | 9.9% | +154 | -2,681 | 3 | +0.00 [-1.58, +1.58] |
 | reversal | all | near | C: exit only, no target | 314 | -0.31 | -1.40 | 37.9% | - | -969 | -3,508 | 4 | -0.36 [-1.94, +1.23] |
-| reversal | all | near | D: one R or the exit | 314 | -0.05 | -1.19 | 41.7% | 20.7% | -164 | -2,770 | 4 | -0.10 [-1.57, +1.37] |
-| reversal | all | near | reference: one R or the setup-bar stop, 5 bars | 314 | +0.05 | +3.09 | 53.5% | 46.2% | +148 | -2,392 | 5 | - |
+| reversal | all | near | D: one R or the exit | 314 | -0.05 | -1.19 | 41.7% | 20.7% | -164 | -2,770 | 3 | -0.10 [-1.57, +1.37] |
+| reversal | all | near | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 314 | -0.05 | -1.19 | 41.7% | 20.7% | -164 | -2,770 | 3 | -0.10 [-1.57, +1.37] |
+| reversal | all | near | reference: one R or the setup-bar stop, 5 bars | 314 | +0.05 | +3.09 | 53.5% | 46.2% | +148 | -2,392 | 9 | - |
 | reversal | all | near | C on every unit (with or without a T1) | 348 | -0.24 | -1.40 | 36.5% | - | -838 | -3,508 | 4 | - |
-| reversal | all | within1 | A: all out at T1 | 886 | -0.60 | +0.19 | 51.5% | 43.6% | -5,312 | -7,788 | 4 | -1.51 [-2.61, -0.41] |
+| reversal | all | within1 | A: all out at T1 | 886 | -0.60 | +0.19 | 51.5% | 43.6% | -5,312 | -7,788 | 1 | -1.51 [-2.61, -0.41] |
 | reversal | all | within1 | B: hold through T2, exit rule live | 886 | -0.54 | -2.00 | 37.1% | 9.7% | -4,783 | -10,192 | 4 | -1.45 [-2.56, -0.34] |
 | reversal | all | within1 | C: exit only, no target | 886 | -0.64 | -2.06 | 35.8% | - | -5,700 | -11,996 | 4 | -1.55 [-2.71, -0.40] |
-| reversal | all | within1 | D: one R or the exit | 886 | -0.37 | -1.93 | 38.0% | 20.5% | -3,282 | -8,075 | 4 | -1.28 [-2.34, -0.22] |
-| reversal | all | within1 | reference: one R or the setup-bar stop, 5 bars | 886 | +0.91 | +4.02 | 53.3% | 45.0% | +8,041 | -7,013 | 5 | - |
+| reversal | all | within1 | D: one R or the exit | 886 | -0.37 | -1.93 | 38.0% | 20.5% | -3,282 | -8,075 | 3 | -1.28 [-2.34, -0.22] |
+| reversal | all | within1 | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 886 | -0.37 | -1.93 | 38.0% | 20.5% | -3,317 | -8,095 | 3 | -1.28 [-2.34, -0.22] |
+| reversal | all | within1 | reference: one R or the setup-bar stop, 5 bars | 886 | +0.91 | +4.02 | 53.3% | 45.0% | +8,041 | -7,013 | 10 | - |
 | reversal | all | within1 | C on every unit (with or without a T1) | 987 | -0.76 | -2.15 | 34.3% | - | -7,549 | -11,996 | 4 | - |
-| reversal | all | spread | A: all out at T1 | 3,754 | -0.15 | +0.89 | 55.9% | 49.7% | -5,752 | -13,623 | 5 | -0.11 [-0.69, +0.47] |
-| reversal | all | spread | B: hold through T2, exit rule live | 3,754 | -0.43 | -2.56 | 40.7% | 12.0% | -16,298 | -30,117 | 5 | -0.39 [-0.97, +0.19] |
+| reversal | all | spread | A: all out at T1 | 3,754 | -0.15 | +0.89 | 55.9% | 49.7% | -5,752 | -13,623 | 2 | -0.11 [-0.69, +0.47] |
+| reversal | all | spread | B: hold through T2, exit rule live | 3,754 | -0.43 | -2.56 | 40.7% | 12.0% | -16,298 | -30,117 | 4 | -0.39 [-0.97, +0.19] |
 | reversal | all | spread | C: exit only, no target | 3,754 | -0.57 | -2.77 | 39.0% | - | -21,277 | -39,568 | 5 | -0.53 [-1.13, +0.08] |
-| reversal | all | spread | D: one R or the exit | 3,754 | +0.07 | -2.14 | 42.6% | 23.9% | +2,514 | -21,012 | 5 | +0.11 [-0.42, +0.64] |
-| reversal | all | spread | reference: one R or the setup-bar stop, 5 bars | 3,754 | -0.04 | +3.78 | 51.4% | 43.6% | -1,564 | -31,288 | 5 | - |
+| reversal | all | spread | D: one R or the exit | 3,754 | +0.07 | -2.14 | 42.6% | 23.9% | +2,514 | -21,012 | 4 | +0.11 [-0.42, +0.64] |
+| reversal | all | spread | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 3,754 | +0.07 | -2.13 | 42.6% | 23.9% | +2,665 | -21,012 | 4 | +0.11 [-0.42, +0.64] |
+| reversal | all | spread | reference: one R or the setup-bar stop, 5 bars | 3,754 | -0.04 | +3.78 | 51.4% | 43.6% | -1,564 | -31,288 | 10 | - |
 | reversal | all | spread | C on every unit (with or without a T1) | 3,997 | -0.74 | -3.00 | 38.1% | - | -29,437 | -39,523 | 5 | - |
-| continuation | all | exact_shared | A: all out at T1 | 742 | -0.93 | -2.30 | 36.3% | 27.9% | -6,883 | -8,349 | 1 | +0.39 [-1.10, +1.87] |
+| continuation | all | exact_shared | A: all out at T1 | 742 | -0.93 | -2.30 | 36.3% | 27.9% | -6,883 | -8,349 | 0 | +0.39 [-1.10, +1.87] |
 | continuation | all | exact_shared | B: hold through T2, exit rule live | 742 | -2.15 | -3.59 | 19.9% | 0.0% | -15,960 | -16,674 | 1 | -0.84 [-2.32, +0.64] |
 | continuation | all | exact_shared | C: exit only, no target | 742 | -2.15 | -3.59 | 19.9% | - | -15,960 | -16,674 | 1 | -0.84 [-2.32, +0.64] |
 | continuation | all | exact_shared | D: one R or the exit | 742 | -1.96 | -3.47 | 22.6% | 10.9% | -14,536 | -14,676 | 1 | -0.65 [-2.02, +0.73] |
-| continuation | all | exact_shared | reference: one R or the setup-bar stop, 5 bars | 742 | -1.31 | -6.32 | 46.5% | 38.3% | -9,746 | -23,364 | 5 | - |
+| continuation | all | exact_shared | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 742 | -1.97 | -3.47 | 22.6% | 10.9% | -14,584 | -14,676 | 1 | -0.65 [-2.03, +0.73] |
+| continuation | all | exact_shared | reference: one R or the setup-bar stop, 5 bars | 742 | -1.31 | -6.32 | 46.5% | 38.3% | -9,746 | -23,364 | 12 | - |
 | continuation | all | exact_shared | C on every unit (with or without a T1) | 1,928 | -2.24 | -4.04 | 19.7% | - | -43,101 | -47,945 | 1 | - |
-| continuation | all | exact_plain | A: all out at T1 | 6 | (-0.76) | (+0.18) | (50.0%) | (50.0%) | (-45) | (-161) | 4 | (-8.53 [-18.27, +1.22]) |
+| continuation | all | exact_plain | A: all out at T1 | 6 | (-0.76) | (+0.18) | (50.0%) | (50.0%) | (-45) | (-161) | 0 | (-8.53 [-18.27, +1.22]) |
 | continuation | all | exact_plain | B: hold through T2, exit rule live | 6 | (-0.59) | (+0.61) | (50.0%) | (0.0%) | (-35) | (-161) | 4 | (-8.36 [-18.37, +1.65]) |
 | continuation | all | exact_plain | C: exit only, no target | 6 | (-0.59) | (+0.61) | (50.0%) | (-) | (-35) | (-161) | 4 | (-8.36 [-18.37, +1.65]) |
-| continuation | all | exact_plain | D: one R or the exit | 6 | (+0.22) | (+0.61) | (50.0%) | (16.7%) | (+13) | (-161) | 4 | (-7.55 [-17.90, +2.80]) |
-| continuation | all | exact_plain | reference: one R or the setup-bar stop, 5 bars | 6 | (+7.77) | (+8.85) | (83.3%) | (66.7%) | (+466) | (-62) | 5 | - |
+| continuation | all | exact_plain | D: one R or the exit | 6 | (+0.22) | (+0.61) | (50.0%) | (16.7%) | (+13) | (-161) | 3 | (-7.55 [-17.90, +2.80]) |
+| continuation | all | exact_plain | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 6 | (+0.22) | (+0.61) | (50.0%) | (16.7%) | (+13) | (-161) | 3 | (-7.55 [-17.90, +2.80]) |
+| continuation | all | exact_plain | reference: one R or the setup-bar stop, 5 bars | 6 | (+7.77) | (+8.85) | (83.3%) | (66.7%) | (+466) | (-62) | 21 | - |
 | continuation | all | exact_plain | C on every unit (with or without a T1) | 14 | +1.83 | +0.61 | 50.0% | - | +256 | -259 | 4 | - |
-| continuation | all | near | A: all out at T1 | 214 | +0.16 | -0.64 | 46.7% | 29.4% | +348 | -1,669 | 3 | -0.77 [-2.62, +1.09] |
+| continuation | all | near | A: all out at T1 | 214 | +0.16 | -0.64 | 46.7% | 29.4% | +348 | -1,669 | 1 | -0.77 [-2.62, +1.09] |
 | continuation | all | near | B: hold through T2, exit rule live | 214 | -0.01 | -2.00 | 35.5% | 0.0% | -17 | -2,174 | 3 | -0.94 [-3.04, +1.16] |
 | continuation | all | near | C: exit only, no target | 214 | -0.01 | -2.00 | 35.5% | - | -17 | -2,174 | 3 | -0.94 [-3.04, +1.16] |
-| continuation | all | near | D: one R or the exit | 214 | +0.06 | -1.96 | 36.4% | 19.2% | +129 | -1,871 | 3 | -0.87 [-2.62, +0.88] |
-| continuation | all | near | reference: one R or the setup-bar stop, 5 bars | 214 | +0.93 | +1.68 | 51.4% | 46.3% | +1,991 | -1,770 | 5 | - |
+| continuation | all | near | D: one R or the exit | 214 | +0.06 | -1.96 | 36.4% | 19.2% | +129 | -1,871 | 2 | -0.87 [-2.62, +0.88] |
+| continuation | all | near | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 214 | +0.06 | -1.96 | 36.4% | 19.2% | +129 | -1,871 | 2 | -0.87 [-2.62, +0.88] |
+| continuation | all | near | reference: one R or the setup-bar stop, 5 bars | 214 | +0.93 | +1.68 | 51.4% | 46.3% | +1,991 | -1,770 | 11 | - |
 | continuation | all | near | C on every unit (with or without a T1) | 432 | +0.22 | -1.29 | 38.4% | - | +930 | -2,286 | 4 | - |
-| continuation | all | within1 | A: all out at T1 | 581 | +0.38 | -0.24 | 49.2% | 33.4% | +2,197 | -2,109 | 4 | -0.10 [-1.37, +1.16] |
+| continuation | all | within1 | A: all out at T1 | 581 | +0.38 | -0.24 | 49.2% | 33.4% | +2,197 | -2,109 | 2 | -0.10 [-1.37, +1.16] |
 | continuation | all | within1 | B: hold through T2, exit rule live | 581 | +1.35 | -1.89 | 39.4% | 0.0% | +7,820 | -2,906 | 4 | +0.87 [-1.18, +2.91] |
 | continuation | all | within1 | C: exit only, no target | 581 | +1.35 | -1.89 | 39.4% | - | +7,820 | -2,906 | 4 | +0.87 [-1.18, +2.91] |
-| continuation | all | within1 | D: one R or the exit | 581 | +0.47 | -1.74 | 41.0% | 21.0% | +2,712 | -2,246 | 4 | -0.01 [-1.20, +1.17] |
-| continuation | all | within1 | reference: one R or the setup-bar stop, 5 bars | 581 | +0.48 | +3.93 | 52.7% | 47.0% | +2,794 | -4,755 | 5 | - |
+| continuation | all | within1 | D: one R or the exit | 581 | +0.47 | -1.74 | 41.0% | 21.0% | +2,712 | -2,246 | 3 | -0.01 [-1.20, +1.17] |
+| continuation | all | within1 | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 581 | +0.47 | -1.74 | 41.0% | 21.0% | +2,712 | -2,246 | 3 | -0.01 [-1.20, +1.17] |
+| continuation | all | within1 | reference: one R or the setup-bar stop, 5 bars | 581 | +0.48 | +3.93 | 52.7% | 47.0% | +2,794 | -4,755 | 9 | - |
 | continuation | all | within1 | C on every unit (with or without a T1) | 1,239 | +1.07 | -1.73 | 39.2% | - | +13,292 | -5,542 | 4 | - |
-| continuation | all | spread | A: all out at T1 | 2,225 | +0.53 | +0.46 | 53.3% | 37.0% | +11,725 | -9,939 | 4 | -1.18 [-1.92, -0.44] |
+| continuation | all | spread | A: all out at T1 | 2,225 | +0.53 | +0.46 | 53.3% | 37.0% | +11,725 | -9,939 | 3 | -1.18 [-1.92, -0.44] |
 | continuation | all | spread | B: hold through T2, exit rule live | 2,225 | +0.74 | -2.00 | 43.1% | 0.0% | +16,466 | -15,378 | 4 | -0.96 [-1.76, -0.17] |
 | continuation | all | spread | C: exit only, no target | 2,225 | +0.74 | -2.00 | 43.1% | - | +16,466 | -15,378 | 4 | -0.96 [-1.76, -0.17] |
-| continuation | all | spread | D: one R or the exit | 2,225 | +1.27 | -1.32 | 46.1% | 25.6% | +28,203 | -10,173 | 4 | -0.44 [-1.11, +0.23] |
-| continuation | all | spread | reference: one R or the setup-bar stop, 5 bars | 2,225 | +1.70 | +7.62 | 54.7% | 45.8% | +37,896 | -15,113 | 5 | - |
+| continuation | all | spread | D: one R or the exit | 2,225 | +1.27 | -1.32 | 46.1% | 25.6% | +28,203 | -10,173 | 3 | -0.44 [-1.11, +0.23] |
+| continuation | all | spread | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 2,225 | +1.27 | -1.32 | 46.1% | 25.6% | +28,177 | -10,173 | 3 | -0.44 [-1.11, +0.23] |
+| continuation | all | spread | reference: one R or the setup-bar stop, 5 bars | 2,225 | +1.70 | +7.62 | 54.7% | 45.8% | +37,896 | -15,113 | 9 | - |
 | continuation | all | spread | C on every unit (with or without a T1) | 4,760 | +1.12 | -2.05 | 43.9% | - | +53,271 | -19,371 | 4 | - |
-| inside | all | exact_shared | A: all out at T1 | 665 | -0.96 | -1.79 | 37.6% | 33.2% | -6,361 | -7,416 | 2 | -0.33 [-1.71, +1.05] |
+| inside | all | exact_shared | A: all out at T1 | 665 | -0.96 | -1.79 | 37.6% | 33.2% | -6,361 | -7,416 | 0 | -0.33 [-1.71, +1.05] |
 | inside | all | exact_shared | B: hold through T2, exit rule live | 665 | -1.24 | -2.77 | 21.5% | 3.9% | -8,254 | -10,750 | 2 | -0.62 [-2.04, +0.81] |
 | inside | all | exact_shared | C: exit only, no target | 665 | -1.41 | -2.80 | 20.5% | - | -9,393 | -11,696 | 2 | -0.79 [-2.24, +0.66] |
-| inside | all | exact_shared | D: one R or the exit | 665 | -1.49 | -2.74 | 22.9% | 12.8% | -9,890 | -10,047 | 2 | -0.86 [-2.18, +0.45] |
-| inside | all | exact_shared | reference: one R or the setup-bar stop, 5 bars | 665 | -0.63 | -6.78 | 45.4% | 40.0% | -4,158 | -13,644 | 5 | - |
+| inside | all | exact_shared | D: one R or the exit | 665 | -1.49 | -2.74 | 22.9% | 12.8% | -9,890 | -10,047 | 1 | -0.86 [-2.18, +0.45] |
+| inside | all | exact_shared | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 665 | -1.49 | -2.74 | 22.9% | 12.8% | -9,890 | -10,047 | 1 | -0.86 [-2.18, +0.45] |
+| inside | all | exact_shared | reference: one R or the setup-bar stop, 5 bars | 665 | -0.63 | -6.78 | 45.4% | 40.0% | -4,158 | -13,644 | 8 | - |
 | inside | all | exact_shared | C on every unit (with or without a T1) | 820 | -1.24 | -2.79 | 20.5% | - | -10,131 | -13,890 | 2 | - |
-| inside | all | exact_plain | A: all out at T1 | 6 | (+0.72) | (+0.97) | (66.7%) | (66.7%) | (+43) | (-59) | 2 | (-4.60 [-17.02, +7.82]) |
+| inside | all | exact_plain | A: all out at T1 | 6 | (+0.72) | (+0.97) | (66.7%) | (66.7%) | (+43) | (-59) | 0 | (-4.60 [-17.02, +7.82]) |
 | inside | all | exact_plain | B: hold through T2, exit rule live | 6 | (+1.66) | (+1.70) | (50.0%) | (16.7%) | (+99) | (-109) | 2 | (-3.66 [-14.18, +6.87]) |
 | inside | all | exact_plain | C: exit only, no target | 6 | (+1.17) | (+1.70) | (50.0%) | (-) | (+70) | (-109) | 2 | (-4.14 [-14.91, +6.63]) |
 | inside | all | exact_plain | D: one R or the exit | 6 | (+3.52) | (+1.70) | (50.0%) | (33.3%) | (+211) | (-109) | 2 | (-1.80 [-12.12, +8.52]) |
-| inside | all | exact_plain | reference: one R or the setup-bar stop, 5 bars | 6 | (+5.32) | (+11.76) | (66.7%) | (66.7%) | (+319) | (-293) | 5 | - |
+| inside | all | exact_plain | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 6 | (+3.52) | (+1.70) | (50.0%) | (33.3%) | (+211) | (-109) | 2 | (-1.80 [-12.12, +8.52]) |
+| inside | all | exact_plain | reference: one R or the setup-bar stop, 5 bars | 6 | (+5.32) | (+11.76) | (66.7%) | (66.7%) | (+319) | (-293) | 8 | - |
 | inside | all | exact_plain | C on every unit (with or without a T1) | 8 | +0.11 | -1.67 | 37.5% | - | +9 | -171 | 2 | - |
-| inside | all | near | A: all out at T1 | 223 | -0.61 | +0.10 | 52.9% | 43.9% | -1,354 | -2,551 | 3 | -0.29 [-1.98, +1.40] |
+| inside | all | near | A: all out at T1 | 223 | -0.61 | +0.10 | 52.9% | 43.9% | -1,354 | -2,551 | 1 | -0.29 [-1.98, +1.40] |
 | inside | all | near | B: hold through T2, exit rule live | 223 | -0.90 | -2.15 | 35.0% | 9.0% | -2,013 | -3,623 | 3 | -0.58 [-2.20, +1.04] |
 | inside | all | near | C: exit only, no target | 223 | -0.55 | -2.15 | 33.6% | - | -1,237 | -3,606 | 3 | -0.23 [-1.89, +1.42] |
-| inside | all | near | D: one R or the exit | 223 | -0.48 | -1.71 | 38.6% | 25.1% | -1,066 | -3,161 | 3 | -0.16 [-1.66, +1.34] |
-| inside | all | near | reference: one R or the setup-bar stop, 5 bars | 223 | -0.32 | -0.62 | 49.8% | 47.1% | -716 | -3,078 | 5 | - |
+| inside | all | near | D: one R or the exit | 223 | -0.48 | -1.71 | 38.6% | 25.1% | -1,066 | -3,161 | 2 | -0.16 [-1.66, +1.34] |
+| inside | all | near | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 223 | -0.48 | -1.71 | 38.6% | 25.1% | -1,066 | -3,161 | 2 | -0.16 [-1.66, +1.34] |
+| inside | all | near | reference: one R or the setup-bar stop, 5 bars | 223 | -0.32 | -0.62 | 49.8% | 47.1% | -716 | -3,078 | 6 | - |
 | inside | all | near | C on every unit (with or without a T1) | 284 | -0.64 | -1.99 | 33.5% | - | -1,819 | -3,591 | 3 | - |
-| inside | all | within1 | A: all out at T1 | 551 | -0.37 | +0.17 | 52.1% | 45.9% | -2,018 | -3,934 | 3 | -0.40 [-1.49, +0.69] |
+| inside | all | within1 | A: all out at T1 | 551 | -0.37 | +0.17 | 52.1% | 45.9% | -2,018 | -3,934 | 1 | -0.40 [-1.49, +0.69] |
 | inside | all | within1 | B: hold through T2, exit rule live | 551 | +0.34 | -2.11 | 35.9% | 6.5% | +1,858 | -2,445 | 3 | +0.30 [-0.88, +1.49] |
 | inside | all | within1 | C: exit only, no target | 551 | +0.23 | -2.12 | 35.0% | - | +1,293 | -2,805 | 3 | +0.20 [-1.05, +1.45] |
-| inside | all | within1 | D: one R or the exit | 551 | +0.33 | -1.72 | 40.7% | 29.6% | +1,837 | -2,723 | 3 | +0.30 [-0.71, +1.31] |
-| inside | all | within1 | reference: one R or the setup-bar stop, 5 bars | 551 | +0.03 | +1.67 | 50.3% | 47.4% | +180 | -4,465 | 5 | - |
+| inside | all | within1 | D: one R or the exit | 551 | +0.33 | -1.72 | 40.7% | 29.6% | +1,837 | -2,723 | 2 | +0.30 [-0.71, +1.31] |
+| inside | all | within1 | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 551 | +0.33 | -1.72 | 40.7% | 29.6% | +1,839 | -2,723 | 2 | +0.30 [-0.71, +1.31] |
+| inside | all | within1 | reference: one R or the setup-bar stop, 5 bars | 551 | +0.03 | +1.67 | 50.3% | 47.4% | +180 | -4,465 | 6 | - |
 | inside | all | within1 | C on every unit (with or without a T1) | 741 | -0.35 | -2.31 | 32.4% | - | -2,603 | -5,233 | 3 | - |
-| inside | all | spread | A: all out at T1 | 2,135 | -0.20 | +0.71 | 57.4% | 50.4% | -4,333 | -13,483 | 4 | -0.55 [-1.22, +0.12] |
+| inside | all | spread | A: all out at T1 | 2,135 | -0.20 | +0.71 | 57.4% | 50.4% | -4,333 | -13,483 | 1 | -0.55 [-1.22, +0.12] |
 | inside | all | spread | B: hold through T2, exit rule live | 2,135 | +0.54 | -3.02 | 38.9% | 5.9% | +11,462 | -12,198 | 4 | +0.19 [-0.83, +1.21] |
 | inside | all | spread | C: exit only, no target | 2,135 | +0.47 | -3.09 | 38.1% | - | +10,129 | -13,486 | 4 | +0.13 [-0.90, +1.16] |
-| inside | all | spread | D: one R or the exit | 2,135 | +0.61 | -2.34 | 43.4% | 32.3% | +13,008 | -9,665 | 4 | +0.26 [-0.34, +0.87] |
-| inside | all | spread | reference: one R or the setup-bar stop, 5 bars | 2,135 | +0.35 | +2.99 | 50.4% | 46.4% | +7,373 | -17,421 | 5 | - |
+| inside | all | spread | D: one R or the exit | 2,135 | +0.61 | -2.34 | 43.4% | 32.3% | +13,008 | -9,665 | 2 | +0.26 [-0.34, +0.87] |
+| inside | all | spread | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 2,135 | +0.61 | -2.34 | 43.4% | 32.3% | +13,008 | -9,665 | 2 | +0.26 [-0.34, +0.87] |
+| inside | all | spread | reference: one R or the setup-bar stop, 5 bars | 2,135 | +0.35 | +2.99 | 50.4% | 46.4% | +7,373 | -17,421 | 6 | - |
 | inside | all | spread | C on every unit (with or without a T1) | 2,853 | +0.09 | -3.19 | 37.3% | - | +2,474 | -22,721 | 4 | - |
-| outside | all | exact_shared | A: all out at T1 | 257 | -0.87 | -2.02 | 42.4% | 33.5% | -2,227 | -2,833 | 2 | +0.83 [-1.95, +3.61] |
+| outside | all | exact_shared | A: all out at T1 | 257 | -0.87 | -2.02 | 42.4% | 33.5% | -2,227 | -2,833 | 1 | +0.83 [-1.95, +3.61] |
 | outside | all | exact_shared | B: hold through T2, exit rule live | 257 | +0.76 | -3.71 | 22.2% | 0.0% | +1,952 | -3,749 | 2 | +2.46 [-3.03, +7.95] |
 | outside | all | exact_shared | C: exit only, no target | 257 | +0.76 | -3.71 | 22.2% | - | +1,952 | -3,749 | 2 | +2.46 [-3.03, +7.95] |
 | outside | all | exact_shared | D: one R or the exit | 257 | -1.35 | -3.69 | 23.3% | 8.9% | -3,472 | -4,779 | 2 | +0.35 [-2.37, +3.06] |
-| outside | all | exact_shared | reference: one R or the setup-bar stop, 5 bars | 257 | -1.70 | -6.40 | 45.9% | 36.6% | -4,367 | -9,158 | 5 | - |
+| outside | all | exact_shared | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 257 | -1.35 | -3.69 | 23.3% | 8.9% | -3,472 | -4,779 | 2 | +0.35 [-2.37, +3.06] |
+| outside | all | exact_shared | reference: one R or the setup-bar stop, 5 bars | 257 | -1.70 | -6.40 | 45.9% | 36.6% | -4,367 | -9,158 | 16 | - |
 | outside | all | exact_shared | C on every unit (with or without a T1) | 528 | -0.68 | -4.02 | 19.7% | - | -3,590 | -8,259 | 2 | - |
-| outside | all | near | A: all out at T1 | 39 | +0.09 | +0.36 | 53.8% | 43.6% | +34 | -552 | 3 | +6.36 [-0.09, +12.80] |
+| outside | all | exact_plain | C on every unit (with or without a T1) | 1 | +7.38 | +7.38 | 100.0% | - | +74 | +0 | 9 | - |
+| outside | all | near | A: all out at T1 | 39 | +0.09 | +0.36 | 53.8% | 43.6% | +34 | -552 | 1 | +6.36 [-0.09, +12.80] |
 | outside | all | near | B: hold through T2, exit rule live | 39 | -1.73 | -1.79 | 33.3% | 0.0% | -673 | -1,062 | 3 | +4.54 [-2.17, +11.25] |
 | outside | all | near | C: exit only, no target | 39 | -1.73 | -1.79 | 33.3% | - | -673 | -1,062 | 3 | +4.54 [-2.17, +11.25] |
 | outside | all | near | D: one R or the exit | 39 | -0.63 | -1.74 | 38.5% | 15.4% | -245 | -986 | 3 | +5.64 [-0.75, +12.03] |
-| outside | all | near | reference: one R or the setup-bar stop, 5 bars | 39 | -6.27 | -7.44 | 41.0% | 28.2% | -2,445 | -2,867 | 5 | - |
+| outside | all | near | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 39 | -0.63 | -1.74 | 38.5% | 15.4% | -245 | -986 | 3 | +5.64 [-0.75, +12.03] |
+| outside | all | near | reference: one R or the setup-bar stop, 5 bars | 39 | -6.27 | -7.44 | 41.0% | 28.2% | -2,445 | -2,867 | 16 | - |
 | outside | all | near | C on every unit (with or without a T1) | 102 | -0.13 | -2.04 | 35.3% | - | -133 | -871 | 3 | - |
-| outside | all | within1 | A: all out at T1 | 154 | +0.87 | +0.27 | 52.6% | 34.4% | +1,342 | -1,040 | 4 | +0.05 [-2.96, +3.06] |
+| outside | all | within1 | A: all out at T1 | 154 | +0.87 | +0.27 | 52.6% | 34.4% | +1,342 | -1,040 | 2 | +0.05 [-2.96, +3.06] |
 | outside | all | within1 | B: hold through T2, exit rule live | 154 | +0.81 | -1.38 | 42.2% | 0.0% | +1,250 | -1,307 | 4 | -0.01 [-3.12, +3.11] |
 | outside | all | within1 | C: exit only, no target | 154 | +0.81 | -1.38 | 42.2% | - | +1,250 | -1,307 | 4 | -0.01 [-3.12, +3.11] |
-| outside | all | within1 | D: one R or the exit | 154 | +1.74 | -1.11 | 44.8% | 20.8% | +2,673 | -1,166 | 4 | +0.92 [-1.97, +3.80] |
-| outside | all | within1 | reference: one R or the setup-bar stop, 5 bars | 154 | +0.82 | +5.47 | 53.9% | 41.6% | +1,259 | -3,031 | 5 | - |
+| outside | all | within1 | D: one R or the exit | 154 | +1.74 | -1.11 | 44.8% | 20.8% | +2,673 | -1,166 | 3 | +0.92 [-1.97, +3.80] |
+| outside | all | within1 | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 154 | +1.74 | -1.11 | 44.8% | 20.8% | +2,673 | -1,166 | 3 | +0.92 [-1.97, +3.80] |
+| outside | all | within1 | reference: one R or the setup-bar stop, 5 bars | 154 | +0.82 | +5.47 | 53.9% | 41.6% | +1,259 | -3,031 | 12 | - |
 | outside | all | within1 | C on every unit (with or without a T1) | 306 | -0.40 | -2.19 | 35.6% | - | -1,232 | -3,097 | 3 | - |
-| outside | all | spread | A: all out at T1 | 687 | +0.03 | +0.43 | 52.0% | 38.0% | +228 | -7,724 | 5 | -1.05 [-2.62, +0.53] |
+| outside | all | spread | A: all out at T1 | 687 | +0.03 | +0.43 | 52.0% | 38.0% | +228 | -7,724 | 3 | -1.05 [-2.62, +0.53] |
 | outside | all | spread | B: hold through T2, exit rule live | 687 | -0.87 | -3.47 | 39.0% | 0.0% | -5,975 | -13,846 | 5 | -1.95 [-3.59, -0.31] |
 | outside | all | spread | C: exit only, no target | 687 | -0.87 | -3.47 | 39.0% | - | -5,975 | -13,846 | 5 | -1.95 [-3.59, -0.31] |
-| outside | all | spread | D: one R or the exit | 687 | -0.05 | -3.05 | 41.3% | 18.5% | -376 | -8,502 | 5 | -1.14 [-2.66, +0.39] |
-| outside | all | spread | reference: one R or the setup-bar stop, 5 bars | 687 | +1.08 | +6.58 | 53.0% | 42.2% | +7,424 | -7,205 | 5 | - |
+| outside | all | spread | D: one R or the exit | 687 | -0.05 | -3.05 | 41.3% | 18.5% | -376 | -8,502 | 4 | -1.14 [-2.66, +0.39] |
+| outside | all | spread | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 687 | -0.04 | -3.05 | 41.3% | 18.6% | -250 | -8,502 | 4 | -1.12 [-2.64, +0.41] |
+| outside | all | spread | reference: one R or the setup-bar stop, 5 bars | 687 | +1.08 | +6.58 | 53.0% | 42.2% | +7,424 | -7,205 | 14 | - |
 | outside | all | spread | C on every unit (with or without a T1) | 1,198 | -0.83 | -3.39 | 38.3% | - | -9,975 | -17,868 | 4 | - |
 
-Same rows for all five books: units with a T1 and a 5-bar reference return. One unit of notional per trade, long or short as the break, no leverage, fees, funding or slippage, every trade taken, no compounding; open trades marked at the cap's close (day 20), the reference at its fifth bar. Dollar columns are the SUM of equal-size trades at 1,000 dollars each, not an account balance. 'Minus reference' is the paired per-trade difference against the chance book on the identical units, with a normal 95% interval; the holding periods differ (shown), so A / B / C against the reference is rule against rule, while D changes only the loss side.
+Same rows for all six books: units with a T1 and a 5-bar reference return. One unit of notional per trade, long or short as the break, no leverage, fees, funding or slippage, every trade taken, no compounding; open trades marked at the cap's close (day 20), D5 and the reference at the fifth bar of the unit's timeframe. Median days = each book's own holding time (the day its target filled, else its exit or mark day). Dollar columns are the SUM of equal-size trades at 1,000 dollars each, not an account balance. 'Minus reference' is the paired per-trade difference against the chance book on the identical units, with a normal 95% interval; the holding periods differ (shown), so A / B / C against the reference is rule against rule, while D changes only the loss side.
 
 ### Reach rates, monthly units
 
@@ -428,25 +468,25 @@ T1 before the exit = of the units with a T1, the share that touched it on or bef
 
 | setup | class | pre-T1 exits | at the entry close | median days | avg % | avg R | entry day went outside | touched T1 later, inside the cap | book D: exited before one R, touched one R later | chance book on the same units: stopped by 5 | stopped, saw the target anyway |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| reversal | exact_shared | 29 | (13.8%) | (3) | (-5.64) | (-0.13) | (0.0%) | (20.7% [10, 38] n=29) | 10.8% [4, 25] n=37 | 29.7% | (27.3% [10, 57] n=11) |
-| reversal | near | 24 | (4.2%) | (3) | (-3.39) | (-0.13) | (0.0%) | (29.2% [15, 49] n=24) | 10.5% [4, 24] n=38 | 20.0% | (12.5% [2, 47] n=8) |
-| reversal | within1 | 98 | 11.2% | 3 | -3.13 | -0.09 | 0.0% | 24.5% [17, 34] n=98 | 9.8% [6, 16] n=132 | 22.4% | 31.2% [18, 49] n=32 |
-| reversal | spread | 747 | 3.3% | 4 | -6.16 | -0.15 | 1.6% | 21.2% [18, 24] n=747 | 7.1% [6, 9] n=982 | 31.8% | 27.1% [23, 32] n=347 |
-| continuation | exact_shared | 0 | (-) | (-) | (-) | (-) | (-) | - | 6.2% [3, 12] n=112 | - | - |
-| continuation | exact_plain | 0 | (-) | (-) | (-) | (-) | (-) | - | (0.0% [0, 56] n=3) | - | - |
-| continuation | near | 0 | (-) | (-) | (-) | (-) | (-) | - | 1.3% [0, 7] n=76 | - | - |
-| continuation | within1 | 0 | (-) | (-) | (-) | (-) | (-) | - | 7.2% [4, 12] n=181 | - | - |
-| continuation | spread | 0 | (-) | (-) | (-) | (-) | (-) | - | 6.9% [6, 8] n=1,288 | - | - |
-| inside | exact_shared | 12 | (8.3%) | (1) | (-2.68) | (-0.08) | (0.0%) | (33.3% [14, 61] n=12) | 5.4% [1, 18] n=37 | 27.8% | (60.0% [23, 88] n=5) |
-| inside | exact_plain | 2 | (0.0%) | (4) | (-2.03) | (-0.17) | (0.0%) | (50.0% [9, 91] n=2) | (66.7% [21, 94] n=3) | 0.0% | - |
-| inside | near | 6 | (16.7%) | (2) | (-1.10) | (-0.04) | (0.0%) | (33.3% [10, 70] n=6) | (10.3% [4, 26] n=29) | 10.0% | (100.0% [34, 100] n=2) |
-| inside | within1 | 42 | 14.3% | 3 | -2.78 | -0.12 | 0.0% | 23.8% [13, 39] n=42 | 19.6% [13, 28] n=102 | 29.3% | (35.3% [17, 59] n=17) |
-| inside | spread | 172 | 4.1% | 3 | -4.81 | -0.14 | 1.2% | 22.7% [17, 29] n=172 | 13.0% [11, 16] n=591 | 26.0% | 44.3% [34, 55] n=79 |
-| outside | exact_shared | 0 | (-) | (-) | (-) | (-) | (-) | - | 11.1% [5, 23] n=45 | - | - |
-| outside | exact_plain | 0 | (-) | (-) | (-) | (-) | (-) | - | (0.0% [0, 79] n=1) | - | - |
-| outside | near | 0 | (-) | (-) | (-) | (-) | (-) | - | (7.7% [1, 33] n=13) | - | - |
-| outside | within1 | 0 | (-) | (-) | (-) | (-) | (-) | - | 2.3% [0, 12] n=43 | - | - |
-| outside | spread | 0 | (-) | (-) | (-) | (-) | (-) | - | 3.2% [2, 6] n=252 | - | - |
+| reversal | exact_shared | 29 | (13.8%) | (3) | (-5.64) | (-0.13) | (0.0%) | (22.2% [11, 41] n=27) | 11.4% [5, 26] n=35 | 29.7% | (27.3% [10, 57] n=11) |
+| reversal | near | 24 | (4.2%) | (3) | (-3.39) | (-0.13) | (0.0%) | (29.2% [15, 49] n=24) | 10.8% [4, 25] n=37 | 20.0% | (12.5% [2, 47] n=8) |
+| reversal | within1 | 98 | 11.2% | 3 | -3.13 | -0.09 | 0.0% | 25.3% [18, 35] n=95 | 10.1% [6, 16] n=129 | 22.4% | 31.2% [18, 49] n=32 |
+| reversal | spread | 747 | 3.3% | 4 | -6.16 | -0.15 | 1.6% | 21.4% [19, 25] n=738 | 7.2% [6, 9] n=966 | 31.8% | 27.1% [23, 32] n=347 |
+| continuation | exact_shared | 0 | (-) | (-) | (-) | (-) | (-) | - | - | - | - |
+| continuation | exact_plain | 0 | (-) | (-) | (-) | (-) | (-) | - | - | - | - |
+| continuation | near | 0 | (-) | (-) | (-) | (-) | (-) | - | - | - | - |
+| continuation | within1 | 0 | (-) | (-) | (-) | (-) | (-) | - | - | - | - |
+| continuation | spread | 0 | (-) | (-) | (-) | (-) | (-) | - | - | - | - |
+| inside | exact_shared | 12 | (8.3%) | (1) | (-2.68) | (-0.08) | (0.0%) | (36.4% [15, 65] n=11) | (0.0% [0, 22] n=14) | 27.8% | (60.0% [23, 88] n=5) |
+| inside | exact_plain | 2 | (0.0%) | (4) | (-2.03) | (-0.17) | (0.0%) | (50.0% [9, 91] n=2) | (50.0% [9, 91] n=2) | 0.0% | - |
+| inside | near | 6 | (16.7%) | (2) | (-1.10) | (-0.04) | (0.0%) | (33.3% [10, 70] n=6) | (21.4% [8, 48] n=14) | 10.0% | (100.0% [34, 100] n=2) |
+| inside | within1 | 42 | 14.3% | 3 | -2.78 | -0.12 | 0.0% | 25.0% [14, 40] n=40 | 20.8% [12, 33] n=53 | 29.3% | (35.3% [17, 59] n=17) |
+| inside | spread | 172 | 4.1% | 3 | -4.81 | -0.14 | 1.2% | 23.4% [18, 30] n=167 | 15.1% [11, 20] n=239 | 26.0% | 44.3% [34, 55] n=79 |
+| outside | exact_shared | 0 | (-) | (-) | (-) | (-) | (-) | - | - | - | - |
+| outside | exact_plain | 0 | (-) | (-) | (-) | (-) | (-) | - | - | - | - |
+| outside | near | 0 | (-) | (-) | (-) | (-) | (-) | - | - | - | - |
+| outside | within1 | 0 | (-) | (-) | (-) | (-) | (-) | - | - | - | - |
+| outside | spread | 0 | (-) | (-) | (-) | (-) | (-) | - | - | - | - |
 
 Pre-T1 exits = units with a T1 that exited on the close rule before touching it. 'Touched T1 later' = the exit's own 'saw the target anyway'; beside it, on the same units, the chance book's stop share and its stopped-then-saw-one-R share (5-bar travel).
 
@@ -480,235 +520,288 @@ MAE = the furthest adverse travel from L through the exit (or the cap mark), in 
 
 | setup | flag | class | book | trades | avg % per trade | median % | closed in profit | closed at the target | total $ at 1,000 per trade | max drawdown $ | median days | minus reference [95%] |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| reversal | all | exact_shared | A: all out at T1 | 27 | (-4.94) | (-6.53) | (22.2%) | (14.8%) | (-1,335) | (-1,335) | 2 | (-6.09 [-20.84, +8.66]) |
+| reversal | all | exact_shared | A: all out at T1 | 27 | (-4.94) | (-6.53) | (22.2%) | (14.8%) | (-1,335) | (-1,335) | 1 | (-6.09 [-20.84, +8.66]) |
 | reversal | all | exact_shared | B: hold through T2, exit rule live | 27 | (-5.68) | (-6.53) | (14.8%) | (0.0%) | (-1,534) | (-1,534) | 2 | (-6.83 [-20.96, +7.30]) |
 | reversal | all | exact_shared | C: exit only, no target | 27 | (-5.68) | (-6.53) | (14.8%) | (-) | (-1,534) | (-1,534) | 2 | (-6.83 [-20.96, +7.30]) |
 | reversal | all | exact_shared | D: one R or the exit | 27 | (-5.68) | (-6.53) | (14.8%) | (0.0%) | (-1,534) | (-1,534) | 2 | (-6.83 [-20.96, +7.30]) |
-| reversal | all | exact_shared | reference: one R or the setup-bar stop, 5 bars | 27 | (+1.15) | (+14.78) | (51.9%) | (33.3%) | (+310) | (-2,897) | 5 | - |
+| reversal | all | exact_shared | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 27 | (-5.68) | (-6.53) | (14.8%) | (0.0%) | (-1,534) | (-1,534) | 2 | (-6.83 [-20.96, +7.30]) |
+| reversal | all | exact_shared | reference: one R or the setup-bar stop, 5 bars | 27 | (+1.15) | (+14.78) | (51.9%) | (33.3%) | (+310) | (-2,897) | 64 | - |
 | reversal | all | exact_shared | C on every unit (with or without a T1) | 37 | -3.16 | -5.79 | 27.0% | - | -1,169 | -1,537 | 3 | - |
-| reversal | all | near | A: all out at T1 | 22 | (-1.23) | (-1.32) | (36.4%) | (22.7%) | (-271) | (-289) | 4 | (-11.13 [-24.88, +2.61]) |
+| reversal | all | near | A: all out at T1 | 22 | (-1.23) | (-1.32) | (36.4%) | (22.7%) | (-271) | (-289) | 3 | (-11.13 [-24.88, +2.61]) |
 | reversal | all | near | B: hold through T2, exit rule live | 22 | (-2.20) | (-1.84) | (27.3%) | (0.0%) | (-485) | (-550) | 4 | (-12.11 [-26.26, +2.05]) |
 | reversal | all | near | C: exit only, no target | 22 | (-2.20) | (-1.84) | (27.3%) | (-) | (-485) | (-550) | 4 | (-12.11 [-26.26, +2.05]) |
 | reversal | all | near | D: one R or the exit | 22 | (-2.20) | (-1.84) | (27.3%) | (0.0%) | (-485) | (-550) | 4 | (-12.11 [-26.26, +2.05]) |
-| reversal | all | near | reference: one R or the setup-bar stop, 5 bars | 22 | (+9.90) | (+18.92) | (59.1%) | (50.0%) | (+2,178) | (-1,858) | 5 | - |
+| reversal | all | near | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 22 | (-2.20) | (-1.84) | (27.3%) | (0.0%) | (-485) | (-550) | 4 | (-12.11 [-26.26, +2.05]) |
+| reversal | all | near | reference: one R or the setup-bar stop, 5 bars | 22 | (+9.90) | (+18.92) | (59.1%) | (50.0%) | (+2,178) | (-1,858) | 60 | - |
 | reversal | all | near | C on every unit (with or without a T1) | 40 | +0.07 | -1.00 | 40.0% | - | +28 | -550 | 4 | - |
-| reversal | all | within1 | A: all out at T1 | 86 | +0.49 | -0.77 | 46.5% | 30.2% | +418 | -1,101 | 4 | -7.31 [-16.22, +1.60] |
+| reversal | all | within1 | A: all out at T1 | 86 | +0.49 | -0.77 | 46.5% | 30.2% | +418 | -1,101 | 2 | -7.31 [-16.22, +1.60] |
 | reversal | all | within1 | B: hold through T2, exit rule live | 86 | +0.92 | -1.75 | 38.4% | 0.0% | +790 | -906 | 4 | -6.88 [-15.99, +2.23] |
 | reversal | all | within1 | C: exit only, no target | 86 | +0.92 | -1.75 | 38.4% | - | +790 | -906 | 4 | -6.88 [-15.99, +2.23] |
 | reversal | all | within1 | D: one R or the exit | 86 | +0.38 | -1.75 | 38.4% | 7.0% | +325 | -808 | 4 | -7.42 [-16.19, +1.35] |
-| reversal | all | within1 | reference: one R or the setup-bar stop, 5 bars | 86 | +7.80 | +20.45 | 58.1% | 45.3% | +6,706 | -3,146 | 5 | - |
+| reversal | all | within1 | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 86 | +0.42 | -1.75 | 38.4% | 8.1% | +360 | -773 | 4 | -7.38 [-16.15, +1.39] |
+| reversal | all | within1 | reference: one R or the setup-bar stop, 5 bars | 86 | +7.80 | +20.45 | 58.1% | 45.3% | +6,706 | -3,146 | 46 | - |
 | reversal | all | within1 | C on every unit (with or without a T1) | 143 | +0.78 | -1.42 | 39.2% | - | +1,119 | -906 | 4 | - |
-| reversal | all | spread | A: all out at T1 | 826 | -1.11 | -2.60 | 43.6% | 27.0% | -9,202 | -13,509 | 4 | -5.62 [-8.57, -2.68] |
+| reversal | all | spread | A: all out at T1 | 826 | -1.11 | -2.60 | 43.6% | 27.0% | -9,202 | -13,509 | 3 | -5.62 [-8.57, -2.68] |
 | reversal | all | spread | B: hold through T2, exit rule live | 826 | -0.25 | -4.58 | 35.2% | 0.0% | -2,051 | -16,324 | 4 | -4.76 [-8.17, -1.35] |
 | reversal | all | spread | C: exit only, no target | 826 | -0.25 | -4.58 | 35.2% | - | -2,051 | -16,324 | 4 | -4.76 [-8.17, -1.35] |
 | reversal | all | spread | D: one R or the exit | 826 | -1.23 | -4.48 | 36.1% | 9.9% | -10,178 | -12,984 | 4 | -5.74 [-8.64, -2.85] |
-| reversal | all | spread | reference: one R or the setup-bar stop, 5 bars | 826 | +4.51 | +19.29 | 54.1% | 38.7% | +37,259 | -13,271 | 5 | - |
+| reversal | all | spread | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 826 | -1.23 | -4.48 | 36.1% | 9.9% | -10,178 | -12,984 | 4 | -5.74 [-8.64, -2.85] |
+| reversal | all | spread | reference: one R or the setup-bar stop, 5 bars | 826 | +4.51 | +19.29 | 54.1% | 38.7% | +37,259 | -13,271 | 48 | - |
 | reversal | all | spread | C on every unit (with or without a T1) | 1,092 | +0.15 | -3.41 | 39.3% | - | +1,622 | -16,775 | 4 | - |
-| inside | all | exact_shared | A: all out at T1 | 14 | (+2.11) | (-0.96) | (35.7%) | (28.6%) | (+295) | (-165) | 2 | (-11.33 [-33.04, +10.37]) |
+| continuation | all | exact_shared | C on every unit (with or without a T1) | 120 | -0.41 | -4.03 | 30.0% | - | -491 | -2,808 | 3 | - |
+| continuation | all | exact_plain | C on every unit (with or without a T1) | 3 | -2.71 | -2.91 | 0.0% | - | -81 | -81 | 1 | - |
+| continuation | all | near | C on every unit (with or without a T1) | 78 | +0.71 | -0.90 | 39.7% | - | +554 | -524 | 4 | - |
+| continuation | all | within1 | C on every unit (with or without a T1) | 198 | +3.10 | -0.09 | 49.5% | - | +6,147 | -866 | 4 | - |
+| continuation | all | spread | C on every unit (with or without a T1) | 1,434 | +0.94 | -0.12 | 49.5% | - | +13,423 | -8,039 | 4 | - |
+| inside | all | exact_shared | A: all out at T1 | 14 | (+2.11) | (-0.96) | (35.7%) | (28.6%) | (+295) | (-165) | 1 | (-11.33 [-33.04, +10.37]) |
 | inside | all | exact_shared | B: hold through T2, exit rule live | 14 | (+0.11) | (-2.17) | (21.4%) | (0.0%) | (+16) | (-165) | 2 | (-13.33 [-34.37, +7.71]) |
 | inside | all | exact_shared | C: exit only, no target | 14 | (+0.11) | (-2.17) | (21.4%) | (-) | (+16) | (-165) | 2 | (-13.33 [-34.37, +7.71]) |
 | inside | all | exact_shared | D: one R or the exit | 14 | (+0.00) | (-2.17) | (21.4%) | (7.1%) | (+0) | (-165) | 2 | (-13.44 [-34.46, +7.57]) |
-| inside | all | exact_shared | reference: one R or the setup-bar stop, 5 bars | 14 | (+13.44) | (+26.45) | (64.3%) | (50.0%) | (+1,882) | (-926) | 5 | - |
+| inside | all | exact_shared | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 14 | (+0.00) | (-2.17) | (21.4%) | (7.1%) | (+0) | (-165) | 2 | (-13.44 [-34.46, +7.57]) |
+| inside | all | exact_shared | reference: one R or the setup-bar stop, 5 bars | 14 | (+13.44) | (+26.45) | (64.3%) | (50.0%) | (+1,882) | (-926) | 39 | - |
 | inside | all | exact_shared | C on every unit (with or without a T1) | 41 | +2.07 | -1.06 | 31.7% | - | +850 | -187 | 3 | - |
 | inside | all | exact_plain | A: all out at T1 | 1 | (-2.02) | (-2.02) | (0.0%) | (0.0%) | (-20) | (-20) | 3 | (- [-, -]) |
 | inside | all | exact_plain | B: hold through T2, exit rule live | 1 | (-2.02) | (-2.02) | (0.0%) | (0.0%) | (-20) | (-20) | 3 | (- [-, -]) |
 | inside | all | exact_plain | C: exit only, no target | 1 | (-2.02) | (-2.02) | (0.0%) | (-) | (-20) | (-20) | 3 | (- [-, -]) |
 | inside | all | exact_plain | D: one R or the exit | 1 | (-2.02) | (-2.02) | (0.0%) | (0.0%) | (-20) | (-20) | 3 | (- [-, -]) |
-| inside | all | exact_plain | reference: one R or the setup-bar stop, 5 bars | 1 | (+17.93) | (+17.93) | (100.0%) | (100.0%) | (+179) | (+0) | 5 | - |
+| inside | all | exact_plain | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 1 | (-2.02) | (-2.02) | (0.0%) | (0.0%) | (-20) | (-20) | 3 | (- [-, -]) |
+| inside | all | exact_plain | reference: one R or the setup-bar stop, 5 bars | 1 | (+17.93) | (+17.93) | (100.0%) | (100.0%) | (+179) | (+0) | 7 | - |
 | inside | all | exact_plain | C on every unit (with or without a T1) | 3 | -2.41 | -2.04 | 0.0% | - | -72 | -72 | 4 | - |
-| inside | all | near | A: all out at T1 | 11 | (+10.49) | (+4.91) | (81.8%) | (72.7%) | (+1,154) | (-67) | 4 | (-14.16 [-28.39, +0.07]) |
+| inside | all | near | A: all out at T1 | 11 | (+10.49) | (+4.91) | (81.8%) | (72.7%) | (+1,154) | (-67) | 1 | (-14.16 [-28.39, +0.07]) |
 | inside | all | near | B: hold through T2, exit rule live | 11 | (+6.47) | (+4.91) | (63.6%) | (0.0%) | (+711) | (-159) | 4 | (-18.18 [-34.74, -1.63]) |
 | inside | all | near | C: exit only, no target | 11 | (+6.47) | (+4.91) | (63.6%) | (-) | (+711) | (-159) | 4 | (-18.18 [-34.74, -1.63]) |
-| inside | all | near | D: one R or the exit | 11 | (+11.34) | (+4.91) | (63.6%) | (27.3%) | (+1,247) | (-159) | 4 | (-13.31 [-29.85, +3.23]) |
-| inside | all | near | reference: one R or the setup-bar stop, 5 bars | 11 | (+24.65) | (+33.10) | (81.8%) | (63.6%) | (+2,711) | (-522) | 5 | - |
+| inside | all | near | D: one R or the exit | 11 | (+11.34) | (+4.91) | (63.6%) | (27.3%) | (+1,247) | (-159) | 3 | (-13.31 [-29.85, +3.23]) |
+| inside | all | near | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 11 | (+11.34) | (+4.91) | (63.6%) | (27.3%) | (+1,247) | (-159) | 3 | (-13.31 [-29.85, +3.23]) |
+| inside | all | near | reference: one R or the setup-bar stop, 5 bars | 11 | (+24.65) | (+33.10) | (81.8%) | (63.6%) | (+2,711) | (-522) | 24 | - |
 | inside | all | near | C on every unit (with or without a T1) | 36 | +3.62 | +0.46 | 55.6% | - | +1,304 | -240 | 4 | - |
-| inside | all | within1 | A: all out at T1 | 36 | +0.03 | +0.34 | 52.8% | 33.3% | +12 | -285 | 4 | -2.15 [-11.72, +7.42] |
+| inside | all | within1 | A: all out at T1 | 36 | +0.03 | +0.34 | 52.8% | 33.3% | +12 | -285 | 2 | -2.15 [-11.72, +7.42] |
 | inside | all | within1 | B: hold through T2, exit rule live | 36 | +0.15 | -0.39 | 41.7% | 0.0% | +53 | -380 | 4 | -2.04 [-11.30, +7.23] |
 | inside | all | within1 | C: exit only, no target | 36 | +0.15 | -0.39 | 41.7% | - | +53 | -380 | 4 | -2.04 [-11.30, +7.23] |
-| inside | all | within1 | D: one R or the exit | 36 | +1.10 | -0.39 | 41.7% | 5.6% | +397 | -335 | 4 | -1.08 [-10.24, +8.08] |
-| inside | all | within1 | reference: one R or the setup-bar stop, 5 bars | 36 | +2.18 | +4.64 | 52.8% | 38.9% | +786 | -1,988 | 5 | - |
+| inside | all | within1 | D: one R or the exit | 36 | +1.10 | -0.39 | 41.7% | 5.6% | +397 | -335 | 3 | -1.08 [-10.24, +8.08] |
+| inside | all | within1 | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 36 | +1.10 | -0.39 | 41.7% | 5.6% | +397 | -335 | 3 | -1.08 [-10.24, +8.08] |
+| inside | all | within1 | reference: one R or the setup-bar stop, 5 bars | 36 | +2.18 | +4.64 | 52.8% | 38.9% | +786 | -1,988 | 28 | - |
 | inside | all | within1 | C on every unit (with or without a T1) | 112 | +0.62 | -0.60 | 45.5% | - | +697 | -1,042 | 4 | - |
-| inside | all | spread | A: all out at T1 | 207 | -0.01 | -0.06 | 49.3% | 37.7% | -20 | -2,312 | 4 | -7.72 [-12.40, -3.05] |
+| inside | all | spread | A: all out at T1 | 207 | -0.01 | -0.06 | 49.3% | 37.7% | -20 | -2,312 | 2 | -7.72 [-12.40, -3.05] |
 | inside | all | spread | B: hold through T2, exit rule live | 207 | -2.54 | -3.70 | 31.4% | 0.0% | -5,249 | -5,941 | 4 | -10.25 [-14.97, -5.53] |
 | inside | all | spread | C: exit only, no target | 207 | -2.54 | -3.70 | 31.4% | - | -5,249 | -5,941 | 4 | -10.25 [-14.97, -5.53] |
-| inside | all | spread | D: one R or the exit | 207 | +0.10 | -3.32 | 35.3% | 12.6% | +199 | -3,888 | 4 | -7.62 [-12.14, -3.09] |
-| inside | all | spread | reference: one R or the setup-bar stop, 5 bars | 207 | +7.72 | +21.50 | 59.9% | 52.7% | +15,971 | -6,474 | 5 | - |
+| inside | all | spread | D: one R or the exit | 207 | +0.10 | -3.32 | 35.3% | 12.6% | +199 | -3,888 | 3 | -7.62 [-12.14, -3.09] |
+| inside | all | spread | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 207 | +0.08 | -3.32 | 35.3% | 12.6% | +169 | -3,916 | 3 | -7.63 [-12.16, -3.11] |
+| inside | all | spread | reference: one R or the setup-bar stop, 5 bars | 207 | +7.72 | +21.50 | 59.9% | 52.7% | +15,971 | -6,474 | 32 | - |
 | inside | all | spread | C on every unit (with or without a T1) | 694 | +0.09 | -2.36 | 40.6% | - | +624 | -10,128 | 4 | - |
+| outside | all | exact_shared | C on every unit (with or without a T1) | 51 | +1.05 | -3.03 | 39.2% | - | +536 | -331 | 6 | - |
+| outside | all | exact_plain | C on every unit (with or without a T1) | 2 | +25.67 | +25.67 | 100.0% | - | +513 | +0 | 14 | - |
+| outside | all | near | C on every unit (with or without a T1) | 14 | +1.09 | +0.26 | 57.1% | - | +152 | -374 | 5 | - |
+| outside | all | within1 | C on every unit (with or without a T1) | 47 | -0.45 | -1.62 | 40.4% | - | -213 | -1,072 | 4 | - |
+| outside | all | spread | C on every unit (with or without a T1) | 280 | -0.01 | -1.88 | 44.6% | - | -39 | -4,396 | 5 | - |
 
-Same rows for all five books: units with a T1 and a 5-bar reference return. One unit of notional per trade, long or short as the break, no leverage, fees, funding or slippage, every trade taken, no compounding; open trades marked at the cap's close (day 20), the reference at its fifth bar. Dollar columns are the SUM of equal-size trades at 1,000 dollars each, not an account balance. 'Minus reference' is the paired per-trade difference against the chance book on the identical units, with a normal 95% interval; the holding periods differ (shown), so A / B / C against the reference is rule against rule, while D changes only the loss side.
+Same rows for all six books: units with a T1 and a 5-bar reference return. One unit of notional per trade, long or short as the break, no leverage, fees, funding or slippage, every trade taken, no compounding; open trades marked at the cap's close (day 20), D5 and the reference at the fifth bar of the unit's timeframe. Median days = each book's own holding time (the day its target filled, else its exit or mark day). Dollar columns are the SUM of equal-size trades at 1,000 dollars each, not an account balance. 'Minus reference' is the paired per-trade difference against the chance book on the identical units, with a normal 95% interval; the holding periods differ (shown), so A / B / C against the reference is rule against rule, while D changes only the loss side.
 
 ### The books, daily units, hammer / shooter flag
 
 | setup | flag | class | book | trades | avg % per trade | median % | closed in profit | closed at the target | total $ at 1,000 per trade | max drawdown $ | median days | minus reference [95%] |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| reversal | third | plain | A: all out at T1 | 7,620 | -0.20 | +0.67 | 61.4% | 58.6% | -15,289 | -20,039 | 1 | -0.08 [-0.23, +0.07] |
+| reversal | third | plain | A: all out at T1 | 7,620 | -0.20 | +0.67 | 61.4% | 58.6% | -15,289 | -20,039 | 0 | -0.08 [-0.23, +0.07] |
 | reversal | third | plain | B: hold through T2, exit rule live | 7,620 | -0.08 | -1.45 | 37.9% | 21.6% | -6,161 | -16,921 | 1 | +0.04 [-0.13, +0.21] |
 | reversal | third | plain | C: exit only, no target | 7,620 | -0.07 | -1.87 | 31.5% | - | -5,330 | -26,875 | 1 | +0.05 [-0.17, +0.27] |
-| reversal | third | plain | D: one R or the exit | 7,620 | +0.02 | -0.87 | 45.2% | 39.4% | +1,270 | -13,990 | 1 | +0.14 [+0.01, +0.26] |
-| reversal | third | plain | reference: one R or the setup-bar stop, 5 bars | 7,620 | -0.12 | -0.43 | 49.4% | 42.5% | -9,121 | -21,437 | 5 | - |
+| reversal | third | plain | D: one R or the exit | 7,620 | +0.02 | -0.87 | 45.2% | 39.5% | +1,394 | -13,990 | 1 | +0.14 [+0.02, +0.26] |
+| reversal | third | plain | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 7,620 | +0.02 | -0.83 | 45.5% | 38.8% | +1,891 | -14,396 | 1 | +0.14 [+0.02, +0.27] |
+| reversal | third | plain | reference: one R or the setup-bar stop, 5 bars | 7,620 | -0.12 | -0.43 | 49.4% | 42.5% | -9,121 | -21,437 | 1 | - |
 | reversal | third | plain | C on every unit (with or without a T1) | 7,673 | -0.08 | -1.86 | 31.4% | - | -6,107 | -26,683 | 1 | - |
-| reversal | third | near | A: all out at T1 | 29 | (+0.07) | (+0.05) | (96.6%) | (96.6%) | (+21) | (-0) | 2 | (+0.40 [-1.14, +1.94]) |
-| reversal | third | near | B: hold through T2, exit rule live | 29 | (-0.15) | (-0.04) | (48.3%) | (31.0%) | (-43) | (-364) | 2 | (+0.18 [-1.13, +1.49]) |
+| reversal | third | exact_plain | C on every unit (with or without a T1) | 1 | -3.43 | -3.43 | 0.0% | - | -34 | -34 | 1 | - |
+| reversal | third | near | A: all out at T1 | 29 | (+0.07) | (+0.05) | (96.6%) | (96.6%) | (+21) | (-0) | 0 | (+0.40 [-1.14, +1.94]) |
+| reversal | third | near | B: hold through T2, exit rule live | 29 | (-0.15) | (-0.04) | (48.3%) | (31.0%) | (-43) | (-364) | 0 | (+0.18 [-1.13, +1.49]) |
 | reversal | third | near | C: exit only, no target | 29 | (+0.36) | (-0.44) | (34.5%) | (-) | (+103) | (-275) | 2 | (+0.68 [-0.71, +2.07]) |
-| reversal | third | near | D: one R or the exit | 29 | (+0.31) | (-0.07) | (44.8%) | (44.8%) | (+89) | (-236) | 2 | (+0.63 [-0.58, +1.84]) |
-| reversal | third | near | reference: one R or the setup-bar stop, 5 bars | 29 | (-0.32) | (+0.03) | (51.7%) | (37.9%) | (-94) | (-251) | 5 | - |
-| reversal | third | within1 | A: all out at T1 | 133 | +0.04 | +0.35 | 86.5% | 86.5% | +48 | -308 | 2 | -0.14 [-0.98, +0.70] |
-| reversal | third | within1 | B: hold through T2, exit rule live | 133 | -0.58 | +0.36 | 54.1% | 46.6% | -768 | -1,334 | 2 | -0.76 [-1.73, +0.22] |
+| reversal | third | near | D: one R or the exit | 29 | (+0.31) | (-0.07) | (44.8%) | (44.8%) | (+89) | (-236) | 0 | (+0.63 [-0.58, +1.84]) |
+| reversal | third | near | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 29 | (-0.08) | (-0.07) | (44.8%) | (37.9%) | (-24) | (-236) | 0 | (+0.24 [-0.85, +1.33]) |
+| reversal | third | near | reference: one R or the setup-bar stop, 5 bars | 29 | (-0.32) | (+0.03) | (51.7%) | (37.9%) | (-94) | (-251) | 1 | - |
+| reversal | third | within1 | A: all out at T1 | 133 | +0.04 | +0.35 | 86.5% | 86.5% | +48 | -308 | 0 | -0.14 [-0.98, +0.70] |
+| reversal | third | within1 | B: hold through T2, exit rule live | 133 | -0.58 | +0.36 | 54.1% | 46.6% | -768 | -1,334 | 0 | -0.76 [-1.73, +0.22] |
 | reversal | third | within1 | C: exit only, no target | 133 | -1.19 | -1.08 | 25.6% | - | -1,578 | -2,176 | 2 | -1.36 [-2.50, -0.23] |
-| reversal | third | within1 | D: one R or the exit | 133 | +0.30 | +0.54 | 55.6% | 52.6% | +393 | -937 | 2 | +0.12 [-0.40, +0.64] |
-| reversal | third | within1 | reference: one R or the setup-bar stop, 5 bars | 133 | +0.18 | -0.20 | 48.1% | 45.1% | +237 | -480 | 5 | - |
+| reversal | third | within1 | D: one R or the exit | 133 | +0.30 | +0.54 | 55.6% | 52.6% | +393 | -937 | 0 | +0.12 [-0.40, +0.64] |
+| reversal | third | within1 | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 133 | +0.45 | +0.54 | 55.6% | 51.9% | +599 | -937 | 0 | +0.27 [-0.29, +0.84] |
+| reversal | third | within1 | reference: one R or the setup-bar stop, 5 bars | 133 | +0.18 | -0.20 | 48.1% | 45.1% | +237 | -480 | 0 | - |
 | reversal | third | within1 | C on every unit (with or without a T1) | 135 | -1.16 | -1.05 | 25.9% | - | -1,568 | -2,158 | 2 | - |
-| reversal | strict | plain | A: all out at T1 | 3,677 | -0.22 | +0.60 | 60.7% | 58.4% | -8,001 | -11,926 | 1 | -0.20 [-0.41, +0.02] |
+| reversal | strict | plain | A: all out at T1 | 3,677 | -0.22 | +0.60 | 60.7% | 58.4% | -8,001 | -11,926 | 0 | -0.20 [-0.41, +0.02] |
 | reversal | strict | plain | B: hold through T2, exit rule live | 3,677 | -0.06 | -1.41 | 37.0% | 22.2% | -2,275 | -11,829 | 1 | -0.04 [-0.28, +0.19] |
 | reversal | strict | plain | C: exit only, no target | 3,677 | +0.10 | -1.79 | 30.8% | - | +3,627 | -11,337 | 1 | +0.12 [-0.19, +0.42] |
-| reversal | strict | plain | D: one R or the exit | 3,677 | +0.08 | -0.94 | 43.6% | 37.8% | +2,833 | -8,291 | 1 | +0.10 [-0.08, +0.27] |
-| reversal | strict | plain | reference: one R or the setup-bar stop, 5 bars | 3,677 | -0.02 | +0.04 | 50.2% | 41.7% | -692 | -11,405 | 5 | - |
+| reversal | strict | plain | D: one R or the exit | 3,677 | +0.08 | -0.94 | 43.7% | 37.9% | +2,957 | -8,291 | 0 | +0.10 [-0.07, +0.27] |
+| reversal | strict | plain | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 3,677 | +0.09 | -0.88 | 44.1% | 37.0% | +3,192 | -7,950 | 0 | +0.11 [-0.06, +0.27] |
+| reversal | strict | plain | reference: one R or the setup-bar stop, 5 bars | 3,677 | -0.02 | +0.04 | 50.2% | 41.7% | -692 | -11,405 | 1 | - |
 | reversal | strict | plain | C on every unit (with or without a T1) | 3,701 | +0.09 | -1.78 | 30.7% | - | +3,269 | -11,264 | 1 | - |
-| reversal | strict | near | A: all out at T1 | 12 | (+0.05) | (+0.04) | (91.7%) | (91.7%) | (+6) | (-0) | 2 | (+0.01 [-2.42, +2.45]) |
-| reversal | strict | near | B: hold through T2, exit rule live | 12 | (+0.37) | (+0.02) | (50.0%) | (33.3%) | (+44) | (-75) | 2 | (+0.33 [-1.36, +2.03]) |
+| reversal | strict | exact_plain | C on every unit (with or without a T1) | 1 | -3.43 | -3.43 | 0.0% | - | -34 | -34 | 1 | - |
+| reversal | strict | near | A: all out at T1 | 12 | (+0.05) | (+0.04) | (91.7%) | (91.7%) | (+6) | (-0) | 0 | (+0.01 [-2.42, +2.45]) |
+| reversal | strict | near | B: hold through T2, exit rule live | 12 | (+0.37) | (+0.02) | (50.0%) | (33.3%) | (+44) | (-75) | 0 | (+0.33 [-1.36, +2.03]) |
 | reversal | strict | near | C: exit only, no target | 12 | (+2.18) | (-0.09) | (33.3%) | (-) | (+262) | (-75) | 2 | (+2.14 [+0.13, +4.15]) |
-| reversal | strict | near | D: one R or the exit | 12 | (+0.53) | (-0.09) | (33.3%) | (33.3%) | (+64) | (-75) | 2 | (+0.49 [-0.25, +1.23]) |
-| reversal | strict | near | reference: one R or the setup-bar stop, 5 bars | 12 | (+0.04) | (+0.12) | (58.3%) | (41.7%) | (+5) | (-75) | 5 | - |
-| reversal | strict | within1 | A: all out at T1 | 66 | -0.01 | +0.35 | 89.4% | 89.4% | -4 | -201 | 2 | -0.43 [-1.64, +0.79] |
-| reversal | strict | within1 | B: hold through T2, exit rule live | 66 | +0.02 | +0.46 | 60.6% | 54.5% | +15 | -369 | 2 | -0.40 [-1.65, +0.85] |
+| reversal | strict | near | D: one R or the exit | 12 | (+0.53) | (-0.09) | (33.3%) | (33.3%) | (+64) | (-75) | 1 | (+0.49 [-0.25, +1.23]) |
+| reversal | strict | near | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 12 | (+0.53) | (-0.09) | (33.3%) | (33.3%) | (+64) | (-75) | 1 | (+0.49 [-0.25, +1.23]) |
+| reversal | strict | near | reference: one R or the setup-bar stop, 5 bars | 12 | (+0.04) | (+0.12) | (58.3%) | (41.7%) | (+5) | (-75) | 1 | - |
+| reversal | strict | within1 | A: all out at T1 | 66 | -0.01 | +0.35 | 89.4% | 89.4% | -4 | -201 | 0 | -0.43 [-1.64, +0.79] |
+| reversal | strict | within1 | B: hold through T2, exit rule live | 66 | +0.02 | +0.46 | 60.6% | 54.5% | +15 | -369 | 0 | -0.40 [-1.65, +0.85] |
 | reversal | strict | within1 | C: exit only, no target | 66 | -0.93 | -1.02 | 22.7% | - | -617 | -1,048 | 2 | -1.36 [-3.13, +0.42] |
-| reversal | strict | within1 | D: one R or the exit | 66 | +0.90 | +1.03 | 57.6% | 54.5% | +595 | -453 | 2 | +0.48 [-0.16, +1.12] |
-| reversal | strict | within1 | reference: one R or the setup-bar stop, 5 bars | 66 | +0.42 | +0.54 | 53.0% | 48.5% | +278 | -363 | 5 | - |
-| continuation | third | plain | A: all out at T1 | 788 | +0.17 | -0.86 | 45.8% | 33.8% | +1,307 | -3,533 | 3 | +0.04 [-0.46, +0.54] |
-| continuation | third | plain | B: hold through T2, exit rule live | 788 | +0.24 | -2.04 | 35.3% | 4.3% | +1,884 | -4,563 | 3 | +0.11 [-0.63, +0.85] |
+| reversal | strict | within1 | D: one R or the exit | 66 | +0.90 | +1.03 | 57.6% | 54.5% | +595 | -453 | 0 | +0.48 [-0.16, +1.12] |
+| reversal | strict | within1 | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 66 | +0.89 | +0.87 | 56.1% | 53.0% | +587 | -453 | 0 | +0.47 [-0.13, +1.07] |
+| reversal | strict | within1 | reference: one R or the setup-bar stop, 5 bars | 66 | +0.42 | +0.54 | 53.0% | 48.5% | +278 | -363 | 0 | - |
+| continuation | third | plain | A: all out at T1 | 788 | +0.17 | -0.86 | 45.8% | 33.8% | +1,307 | -3,533 | 1 | +0.04 [-0.46, +0.54] |
+| continuation | third | plain | B: hold through T2, exit rule live | 788 | +0.24 | -2.04 | 35.3% | 4.3% | +1,884 | -4,563 | 2 | +0.11 [-0.63, +0.85] |
 | continuation | third | plain | C: exit only, no target | 788 | +0.04 | -2.11 | 34.8% | - | +346 | -4,190 | 3 | -0.08 [-0.81, +0.64] |
-| continuation | third | plain | D: one R or the exit | 788 | +0.44 | +1.69 | 54.1% | 50.8% | +3,493 | -2,042 | 3 | +0.32 [-0.02, +0.65] |
-| continuation | third | plain | reference: one R or the setup-bar stop, 5 bars | 788 | +0.13 | -0.51 | 49.5% | 44.8% | +997 | -3,473 | 5 | - |
+| continuation | third | plain | D: one R or the exit | 788 | +0.44 | +1.69 | 54.1% | 50.8% | +3,493 | -2,042 | 1 | +0.32 [-0.02, +0.65] |
+| continuation | third | plain | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 788 | +0.41 | +1.36 | 53.8% | 48.6% | +3,196 | -1,926 | 1 | +0.28 [-0.05, +0.61] |
+| continuation | third | plain | reference: one R or the setup-bar stop, 5 bars | 788 | +0.13 | -0.51 | 49.5% | 44.8% | +997 | -3,473 | 1 | - |
 | continuation | third | plain | C on every unit (with or without a T1) | 907 | -0.23 | -2.31 | 33.5% | - | -2,123 | -6,146 | 3 | - |
 | continuation | third | exact_shared | A: all out at T1 | 18 | (-1.10) | (-1.88) | (16.7%) | (11.1%) | (-199) | (-444) | 2 | (-1.73 [-4.47, +1.02]) |
 | continuation | third | exact_shared | B: hold through T2, exit rule live | 18 | (-3.29) | (-2.14) | (5.6%) | (0.0%) | (-592) | (-627) | 2 | (-3.91 [-7.72, -0.10]) |
 | continuation | third | exact_shared | C: exit only, no target | 18 | (-3.29) | (-2.14) | (5.6%) | (-) | (-592) | (-627) | 2 | (-3.91 [-7.72, -0.10]) |
-| continuation | third | exact_shared | D: one R or the exit | 18 | (+0.07) | (+2.35) | (55.6%) | (55.6%) | (+13) | (-284) | 2 | (-0.55 [-1.98, +0.88]) |
-| continuation | third | exact_shared | reference: one R or the setup-bar stop, 5 bars | 18 | (+0.63) | (+1.55) | (55.6%) | (50.0%) | (+113) | (-122) | 5 | - |
+| continuation | third | exact_shared | D: one R or the exit | 18 | (+0.07) | (+2.35) | (55.6%) | (55.6%) | (+13) | (-284) | 0 | (-0.55 [-1.98, +0.88]) |
+| continuation | third | exact_shared | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 18 | (+0.07) | (+2.35) | (55.6%) | (55.6%) | (+13) | (-284) | 0 | (-0.55 [-1.98, +0.88]) |
+| continuation | third | exact_shared | reference: one R or the setup-bar stop, 5 bars | 18 | (+0.63) | (+1.55) | (55.6%) | (50.0%) | (+113) | (-122) | 0 | - |
 | continuation | third | exact_shared | C on every unit (with or without a T1) | 26 | +0.36 | -2.00 | 19.2% | - | +94 | -530 | 2 | - |
 | continuation | third | exact_plain | A: all out at T1 | 1 | (-1.31) | (-1.31) | (0.0%) | (0.0%) | (-13) | (-13) | 3 | (- [-, -]) |
 | continuation | third | exact_plain | B: hold through T2, exit rule live | 1 | (-1.31) | (-1.31) | (0.0%) | (0.0%) | (-13) | (-13) | 3 | (- [-, -]) |
 | continuation | third | exact_plain | C: exit only, no target | 1 | (-1.31) | (-1.31) | (0.0%) | (-) | (-13) | (-13) | 3 | (- [-, -]) |
 | continuation | third | exact_plain | D: one R or the exit | 1 | (-1.31) | (-1.31) | (0.0%) | (0.0%) | (-13) | (-13) | 3 | (- [-, -]) |
+| continuation | third | exact_plain | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 1 | (-1.31) | (-1.31) | (0.0%) | (0.0%) | (-13) | (-13) | 3 | (- [-, -]) |
 | continuation | third | exact_plain | reference: one R or the setup-bar stop, 5 bars | 1 | (-1.28) | (-1.28) | (0.0%) | (0.0%) | (-13) | (-13) | 5 | - |
-| continuation | third | near | A: all out at T1 | 9 | (+0.11) | (+0.13) | (100.0%) | (100.0%) | (+10) | (+0) | 4 | (+1.35 [-1.01, +3.71]) |
+| continuation | third | near | A: all out at T1 | 9 | (+0.11) | (+0.13) | (100.0%) | (100.0%) | (+10) | (+0) | 0 | (+1.35 [-1.01, +3.71]) |
 | continuation | third | near | B: hold through T2, exit rule live | 9 | (-2.30) | (-1.31) | (11.1%) | (0.0%) | (-207) | (-207) | 4 | (-1.06 [-2.24, +0.11]) |
 | continuation | third | near | C: exit only, no target | 9 | (-2.30) | (-1.31) | (11.1%) | (-) | (-207) | (-207) | 4 | (-1.06 [-2.24, +0.11]) |
-| continuation | third | near | D: one R or the exit | 9 | (-1.36) | (-1.18) | (33.3%) | (33.3%) | (-122) | (-183) | 4 | (-0.12 [-1.20, +0.96]) |
-| continuation | third | near | reference: one R or the setup-bar stop, 5 bars | 9 | (-1.24) | (-1.10) | (33.3%) | (22.2%) | (-111) | (-151) | 5 | - |
-| continuation | third | within1 | A: all out at T1 | 32 | +0.37 | +0.58 | 93.8% | 93.8% | +120 | -69 | 2 | -0.12 [-1.76, +1.51] |
+| continuation | third | near | D: one R or the exit | 9 | (-1.36) | (-1.18) | (33.3%) | (33.3%) | (-122) | (-183) | 1 | (-0.12 [-1.20, +0.96]) |
+| continuation | third | near | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 9 | (-1.37) | (-1.18) | (33.3%) | (33.3%) | (-124) | (-185) | 1 | (-0.14 [-1.22, +0.94]) |
+| continuation | third | near | reference: one R or the setup-bar stop, 5 bars | 9 | (-1.24) | (-1.10) | (33.3%) | (22.2%) | (-111) | (-151) | 1 | - |
+| continuation | third | within1 | A: all out at T1 | 32 | +0.37 | +0.58 | 93.8% | 93.8% | +120 | -69 | 0 | -0.12 [-1.76, +1.51] |
 | continuation | third | within1 | B: hold through T2, exit rule live | 32 | -2.04 | -2.41 | 25.0% | 6.2% | -652 | -678 | 2 | -2.54 [-4.19, -0.88] |
 | continuation | third | within1 | C: exit only, no target | 32 | -1.44 | -2.41 | 25.0% | - | -460 | -629 | 2 | -1.94 [-4.27, +0.40] |
-| continuation | third | within1 | D: one R or the exit | 32 | +0.09 | +1.90 | 62.5% | 59.4% | +30 | -335 | 2 | -0.41 [-1.65, +0.84] |
-| continuation | third | within1 | reference: one R or the setup-bar stop, 5 bars | 32 | +0.50 | +1.80 | 62.5% | 50.0% | +160 | -239 | 5 | - |
-| continuation | strict | plain | A: all out at T1 | 196 | +0.15 | -1.08 | 42.9% | 35.2% | +296 | -854 | 2 | -0.18 [-1.11, +0.75] |
+| continuation | third | within1 | D: one R or the exit | 32 | +0.09 | +1.90 | 62.5% | 59.4% | +30 | -335 | 0 | -0.41 [-1.65, +0.84] |
+| continuation | third | within1 | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 32 | +0.19 | +1.90 | 65.6% | 59.4% | +60 | -335 | 0 | -0.31 [-1.55, +0.93] |
+| continuation | third | within1 | reference: one R or the setup-bar stop, 5 bars | 32 | +0.50 | +1.80 | 62.5% | 50.0% | +160 | -239 | 1 | - |
+| continuation | strict | plain | A: all out at T1 | 196 | +0.15 | -1.08 | 42.9% | 35.2% | +296 | -854 | 1 | -0.18 [-1.11, +0.75] |
 | continuation | strict | plain | B: hold through T2, exit rule live | 196 | +0.61 | -2.53 | 30.6% | 5.1% | +1,199 | -1,466 | 2 | +0.28 [-1.65, +2.21] |
 | continuation | strict | plain | C: exit only, no target | 196 | +0.33 | -2.65 | 29.1% | - | +651 | -1,680 | 2 | +0.00 [-1.93, +1.94] |
-| continuation | strict | plain | D: one R or the exit | 196 | +0.39 | +0.30 | 50.5% | 48.0% | +764 | -612 | 2 | +0.06 [-0.64, +0.76] |
-| continuation | strict | plain | reference: one R or the setup-bar stop, 5 bars | 196 | +0.33 | -0.96 | 48.5% | 43.4% | +646 | -942 | 5 | - |
+| continuation | strict | plain | D: one R or the exit | 196 | +0.39 | +0.30 | 50.5% | 48.0% | +764 | -612 | 1 | +0.06 [-0.64, +0.76] |
+| continuation | strict | plain | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 196 | +0.40 | +0.96 | 51.5% | 45.9% | +781 | -551 | 1 | +0.07 [-0.62, +0.76] |
+| continuation | strict | plain | reference: one R or the setup-bar stop, 5 bars | 196 | +0.33 | -0.96 | 48.5% | 43.4% | +646 | -942 | 1 | - |
 | continuation | strict | plain | C on every unit (with or without a T1) | 224 | +0.48 | -2.66 | 29.5% | - | +1,071 | -2,080 | 2 | - |
 | continuation | strict | exact_shared | A: all out at T1 | 7 | (-4.15) | (-2.19) | (0.0%) | (0.0%) | (-291) | (-291) | 2 | (-4.38 [-7.06, -1.69]) |
 | continuation | strict | exact_shared | B: hold through T2, exit rule live | 7 | (-4.15) | (-2.19) | (0.0%) | (0.0%) | (-291) | (-291) | 2 | (-4.38 [-7.06, -1.69]) |
 | continuation | strict | exact_shared | C: exit only, no target | 7 | (-4.15) | (-2.19) | (0.0%) | (-) | (-291) | (-291) | 2 | (-4.38 [-7.06, -1.69]) |
-| continuation | strict | exact_shared | D: one R or the exit | 7 | (-0.15) | (+2.46) | (71.4%) | (71.4%) | (-10) | (-110) | 2 | (-0.37 [-2.46, +1.71]) |
-| continuation | strict | exact_shared | reference: one R or the setup-bar stop, 5 bars | 7 | (+0.22) | (+2.46) | (57.1%) | (57.1%) | (+16) | (-84) | 5 | - |
+| continuation | strict | exact_shared | D: one R or the exit | 7 | (-0.15) | (+2.46) | (71.4%) | (71.4%) | (-10) | (-110) | 0 | (-0.37 [-2.46, +1.71]) |
+| continuation | strict | exact_shared | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 7 | (-0.15) | (+2.46) | (71.4%) | (71.4%) | (-10) | (-110) | 0 | (-0.37 [-2.46, +1.71]) |
+| continuation | strict | exact_shared | reference: one R or the setup-bar stop, 5 bars | 7 | (+0.22) | (+2.46) | (57.1%) | (57.1%) | (+16) | (-84) | 0 | - |
 | continuation | strict | exact_shared | C on every unit (with or without a T1) | 9 | -1.45 | -2.10 | 11.1% | - | -130 | -226 | 2 | - |
 | continuation | strict | exact_plain | A: all out at T1 | 1 | (-1.31) | (-1.31) | (0.0%) | (0.0%) | (-13) | (-13) | 3 | (- [-, -]) |
 | continuation | strict | exact_plain | B: hold through T2, exit rule live | 1 | (-1.31) | (-1.31) | (0.0%) | (0.0%) | (-13) | (-13) | 3 | (- [-, -]) |
 | continuation | strict | exact_plain | C: exit only, no target | 1 | (-1.31) | (-1.31) | (0.0%) | (-) | (-13) | (-13) | 3 | (- [-, -]) |
 | continuation | strict | exact_plain | D: one R or the exit | 1 | (-1.31) | (-1.31) | (0.0%) | (0.0%) | (-13) | (-13) | 3 | (- [-, -]) |
+| continuation | strict | exact_plain | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 1 | (-1.31) | (-1.31) | (0.0%) | (0.0%) | (-13) | (-13) | 3 | (- [-, -]) |
 | continuation | strict | exact_plain | reference: one R or the setup-bar stop, 5 bars | 1 | (-1.28) | (-1.28) | (0.0%) | (0.0%) | (-13) | (-13) | 5 | - |
-| continuation | strict | near | A: all out at T1 | 4 | (+0.08) | (+0.07) | (100.0%) | (100.0%) | (+3) | (+0) | 4 | (+0.98 [-1.82, +3.77]) |
+| continuation | strict | near | A: all out at T1 | 4 | (+0.08) | (+0.07) | (100.0%) | (100.0%) | (+3) | (+0) | 0 | (+0.98 [-1.82, +3.77]) |
 | continuation | strict | near | B: hold through T2, exit rule live | 4 | (-2.00) | (-1.24) | (0.0%) | (0.0%) | (-80) | (-80) | 4 | (-1.10 [-3.00, +0.81]) |
 | continuation | strict | near | C: exit only, no target | 4 | (-2.00) | (-1.24) | (0.0%) | (-) | (-80) | (-80) | 4 | (-1.10 [-3.00, +0.81]) |
 | continuation | strict | near | D: one R or the exit | 4 | (-2.00) | (-1.24) | (0.0%) | (0.0%) | (-80) | (-80) | 4 | (-1.10 [-3.00, +0.81]) |
+| continuation | strict | near | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 4 | (-2.03) | (-1.24) | (0.0%) | (0.0%) | (-81) | (-81) | 4 | (-1.13 [-3.01, +0.74]) |
 | continuation | strict | near | reference: one R or the setup-bar stop, 5 bars | 4 | (-0.90) | (-1.06) | (25.0%) | (0.0%) | (-36) | (-41) | 5 | - |
-| continuation | strict | within1 | A: all out at T1 | 10 | (+0.14) | (+0.68) | (90.0%) | (90.0%) | (+14) | (-49) | 2 | (-1.24 [-2.78, +0.30]) |
+| continuation | strict | within1 | A: all out at T1 | 10 | (+0.14) | (+0.68) | (90.0%) | (90.0%) | (+14) | (-49) | 0 | (-1.24 [-2.78, +0.30]) |
 | continuation | strict | within1 | B: hold through T2, exit rule live | 10 | (-0.74) | (-1.10) | (30.0%) | (0.0%) | (-74) | (-100) | 2 | (-2.12 [-4.24, +0.00]) |
 | continuation | strict | within1 | C: exit only, no target | 10 | (-0.74) | (-1.10) | (30.0%) | (-) | (-74) | (-100) | 2 | (-2.12 [-4.24, +0.00]) |
-| continuation | strict | within1 | D: one R or the exit | 10 | (+0.64) | (+1.31) | (70.0%) | (60.0%) | (+64) | (-60) | 2 | (-0.75 [-2.61, +1.11]) |
-| continuation | strict | within1 | reference: one R or the setup-bar stop, 5 bars | 10 | (+1.39) | (+1.31) | (70.0%) | (50.0%) | (+139) | (-41) | 5 | - |
-| inside | third | plain | A: all out at T1 | 2,169 | +0.17 | +0.38 | 58.4% | 50.5% | +3,635 | -4,694 | 2 | +0.25 [-0.02, +0.52] |
-| inside | third | plain | B: hold through T2, exit rule live | 2,169 | -0.02 | -1.59 | 34.3% | 11.4% | -445 | -11,073 | 2 | +0.06 [-0.40, +0.53] |
+| continuation | strict | within1 | D: one R or the exit | 10 | (+0.64) | (+1.31) | (70.0%) | (60.0%) | (+64) | (-60) | 0 | (-0.75 [-2.61, +1.11]) |
+| continuation | strict | within1 | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 10 | (+0.94) | (+1.31) | (80.0%) | (60.0%) | (+94) | (-60) | 0 | (-0.45 [-2.24, +1.35]) |
+| continuation | strict | within1 | reference: one R or the setup-bar stop, 5 bars | 10 | (+1.39) | (+1.31) | (70.0%) | (50.0%) | (+139) | (-41) | 0 | - |
+| inside | third | plain | A: all out at T1 | 2,169 | +0.17 | +0.38 | 58.4% | 50.5% | +3,635 | -4,694 | 0 | +0.25 [-0.02, +0.52] |
+| inside | third | plain | B: hold through T2, exit rule live | 2,169 | -0.02 | -1.59 | 34.3% | 11.4% | -445 | -11,073 | 1 | +0.06 [-0.40, +0.53] |
 | inside | third | plain | C: exit only, no target | 2,169 | +0.01 | -1.82 | 30.9% | - | +281 | -14,550 | 2 | +0.10 [-0.43, +0.62] |
-| inside | third | plain | D: one R or the exit | 2,169 | +0.26 | +0.98 | 55.5% | 52.4% | +5,607 | -5,636 | 2 | +0.34 [+0.16, +0.52] |
-| inside | third | plain | reference: one R or the setup-bar stop, 5 bars | 2,169 | -0.08 | -0.66 | 47.9% | 46.0% | -1,784 | -3,735 | 5 | - |
+| inside | third | plain | D: one R or the exit | 2,169 | +0.26 | +0.98 | 55.5% | 52.4% | +5,607 | -5,636 | 1 | +0.34 [+0.16, +0.52] |
+| inside | third | plain | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 2,169 | +0.25 | +0.98 | 55.5% | 51.7% | +5,399 | -5,539 | 1 | +0.33 [+0.16, +0.51] |
+| inside | third | plain | reference: one R or the setup-bar stop, 5 bars | 2,169 | -0.08 | -0.66 | 47.9% | 46.0% | -1,784 | -3,735 | 1 | - |
 | inside | third | plain | C on every unit (with or without a T1) | 2,452 | +0.08 | -1.75 | 32.3% | - | +2,051 | -15,522 | 2 | - |
-| inside | third | near | A: all out at T1 | 17 | (+0.14) | (+0.13) | (100.0%) | (100.0%) | (+24) | (+0) | 5 | (-0.39 [-2.63, +1.85]) |
-| inside | third | near | B: hold through T2, exit rule live | 17 | (+1.36) | (-0.81) | (41.2%) | (5.9%) | (+232) | (-182) | 5 | (+0.83 [-2.40, +4.06]) |
+| inside | third | exact_plain | C on every unit (with or without a T1) | 2 | +11.51 | +11.51 | 100.0% | - | +230 | +0 | 8 | - |
+| inside | third | near | A: all out at T1 | 17 | (+0.14) | (+0.13) | (100.0%) | (100.0%) | (+24) | (+0) | 0 | (-0.39 [-2.63, +1.85]) |
+| inside | third | near | B: hold through T2, exit rule live | 17 | (+1.36) | (-0.81) | (41.2%) | (5.9%) | (+232) | (-182) | 2 | (+0.83 [-2.40, +4.06]) |
 | inside | third | near | C: exit only, no target | 17 | (+1.40) | (-0.81) | (41.2%) | (-) | (+238) | (-182) | 5 | (+0.86 [-2.37, +4.09]) |
-| inside | third | near | D: one R or the exit | 17 | (+0.77) | (+0.94) | (70.6%) | (70.6%) | (+131) | (-185) | 5 | (+0.24 [-0.61, +1.08]) |
-| inside | third | near | reference: one R or the setup-bar stop, 5 bars | 17 | (+0.53) | (+0.32) | (58.8%) | (47.1%) | (+91) | (-159) | 5 | - |
-| inside | third | within1 | A: all out at T1 | 86 | -0.06 | +0.45 | 87.2% | 86.0% | -53 | -259 | 2 | +0.71 [-0.30, +1.71] |
-| inside | third | within1 | B: hold through T2, exit rule live | 86 | -1.55 | -1.26 | 34.9% | 19.8% | -1,336 | -1,442 | 2 | -0.79 [-2.15, +0.58] |
+| inside | third | near | D: one R or the exit | 17 | (+0.77) | (+0.94) | (70.6%) | (70.6%) | (+131) | (-185) | 0 | (+0.24 [-0.61, +1.08]) |
+| inside | third | near | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 17 | (+0.75) | (+0.94) | (70.6%) | (64.7%) | (+127) | (-185) | 0 | (+0.21 [-0.63, +1.06]) |
+| inside | third | near | reference: one R or the setup-bar stop, 5 bars | 17 | (+0.53) | (+0.32) | (58.8%) | (47.1%) | (+91) | (-159) | 0 | - |
+| inside | third | within1 | A: all out at T1 | 86 | -0.06 | +0.45 | 87.2% | 86.0% | -53 | -259 | 0 | +0.71 [-0.30, +1.71] |
+| inside | third | within1 | B: hold through T2, exit rule live | 86 | -1.55 | -1.26 | 34.9% | 19.8% | -1,336 | -1,442 | 1 | -0.79 [-2.15, +0.58] |
 | inside | third | within1 | C: exit only, no target | 86 | -1.82 | -1.73 | 24.4% | - | -1,561 | -1,675 | 2 | -1.05 [-2.42, +0.32] |
-| inside | third | within1 | D: one R or the exit | 86 | -0.37 | +0.18 | 51.2% | 50.0% | -320 | -814 | 2 | +0.39 [-0.42, +1.21] |
-| inside | third | within1 | reference: one R or the setup-bar stop, 5 bars | 86 | -0.77 | -0.47 | 41.9% | 40.7% | -660 | -948 | 5 | - |
+| inside | third | within1 | D: one R or the exit | 86 | -0.37 | +0.18 | 51.2% | 50.0% | -320 | -814 | 0 | +0.39 [-0.42, +1.21] |
+| inside | third | within1 | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 86 | -0.47 | +0.05 | 50.0% | 48.8% | -406 | -808 | 0 | +0.30 [-0.48, +1.07] |
+| inside | third | within1 | reference: one R or the setup-bar stop, 5 bars | 86 | -0.77 | -0.47 | 41.9% | 40.7% | -660 | -948 | 0 | - |
 | inside | third | within1 | C on every unit (with or without a T1) | 87 | -1.82 | -1.85 | 24.1% | - | -1,584 | -1,698 | 2 | - |
-| inside | strict | plain | A: all out at T1 | 880 | +0.42 | +0.55 | 60.2% | 52.6% | +3,667 | -1,804 | 2 | +0.17 [-0.27, +0.61] |
-| inside | strict | plain | B: hold through T2, exit rule live | 880 | +0.30 | -1.47 | 34.7% | 12.8% | +2,629 | -5,011 | 2 | +0.05 [-0.55, +0.65] |
+| inside | strict | plain | A: all out at T1 | 880 | +0.42 | +0.55 | 60.2% | 52.6% | +3,667 | -1,804 | 0 | +0.17 [-0.27, +0.61] |
+| inside | strict | plain | B: hold through T2, exit rule live | 880 | +0.30 | -1.47 | 34.7% | 12.8% | +2,629 | -5,011 | 1 | +0.05 [-0.55, +0.65] |
 | inside | strict | plain | C: exit only, no target | 880 | +0.52 | -1.81 | 30.9% | - | +4,538 | -5,044 | 2 | +0.27 [-0.50, +1.03] |
-| inside | strict | plain | D: one R or the exit | 880 | +0.50 | +1.12 | 56.2% | 54.5% | +4,441 | -3,166 | 2 | +0.26 [-0.02, +0.54] |
-| inside | strict | plain | reference: one R or the setup-bar stop, 5 bars | 880 | +0.25 | -0.26 | 49.5% | 48.0% | +2,186 | -2,053 | 5 | - |
+| inside | strict | plain | D: one R or the exit | 880 | +0.50 | +1.12 | 56.2% | 54.5% | +4,441 | -3,166 | 1 | +0.26 [-0.02, +0.54] |
+| inside | strict | plain | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 880 | +0.52 | +1.13 | 56.6% | 53.8% | +4,542 | -3,091 | 1 | +0.27 [-0.01, +0.54] |
+| inside | strict | plain | reference: one R or the setup-bar stop, 5 bars | 880 | +0.25 | -0.26 | 49.5% | 48.0% | +2,186 | -2,053 | 1 | - |
 | inside | strict | plain | C on every unit (with or without a T1) | 989 | +0.60 | -1.75 | 32.1% | - | +5,975 | -4,852 | 2 | - |
-| inside | strict | near | A: all out at T1 | 6 | (+0.12) | (+0.10) | (100.0%) | (100.0%) | (+7) | (+0) | 6 | (-3.15 [-6.09, -0.21]) |
+| inside | strict | exact_plain | C on every unit (with or without a T1) | 2 | +11.51 | +11.51 | 100.0% | - | +230 | +0 | 8 | - |
+| inside | strict | near | A: all out at T1 | 6 | (+0.12) | (+0.10) | (100.0%) | (100.0%) | (+7) | (+0) | 0 | (-3.15 [-6.09, -0.21]) |
 | inside | strict | near | B: hold through T2, exit rule live | 6 | (+1.67) | (+0.12) | (66.7%) | (16.7%) | (+100) | (-20) | 6 | (-1.59 [-5.06, +1.87]) |
 | inside | strict | near | C: exit only, no target | 6 | (+1.77) | (+0.41) | (66.7%) | (-) | (+106) | (-15) | 6 | (-1.50 [-5.00, +2.00]) |
-| inside | strict | near | D: one R or the exit | 6 | (+3.43) | (+2.45) | (100.0%) | (100.0%) | (+206) | (+0) | 6 | (+0.17 [-0.05, +0.38]) |
-| inside | strict | near | reference: one R or the setup-bar stop, 5 bars | 6 | (+3.27) | (+2.31) | (83.3%) | (66.7%) | (+196) | (-3) | 5 | - |
-| inside | strict | within1 | A: all out at T1 | 42 | -0.38 | +0.49 | 83.3% | 81.0% | -159 | -195 | 2 | +0.20 [-1.19, +1.59] |
+| inside | strict | near | D: one R or the exit | 6 | (+3.43) | (+2.45) | (100.0%) | (100.0%) | (+206) | (+0) | 0 | (+0.17 [-0.05, +0.38]) |
+| inside | strict | near | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 6 | (+3.37) | (+2.31) | (100.0%) | (83.3%) | (+202) | (+0) | 0 | (+0.10 [-0.09, +0.29]) |
+| inside | strict | near | reference: one R or the setup-bar stop, 5 bars | 6 | (+3.27) | (+2.31) | (83.3%) | (66.7%) | (+196) | (-3) | 0 | - |
+| inside | strict | within1 | A: all out at T1 | 42 | -0.38 | +0.49 | 83.3% | 81.0% | -159 | -195 | 0 | +0.20 [-1.19, +1.59] |
 | inside | strict | within1 | B: hold through T2, exit rule live | 42 | -1.48 | -1.45 | 35.7% | 16.7% | -623 | -709 | 2 | -0.91 [-2.72, +0.91] |
 | inside | strict | within1 | C: exit only, no target | 42 | -2.26 | -2.22 | 26.2% | - | -948 | -971 | 2 | -1.68 [-3.39, +0.03] |
-| inside | strict | within1 | D: one R or the exit | 42 | -1.08 | -0.66 | 45.2% | 45.2% | -453 | -550 | 2 | -0.50 [-1.61, +0.61] |
-| inside | strict | within1 | reference: one R or the setup-bar stop, 5 bars | 42 | -0.58 | -0.83 | 35.7% | 35.7% | -242 | -423 | 5 | - |
+| inside | strict | within1 | D: one R or the exit | 42 | -1.08 | -0.66 | 45.2% | 45.2% | -453 | -550 | 0 | -0.50 [-1.61, +0.61] |
+| inside | strict | within1 | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 42 | -1.08 | -0.66 | 45.2% | 45.2% | -453 | -550 | 0 | -0.50 [-1.61, +0.61] |
+| inside | strict | within1 | reference: one R or the setup-bar stop, 5 bars | 42 | -0.58 | -0.83 | 35.7% | 35.7% | -242 | -423 | 0 | - |
 | inside | strict | within1 | C on every unit (with or without a T1) | 43 | -2.26 | -2.24 | 25.6% | - | -971 | -994 | 2 | - |
-| outside | third | plain | A: all out at T1 | 697 | +0.28 | -0.19 | 49.2% | 35.7% | +1,941 | -3,915 | 2 | -0.04 [-0.56, +0.49] |
+| outside | third | plain | A: all out at T1 | 697 | +0.28 | -0.19 | 49.2% | 35.7% | +1,941 | -3,915 | 1 | -0.04 [-0.56, +0.49] |
 | outside | third | plain | B: hold through T2, exit rule live | 697 | +0.40 | -1.45 | 38.5% | 5.9% | +2,800 | -4,670 | 2 | +0.09 [-0.51, +0.68] |
 | outside | third | plain | C: exit only, no target | 697 | +0.22 | -1.51 | 37.2% | - | +1,531 | -5,145 | 2 | -0.09 [-0.70, +0.51] |
-| outside | third | plain | D: one R or the exit | 697 | +0.49 | -0.55 | 46.6% | 37.0% | +3,433 | -3,256 | 2 | +0.18 [-0.24, +0.60] |
-| outside | third | plain | reference: one R or the setup-bar stop, 5 bars | 697 | +0.31 | +1.33 | 53.5% | 39.5% | +2,189 | -3,192 | 5 | - |
+| outside | third | plain | D: one R or the exit | 697 | +0.49 | -0.55 | 46.6% | 37.0% | +3,433 | -3,256 | 1 | +0.18 [-0.24, +0.60] |
+| outside | third | plain | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 697 | +0.46 | -0.46 | 47.6% | 35.0% | +3,198 | -3,021 | 1 | +0.14 [-0.25, +0.54] |
+| outside | third | plain | reference: one R or the setup-bar stop, 5 bars | 697 | +0.31 | +1.33 | 53.5% | 39.5% | +2,189 | -3,192 | 2 | - |
 | outside | third | plain | C on every unit (with or without a T1) | 802 | +0.18 | -1.52 | 37.4% | - | +1,417 | -6,092 | 2 | - |
-| outside | third | exact_shared | A: all out at T1 | 21 | (+0.18) | (-3.42) | (23.8%) | (19.0%) | (+38) | (-674) | 1 | (+3.10 [-1.33, +7.53]) |
+| outside | third | exact_shared | A: all out at T1 | 21 | (+0.18) | (-3.42) | (23.8%) | (19.0%) | (+38) | (-674) | 0 | (+3.10 [-1.33, +7.53]) |
 | outside | third | exact_shared | B: hold through T2, exit rule live | 21 | (-2.94) | (-3.66) | (19.0%) | (0.0%) | (-618) | (-977) | 1 | (-0.02 [-3.04, +3.00]) |
 | outside | third | exact_shared | C: exit only, no target | 21 | (-2.94) | (-3.66) | (19.0%) | (-) | (-618) | (-977) | 1 | (-0.02 [-3.04, +3.00]) |
-| outside | third | exact_shared | D: one R or the exit | 21 | (-1.66) | (-3.42) | (28.6%) | (23.8%) | (-350) | (-792) | 1 | (+1.26 [-1.39, +3.91]) |
-| outside | third | exact_shared | reference: one R or the setup-bar stop, 5 bars | 21 | (-2.92) | (-4.88) | (38.1%) | (28.6%) | (-614) | (-1,024) | 5 | - |
+| outside | third | exact_shared | D: one R or the exit | 21 | (-1.66) | (-3.42) | (28.6%) | (23.8%) | (-350) | (-792) | 0 | (+1.26 [-1.39, +3.91]) |
+| outside | third | exact_shared | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 21 | (-1.82) | (-3.42) | (28.6%) | (23.8%) | (-381) | (-792) | 0 | (+1.11 [-1.54, +3.75]) |
+| outside | third | exact_shared | reference: one R or the setup-bar stop, 5 bars | 21 | (-2.92) | (-4.88) | (38.1%) | (28.6%) | (-614) | (-1,024) | 1 | - |
 | outside | third | exact_shared | C on every unit (with or without a T1) | 32 | -0.95 | -3.39 | 25.0% | - | -303 | -970 | 0 | - |
-| outside | third | near | A: all out at T1 | 19 | (+0.14) | (+0.17) | (100.0%) | (100.0%) | (+26) | (+0) | 2 | (+1.88 [+0.19, +3.56]) |
+| outside | third | near | A: all out at T1 | 19 | (+0.14) | (+0.17) | (100.0%) | (100.0%) | (+26) | (+0) | 0 | (+1.88 [+0.19, +3.56]) |
 | outside | third | near | B: hold through T2, exit rule live | 19 | (-1.59) | (-1.83) | (26.3%) | (10.5%) | (-303) | (-542) | 2 | (+0.14 [-3.16, +3.44]) |
 | outside | third | near | C: exit only, no target | 19 | (-1.23) | (-1.83) | (26.3%) | (-) | (-234) | (-542) | 2 | (+0.51 [-2.92, +3.93]) |
-| outside | third | near | D: one R or the exit | 19 | (-2.25) | (-1.83) | (31.6%) | (31.6%) | (-427) | (-501) | 2 | (-0.51 [-3.50, +2.48]) |
-| outside | third | near | reference: one R or the setup-bar stop, 5 bars | 19 | (-1.74) | (-2.67) | (36.8%) | (26.3%) | (-330) | (-356) | 5 | - |
-| outside | third | within1 | A: all out at T1 | 53 | -0.36 | +0.50 | 79.2% | 77.4% | -190 | -263 | 2 | +1.07 [-0.63, +2.77] |
+| outside | third | near | D: one R or the exit | 19 | (-2.25) | (-1.83) | (31.6%) | (31.6%) | (-427) | (-501) | 1 | (-0.51 [-3.50, +2.48]) |
+| outside | third | near | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 19 | (-2.69) | (-1.83) | (31.6%) | (26.3%) | (-512) | (-537) | 1 | (-0.96 [-3.78, +1.87]) |
+| outside | third | near | reference: one R or the setup-bar stop, 5 bars | 19 | (-1.74) | (-2.67) | (36.8%) | (26.3%) | (-330) | (-356) | 1 | - |
+| outside | third | within1 | A: all out at T1 | 53 | -0.36 | +0.50 | 79.2% | 77.4% | -190 | -263 | 0 | +1.07 [-0.63, +2.77] |
 | outside | third | within1 | B: hold through T2, exit rule live | 53 | +0.13 | -2.37 | 34.0% | 9.4% | +67 | -894 | 2 | +1.56 [-1.66, +4.77] |
 | outside | third | within1 | C: exit only, no target | 53 | -0.09 | -2.37 | 30.2% | - | -46 | -1,007 | 2 | +1.34 [-1.87, +4.56] |
-| outside | third | within1 | D: one R or the exit | 53 | -0.75 | -1.22 | 45.3% | 41.5% | -399 | -907 | 2 | +0.68 [-0.56, +1.91] |
-| outside | third | within1 | reference: one R or the setup-bar stop, 5 bars | 53 | -1.43 | -1.36 | 41.5% | 32.1% | -758 | -1,017 | 5 | - |
+| outside | third | within1 | D: one R or the exit | 53 | -0.75 | -1.22 | 45.3% | 41.5% | -399 | -907 | 1 | +0.68 [-0.56, +1.91] |
+| outside | third | within1 | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 53 | -0.64 | -0.48 | 47.2% | 41.5% | -337 | -907 | 1 | +0.79 [-0.41, +2.00] |
+| outside | third | within1 | reference: one R or the setup-bar stop, 5 bars | 53 | -1.43 | -1.36 | 41.5% | 32.1% | -758 | -1,017 | 1 | - |
 | outside | third | within1 | C on every unit (with or without a T1) | 54 | -0.10 | -2.36 | 29.6% | - | -56 | -1,017 | 2 | - |
-| outside | strict | plain | A: all out at T1 | 271 | +0.59 | +1.14 | 53.9% | 41.3% | +1,606 | -1,420 | 2 | -0.18 [-1.04, +0.68] |
+| outside | strict | plain | A: all out at T1 | 271 | +0.59 | +1.14 | 53.9% | 41.3% | +1,606 | -1,420 | 0 | -0.18 [-1.04, +0.68] |
 | outside | strict | plain | B: hold through T2, exit rule live | 271 | +1.20 | -0.73 | 42.4% | 8.5% | +3,253 | -1,765 | 2 | +0.43 [-0.61, +1.47] |
 | outside | strict | plain | C: exit only, no target | 271 | +0.67 | -0.88 | 39.9% | - | +1,820 | -2,343 | 2 | -0.10 [-1.12, +0.92] |
-| outside | strict | plain | D: one R or the exit | 271 | +0.72 | +0.08 | 50.2% | 39.1% | +1,942 | -963 | 2 | -0.05 [-0.78, +0.67] |
-| outside | strict | plain | reference: one R or the setup-bar stop, 5 bars | 271 | +0.77 | +2.57 | 59.0% | 43.5% | +2,089 | -1,529 | 5 | - |
+| outside | strict | plain | D: one R or the exit | 271 | +0.72 | +0.08 | 50.2% | 39.1% | +1,942 | -963 | 1 | -0.05 [-0.78, +0.67] |
+| outside | strict | plain | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 271 | +0.76 | +0.56 | 52.0% | 37.3% | +2,070 | -742 | 1 | -0.01 [-0.69, +0.68] |
+| outside | strict | plain | reference: one R or the setup-bar stop, 5 bars | 271 | +0.77 | +2.57 | 59.0% | 43.5% | +2,089 | -1,529 | 2 | - |
 | outside | strict | plain | C on every unit (with or without a T1) | 307 | +0.13 | -1.26 | 37.5% | - | +385 | -3,157 | 2 | - |
 | outside | strict | exact_shared | A: all out at T1 | 10 | (+3.57) | (-3.20) | (30.0%) | (30.0%) | (+357) | (-331) | 0 | (+7.29 [-0.29, +14.86]) |
 | outside | strict | exact_shared | B: hold through T2, exit rule live | 10 | (-3.47) | (-3.54) | (20.0%) | (0.0%) | (-347) | (-634) | 0 | (+0.25 [-4.60, +5.09]) |
 | outside | strict | exact_shared | C: exit only, no target | 10 | (-3.47) | (-3.54) | (20.0%) | (-) | (-347) | (-634) | 0 | (+0.25 [-4.60, +5.09]) |
 | outside | strict | exact_shared | D: one R or the exit | 10 | (-2.68) | (-3.54) | (20.0%) | (10.0%) | (-268) | (-634) | 0 | (+1.04 [-3.47, +5.55]) |
-| outside | strict | exact_shared | reference: one R or the setup-bar stop, 5 bars | 10 | (-3.72) | (-5.81) | (20.0%) | (10.0%) | (-372) | (-707) | 5 | - |
+| outside | strict | exact_shared | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 10 | (-2.99) | (-3.54) | (20.0%) | (10.0%) | (-299) | (-634) | 0 | (+0.73 [-3.76, +5.22]) |
+| outside | strict | exact_shared | reference: one R or the setup-bar stop, 5 bars | 10 | (-3.72) | (-5.81) | (20.0%) | (10.0%) | (-372) | (-707) | 2 | - |
 | outside | strict | exact_shared | C on every unit (with or without a T1) | 18 | -1.14 | -3.54 | 22.2% | - | -206 | -801 | 0 | - |
-| outside | strict | near | A: all out at T1 | 7 | (+0.10) | (+0.06) | (100.0%) | (100.0%) | (+7) | (+0) | 3 | (+1.86 [-0.74, +4.46]) |
+| outside | strict | near | A: all out at T1 | 7 | (+0.10) | (+0.06) | (100.0%) | (100.0%) | (+7) | (+0) | 0 | (+1.86 [-0.74, +4.46]) |
 | outside | strict | near | B: hold through T2, exit rule live | 7 | (+0.20) | (-3.63) | (28.6%) | (14.3%) | (+14) | (-98) | 3 | (+1.96 [-1.80, +5.72]) |
 | outside | strict | near | C: exit only, no target | 7 | (-0.44) | (-3.63) | (28.6%) | (-) | (-31) | (-98) | 3 | (+1.32 [-1.23, +3.88]) |
 | outside | strict | near | D: one R or the exit | 7 | (-0.74) | (-3.63) | (28.6%) | (28.6%) | (-52) | (-98) | 3 | (+1.02 [-1.48, +3.52]) |
+| outside | strict | near | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 7 | (-1.95) | (-3.63) | (28.6%) | (14.3%) | (-136) | (-136) | 3 | (-0.18 [-0.81, +0.44]) |
 | outside | strict | near | reference: one R or the setup-bar stop, 5 bars | 7 | (-1.77) | (-2.08) | (42.9%) | (14.3%) | (-124) | (-124) | 5 | - |
-| outside | strict | within1 | A: all out at T1 | 17 | (-0.85) | (+0.36) | (70.6%) | (70.6%) | (-144) | (-197) | 1 | (+0.29 [-1.71, +2.30]) |
-| outside | strict | within1 | B: hold through T2, exit rule live | 17 | (-0.68) | (-2.35) | (35.3%) | (17.6%) | (-116) | (-251) | 1 | (+0.46 [-1.10, +2.01]) |
+| outside | strict | within1 | A: all out at T1 | 17 | (-0.85) | (+0.36) | (70.6%) | (70.6%) | (-144) | (-197) | 0 | (+0.29 [-1.71, +2.30]) |
+| outside | strict | within1 | B: hold through T2, exit rule live | 17 | (-0.68) | (-2.35) | (35.3%) | (17.6%) | (-116) | (-251) | 0 | (+0.46 [-1.10, +2.01]) |
 | outside | strict | within1 | C: exit only, no target | 17 | (-0.83) | (-2.35) | (29.4%) | (-) | (-141) | (-251) | 1 | (+0.31 [-1.20, +1.81]) |
-| outside | strict | within1 | D: one R or the exit | 17 | (-0.53) | (-1.22) | (47.1%) | (41.2%) | (-90) | (-215) | 1 | (+0.61 [-0.02, +1.23]) |
-| outside | strict | within1 | reference: one R or the setup-bar stop, 5 bars | 17 | (-1.14) | (-1.75) | (35.3%) | (29.4%) | (-193) | (-275) | 5 | - |
+| outside | strict | within1 | D: one R or the exit | 17 | (-0.53) | (-1.22) | (47.1%) | (41.2%) | (-90) | (-215) | 0 | (+0.61 [-0.02, +1.23]) |
+| outside | strict | within1 | D5: one R or the exit, five-bar horizon (the stop-isolating line) | 17 | (-0.53) | (-1.22) | (47.1%) | (41.2%) | (-90) | (-215) | 0 | (+0.61 [-0.02, +1.23]) |
+| outside | strict | within1 | reference: one R or the setup-bar stop, 5 bars | 17 | (-1.14) | (-1.75) | (35.3%) | (29.4%) | (-193) | (-275) | 0 | - |
 
-Same rows for all five books: units with a T1 and a 5-bar reference return. One unit of notional per trade, long or short as the break, no leverage, fees, funding or slippage, every trade taken, no compounding; open trades marked at the cap's close (day 20), the reference at its fifth bar. Dollar columns are the SUM of equal-size trades at 1,000 dollars each, not an account balance. 'Minus reference' is the paired per-trade difference against the chance book on the identical units, with a normal 95% interval; the holding periods differ (shown), so A / B / C against the reference is rule against rule, while D changes only the loss side.
+Same rows for all six books: units with a T1 and a 5-bar reference return. One unit of notional per trade, long or short as the break, no leverage, fees, funding or slippage, every trade taken, no compounding; open trades marked at the cap's close (day 20), D5 and the reference at the fifth bar of the unit's timeframe. Median days = each book's own holding time (the day its target filled, else its exit or mark day). Dollar columns are the SUM of equal-size trades at 1,000 dollars each, not an account balance. 'Minus reference' is the paired per-trade difference against the chance book on the identical units, with a normal 95% interval; the holding periods differ (shown), so A / B / C against the reference is rule against rule, while D changes only the loss side.
 
 ### Fork 1: the measured move beside the level, daily units
 
@@ -799,16 +892,16 @@ Fork 2, declared variant: M units at a cap of 20 of their own bars, the headline
 
 ### Hypotheses, read as declared (plain daily units)
 
-| setup | H2: book D minus the reference, avg % per trade [95%] | n | H3: pre-T1 exits that touched T1 later inside the cap | book D: exited before one R, touched one R later | chance book: stopped then saw one R |
-|---|---|---|---|---|---|
-| reversal | +0.93 [+0.87, +0.98] | 43,209 | 62.7% [62, 63] n=15,709 | 56.6% [56, 57] n=24,162 | 35.9% [35, 37] n=22,356 |
-| continuation | +0.46 [+0.41, +0.51] | 44,673 | 32.8% [32, 33] n=28,585 | 47.0% [46, 48] n=29,672 | 28.9% [28, 30] n=21,187 |
-| inside | +0.76 [+0.70, +0.82] | 27,623 | 47.8% [47, 49] n=12,849 | 60.9% [60, 62] n=14,228 | 47.5% [47, 48] n=15,186 |
-| outside | +0.45 [+0.34, +0.56] | 11,050 | 35.9% [35, 37] n=6,809 | 45.3% [44, 46] n=7,474 | 23.8% [23, 25] n=4,680 |
+| setup | n | H2: D5 minus the reference (same target, same five-bar horizon, only the stop swapped) [95%] | D minus the reference (20-day cap) [95%] | H3: D5 exited before one R, touched one R inside the five bars | chance book: stopped, saw one R inside the five bars | D exited before one R, touched one R inside 20 days (complete follow-up only) | pre-T1 exits that touched T1 inside 20 days (complete follow-up only) |
+|---|---|---|---|---|---|---|---|
+| reversal | 43,209 | +0.92 [+0.86, +0.97] | +0.93 [+0.87, +0.98] | 25.0% [24, 26] n=23,262 | 35.9% [35, 37] n=22,356 | 58.6% [58, 59] n=23,278 | 65.1% [64, 66] n=15,126 |
+| continuation | 44,673 | +0.51 [+0.46, +0.56] | +0.46 [+0.41, +0.51] | 17.7% [17, 18] n=21,622 | 28.9% [28, 30] n=21,187 | 50.8% [50, 51] n=23,369 | 33.6% [33, 34] n=27,970 |
+| inside | 27,623 | +0.76 [+0.70, +0.82] | +0.76 [+0.70, +0.82] | 32.4% [32, 33] n=12,784 | 47.5% [47, 48] n=15,186 | 63.8% [63, 65] n=12,669 | 49.8% [49, 51] n=12,341 |
+| outside | 11,050 | +0.48 [+0.38, +0.59] | +0.45 [+0.34, +0.56] | 15.8% [15, 17] n=5,751 | 23.8% [23, 25] n=4,680 | 48.9% [48, 50] n=6,264 | 37.2% [36, 38] n=6,561 |
 
-H2 (the owner's suspect): swapping the setup-bar stop for the close exit lifts the average trade of every plain daily pattern -- read the sign and the interval per row. H3 (the lead's counter): the close exit is itself an early exit at least as often as the stop was -- compare the book D column (same one-R target, exit in place of the stop) with the chance book's column; the T1 column is the same question against the pattern's own magnitude. Neither promotes anything.
+H2 (the owner's suspect): swapping the setup-bar stop for the close exit lifts the average trade of every plain daily pattern -- D5 is the stop-isolating read (same target, same horizon, same mark day as the reference; audit F2); D adds the longer horizon. H3 (the lead's counter): the close exit is itself an early exit at least as often as the stop was -- compare D5's column with the chance book's (same cohort: units with a T1; same five-bar window); the two right-hand columns are the 20-day reads on the units whose follow-up is complete (audit F3). Neither promotes anything.
 
-### Splits, D units, plain class (entry-time context only)
+### Splits, D units, plain class (entry-time context, one retrospective label, one outcome-side split)
 
 | split | value | setup | n | T1 before the exit | book A avg % | book C avg % | book D avg % | reference avg % |
 |---|---|---|---|---|---|---|---|---|
@@ -832,10 +925,10 @@ H2 (the owner's suspect): swapping the setup-bar stop for the close exit lifts t
 | year | 2025 | continuation | 15,490 | 33.3% [33, 34] n=15,490 | -0.97 | -1.26 | -0.32 | -0.61 |
 | year | 2025 | inside | 8,958 | 55.0% [54, 56] n=8,958 | +0.22 | -0.03 | +0.46 | -0.42 |
 | year | 2025 | outside | 3,467 | 40.4% [39, 42] n=3,467 | -0.03 | -0.24 | +0.32 | -0.19 |
-| year | 2026 | reversal | 16,778 | 65.1% [64, 66] n=16,778 | +0.04 | +0.15 | +0.12 | -0.63 |
-| year | 2026 | continuation | 16,438 | 36.5% [36, 37] n=16,438 | +0.04 | -0.21 | +0.18 | -0.24 |
+| year | 2026 | reversal | 16,778 | 65.1% [64, 66] n=16,778 | +0.04 | +0.15 | +0.13 | -0.63 |
+| year | 2026 | continuation | 16,438 | 36.5% [36, 37] n=16,438 | +0.04 | -0.21 | +0.19 | -0.24 |
 | year | 2026 | inside | 11,418 | 51.1% [50, 52] n=11,418 | -0.11 | -0.41 | +0.06 | -0.55 |
-| year | 2026 | outside | 4,487 | 38.4% [37, 40] n=4,487 | -0.03 | +0.04 | +0.17 | -0.09 |
+| year | 2026 | outside | 4,487 | 38.4% [37, 40] n=4,487 | -0.03 | +0.04 | +0.18 | -0.09 |
 | liquid | False | reversal | 22,946 | 63.8% [63, 64] n=22,946 | -0.00 | +0.24 | +0.19 | -0.85 |
 | liquid | False | continuation | 23,825 | 36.6% [36, 37] n=23,825 | -0.24 | -0.38 | +0.06 | -0.42 |
 | liquid | False | inside | 14,707 | 54.3% [54, 55] n=14,707 | +0.07 | +0.04 | +0.33 | -0.50 |
@@ -855,10 +948,10 @@ H2 (the owner's suspect): swapping the setup-bar stop for the close exit lifts t
 | m_support | with | reversal | 20,968 | 65.9% [65, 67] n=20,968 | -0.06 | +0.33 | +0.08 | -0.89 |
 | m_support | with | continuation | 26,634 | 40.4% [40, 41] n=26,634 | -0.28 | -0.28 | -0.00 | -0.39 |
 | m_support | with | inside | 13,771 | 55.4% [55, 56] n=13,771 | +0.07 | +0.02 | +0.24 | -0.52 |
-| m_support | with | outside | 6,262 | 43.7% [42, 45] n=6,262 | +0.09 | +0.41 | +0.26 | -0.21 |
+| m_support | with | outside | 6,262 | 43.7% [42, 45] n=6,262 | +0.09 | +0.41 | +0.27 | -0.21 |
 | w_support | against | reversal | 16,757 | 50.4% [50, 51] n=16,757 | -0.19 | +0.13 | -0.16 | -0.99 |
 | w_support | against | continuation | 5,644 | 14.7% [14, 16] n=5,644 | -0.49 | -0.53 | -0.24 | -0.85 |
-| w_support | against | inside | 9,961 | 49.8% [49, 51] n=9,961 | +0.18 | +0.16 | +0.37 | -0.26 |
+| w_support | against | inside | 9,961 | 49.8% [49, 51] n=9,961 | +0.18 | +0.16 | +0.38 | -0.26 |
 | w_support | against | outside | 1,224 | 18.7% [17, 21] n=1,224 | -0.16 | +0.16 | -0.34 | -0.67 |
 | w_support | with | reversal | 26,452 | 72.3% [72, 73] n=26,452 | +0.04 | +0.28 | +0.24 | -0.75 |
 | w_support | with | continuation | 39,029 | 39.4% [39, 40] n=39,029 | -0.19 | -0.20 | +0.05 | -0.39 |
@@ -872,3 +965,5 @@ H2 (the owner's suspect): swapping the setup-bar stop for the close exit lifts t
 | stop0 | True | continuation | 8,742 | 23.1% [22, 24] n=8,742 | -3.08 | -3.26 | -2.94 | -5.46 |
 | stop0 | True | inside | 8,797 | 40.5% [39, 42] n=8,797 | -1.69 | -2.32 | -1.90 | -4.32 |
 | stop0 | True | outside | 1,594 | 27.5% [25, 30] n=1,594 | -2.70 | -3.08 | -2.47 | -5.93 |
+
+direction, year, m_support and w_support are known at the break. `liquid` is the census's snapshot label (median notional over the LAST 30 days of the data), inherited for parity with products 1 and 2 and RETROSPECTIVE: a trader at a 2024 break did not know it (audit F6). `stop0` (the entry day traded through the far side of the setup bar, the chance book's pessimistic stop) is decided by the entry day's own travel and is OUTCOME-SIDE: it shows what the invalidation was worth, it is not a filter a trader at the break could apply.

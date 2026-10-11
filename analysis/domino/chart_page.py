@@ -38,7 +38,7 @@ CLS_LABEL = {
 BASE_LABEL = {"plain": "plain", "within1 + spread": "the rest (within 1% + spread)"}
 
 
-BOOK_KEYS = ("A", "B", "C", "D", "ref")
+BOOK_KEYS = ("A", "B", "C", "D", "D5", "ref")
 
 
 def management_data(m: dict) -> dict:
@@ -96,14 +96,22 @@ def management_data(m: dict) -> dict:
                 )
             if cls == "plain":
                 d = c["diff"]["D_minus_ref"]
+                d5 = c["diff"]["D5_minus_ref"]
                 died = c["died"]
+                # every share carries its own denominator; the row fades when the paired n is
+                # small and each share cell fades on its own n (audit F8)
                 hyp.append(
                     {
                         "setup": KIND_LABEL[kind],
-                        "n": d["n"],
+                        "n": d5["n"],
+                        "small": d5["n"] < MIN_CELL,
+                        "diff5": d5["diff"],
+                        "lo5": d5["lo"],
+                        "hi5": d5["hi"],
                         "diff": d["diff"],
                         "lo": d["lo"],
                         "hi": d["hi"],
+                        "later_r5": c["died_r"]["later_r5"],
                         "later1": died["later1"],
                         "stop_saw": died["stop_saw"],
                         "tail1": c["tail"]["mae_gt1"],
@@ -327,7 +335,7 @@ tr.small td { opacity: 0.45; }
 
 <section id="manageCurves" hidden>
   <h2>Five books on the same trades: plain daily setups</h2>
-  <p class="read">A takes everything off at T1. B passes through T1 and takes T2 (or the exit). C has no target, the exit only. D keeps the chance book's one-R target and swaps the stop for the close exit: only the loss side changes. The reference is the chance book itself (one R or the setup-bar stop, marked at the fifth bar) on the identical trades. Each trade's final return sits on its ENTRY date; the lines are sums of equal-size trades, not an account.</p>
+  <p class="read">A takes everything off at T1. B passes through T1 and takes T2 (or the exit). C has no target, the exit only. D keeps the chance book's one-R target and swaps the stop for the close exit, with the 20-day cap; D5 does the same swap at the chance book's own five-bar horizon, so between D5 and the reference only the stop changes. The reference is the chance book itself (one R or the setup-bar stop, marked at the fifth bar) on the identical trades. Each trade's final return sits on its ENTRY date; the lines are sums of equal-size trades, not an account.</p>
   <div class="panel"><div class="chart tall"><canvas id="curvesManageRev"></canvas></div>
   <ul class="legend" id="legendManageRev"></ul></div>
   <div class="panel" style="margin-top:12px"><div class="chart tall"><canvas id="curvesManageCont"></canvas></div>
@@ -338,8 +346,8 @@ tr.small td { opacity: 0.45; }
 
 <section id="manageHyp" hidden>
   <h2>The suspect, read as declared</h2>
-  <p class="read">H2 (the owner's): swapping the stop for the close exit (book D minus the reference, average % per trade, paired on the same trades, 95% interval). H3 (the lead's counter): the close exit is itself an early exit; of the trades it closed before T1, how many touched T1 later inside 20 days, beside the chance book's stopped-then-saw-one-R share on the same trades. The tail columns are where a stopless book bleeds: trades whose adverse travel passed one and two setup-bar R before the exit, and the worst single trade.</p>
-  <div class="panel tbl"><table id="hypTable"><thead><tr><th>setup</th><th>trades</th><th>D minus reference</th><th>95% interval</th><th>exited, touched T1 later</th><th>stopped, saw one R</th><th>MAE over 1R</th><th>over 2R</th><th>worst trade</th></tr></thead><tbody></tbody></table></div>
+  <p class="read">H2 (the owner's): swap the stop for the close exit and keep everything else. D5 keeps the chance book's one-R target AND its five-bar horizon, so only the stop changes (average % per trade minus the reference, paired on the same trades, 95% interval); D is the same swap with the 20-day cap. H3 (the lead's counter): the close exit is itself an early exit; of the trades D5 closed before one R, how many touched one R inside the same five bars, beside the chance book's stopped-then-saw-one-R share on the same trades. The tail columns are where a stopless book bleeds: trades whose adverse travel passed one and two setup-bar R before the exit, and the worst single trade. Cells in parentheses rest on fewer than 30 trades.</p>
+  <div class="panel tbl"><table id="hypTable"><thead><tr><th>setup</th><th>trades</th><th>D5 minus reference (stop only)</th><th>D minus reference (20 days)</th><th>D5 exited, saw one R in 5 bars</th><th>stopped, saw one R in 5 bars</th><th>MAE over 1R</th><th>over 2R</th><th>worst trade</th></tr></thead><tbody></tbody></table></div>
 </section>
 
 <section id="manageTable" hidden>
@@ -496,8 +504,8 @@ const sgn = (x, d) => (x == null ? "-" : (x >= 0 ? "+" : "") + x.toFixed(d));
 function manageCurves(id, legendId, key) {
   const C = DATA.manage.curves[key] || {};
   const L = DATA.manage.book_label;
-  const col = { A: "--near", B: "--within", C: "--plain", D: "--stack", ref: "--spread" };
-  curves(id, legendId, ["A", "B", "C", "D", "ref"].filter((b) => C[b]).map((b) => ({ label: L[b], color: col[b], points: C[b] })), "cumulative P/L, 1,000 $ per trade");
+  const col = { A: "--near", B: "--within", C: "--plain", D: "--stack", D5: "--loss", ref: "--spread" };
+  curves(id, legendId, ["A", "B", "C", "D", "D5", "ref"].filter((b) => C[b]).map((b) => ({ label: L[b], color: col[b], points: C[b] })), "cumulative P/L, 1,000 $ per trade");
 }
 
 function manage() {
@@ -512,9 +520,11 @@ function manage() {
   manageCurves("curvesManageCont", "legendManageCont", "D|continuation|all|plain");
   manageCurves("curvesManageIns", "legendManageIns", "D|inside|all|plain");
   const ht = document.querySelector("#hypTable tbody");
-  ht.innerHTML = M.hyp.map((r) => `<tr><td>${r.setup}</td><td class="num">${r.n.toLocaleString()}</td>
-    <td class="num ${r.diff < 0 ? "neg" : ""}">${sgn(r.diff, 2)}%</td><td class="num">[${sgn(r.lo, 2)}, ${sgn(r.hi, 2)}]</td>
-    <td class="num">${pct(r.later1.p)} (n ${r.later1.n.toLocaleString()})</td><td class="num">${pct(r.stop_saw.p)} (n ${r.stop_saw.n.toLocaleString()})</td>
+  const sh = (x) => (x && x.n ? (x.n < 30 ? `(${pct(x.p)}, n ${x.n.toLocaleString()})` : `${pct(x.p)} (n ${x.n.toLocaleString()})`) : "-");
+  ht.innerHTML = M.hyp.map((r) => `<tr class="${r.small ? "small" : ""}"><td>${r.setup}</td><td class="num">${r.n.toLocaleString()}</td>
+    <td class="num ${r.diff5 < 0 ? "neg" : ""}">${sgn(r.diff5, 2)}% [${sgn(r.lo5, 2)}, ${sgn(r.hi5, 2)}]</td>
+    <td class="num ${r.diff < 0 ? "neg" : ""}">${sgn(r.diff, 2)}% [${sgn(r.lo, 2)}, ${sgn(r.hi, 2)}]</td>
+    <td class="num">${sh(r.later_r5)}</td><td class="num">${sh(r.stop_saw)}</td>
     <td class="num">${pct(r.tail1)}</td><td class="num">${pct(r.tail2)}</td><td class="num neg">${sgn(r.worst, 1)}%</td></tr>`).join("");
   const tb = document.querySelector("#manageBookTable tbody");
   tb.innerHTML = M.books.map((r) => `<tr class="${r.small ? "small" : ""}"><td>${r.setup}</td><td>${r.cls}</td><td>${r.book}</td><td class="num">${r.n.toLocaleString()}</td>

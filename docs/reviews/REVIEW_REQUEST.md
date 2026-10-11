@@ -10,7 +10,8 @@
 
 ## Status
 
-- Status: REQUESTED
+- Status: ADDRESSED (returned 2026-10-11 the same session via `codex exec`; folded the same
+  day -- synthesis in the TVB-38 HANDOFF entry; prereg amendment A1)
   <!-- REQUESTED | RETURNED (audit file written) | ADDRESSED | N/A -->
 - Session under review: TVB-38 (2026-10-11) -- product 3 of the data redirect: the
   STRAT-management book (no price stop, exit at a daily close against the trade with the week
@@ -25,7 +26,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `a0c52df..HEAD`: caaba12 (prereg + ledger card, before code) and the product-3 build commit(s) after it. Verify with `git diff --name-status a0c52df..HEAD`. |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `a0c52df..058395f` reviewed (caaba12 prereg, 058395f build); the fold commit after it is unreviewed and carries the next request. Verify with `git diff --name-status a0c52df..HEAD`. |
 
 No sibling-repo commits. The candle cache, the unit rows (`manage_trades.csv.gz`), the page
 output and the run logs are gitignored; the run is reproducible offline with

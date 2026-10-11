@@ -12,6 +12,7 @@ from analysis.domino.census import (
     aggregate,
     analyze_coin,
     classify,
+    day_events,
     distance_band,
     liquid,
     month_start,
@@ -250,3 +251,25 @@ def test_outside_day_counts_two_events_and_one_day():  # audit F8
     assert res["agg"]["rank"][("up", 2)] == 1 and res["agg"]["rank"][("down", 2)] == 1
     assert res["agg"]["break_days"] == 1 and res["agg"]["rank2plus_days"] == 1
     assert res["agg"]["days"] == 15
+
+
+def test_day_events_returns_the_bar_before_the_setup_bar_with_its_prices():  # TVB-38 extension
+    t0 = ms(2026, 9, 21)  # Monday
+    daily = [bar(t0 + k * DAY, 100, 110, 90, 101) for k in range(14)]  # two complete weeks
+    daily.append(bar(t0 + 14 * DAY, 100, 108, 95, 100))  # Monday: inside
+    daily.append(bar(t0 + 15 * DAY, 100, 109, 96, 105))  # Tuesday: breaks 108 (daily only)
+    ctx = _context(daily, {tf: aggregate(daily, tf) for tf in ("W", "M", "Q")})
+    evs = day_events(daily, 15, ctx)
+    ((direction, broken, setups),) = evs
+    assert direction == "up" and set(broken) == {"D"}
+    ptype, sbar, ref_type, refbar = setups["D"]
+    assert sbar is daily[14] and refbar is daily[13]  # the setup bar and the bar before it
+    assert ptype == "1" and ref_type == "1"
+    # a weekly break carries the previous complete week as the setup bar and the week before it
+    daily2 = [bar(t0 + k * DAY, 100, 110, 90, 101) for k in range(14)]
+    daily2.append(bar(t0 + 14 * DAY, 101, 112, 100, 111))  # Monday breaks last week's 110
+    ctx2 = _context(daily2, {tf: aggregate(daily2, tf) for tf in ("W", "M", "Q")})
+    ((_d, broken2, setups2),) = day_events(daily2, 14, ctx2)
+    assert set(broken2) == {"D", "W"}
+    _pt, wbar, _rt, wref = setups2["W"]
+    assert wbar["t"] == t0 + 7 * DAY and wref["t"] == t0  # last week, and the week before

@@ -65,6 +65,8 @@ def test_v2_tuesday_day_red_week_green_holds_then_both_red_exits_and_v13_stacked
     daily.append(bar(TUE, 101.0, 101.8, 100.0, 100.5))  # Tuesday: breaks 101.5, red, week green
     daily.append(bar(TUE + DAY, 100.5, 101.0, 99.0, 99.5))  # Wednesday: red, week red -> exit
     daily += green(TUE + 2 * DAY, o=99.5)
+    rows, counts = coin_manage_rows(META, daily)
+    assert counts["anchor_D_inside_stacked"] >= 1  # counted separately, as declared
     u = unit(daily, "2026-10-06")
     assert u["kind"] == "inside" and u["anchor"] == "stacked"  # 1-1-2: no anchor in the two bars
     assert u["t1"] == 110.0 and u["t1_src"] == "W" and u["t2"] is None  # first rung is T1
@@ -95,6 +97,8 @@ def test_v3_t1_on_day_two_exit_on_day_four_fills_each_book_as_declared_and_v14_b
     assert u["t2"] is None and u["ret_B"] == u["ret_C"]  # no T2: book B is the exit
     assert u["ret_C"] == pytest.approx((99.0 - L) / L * 100)
     assert u["one_r_k"] == 2 and u["ret_D"] == pytest.approx(2.5 / L * 100) and u["hit_D"]
+    assert u["days_A"] == 2 and u["days_B"] == 4 and u["days_C"] == 4 and u["days_D"] == 2
+    assert u["days_ref"] == 2  # the chance book filled one R on day 2 too
     assert u["mfe_x"] == pytest.approx((110.5 - L) / L * 100)
     assert u["mae_x"] == pytest.approx((L - 98.0) / L * 100)
 
@@ -116,6 +120,8 @@ def test_v5_reversal_whose_anchor_wick_sits_at_the_trigger_has_no_t1():
     )  # Monday: 2D (equal high, lower low)
     daily.append(bar(TUE, 95.0, 111.0, 94.0, 108.0))  # Tuesday breaks 110: 2-2 reversal
     daily += green(TUE + DAY, o=108.0)
+    rows, counts = coin_manage_rows(META, daily)
+    assert counts["anchor_D_reversal_zero"] == 1  # counted, as declared
     u = unit(daily, "2026-10-06")
     assert u["kind"] == "reversal" and u["anchor"] == "zero" and u["t1"] is None
     assert u["t1_src"] == "zero" and u["ladder_len"] == 0
@@ -153,7 +159,7 @@ def test_v7_a_rung_at_t1_is_skipped_and_t2_is_strictly_beyond():
     daily.append(
         bar(oct1 + 2 * DAY, 105.0, 112.0, 90.0, 106.0)
     )  # Sat: X, high 112 = the week's high
-    daily.append(bar(oct1 + 3 * DAY, 106.0, 105.0, 85.0, 95.0))  # Sun: 2D (low 85 < 90)
+    daily.append(bar(oct1 + 3 * DAY, 104.0, 105.0, 85.0, 95.0))  # Sun: 2D (low 85 < 90)
     daily.append(bar(oct1 + 4 * DAY, 95.0, 106.0, 94.0, 104.0))  # Mon: breaks 105, 2-2 reversal
     daily += green(oct1 + 5 * DAY, o=104.0)
     u = unit(daily, "2026-10-05")
@@ -174,10 +180,60 @@ def test_v8_open_at_the_cap_is_marked_at_day_20_and_v10_equal_closes_are_not_aga
     assert u["ret_A"] == u["ret_C"]  # T1 never touched: the mark
 
 
+def test_v10b_each_equality_test_alone_is_not_against():
+    # Tuesday: close == the day's open (not red) while under the week's open -> no exit
+    daily = flat(MON, 14)
+    daily.append(bar(MON + 14 * DAY, 103.0, 103.5, 99.0, 100.0))  # Monday: week opens 103, red
+    daily.append(bar(TUE, 100.0, 111.0, 99.5, 100.0))  # breaks 110, close == open, week red
+    daily += green(TUE + DAY, o=100.0, k=25)
+    u = unit(daily, "2026-10-06")
+    assert u["exit_k"] != 0
+    # Tuesday: red day whose close == the week's open -> no exit
+    daily = flat(MON, 14)
+    daily.append(bar(MON + 14 * DAY, 100.0, 103.5, 99.0, 102.0))  # Monday: week opens 100
+    daily.append(bar(TUE, 102.0, 111.0, 99.5, 100.0))  # breaks 103.5, red, close == week open
+    daily += green(TUE + DAY, o=100.0, k=25)
+    u = unit(daily, "2026-10-06")
+    assert u["exit_k"] != 0
+
+
+def test_decimal_targets_fill_on_an_exact_touch_long_and_short():  # audit F1
+    # long: L = 0.1, stop 0.09, one R = 0.11 exactly; the entry day's high is 0.11
+    daily = flat(MON, 14, h=0.12, l=0.08, o=0.1, c=0.101)
+    daily.append(bar(MON + 14 * DAY, 0.1, 0.1, 0.09, 0.095))  # Monday: inside, high 0.1, low 0.09
+    daily.append(bar(TUE, 0.095, 0.11, 0.0945, 0.0945))  # Tuesday: breaks 0.1, high 0.11, red
+    daily += green(TUE + DAY, o=0.0945, k=25)
+    u = unit(daily, "2026-10-06")
+    assert u["level"] == 0.1 and u["stop"] == 0.09
+    assert u["one_r_k"] == 0 and u["hit_D"] is True and u["ret_D"] == pytest.approx(10.0)
+    assert u["hit_D5"] is True and u["ret_D5"] == pytest.approx(10.0)
+    assert u["out5"] == "one_r"  # the chance book agrees
+    # short: L = 0.09, stop 0.1, one R = 0.08 exactly; the entry day's low is 0.08
+    daily = flat(MON, 14, h=0.12, l=0.08, o=0.1, c=0.101)
+    daily.append(bar(MON + 14 * DAY, 0.1, 0.1, 0.09, 0.095))  # Monday: inside
+    daily.append(bar(TUE, 0.095, 0.0955, 0.08, 0.0955))  # Tuesday: breaks 0.09 down, low 0.08
+    daily += [bar(TUE + DAY + k * DAY, 0.0955, 0.0958, 0.095, 0.0952) for k in range(25)]
+    u = unit(daily, "2026-10-06", direction="down")
+    assert u["level"] == 0.09 and u["one_r_k"] == 0 and u["hit_D"] is True
+    assert u["ret_D"] == pytest.approx(100 * 0.01 / 0.09)
+    # the measured move is built in decimals too: two-bar range 0.111 - 0.08 from L 0.111
+    daily = flat(MON, 12, h=0.12, l=0.08, o=0.1, c=0.101)
+    daily.append(bar(MON + 12 * DAY, 0.1, 0.11, 0.08, 0.105))  # Sat: inside (0.11 < 0.12)
+    daily.append(bar(MON + 13 * DAY, 0.105, 0.111, 0.09, 0.1))  # Sun: 2U (0.111 > 0.11)
+    daily.append(bar(MON + 14 * DAY, 0.1, 0.141, 0.099, 0.14))  # Mon: breaks 0.111; high 0.141
+    daily += [bar(MON + 15 * DAY + k * DAY, 0.14, 0.1405, 0.139, 0.1403) for k in range(25)]
+    u = unit(daily, "2026-10-05")
+    assert u["kind"] == "continuation"
+    assert u["mm_t1"] == pytest.approx(0.111 + (0.111 - 0.08))  # 0.142: NOT touched (0.141)
+    assert u["reached1_mm"] is False
+
+
 def test_v9_data_ending_before_exit_and_cap_is_censored():
     daily = flat(MON, 14)
     daily.append(bar(MON + 14 * DAY, 100.5, 111.0, 99.0, 101.0))  # Monday: breaks 110, green
     daily += green(MON + 15 * DAY, o=101.0, k=7)
+    rows, counts = coin_manage_rows(META, daily)
+    assert counts["censored_D"] >= 1
     u = unit(daily, "2026-10-05")
     assert u["status"] == "censored" and "ret_C" not in u
 
@@ -200,6 +256,17 @@ def test_v11_weekly_unit_daily_clock_exits_midweek_own_clock_at_the_week_close()
     assert u["status_long"] == "exit" and u["days_long"] == 1
     assert u["status_own"] == "exit" and u["days_own"] == 5  # Sunday Oct 11: week red, month red
     assert u["ret_C_own"] == pytest.approx((97.0 - 110.0) / 110.0 * 100)
+    # the month veto: the same week closes red but ABOVE the month's open -> no own-clock exit
+    # that Sunday (October opens at 120 here, the week at 125, the red week closes at 123)
+    daily = flat(t0, 30, h=130.0, l=110.0, o=120.0, c=121.0)  # September
+    daily += [bar(oct1 + k * DAY, 120.0, 125.0, 115.0, 120.0) for k in range(4)]  # Oct opens 120
+    daily.append(bar(oct1 + 4 * DAY, 125.0, 126.0, 124.0, 125.5))  # Mon: week opens 125
+    daily.append(bar(oct1 + 5 * DAY, 125.5, 131.0, 125.0, 128.0))  # Tue: breaks weekly 130
+    daily += [bar(oct1 + 6 * DAY + k * DAY, 128.0, 128.5, 122.5, 123.0) for k in range(5)]
+    daily += [bar(oct1 + 11 * DAY + k * DAY, 123.0, 124.0, 122.0, 123.0) for k in range(160)]
+    u = unit(daily, "2026-10-06", tf="W")
+    assert u["status"] == "exit" and u["exit_k"] == 1  # the daily clock still exits Wednesday
+    assert u.get("days_own") != 5  # the own clock does not fire on that Sunday
 
 
 def test_v12_measured_move_is_the_two_bar_range_from_the_trigger():
@@ -282,7 +349,17 @@ def test_cell_bookkeeping_sums_and_subsets():
         "mm_t1": None,
         "stop_saw": False,
         "later_r": False,
+        "later_r5": False,
         "level": 100.0,
+        "status5": "exit",
+        "hit_D5": False,
+        "ret_D5": -1.0,
+        "days_A": 1,
+        "days_B": 1,
+        "days_C": 1,
+        "days_D": 1,
+        "days_D5": 1,
+        "days_ref": 5,
     }
     rows = [
         dict(

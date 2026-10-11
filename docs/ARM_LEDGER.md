@@ -633,12 +633,16 @@ settings at $1 risk, but with 26 fills they stay unread as arms.
   management books sit between -0.24 and +0.24 (2-2 reversal A -0.05 / B +0.12 / C +0.22 /
   D +0.08 against -0.84; continuation -0.23 / -0.24 / -0.24 / +0.01 against -0.45; inside
   +0.02 / -0.07 / -0.02 / +0.24 against -0.52; outside -0.00 / +0.18 / +0.18 / +0.18 against
-  -0.27). The stop swap alone (D minus reference, paired) is +0.93 [+0.87, +0.98] on the
-  reversal, +0.46 on the continuation, +0.76 on the inside break, +0.45 on the outside break:
-  H2 holds in sign. The exit is fast and blunt: median 2-3 days held, 99% of trades closed
-  before day 20, 12-20% at the entry close; of the trades it closes before one R, 45-61% touch
-  one R later inside the cap against the stop's 24-48% (H3 holds too; both are true because the
-  close exit's losers average 0.6-1.0 R, the stop's a full R). T1 before the exit: reversal
+  -0.27). The stop swap alone at the chance book's own five-bar horizon (book D5 minus the
+  reference, paired; added after the Codex audit) is +0.92 [+0.86, +0.97] on the reversal,
+  +0.51 on the continuation, +0.76 on the inside break, +0.48 on the outside break, and the
+  20-day book D reads the same: H2 holds in sign. The exit is fast: median 2-3 days held, 99%
+  of trades closed before day 20, 12-20% at the entry close. H3 (the lead's counter) does NOT
+  hold on the matched read: inside the same five bars, 16-32% of the trades the close exit took
+  off before one R went on to touch it, against 24-48% of the stopped trades; the lift comes
+  from fewer winners thrown away AND losers that average 0.6-1.0 R instead of a full R. (A
+  20-day follow-up had first read the other way; the audit's like-for-like read corrected it.)
+  T1 before the exit: reversal
   63.8% (its T1 is the bar before the pattern, a median 2.6% away), inside 53.6%, outside 38.7%,
   continuation 36.2% (T1 a median 9.8% away); T2 after T1 24-40%. The tail: 32-55% of trades
   travel more than one R against before the exit, 6-20% more than two R, worst single trades
