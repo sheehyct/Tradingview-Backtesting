@@ -587,6 +587,51 @@ settings at $1 risk, but with 26 fills they stay unread as arms.
   the book view and chart page go in the session-end request.
 - **What it is for:** the comparison the hierarchy rulings need. It picks no cell.
 
+### TVB-37 product 3, the STRAT-management book (declared 2026-10-11, TVB-38) -- no arm, no P&L claim
+
+- **In trader terms:** the same trades as the chance book (every daily, weekly and monthly level
+  break on the live perps, entered at the level the instant it breaks), managed the way a STRAT
+  trader manages instead of with a setup-bar stop. There is NO price stop. You are out when a day
+  closes against you (a red daily candle for a long) AND the week is red at that close (price
+  under Monday's open); you get out at that close. On a Monday that is one condition. Targets are
+  a ladder of structure: T1 is the pattern's own magnitude (a reversal targets the far side of
+  the bar before the pattern, the resource's "compound 3" level; an inside-bar reversal targets
+  the bar before the inside bar; a 3-1-2 targets the 3's extreme), and the patterns with no
+  magnitude of their own (the 2-2 continuation, the with-trend inside bar, the 3-2) take the
+  next unbroken weekly or monthly level as T1, "from the higher timeframe". T2 is the next
+  unbroken weekly or monthly level beyond T1, T3 the one above; the ladder is fixed when you
+  enter. A trade still open after 20 trading days is marked there. Pre-registered:
+  `docs/experiments/tvb37_management_book_prereg.md`. Receipt: `analysis/domino/MANAGE_RECEIPT.md`.
+- **What it reports:** how often T1 is reached before the exit (and T2 after T1, T3 after T2),
+  how the trades that exited before T1 died (at the entry close? after how many days? did they
+  reach T1 later anyway?), how far the no-stop trades travelled against you before exiting (the
+  tail that a stopless book lives or dies on), days held, and four books in percent on the same
+  trades: A all out at T1; B hold through T2 with the exit; C exit only, no target; D one R or
+  the exit (the lead's addition: product 2's target with the close exit in place of the stop,
+  which isolates the stop); beside them the chance book's own numbers on the identical trades.
+- **The two forks, owner 2026-10-11 ("both forks for the data"; "try both and see the
+  results"):** headline = the continuation's T1 at the next unbroken higher level AND the daily
+  close with the week's colour as the exit clock for every trade, weekly and monthly included.
+  Declared variants in their own tables, nothing promoted: the measured move (the two-bar range
+  projected from the trigger) as the continuation's T1; the own-bar clock for weekly and
+  monthly trades (a weekly trade exits on a red weekly close with the month red; a monthly on a
+  red monthly close) at a cap of 20 of its own bars, the daily clock shown beside it at that
+  same cap.
+- **Hypotheses stated before running:** H2 (the owner's suspect from the chance book): swapping
+  the setup-bar stop for the close exit (book D) lifts the average trade of every plain daily
+  pattern. H3 (the lead's counter): the close exit is itself an early exit, killing at least as
+  many trades that go on to reach T1 as the stop did (a third to a half).
+- **Lead's declared calls, each one line, for the owner to veto:** "against" is the candle's
+  colour, not whether the trade is under water; a close exactly on an open is not against; the
+  entry day can exit at its own close; the ladder holds only the week's and month's levels
+  (no daily pivots, no quarter, no rung added when a bar rolls); a reversal whose anchor wick
+  equals the trigger has no T1 and sits in the exit-only book; the measured move's leg is the
+  two bars already held; the monthly own-bar clock has no higher confirmation because the
+  quarter is context only; the cap is 20 daily bars for the headline.
+- **Numbers:** none yet; filled after the run.
+- **What it is for:** the direct comparison the setup-bar stop needs, and the tables the
+  deferred hierarchy rulings will be read from. It picks no cell.
+
 ## Maintenance rule
 
 Every round: add a card per new arm (trader terms FIRST, then numbers),
