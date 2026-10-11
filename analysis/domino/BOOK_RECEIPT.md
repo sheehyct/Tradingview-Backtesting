@@ -1,5 +1,10 @@
 # The book view and the R-matched check -- RECEIPT (TVB-37 product 2b, 2026-10-10; numbers re-run after the second audit's decimal-fill fix)
 
+> Amended 2026-10-11 (TVB-38, close-out Codex audit F1-F5, F8): sentences below marked [F5] were
+> corrected against the tables; the drawdown column now starts its high-water mark at zero
+> (the old column could not show a book that opened by losing); the R-matched rows carry their
+> coverage; `book.json` is strict JSON. The unit counts, averages, hit and stop shares did not move.
+
 **What this is:** the chance comparison's unit rows (`CHANCE_RECEIPT.md`) read two more ways,
 both declared in the prereg's amendment A3 before any number below was computed, at the owner's
 request to see impact "in terms of p/l or percent performance even if it's a hypothetical account
@@ -15,7 +20,8 @@ stop at the other side of the setup bar, target one R. A trade closes at +R% of 
 -R% on the stop, and otherwise is marked at the close of the fifth bar of its timeframe. No
 leverage, no fees, no funding, no slippage, every trade taken, no compounding. A day that trades
 both the stop and the target is a stop, and so is a stop level traded on the entry day (the
-pessimistic call from the chance study; one in four to one in three plain daily triggers). Dollar
+pessimistic call from the chance study; between one in seven and one in three plain daily
+triggers, 13.9% to 32.2% by pattern [F5]). Dollar
 columns are the SUM of equal-size trades at 1,000 dollars each, so they are not an account balance:
 hundreds of trades are open at once. Fees would make every number worse. Glossary of the setup and
 class names: `CHANCE_RECEIPT.md`.
@@ -35,13 +41,14 @@ class names: `CHANCE_RECEIPT.md`.
 | inside break | near | 230 | -1.24 | -1.88 | 33.5% | 64.3% | -0.306 | -2,845 | -3,369 | 3.91 |
 | inside break | within 1% | 767 | -1.05 | -1.15 | 36.2% | 62.3% | -0.259 | -8,016 | -8,494 | 3.48 |
 | outside break | plain | 12,695 | -0.21 | -0.89 | 36.5% | 41.2% | -0.047 | -27,216 | -27,508 | 8.04 |
-| outside break | same price at the Monday / 1st open | 631 | -2.23 | -3.96 | 32.0% | 57.1% | -0.254 | -14,073 | -15,053 | 7.51 |
+| outside break | same price at the Monday / 1st open | 631 | -2.23 | -3.96 | 32.0% | 57.1% | -0.254 | -14,073 | -15,121 | 7.51 |
 | outside break | near | 218 | +0.28 | -0.41 | 38.1% | 45.0% | -0.075 | +604 | -783 | 5.43 |
 | outside break | within 1% | 699 | -0.32 | -0.66 | 35.5% | 47.9% | -0.125 | -2,212 | -2,313 | 5.07 |
 
 Same-price stacks on reversal and inside setups: 3 and 6 trades, counted, not read. The median
-trade is a loss in every cell: most trades end at the stop or marked slightly under water; the
-average is pulled up by the one-R winners.
+trade is a loss in every cell but one (the near 2-2 continuation, median +0.36%) [F5]: most
+trades end at the stop or marked slightly under water; the average is pulled up by the one-R
+winners.
 
 ## The hammer shape on the plain daily book
 
@@ -72,7 +79,7 @@ average is pulled up by the one-R winners.
 | 2-2 continuation | near | 397 | +2.06 | +4.92 | 49.9% | 36.3% | +0.147 | +8,197 | -2,306 | 14.3 |
 | 2-2 continuation | within 1% | 1,149 | +0.44 | +2.10 | 44.9% | 42.7% | +0.022 | +5,067 | -8,213 | 15.6 |
 | 2-2 continuation | spread | 4,492 | +1.75 | +7.78 | 45.8% | 38.1% | +0.089 | +78,507 | -30,635 | 20.4 |
-| inside break | same price at the Monday open | 770 | -0.82 | -8.27 | 39.4% | 53.0% | -0.120 | -6,282 | -13,221 | 15.6 |
+| inside break | same price at the Monday open | 770 | -0.82 | -8.27 | 39.4% | 53.0% | -0.120 | -6,282 | -13,316 | 15.6 |
 | inside break | near | 260 | +0.07 | +0.66 | 48.1% | 45.4% | +0.019 | +174 | -2,660 | 11.8 |
 | inside break | spread | 2,676 | +0.60 | +3.88 | 46.9% | 47.0% | +0.010 | +16,133 | -16,843 | 14.5 |
 | outside break | same price at the Monday open | 482 | -3.15 | -8.19 | 33.6% | 44.6% | -0.110 | -15,188 | -28,296 | 27.7 |
@@ -114,22 +121,31 @@ nothing. Monthly rows are in `book_tables.md` (30 to 150 stacked units; interval
   stop, not STRAT management; the owner's "run until invalidated" idea is not tested.
 - **The hammer shape brings each pattern to about flat.** Reversal THIRD -0.10% and STRICT
   -0.01% per trade; continuation THIRD -0.04%, STRICT +0.25%; inside THIRD -0.05%, STRICT +0.19%;
-  outside THIRD +0.28%, STRICT +0.31%, with stop rates 8 to 11 points lower than the unflagged
-  book. These are the only daily cells near or above zero besides the stacked continuations.
-- **The stacked 2-2 continuation is the one daily A+ class in the black:** +0.44% per trade with
-  a level within a quarter percent beyond, +0.33% within 1%, and the R-matched check keeps the
-  chance gap (+4.7 [+1, +8] by 3 bars, +6.0 [+3, +10] by 5). The same-price stack at the open is
-  worse than plain (-1.19% vs -0.43%), and after matching its chance gap is -0.7 [-2, +1]:
-  nothing, once bar size is held equal.
-- **On the weekly, the Monday-open stack loses on every setup** (-0.9% to -3.2% per trade) and
-  the deficit survives matching at two thirds of its raw size (-8.0 [-10, -6] for the 2-2
-  continuation), in every bar-size bin. The weekly 2-2 continuation whose day had already run 1%+
-  before the level broke is the biggest positive in the book (+1.75% per trade over 4,492 trades,
-  +78k on the 1,000-per-trade book, drawdown -31k), with near behind it (+2.06% on 397).
-- **Hypothesis 1 (owner), in money:** the same-price-at-the-open stack underperforms its plain
-  pattern on the daily (continuation -1.19% vs -0.43%; outside -2.23% vs -0.21%) and the rest of
-  its pattern on the weekly (every setup). On the daily the chance gap vanishes once bar size is
-  matched; on the weekly it does not.
+  outside THIRD +0.28%, STRICT +0.31%. Against the all-flags book the hammer's stop rate is 8
+  points lower on the reversal, 5 to 6 points lower on the inside and outside breaks, and about 2
+  points HIGHER on the continuation (48.3% / 47.8% vs 46.0%) [F5]. These and the two cells below
+  are the only daily cells near or above zero.
+- **Two daily A+ cells are in the black [F5]:** the stacked 2-2 continuation, +0.44% per trade
+  with a level within a quarter percent beyond and +0.33% within 1%, where the R-matched check
+  keeps the chance gap (+4.7 [+1, +8] by 3 bars, +6.0 [+3, +10] by 5); and the near outside
+  break, +0.28% per trade on 218 trades, whose chance uplift is about zero (33.9% vs 31.7% by 3)
+  and whose expectancy in R is negative (-0.075): a positive percent average on bigger-than-R
+  moves, not a chance edge. The same-price 2-2 continuation stack at the open is worse than plain
+  (-1.19% vs -0.43%), and after matching its chance gap is -0.7 [-2, +1]: nothing, once bar size
+  is held equal.
+- **On the weekly, the Monday-open stack loses on every setup** (-0.8% to -3.2% per trade [F5])
+  and the 2-2 continuation's deficit shrinks to two thirds of its raw size after reweighting to
+  the stacked group's bar sizes (-8.0 [-10, -6]), negative in every bar-size bin. Ranked by total
+  equal-size dollars, the weekly 2-2 continuation whose day had already run 1%+ before the level
+  broke is the biggest positive in the book (+1.75% per trade over 4,492 trades, +78k on the
+  1,000-per-trade book, drawdown -31k); ranked by average per trade the near class is larger
+  (+2.06% on 397 trades) [F5].
+- **Hypothesis 1 (owner), in money.** It was declared on DAILY units (prereg A4): there the
+  same-price-at-the-open stack underperforms its plain pattern (continuation -1.19% vs -0.43%;
+  outside -2.23% vs -0.21%). For the daily 2-2 continuation the chance gap shrinks to -0.7 [-2,
+  +1] by 3 bars once bar size is reweighted; for the daily outside break it stays below zero by 5
+  bars (-5.3 [-9, -2]) [F5]. The weekly shared-open stack underperforming the rest of its pattern
+  on every setup is a separate descriptive comparison, not a test of hypothesis 1 [F5].
 
 Not said here, by design: that any cell is a strategy, or what fees, funding, sizing and real
 exits would do to it. The receipt that owns the chances is `CHANCE_RECEIPT.md`.

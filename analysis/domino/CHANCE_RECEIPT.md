@@ -41,7 +41,7 @@ the reporting contract as built.
 | flag | the shape of that setup bar in the break's direction: none, THIRD (closed in its far third: hammer on an up break, shooter on a down break), STRICT (THIRD and only a sliver of wick on the far side). THIRD rows include the STRICT ones |
 | normal hammer | a 2-2 reversal whose setup bar is THIRD or STRICT. momo hammer, 2-2 form = a 2-2 continuation whose setup bar is; momo hammer, 1-2 form = an inside bar that is |
 | plain (daily units) | no unbroken weekly or monthly level within 1% beyond yesterday's level: the trigger stands alone |
-| exact, shared open | yesterday's level IS last week's or last month's level and today is Monday or the 1st: yesterday closed the old bar on its extreme |
+| exact, shared open | yesterday's level IS last week's or last month's level and today is Monday or the 1st: the old week or month made its high (or low) on its last day, which is not the same as closing there (wording corrected 2026-10-11, close-out audit F4) |
 | exact, plain day | same price on any other day (yesterday retouched the higher level without breaking it) |
 | near / within 1% | an unbroken higher level sits up to a quarter percent / up to one percent beyond yesterday's level, in the trade's direction (it can never sit short of it) |
 | spread (weekly and monthly units only) | yesterday's level sat more than 1% inside the higher level: the day had already run 1%+ before the higher level broke |
@@ -214,9 +214,11 @@ needs an exit rule and a sizing rule before it can be tested as a trade.
 - **The hammer shape lifted the reversal, the continuation and the inside break by four to seven
   points and the outside break by about three [F5].** A top-third close on the setup bar: 2-2
   reversal 38.0% vs 34.3% by 3 bars, 2-2 continuation 41.1% vs 34.4%, inside break 43.6% vs 38.3%,
-  outside break 28.9% vs 31.7% by 3 but 33.2% vs 36.5% by 5 (2.6 points under, not over, at 3
-  bars; read the table). Stops fell on the reversal (43.5% vs 51.7%), the inside break (49.9% vs
-  55.1%) and the outside break (39.3% vs 41.2%), not on the continuation (48.3% vs 46.0%).
+  outside break 34.3% vs 31.7% by 3 and 38.8% vs 36.5% by 5 (+2.6 and +2.3 points; the figures
+  28.9% / 33.2% printed here on 2026-10-10 were wrong and wrong in sign, corrected 2026-10-11
+  against `chance_tables.md` [close-out audit F6]). Stops fell on the reversal (43.5% vs 51.7%),
+  the inside break (49.9% vs 55.1%) and the outside break (35.3% vs 41.2%), not on the
+  continuation (48.3% vs 46.0%).
   Entry-day stop touches fell everywhere (reversal 14.8% vs 25.9%). STRICT (sliver wick) added
   nothing over THIRD.
 - **Between one in seven and one in three plain daily units traded their stop on the entry day
@@ -239,9 +241,12 @@ by 1 bar, 1.22 vs 1.20 by 5).
 - Pessimistic same-day rule: a unit whose stop and target both traded on one day is a stop, and
   an entry-day stop touch counts even if it came before the break. The share is shown per cell.
 - Per-unit intervals overstate precision: units on the same day across coins move together.
-  Distinct-date counts sit beside every count in `chance_tables.md`.
+  A distinct-date count sits beside each row's unit count in `chance_tables.md` (not beside each
+  horizon's valid count) [close-out audit F6].
 - R-size confound: classes differ in setup-bar size (exact shared-open stacks are the biggest
-  bars, near stacks the tightest). An R-matched comparison was not pre-registered and is not run.
+  bars, near stacks the tightest). An R-matched check was declared afterwards (prereg amendment
+  A3) and run in `BOOK_RECEIPT.md`: it holds bar size equal within five bins and nothing else
+  (coin, date, regime) [close-out audit F6].
 - Survivors only; venue era only (ALL as a check line); no fees, funding or slippage; no
   Underlying-RTH mirror run (confound stated); no intraday ordering.
 - Horizons are bars of the unit's own timeframe: 5 monthly bars is five months, so monthly cells

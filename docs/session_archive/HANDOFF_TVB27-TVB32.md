@@ -120,7 +120,12 @@ bar instead of the direction-opposite one skill 3.2 requires -- fixed
 (`2opp`); all three 1-2-2 trades still match; (3) sparse-candle entries
 read `wrong_side_first` False instead of unknown -- now None. Re-run:
 EVERY headline number unchanged (flip 12/1/5, +19.19pp, coupled 9/18,
-decoupled -0.19 vs +0.66, accuracy 28/28, net -$0.82); the give-back
+decoupled -0.19 vs +0.66 [NOTE 2026-10-11, TVB-32 Codex audit F1: the
+decoupled counterfactual's flip branch is unreachable -- it requires every
+timeframe's forming bar to be at least 60 minutes old, which a 15-minute or
+hourly bar never is -- so its nine outcomes are a bracket-only hold and the
+"waiting an hour loses more than it saves" reading is withdrawn until the
+executor analysis is repaired], accuracy 28/28, net -$0.82); the give-back
 medians moved and were corrected in ANALYSIS.md and the Artifact
 (material winners' MFE median 102% of target distance, losers 19%; the
 draft's "winners 80%" had mixed scratch exits into the winner set). The
@@ -221,10 +226,41 @@ surprised with the performance".
   proxy / coupling split / decoupled counterfactual; fill matching; the
   pools census; the accuracy census; prose discipline (characterization
   only; run LIVE at snapshot); no Pine changed.
-- Reviewed by: pending (in-session: analysis/round2.py reviewed by a
-  fresh-context code-reviewer agent, 2 confirmed + 1 minor, all fixed)
-- Findings: {blank until docs/reviews/tvb32-codex-audit.md exists}
-- NOTE: the TVB-31 request was never returned; both remain open.
+- Reviewed by: local Codex CLI, owner-run backlog prompt, 2026-10-10
+  (in-session: analysis/round2.py reviewed by a fresh-context
+  code-reviewer agent, 2 confirmed + 1 minor, all fixed)
+- Findings: `docs/reviews/tvb32-codex-audit.md` -- NEEDS-CHANGES, 5
+  findings (F1 HIGH, F2 F3 F4 MEDIUM, F5 LOW); the entry-gate fix, the
+  spot-hold reading, fill matching and the accuracy census checked clean
+- Review status: ADDRESSED 2026-10-11 (TVB-38): every finding is in the
+  executor's analysis script or its run prose; the one public-repo echo (the
+  decoupled number in this entry) is annotated above; the rest is recorded
+  for the private repo's next session
+
+#### Critical synthesis (TVB-38, 2026-10-11)
+
+- **F1 HIGH, the decoupled counterfactual can never flip -- AGREE.** The
+  rule demands every timeframe's forming bar be at least 60 minutes old,
+  which the 15-minute and hourly bars never are, so the nine "decoupled"
+  outcomes are a bracket-only hold. The reading "waiting an hour to let
+  the bars mature loses more than it saves" is WITHDRAWN (annotated in this
+  entry's finding list). OPEN in the executor: define a reachable coupling
+  rule, show one flip, rerun the nine.
+- **F2 MEDIUM, a wick before the entry minute can be scored as a later
+  fill -- AGREE.** The boundary minute's whole range is included on both the
+  entry and the post-exit side. OPEN: censor or bound ambiguous boundary
+  minutes; no negative holds; completed closes only for as-of marks.
+- **F3 MEDIUM, 777 refusal rows missing from the pools census -- AGREE,
+  already disclosed in TVB-33.** The trade count is unaffected; the pool
+  and funnel counts are watermarked incomplete. OPEN: a separately pinned
+  census from the repaired slice.
+- **F4 MEDIUM, the 48-hour "horizon" is a late-outcome exclusion -- AGREE
+  (latent: zero drops in the committed sample).** OPEN: clip at the
+  horizon or censor, never condition inclusion on a later exit.
+- **F5 LOW, stale denominators in the run prose -- AGREE.** OPEN: refresh
+  the table from the final object; same aligned filter for the R:R stats.
+- **Disputed: nothing.** None of this changes a public-repo number; all of
+  it changes what the round-2 overnight analysis may be quoted for.
 
 ---
 
@@ -458,8 +494,35 @@ audit confirmed independently).
   the documented committed-artifact delta; (8) the scanner test's tmp
   replica fidelity; (9) HyPaper spike factual claims; (10) no Pine
   changed -- verify request.security surface untouched.
-- Reviewed by: pending
-- Findings: (blank until docs/reviews/tvb31-codex-audit.md exists)
+- Reviewed by: local Codex CLI, owner-run backlog prompt
+  (`docs/reviews/CODEX_BACKLOG_PROMPT.md`), 2026-10-10
+- Findings: `docs/reviews/tvb31-codex-audit.md` -- NEEDS-CHANGES, 4
+  findings (F1 F2 HIGH, F3 F4 MEDIUM); the ten focus items otherwise
+  checked clean by pinned-source probes
+- Review status: ADDRESSED 2026-10-11 (TVB-38): F4 fixed in this repo;
+  F1-F3 are executor findings recorded for the private repo's next session
+
+#### Critical synthesis (TVB-38, 2026-10-11)
+
+- **F1 HIGH, a malformed position response proves flat -- AGREE.** At this
+  pin an empty user-state dict parsed as "no position", so a partial close
+  followed by a malformed reply could cancel protection and drop the
+  record. TVB-34 repaired the missing-list case; the TVB-34 audit's F1 shows
+  the inner rows are still accepted. OPEN in the executor: validate every
+  row (coin, finite signed size) before any flat proof. Matters only before
+  a real-money restart (executor is DOWN, KILL_FLAT in place).
+- **F2 HIGH, a Stop Limit passes the market-stop proof -- AGREE, CLOSED.**
+  TVB-34 narrowed the check to the exact "Stop Market" type (confirmed by
+  the TVB-34 audit).
+- **F3 MEDIUM, NaN / Infinity size passes stop coverage -- AGREE.** OPEN in
+  the executor: require finite positive sizes and finite prices before the
+  coverage comparison; add NaN and infinity vectors with real tick rounding.
+- **F4 MEDIUM, "liquidation enforcement irrelevant at $0.50 risk" -- AGREE,
+  FIXED here.** `docs/experiments/tvb31_hypaper_spike.md` now states the
+  limitation as leverage / maintenance / stop-distance dependent, not
+  dollar dependent, and conditions any adoption on a clearance check.
+- **Disputed: nothing.** The reviewer's own scoping is accepted: the HIGH
+  items are historical blockers at this pin, two of them since repaired.
 
 ---
 

@@ -10,8 +10,9 @@
 
 ## Status
 
-- Status: REQUESTED
-  <!-- REQUESTED | RETURNED (audit file written) | N/A -->
+- Status: ADDRESSED (returned 2026-10-11 05:39 from the owner-run backlog prompt;
+  folded by TVB-38 the same day -- synthesis in the TVB-37 HANDOFF entry, close-out block)
+  <!-- REQUESTED | RETURNED (audit file written) | ADDRESSED | N/A -->
 - Session under review: TVB-37 close-out (2026-10-04 .. 2026-10-10) -- the data
   redirect: a domino census, a chance comparison and an equal-size book view
   on every daily / weekly / monthly level break across 292 live perps, plus a
@@ -24,9 +25,10 @@
 - Requested: 2026-10-10
 - Write the audit to: `docs/reviews/tvb37-close-codex-audit.md` (copy
   `docs/reviews/_TEMPLATE.md`)
-- NOTE: TVB-31 .. TVB-35 audits were never returned and stay open; TVB-36 was
-  waived by the owner (N/A). Do not re-review the two folded TVB-37 ranges
-  except to check that their findings were folded as the HANDOFF syntheses say.
+- NOTE: the TVB-31 .. TVB-35 backlog returned 2026-10-10 and was folded by
+  TVB-38 on 2026-10-11 (every block flipped to ADDRESSED with a synthesis;
+  executor findings recorded for the private repo). TVB-36 was waived by the
+  owner (N/A).
 
 ## Commits to review
 
@@ -89,12 +91,16 @@ minutes in all). Committed numbers: `analysis/domino/results/*.json` and
    personal remark; `chance_book_page.html`, `trades.csv.gz`, run logs ignored.
 10. **request.security**: NO Pine file changed -- verify none did.
 
-## Backlog (also open, never returned; one audit file each)
+## Backlog (RETURNED 2026-10-10, ADDRESSED 2026-10-11 by TVB-38)
 
-The owner runs these with `docs/reviews/CODEX_BACKLOG_PROMPT.md`. Ranges are
+Run by the owner with `docs/reviews/CODEX_BACKLOG_PROMPT.md`. Ranges are
 pinned in each session's HANDOFF External Review block (TVB-31 / 32 in
-`docs/session_archive/HANDOFF_TVB27-TVB32.md`); sibling-repo ranges are local
-transport only.
+`docs/session_archive/HANDOFF_TVB27-TVB32.md`), where each block now carries
+its critical synthesis. Verdicts: all NEEDS-CHANGES, no CRITICAL. Fixed in
+this repo: TVB-31 F4 (HyPaper spike wording), TVB-35 F6-F9 (regime labeler
+look-ahead, three-state whipsaw, availability counts, harvest identity).
+Recorded for the private executor repo (before any real-money restart):
+TVB-31 F1/F3, TVB-32 F1-F5, TVB-33 F1-F3, TVB-34 F1-F3, TVB-35 F1-F5.
 
 | session | this repo | hip3-executor (private, local) | audit file |
 |---|---|---|---|

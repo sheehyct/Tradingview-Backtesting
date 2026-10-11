@@ -100,75 +100,79 @@ n= is the VALID count at that horizon (censored units excluded); a cell in paren
 
 ### Daily units: A+ class minus PLAIN (one-R chance, percentage points)
 
-| setup | flag | comparison | units A+ (valid by 5) | units base (valid by 5) | diff by 1 [95%] | diff by 3 [95%] | diff by 5 [95%] |
+| setup | flag | comparison | units A+ (valid by 1 / 3 / 5) | units base (valid by 1 / 3 / 5) | diff by 1 [95%] | diff by 3 [95%] | diff by 5 [95%] |
 |---|---|---|---|---|---|---|---|
-| reversal | all | stacked (exact or near) vs plain | 155 (153) | 43,809 (43,442) | +2.2 [-5, +9] | +3.7 [-4, +11] | +0.3 [-7, +8] |
-| reversal | all | exact_shared vs plain | 3 (3) | 43,809 (43,442) | (-24.9 [-25, -24]) | (-1.0 [-54, +52]) | (-4.9 [-58, +48]) |
-| reversal | all | exact_plain vs plain | 4 (4) | 43,809 (43,442) | (+0.1 [-42, +43]) | (+15.6 [-33, +65]) | (+11.7 [-37, +61]) |
-| reversal | all | near vs plain | 148 (146) | 43,809 (43,442) | +2.8 [-4, +10] | +3.5 [-4, +11] | +0.1 [-8, +8] |
-| reversal | all | within1 vs plain | 750 (732) | 43,809 (43,442) | +1.8 [-1, +5] | -0.8 [-4, +3] | -2.7 [-6, +1] |
-| reversal | third | stacked (exact or near) vs plain | 31 (31) | 7,721 (7,660) | -2.4 [-18, +13] | +0.6 [-17, +18] | -3.7 [-21, +13] |
-| reversal | third | exact_plain vs plain | 1 (1) | 7,721 (7,660) | (-28.2 [-29, -27]) | (-38.1 [-39, -37]) | (-42.4 [-44, -41]) |
-| reversal | third | near vs plain | 30 (30) | 7,721 (7,660) | -1.5 [-17, +14] | +1.9 [-16, +19] | -2.4 [-20, +15] |
-| reversal | third | within1 vs plain | 136 (135) | 7,721 (7,660) | +10.0 [+2, +18] | +5.3 [-3, +14] | +2.0 [-6, +10] |
-| reversal | strict | stacked (exact or near) vs plain | 14 (14) | 3,722 (3,698) | (+8.0 [-17, +33]) | (+5.3 [-21, +31]) | (+1.2 [-25, +27]) |
-| reversal | strict | exact_plain vs plain | 1 (1) | 3,722 (3,698) | (-27.7 [-29, -26]) | (-37.6 [-39, -36]) | (-41.6 [-43, -40]) |
-| reversal | strict | near vs plain | 13 (13) | 3,722 (3,698) | (+10.7 [-16, +37]) | (+8.6 [-19, +36]) | (+4.5 [-23, +32]) |
-| reversal | strict | within1 vs plain | 67 (67) | 3,722 (3,698) | +14.1 [+2, +26] | +7.2 [-5, +19] | +6.1 [-6, +18] |
-| continuation | all | stacked (exact or near) vs plain | 4,448 (4,404) | 55,976 (55,462) | +2.8 [+1, +4] | -0.1 [-2, +1] | -0.4 [-2, +1] |
-| continuation | all | exact_shared vs plain | 3,619 (3,600) | 55,976 (55,462) | +1.8 [+0, +3] | -1.5 [-3, +0] | -2.2 [-4, -1] |
-| continuation | all | exact_plain vs plain | 25 (25) | 55,976 (55,462) | (+7.2 [-11, +25]) | (+9.6 [-10, +29]) | (+16.9 [-3, +36]) |
-| continuation | all | near vs plain | 804 (779) | 55,976 (55,462) | +6.8 [+4, +10] | +6.4 [+3, +10] | +7.0 [+3, +11] |
-| continuation | all | within1 vs plain | 2,555 (2,511) | 55,976 (55,462) | +5.2 [+3, +7] | +4.2 [+2, +6] | +4.3 [+2, +6] |
-| continuation | third | stacked (exact or near) vs plain | 36 (36) | 910 (903) | +9.8 [-7, +26] | +0.6 [-16, +17] | +0.4 [-16, +17] |
-| continuation | third | exact_shared vs plain | 26 (26) | 910 (903) | (+18.1 [-1, +38]) | (+8.9 [-11, +28]) | (+9.8 [-10, +29]) |
-| continuation | third | exact_plain vs plain | 1 (1) | 910 (903) | (-31.9 [-35, -29]) | (-41.1 [-44, -38]) | (-44.1 [-47, -41]) |
-| continuation | third | near vs plain | 9 (9) | 910 (903) | (-9.6 [-37, +18]) | (-18.9 [-46, +8]) | (-21.9 [-49, +6]) |
-| continuation | third | within1 vs plain | 32 (32) | 910 (903) | +5.6 [-11, +23] | +5.8 [-12, +23] | +5.9 [-12, +24] |
-| continuation | strict | stacked (exact or near) vs plain | 14 (14) | 225 (224) | (+2.8 [-23, +29]) | (-6.5 [-32, +19]) | (-8.5 [-34, +17]) |
-| continuation | strict | exact_shared vs plain | 9 (9) | 225 (224) | (+22.7 [-10, +56]) | (+13.3 [-20, +46]) | (+11.4 [-22, +44]) |
-| continuation | strict | exact_plain vs plain | 1 (1) | 225 (224) | (-32.9 [-39, -27]) | (-42.2 [-49, -36]) | (-44.2 [-51, -38]) |
-| continuation | strict | near vs plain | 4 (4) | 225 (224) | (-32.9 [-39, -27]) | (-42.2 [-49, -36]) | (-44.2 [-51, -38]) |
-| continuation | strict | within1 vs plain | 10 (10) | 225 (224) | (+7.1 [-24, +38]) | (-2.2 [-33, +29]) | (+5.8 [-26, +37]) |
-| inside | all | stacked (exact or near) vs plain | 243 (242) | 30,762 (30,599) | -3.6 [-9, +2] | -4.8 [-11, +1] | -6.8 [-13, -1] |
-| inside | all | exact_shared vs plain | 6 (6) | 30,762 (30,599) | (+2.2 [-36, +40]) | (+11.7 [-28, +52]) | (+9.3 [-31, +49]) |
-| inside | all | exact_plain vs plain | 6 (6) | 30,762 (30,599) | (+2.2 [-36, +40]) | (-4.9 [-43, +33]) | (-7.4 [-45, +30]) |
-| inside | all | near vs plain | 231 (230) | 30,762 (30,599) | -3.9 [-10, +2] | -5.2 [-11, +1] | -7.3 [-13, -1] |
-| inside | all | within1 vs plain | 774 (767) | 30,762 (30,599) | -2.3 [-6, +1] | -3.9 [-7, -0] | -4.5 [-8, -1] |
-| inside | third | stacked (exact or near) vs plain | 19 (19) | 2,481 (2,460) | (+11.2 [-11, +34]) | (+3.7 [-19, +26]) | (+1.1 [-21, +24]) |
-| inside | third | exact_plain vs plain | 2 (2) | 2,481 (2,460) | (+13.8 [-55, +83]) | (+6.4 [-63, +76]) | (+3.8 [-66, +73]) |
-| inside | third | near vs plain | 17 (17) | 2,481 (2,460) | (+10.9 [-13, +35]) | (+3.4 [-20, +27]) | (+0.8 [-23, +25]) |
-| inside | third | within1 vs plain | 88 (87) | 2,481 (2,460) | -0.9 [-11, +9] | -5.0 [-15, +5] | -6.0 [-16, +5] |
-| inside | strict | stacked (exact or near) vs plain | 8 (8) | 1,003 (994) | (+26.4 [-7, +60]) | (+18.1 [-16, +52]) | (+15.0 [-19, +49]) |
-| inside | strict | exact_plain vs plain | 2 (2) | 1,003 (994) | (+13.9 [-55, +83]) | (+5.6 [-64, +75]) | (+2.5 [-67, +72]) |
-| inside | strict | near vs plain | 6 (6) | 1,003 (994) | (+30.6 [-7, +68]) | (+22.3 [-16, +60]) | (+19.2 [-19, +57]) |
-| inside | strict | within1 vs plain | 43 (43) | 1,003 (994) | -5.9 [-20, +8] | -11.8 [-26, +2] | -12.6 [-27, +2] |
-| outside | all | stacked (exact or near) vs plain | 865 (854) | 12,876 (12,695) | +1.9 [-1, +5] | -1.4 [-5, +2] | -3.0 [-6, +0] |
-| outside | all | exact_shared vs plain | 633 (631) | 12,876 (12,695) | +0.9 [-2, +4] | -2.7 [-6, +1] | -4.5 [-8, -1] |
-| outside | all | exact_plain vs plain | 5 (5) | 12,876 (12,695) | (-1.2 [-36, +34]) | (-11.7 [-47, +23]) | (-16.5 [-52, +19]) |
-| outside | all | near vs plain | 227 (218) | 12,876 (12,695) | +4.8 [-1, +11] | +2.2 [-4, +8] | +1.5 [-5, +8] |
-| outside | all | within1 vs plain | 718 (699) | 12,876 (12,695) | +1.8 [-1, +5] | +0.2 [-3, +4] | -1.0 [-5, +3] |
-| outside | third | stacked (exact or near) vs plain | 51 (51) | 809 (801) | -6.2 [-17, +4] | -12.8 [-25, -1] | -13.3 [-26, -1] |
-| outside | third | exact_shared vs plain | 32 (32) | 809 (801) | -6.3 [-19, +7] | -12.4 [-27, +2] | -13.8 [-29, +2] |
-| outside | third | near vs plain | 19 (19) | 809 (801) | (-6.1 [-23, +11]) | (-13.3 [-32, +5]) | (-12.5 [-33, +8]) |
-| outside | third | within1 vs plain | 55 (53) | 809 (801) | +3.6 [-8, +15] | -4.7 [-17, +8] | -6.8 [-20, +6] |
-| outside | strict | stacked (exact or near) vs plain | 25 (25) | 309 (308) | (-15.9 [-28, -4]) | (-24.4 [-38, -11]) | (-29.2 [-43, -15]) |
-| outside | strict | exact_shared vs plain | 18 (18) | 309 (308) | (-18.4 [-30, -7]) | (-25.3 [-41, -10]) | (-30.1 [-46, -15]) |
-| outside | strict | near vs plain | 7 (7) | 309 (308) | (-9.7 [-36, +17]) | (-22.1 [-49, +4]) | (-26.9 [-53, -0]) |
-| outside | strict | within1 vs plain | 17 (17) | 309 (308) | (-6.3 [-25, +12]) | (-7.0 [-29, +15]) | (-11.8 [-34, +11]) |
+| reversal | all | stacked (exact or near) vs plain | 155 (155 / 155 / 153) | 43,809 (43,749 / 43,629 / 43,442) | +2.2 [-5, +9] | +3.7 [-4, +11] | +0.3 [-7, +8] |
+| reversal | all | exact_shared vs plain | 3 (3 / 3 / 3) | 43,809 (43,749 / 43,629 / 43,442) | (-24.9 [-25, -24]) | (-1.0 [-54, +52]) | (-4.9 [-58, +48]) |
+| reversal | all | exact_plain vs plain | 4 (4 / 4 / 4) | 43,809 (43,749 / 43,629 / 43,442) | (+0.1 [-42, +43]) | (+15.6 [-33, +65]) | (+11.7 [-37, +61]) |
+| reversal | all | near vs plain | 148 (148 / 148 / 146) | 43,809 (43,749 / 43,629 / 43,442) | +2.8 [-4, +10] | +3.5 [-4, +11] | +0.1 [-8, +8] |
+| reversal | all | within1 vs plain | 750 (749 / 743 / 732) | 43,809 (43,749 / 43,629 / 43,442) | +1.8 [-1, +5] | -0.8 [-4, +3] | -2.7 [-6, +1] |
+| reversal | third | stacked (exact or near) vs plain | 31 (31 / 31 / 31) | 7,721 (7,708 / 7,686 / 7,660) | -2.4 [-18, +13] | +0.6 [-17, +18] | -3.7 [-21, +13] |
+| reversal | third | exact_plain vs plain | 1 (1 / 1 / 1) | 7,721 (7,708 / 7,686 / 7,660) | (-28.2 [-29, -27]) | (-38.1 [-39, -37]) | (-42.4 [-44, -41]) |
+| reversal | third | near vs plain | 30 (30 / 30 / 30) | 7,721 (7,708 / 7,686 / 7,660) | -1.5 [-17, +14] | +1.9 [-16, +19] | -2.4 [-20, +15] |
+| reversal | third | within1 vs plain | 136 (136 / 136 / 135) | 7,721 (7,708 / 7,686 / 7,660) | +10.0 [+2, +18] | +5.3 [-3, +14] | +2.0 [-6, +10] |
+| reversal | strict | stacked (exact or near) vs plain | 14 (14 / 14 / 14) | 3,722 (3,717 / 3,707 / 3,698) | (+8.0 [-17, +33]) | (+5.3 [-21, +31]) | (+1.2 [-25, +27]) |
+| reversal | strict | exact_plain vs plain | 1 (1 / 1 / 1) | 3,722 (3,717 / 3,707 / 3,698) | (-27.7 [-29, -26]) | (-37.6 [-39, -36]) | (-41.6 [-43, -40]) |
+| reversal | strict | near vs plain | 13 (13 / 13 / 13) | 3,722 (3,717 / 3,707 / 3,698) | (+10.7 [-16, +37]) | (+8.6 [-19, +36]) | (+4.5 [-23, +32]) |
+| reversal | strict | within1 vs plain | 67 (67 / 67 / 67) | 3,722 (3,717 / 3,707 / 3,698) | +14.1 [+2, +26] | +7.2 [-5, +19] | +6.1 [-6, +18] |
+| continuation | all | stacked (exact or near) vs plain | 4,448 (4,447 / 4,433 / 4,404) | 55,976 (55,947 / 55,620 / 55,462) | +2.8 [+1, +4] | -0.1 [-2, +1] | -0.4 [-2, +1] |
+| continuation | all | exact_shared vs plain | 3,619 (3,619 / 3,619 / 3,600) | 55,976 (55,947 / 55,620 / 55,462) | +1.8 [+0, +3] | -1.5 [-3, +0] | -2.2 [-4, -1] |
+| continuation | all | exact_plain vs plain | 25 (25 / 25 / 25) | 55,976 (55,947 / 55,620 / 55,462) | (+7.2 [-11, +25]) | (+9.6 [-10, +29]) | (+16.9 [-3, +36]) |
+| continuation | all | near vs plain | 804 (803 / 789 / 779) | 55,976 (55,947 / 55,620 / 55,462) | +6.8 [+4, +10] | +6.4 [+3, +10] | +7.0 [+3, +11] |
+| continuation | all | within1 vs plain | 2,555 (2,550 / 2,529 / 2,511) | 55,976 (55,947 / 55,620 / 55,462) | +5.2 [+3, +7] | +4.2 [+2, +6] | +4.3 [+2, +6] |
+| continuation | third | stacked (exact or near) vs plain | 36 (36 / 36 / 36) | 910 (910 / 910 / 903) | +9.8 [-7, +26] | +0.6 [-16, +17] | +0.4 [-16, +17] |
+| continuation | third | exact_shared vs plain | 26 (26 / 26 / 26) | 910 (910 / 910 / 903) | (+18.1 [-1, +38]) | (+8.9 [-11, +28]) | (+9.8 [-10, +29]) |
+| continuation | third | exact_plain vs plain | 1 (1 / 1 / 1) | 910 (910 / 910 / 903) | (-31.9 [-35, -29]) | (-41.1 [-44, -38]) | (-44.1 [-47, -41]) |
+| continuation | third | near vs plain | 9 (9 / 9 / 9) | 910 (910 / 910 / 903) | (-9.6 [-37, +18]) | (-18.9 [-46, +8]) | (-21.9 [-49, +6]) |
+| continuation | third | within1 vs plain | 32 (32 / 32 / 32) | 910 (910 / 910 / 903) | +5.6 [-11, +23] | +5.8 [-12, +23] | +5.9 [-12, +24] |
+| continuation | strict | stacked (exact or near) vs plain | 14 (14 / 14 / 14) | 225 (225 / 225 / 224) | (+2.8 [-23, +29]) | (-6.5 [-32, +19]) | (-8.5 [-34, +17]) |
+| continuation | strict | exact_shared vs plain | 9 (9 / 9 / 9) | 225 (225 / 225 / 224) | (+22.7 [-10, +56]) | (+13.3 [-20, +46]) | (+11.4 [-22, +44]) |
+| continuation | strict | exact_plain vs plain | 1 (1 / 1 / 1) | 225 (225 / 225 / 224) | (-32.9 [-39, -27]) | (-42.2 [-49, -36]) | (-44.2 [-51, -38]) |
+| continuation | strict | near vs plain | 4 (4 / 4 / 4) | 225 (225 / 225 / 224) | (-32.9 [-39, -27]) | (-42.2 [-49, -36]) | (-44.2 [-51, -38]) |
+| continuation | strict | within1 vs plain | 10 (10 / 10 / 10) | 225 (225 / 225 / 224) | (+7.1 [-24, +38]) | (-2.2 [-33, +29]) | (+5.8 [-26, +37]) |
+| inside | all | stacked (exact or near) vs plain | 243 (243 / 242 / 242) | 30,762 (30,754 / 30,691 / 30,599) | -3.6 [-9, +2] | -4.8 [-11, +1] | -6.8 [-13, -1] |
+| inside | all | exact_shared vs plain | 6 (6 / 6 / 6) | 30,762 (30,754 / 30,691 / 30,599) | (+2.2 [-36, +40]) | (+11.7 [-28, +52]) | (+9.3 [-31, +49]) |
+| inside | all | exact_plain vs plain | 6 (6 / 6 / 6) | 30,762 (30,754 / 30,691 / 30,599) | (+2.2 [-36, +40]) | (-4.9 [-43, +33]) | (-7.4 [-45, +30]) |
+| inside | all | near vs plain | 231 (231 / 230 / 230) | 30,762 (30,754 / 30,691 / 30,599) | -3.9 [-10, +2] | -5.2 [-11, +1] | -7.3 [-13, -1] |
+| inside | all | within1 vs plain | 774 (774 / 773 / 767) | 30,762 (30,754 / 30,691 / 30,599) | -2.3 [-6, +1] | -3.9 [-7, -0] | -4.5 [-8, -1] |
+| inside | third | stacked (exact or near) vs plain | 19 (19 / 19 / 19) | 2,481 (2,481 / 2,473 / 2,460) | (+11.2 [-11, +34]) | (+3.7 [-19, +26]) | (+1.1 [-21, +24]) |
+| inside | third | exact_plain vs plain | 2 (2 / 2 / 2) | 2,481 (2,481 / 2,473 / 2,460) | (+13.8 [-55, +83]) | (+6.4 [-63, +76]) | (+3.8 [-66, +73]) |
+| inside | third | near vs plain | 17 (17 / 17 / 17) | 2,481 (2,481 / 2,473 / 2,460) | (+10.9 [-13, +35]) | (+3.4 [-20, +27]) | (+0.8 [-23, +25]) |
+| inside | third | within1 vs plain | 88 (88 / 88 / 87) | 2,481 (2,481 / 2,473 / 2,460) | -0.9 [-11, +9] | -5.0 [-15, +5] | -6.0 [-16, +5] |
+| inside | strict | stacked (exact or near) vs plain | 8 (8 / 8 / 8) | 1,003 (1,003 / 1,000 / 994) | (+26.4 [-7, +60]) | (+18.1 [-16, +52]) | (+15.0 [-19, +49]) |
+| inside | strict | exact_plain vs plain | 2 (2 / 2 / 2) | 1,003 (1,003 / 1,000 / 994) | (+13.9 [-55, +83]) | (+5.6 [-64, +75]) | (+2.5 [-67, +72]) |
+| inside | strict | near vs plain | 6 (6 / 6 / 6) | 1,003 (1,003 / 1,000 / 994) | (+30.6 [-7, +68]) | (+22.3 [-16, +60]) | (+19.2 [-19, +57]) |
+| inside | strict | within1 vs plain | 43 (43 / 43 / 43) | 1,003 (1,003 / 1,000 / 994) | -5.9 [-20, +8] | -11.8 [-26, +2] | -12.6 [-27, +2] |
+| outside | all | stacked (exact or near) vs plain | 865 (865 / 865 / 854) | 12,876 (12,862 / 12,818 / 12,695) | +1.9 [-1, +5] | -1.4 [-5, +2] | -3.0 [-6, +0] |
+| outside | all | exact_shared vs plain | 633 (633 / 633 / 631) | 12,876 (12,862 / 12,818 / 12,695) | +0.9 [-2, +4] | -2.7 [-6, +1] | -4.5 [-8, -1] |
+| outside | all | exact_plain vs plain | 5 (5 / 5 / 5) | 12,876 (12,862 / 12,818 / 12,695) | (-1.2 [-36, +34]) | (-11.7 [-47, +23]) | (-16.5 [-52, +19]) |
+| outside | all | near vs plain | 227 (227 / 227 / 218) | 12,876 (12,862 / 12,818 / 12,695) | +4.8 [-1, +11] | +2.2 [-4, +8] | +1.5 [-5, +8] |
+| outside | all | within1 vs plain | 718 (718 / 715 / 699) | 12,876 (12,862 / 12,818 / 12,695) | +1.8 [-1, +5] | +0.2 [-3, +4] | -1.0 [-5, +3] |
+| outside | third | stacked (exact or near) vs plain | 51 (51 / 51 / 51) | 809 (809 / 807 / 801) | -6.2 [-17, +4] | -12.8 [-25, -1] | -13.3 [-26, -1] |
+| outside | third | exact_shared vs plain | 32 (32 / 32 / 32) | 809 (809 / 807 / 801) | -6.3 [-19, +7] | -12.4 [-27, +2] | -13.8 [-29, +2] |
+| outside | third | near vs plain | 19 (19 / 19 / 19) | 809 (809 / 807 / 801) | (-6.1 [-23, +11]) | (-13.3 [-32, +5]) | (-12.5 [-33, +8]) |
+| outside | third | within1 vs plain | 55 (55 / 54 / 53) | 809 (809 / 807 / 801) | +3.6 [-8, +15] | -4.7 [-17, +8] | -6.8 [-20, +6] |
+| outside | strict | stacked (exact or near) vs plain | 25 (25 / 25 / 25) | 309 (309 / 308 / 308) | (-15.9 [-28, -4]) | (-24.4 [-38, -11]) | (-29.2 [-43, -15]) |
+| outside | strict | exact_shared vs plain | 18 (18 / 18 / 18) | 309 (309 / 308 / 308) | (-18.4 [-30, -7]) | (-25.3 [-41, -10]) | (-30.1 [-46, -15]) |
+| outside | strict | near vs plain | 7 (7 / 7 / 7) | 309 (309 / 308 / 308) | (-9.7 [-36, +17]) | (-22.1 [-49, +4]) | (-26.9 [-53, -0]) |
+| outside | strict | within1 vs plain | 17 (17 / 17 / 17) | 309 (309 / 308 / 308) | (-6.3 [-25, +12]) | (-7.0 [-29, +15]) | (-11.8 [-34, +11]) |
+
+Valid counts are per horizon (censored units excluded at that horizon); a difference in parentheses has fewer than 30 valid units on either side AT THAT HORIZON (close-out audit F3).
 
 ### Hypothesis 1 (owner): same-price stacks at a shared open do WORSE than plain and than near
 
-| setup | flag | units exact shared (valid by 5) | one R by 1 / 3 / 5 | minus plain by 1 / 3 / 5 | minus near by 1 / 3 / 5 |
-|---|---|---|---|---|---|
-| reversal | all | 3 (3) | (0.0%) / (33.3%) / (33.3%) | (-24.9 [-25, -24]) / (-1.0 [-54, +52]) / (-4.9 [-58, +48]) | (-27.7 [-35, -20]) / (-4.5 [-58, +49]) / (-5.0 [-59, +49]) |
-| continuation | all | 3,619 (3,600) | 26.7% / 32.9% / 36.9% | +1.8 [+0, +3] / -1.5 [-3, +0] / -2.2 [-4, -1] | -5.0 [-8, -1] / -7.9 [-12, -4] / -9.1 [-13, -5] |
-| continuation | third | 26 (26) | (50.0%) / (50.0%) / (53.8%) | (+18.1 [-1, +38]) / (+8.9 [-11, +28]) / (+9.8 [-10, +29]) | (+27.8 [-5, +61]) / (+27.8 [-5, +61]) / (+31.6 [-2, +65]) |
-| continuation | strict | 9 (9) | (55.6%) / (55.6%) / (55.6%) | (+22.7 [-10, +56]) / (+13.3 [-20, +46]) / (+11.4 [-22, +44]) | (+55.6 [+23, +88]) / (+55.6 [+23, +88]) / (+55.6 [+23, +88]) |
-| inside | all | 6 (6) | (33.3%) / (50.0%) / (50.0%) | (+2.2 [-36, +40]) / (+11.7 [-28, +52]) / (+9.3 [-31, +49]) | (+6.1 [-32, +44]) / (+17.0 [-24, +57]) / (+16.5 [-24, +57]) |
-| outside | all | 633 (631) | 22.1% / 29.1% / 32.0% | +0.9 [-2, +4] / -2.7 [-6, +1] / -4.5 [-8, -1] | -3.9 [-10, +3] / -4.9 [-12, +2] / -6.1 [-13, +1] |
-| outside | third | 32 (32) | 15.6% / 21.9% / 25.0% | -6.3 [-19, +7] / -12.4 [-27, +2] / -13.8 [-29, +2] | (-0.2 [-21, +21]) / (+0.8 [-22, +24]) / (-1.3 [-26, +24]) |
-| outside | strict | 18 (18) | (5.6%) / (11.1%) / (11.1%) | (-18.4 [-30, -7]) / (-25.3 [-41, -10]) / (-30.1 [-46, -15]) | (-8.7 [-37, +19]) / (-3.2 [-33, +27]) / (-3.2 [-33, +27]) |
+| setup | flag | units exact shared (valid by 1 / 3 / 5) | one R by 1 / 3 / 5 [95%] n= valid | plain units (valid by 1 / 3 / 5) | minus plain by 1 / 3 / 5 | near units (valid by 1 / 3 / 5) | minus near by 1 / 3 / 5 |
+|---|---|---|---|---|---|---|---|
+| reversal | all | 3 (3 / 3 / 3) | (0.0% [0, 56] n=3) / (33.3% [6, 79] n=3) / (33.3% [6, 79] n=3) | 43,809 (43,749 / 43,629 / 43,442) | (-24.9 [-25, -24]) / (-1.0 [-54, +52]) / (-4.9 [-58, +48]) | 148 (148 / 148 / 146) | (-27.7 [-35, -20]) / (-4.5 [-58, +49]) / (-5.0 [-59, +49]) |
+| continuation | all | 3,619 (3,619 / 3,619 / 3,600) | 26.7% [25, 28] n=3,619 / 32.9% [31, 34] n=3,619 / 36.9% [35, 39] n=3,600 | 55,976 (55,947 / 55,620 / 55,462) | +1.8 [+0, +3] / -1.5 [-3, +0] / -2.2 [-4, -1] | 804 (803 / 789 / 779) | -5.0 [-8, -1] / -7.9 [-12, -4] / -9.1 [-13, -5] |
+| continuation | third | 26 (26 / 26 / 26) | (50.0% [32, 68] n=26) / (50.0% [32, 68] n=26) / (53.8% [35, 71] n=26) | 910 (910 / 910 / 903) | (+18.1 [-1, +38]) / (+8.9 [-11, +28]) / (+9.8 [-10, +29]) | 9 (9 / 9 / 9) | (+27.8 [-5, +61]) / (+27.8 [-5, +61]) / (+31.6 [-2, +65]) |
+| continuation | strict | 9 (9 / 9 / 9) | (55.6% [27, 81] n=9) / (55.6% [27, 81] n=9) / (55.6% [27, 81] n=9) | 225 (225 / 225 / 224) | (+22.7 [-10, +56]) / (+13.3 [-20, +46]) / (+11.4 [-22, +44]) | 4 (4 / 4 / 4) | (+55.6 [+23, +88]) / (+55.6 [+23, +88]) / (+55.6 [+23, +88]) |
+| inside | all | 6 (6 / 6 / 6) | (33.3% [10, 70] n=6) / (50.0% [19, 81] n=6) / (50.0% [19, 81] n=6) | 30,762 (30,754 / 30,691 / 30,599) | (+2.2 [-36, +40]) / (+11.7 [-28, +52]) / (+9.3 [-31, +49]) | 231 (231 / 230 / 230) | (+6.1 [-32, +44]) / (+17.0 [-24, +57]) / (+16.5 [-24, +57]) |
+| outside | all | 633 (633 / 633 / 631) | 22.1% [19, 26] n=633 / 29.1% [26, 33] n=633 / 32.0% [28, 36] n=631 | 12,876 (12,862 / 12,818 / 12,695) | +0.9 [-2, +4] / -2.7 [-6, +1] / -4.5 [-8, -1] | 227 (227 / 227 / 218) | -3.9 [-10, +3] / -4.9 [-12, +2] / -6.1 [-13, +1] |
+| outside | third | 32 (32 / 32 / 32) | 15.6% [7, 32] n=32 / 21.9% [11, 39] n=32 / 25.0% [13, 42] n=32 | 809 (809 / 807 / 801) | -6.3 [-19, +7] / -12.4 [-27, +2] / -13.8 [-29, +2] | 19 (19 / 19 / 19) | (-0.2 [-21, +21]) / (+0.8 [-22, +24]) / (-1.3 [-26, +24]) |
+| outside | strict | 18 (18 / 18 / 18) | (5.6% [1, 26] n=18) / (11.1% [3, 33] n=18) / (11.1% [3, 33] n=18) | 309 (309 / 308 / 308) | (-18.4 [-30, -7]) / (-25.3 [-41, -10]) / (-30.1 [-46, -15]) | 7 (7 / 7 / 7) | (-8.7 [-37, +19]) / (-3.2 [-33, +27]) / (-3.2 [-33, +27]) |
+
+Own chances carry Wilson 95% intervals and their valid count; differences are greyed when either side has fewer than 30 valid units at that horizon.
 
 ### Weekly units: setup x shape flag x gap to yesterday's level
 
@@ -235,52 +239,54 @@ n= is the VALID count at that horizon (censored units excluded); a cell in paren
 
 ### Weekly units: stacked minus the rest
 
-| setup | flag | comparison | units A+ (valid by 5) | units base (valid by 5) | diff by 1 [95%] | diff by 3 [95%] | diff by 5 [95%] |
+| setup | flag | comparison | units A+ (valid by 1 / 3 / 5) | units base (valid by 1 / 3 / 5) | diff by 1 [95%] | diff by 3 [95%] | diff by 5 [95%] |
 |---|---|---|---|---|---|---|---|
-| reversal | all | stacked (exact or near) vs within1 + spread | 1,098 (971) | 5,053 (4,646) | -1.3 [-4, +2] | -3.4 [-7, -0] | -2.0 [-5, +1] |
-| reversal | all | exact_shared vs within1 + spread | 731 (643) | 5,053 (4,646) | -2.9 [-6, +0] | -4.6 [-8, -1] | -3.7 [-8, +0] |
-| reversal | all | exact_plain vs within1 + spread | 13 (13) | 5,053 (4,646) | (-12.1 [-32, +8]) | (-16.6 [-40, +6]) | (-20.7 [-44, +2]) |
-| reversal | all | near vs within1 + spread | 354 (315) | 5,053 (4,646) | +2.6 [-2, +8] | -0.3 [-6, +5] | +2.2 [-3, +8] |
-| reversal | third | stacked (exact or near) vs within1 + spread | 281 (262) | 741 (673) | +7.9 [+2, +14] | +2.6 [-4, +9] | +2.8 [-4, +10] |
-| reversal | third | exact_shared vs within1 + spread | 209 (197) | 741 (673) | +6.7 [+0, +13] | +1.7 [-6, +9] | +0.9 [-7, +9] |
-| reversal | third | exact_plain vs within1 + spread | 5 (5) | 741 (673) | (-18.8 [-22, -16]) | (-12.1 [-47, +23]) | (-16.1 [-51, +19]) |
-| reversal | third | near vs within1 + spread | 67 (60) | 741 (673) | +14.0 [+2, +26] | +6.6 [-6, +19] | +10.6 [-3, +24] |
-| reversal | strict | stacked (exact or near) vs within1 + spread | 175 (162) | 327 (293) | +3.7 [-4, +11] | +0.0 [-9, +9] | -0.5 [-9, +8] |
-| reversal | strict | exact_shared vs within1 + spread | 141 (131) | 327 (293) | +2.7 [-5, +10] | -1.5 [-11, +8] | -3.2 [-13, +6] |
-| reversal | strict | exact_plain vs within1 + spread | 4 (4) | 327 (293) | (-16.5 [-21, -12]) | (-3.0 [-46, +40]) | (-6.4 [-49, +36]) |
-| reversal | strict | near vs within1 + spread | 30 (27) | 327 (293) | (+11.1 [-6, +28]) | (+7.7 [-11, +26]) | (+13.0 [-6, +33]) |
-| continuation | all | stacked (exact or near) vs within1 + spread | 2,386 (2,258) | 6,071 (5,641) | -8.7 [-11, -7] | -9.3 [-12, -7] | -9.7 [-12, -7] |
-| continuation | all | exact_shared vs within1 + spread | 1,929 (1,847) | 6,071 (5,641) | -10.6 [-13, -8] | -12.2 [-15, -10] | -12.8 [-15, -10] |
-| continuation | all | exact_plain vs within1 + spread | 14 (14) | 6,071 (5,641) | (+11.3 [-15, +37]) | (+8.6 [-18, +35]) | (+11.5 [-14, +37]) |
-| continuation | all | near vs within1 + spread | 443 (397) | 6,071 (5,641) | -0.8 [-5, +4] | +3.3 [-2, +8] | +4.3 [-1, +9] |
-| continuation | third | stacked (exact or near) vs within1 + spread | 45 (42) | 119 (112) | +2.4 [-15, +20] | +6.9 [-11, +24] | +3.6 [-14, +21] |
-| continuation | third | exact_shared vs within1 + spread | 36 (34) | 119 (112) | +1.7 [-17, +21] | +5.8 [-13, +25] | +3.6 [-16, +23] |
-| continuation | third | near vs within1 + spread | 9 (8) | 119 (112) | (+5.0 [-29, +39]) | (+11.3 [-22, +45]) | (+3.6 [-32, +39]) |
-| continuation | strict | stacked (exact or near) vs within1 + spread | 32 (32) | 20 (20) | (-2.5 [-30, +25]) | (+5.0 [-23, +33]) | (+5.0 [-23, +33]) |
-| continuation | strict | exact_shared vs within1 + spread | 30 (30) | 20 (20) | (+0.0 [-28, +28]) | (+5.0 [-23, +33]) | (+5.0 [-23, +33]) |
-| continuation | strict | near vs within1 + spread | 2 (2) | 20 (20) | (-40.0 [-61, -19]) | (+5.0 [-68, +78]) | (+5.0 [-68, +78]) |
-| inside | all | stacked (exact or near) vs within1 + spread | 1,117 (1,038) | 3,652 (3,350) | -6.2 [-9, -3] | -5.6 [-9, -2] | -4.9 [-8, -1] |
-| inside | all | exact_shared vs within1 + spread | 821 (770) | 3,652 (3,350) | -9.4 [-13, -6] | -8.3 [-12, -5] | -7.4 [-11, -4] |
-| inside | all | exact_plain vs within1 + spread | 8 (8) | 3,652 (3,350) | (+27.3 [-6, +61]) | (+31.7 [+2, +62]) | (+28.3 [-2, +58]) |
-| inside | all | near vs within1 + spread | 288 (260) | 3,652 (3,350) | +1.9 [-4, +8] | +1.4 [-5, +7] | +1.3 [-5, +8] |
-| inside | third | stacked (exact or near) vs within1 + spread | 129 (121) | 273 (265) | -9.8 [-19, -0] | -17.0 [-27, -7] | -17.4 [-28, -7] |
-| inside | third | exact_shared vs within1 + spread | 99 (94) | 273 (265) | -9.7 [-20, +1] | -19.0 [-30, -8] | -21.5 [-33, -11] |
-| inside | third | exact_plain vs within1 + spread | 1 (1) | 273 (265) | (-37.5 [-43, -32]) | (-49.2 [-55, -43]) | (-51.3 [-57, -45]) |
-| inside | third | near vs within1 + spread | 29 (26) | 273 (265) | (-9.0 [-27, +9]) | (-8.5 [-28, +11]) | (-1.3 [-21, +19]) |
-| inside | strict | stacked (exact or near) vs within1 + spread | 84 (81) | 80 (79) | -12.3 [-26, +2] | -22.6 [-37, -8] | -21.0 [-36, -6] |
-| inside | strict | exact_shared vs within1 + spread | 70 (68) | 80 (79) | -12.1 [-27, +3] | -21.6 [-37, -6] | -21.2 [-37, -6] |
-| inside | strict | exact_plain vs within1 + spread | 1 (1) | 80 (79) | (-36.7 [-47, -26]) | (-50.6 [-62, -40]) | (-50.6 [-62, -40]) |
-| inside | strict | near vs within1 + spread | 13 (12) | 80 (79) | (-11.7 [-38, +15]) | (-25.6 [-52, +1]) | (-17.3 [-46, +12]) |
-| outside | all | stacked (exact or near) vs within1 + spread | 632 (567) | 1,511 (1,390) | +0.8 [-3, +5] | -2.5 [-7, +2] | -3.1 [-8, +2] |
-| outside | all | exact_shared vs within1 + spread | 529 (482) | 1,511 (1,390) | -0.0 [-4, +4] | -3.6 [-8, +1] | -4.1 [-9, +1] |
-| outside | all | exact_plain vs within1 + spread | 1 (1) | 1,511 (1,390) | (-20.4 [-22, -18]) | (-33.8 [-36, -31]) | (-37.7 [-40, -35]) |
-| outside | all | near vs within1 + spread | 102 (84) | 1,511 (1,390) | +5.6 [-3, +14] | +4.1 [-6, +15] | +2.8 [-8, +14] |
-| outside | third | stacked (exact or near) vs within1 + spread | 44 (41) | 95 (95) | -14.7 [-28, -2] | -20.5 [-36, -5] | -21.2 [-37, -5] |
-| outside | third | exact_shared vs within1 + spread | 33 (32) | 95 (95) | -20.1 [-32, -8] | -21.3 [-38, -5] | -21.3 [-39, -4] |
-| outside | third | near vs within1 + spread | 11 (9) | 95 (95) | (+1.0 [-27, +29]) | (-17.8 [-47, +11]) | (-20.9 [-50, +8]) |
-| outside | strict | stacked (exact or near) vs within1 + spread | 29 (28) | 35 (35) | (-6.8 [-23, +10]) | (-7.1 [-28, +14]) | (-6.4 [-29, +16]) |
-| outside | strict | exact_shared vs within1 + spread | 25 (25) | 35 (35) | (-9.1 [-26, +7]) | (-8.6 [-30, +13]) | (-7.4 [-30, +15]) |
-| outside | strict | near vs within1 + spread | 4 (3) | 35 (35) | (+7.9 [-36, +52]) | (+4.8 [-51, +60]) | (+1.9 [-54, +57]) |
+| reversal | all | stacked (exact or near) vs within1 + spread | 1,098 (1,074 / 1,007 / 971) | 5,053 (4,905 / 4,737 / 4,646) | -1.3 [-4, +2] | -3.4 [-7, -0] | -2.0 [-5, +1] |
+| reversal | all | exact_shared vs within1 + spread | 731 (721 / 669 / 643) | 5,053 (4,905 / 4,737 / 4,646) | -2.9 [-6, +0] | -4.6 [-8, -1] | -3.7 [-8, +0] |
+| reversal | all | exact_plain vs within1 + spread | 13 (13 / 13 / 13) | 5,053 (4,905 / 4,737 / 4,646) | (-12.1 [-32, +8]) | (-16.6 [-40, +6]) | (-20.7 [-44, +2]) |
+| reversal | all | near vs within1 + spread | 354 (340 / 325 / 315) | 5,053 (4,905 / 4,737 / 4,646) | +2.6 [-2, +8] | -0.3 [-6, +5] | +2.2 [-3, +8] |
+| reversal | third | stacked (exact or near) vs within1 + spread | 281 (273 / 265 / 262) | 741 (717 / 688 / 673) | +7.9 [+2, +14] | +2.6 [-4, +9] | +2.8 [-4, +10] |
+| reversal | third | exact_shared vs within1 + spread | 209 (204 / 198 / 197) | 741 (717 / 688 / 673) | +6.7 [+0, +13] | +1.7 [-6, +9] | +0.9 [-7, +9] |
+| reversal | third | exact_plain vs within1 + spread | 5 (5 / 5 / 5) | 741 (717 / 688 / 673) | (-18.8 [-22, -16]) | (-12.1 [-47, +23]) | (-16.1 [-51, +19]) |
+| reversal | third | near vs within1 + spread | 67 (64 / 62 / 60) | 741 (717 / 688 / 673) | +14.0 [+2, +26] | +6.6 [-6, +19] | +10.6 [-3, +24] |
+| reversal | strict | stacked (exact or near) vs within1 + spread | 175 (169 / 164 / 162) | 327 (316 / 300 / 293) | +3.7 [-4, +11] | +0.0 [-9, +9] | -0.5 [-9, +8] |
+| reversal | strict | exact_shared vs within1 + spread | 141 (136 / 132 / 131) | 327 (316 / 300 / 293) | +2.7 [-5, +10] | -1.5 [-11, +8] | -3.2 [-13, +6] |
+| reversal | strict | exact_plain vs within1 + spread | 4 (4 / 4 / 4) | 327 (316 / 300 / 293) | (-16.5 [-21, -12]) | (-3.0 [-46, +40]) | (-6.4 [-49, +36]) |
+| reversal | strict | near vs within1 + spread | 30 (29 / 28 / 27) | 327 (316 / 300 / 293) | (+11.1 [-6, +28]) | (+7.7 [-11, +26]) | (+13.0 [-6, +33]) |
+| continuation | all | stacked (exact or near) vs within1 + spread | 2,386 (2,343 / 2,308 / 2,258) | 6,071 (5,890 / 5,752 / 5,641) | -8.7 [-11, -7] | -9.3 [-12, -7] | -9.7 [-12, -7] |
+| continuation | all | exact_shared vs within1 + spread | 1,929 (1,906 / 1,880 / 1,847) | 6,071 (5,890 / 5,752 / 5,641) | -10.6 [-13, -8] | -12.2 [-15, -10] | -12.8 [-15, -10] |
+| continuation | all | exact_plain vs within1 + spread | 14 (14 / 14 / 14) | 6,071 (5,890 / 5,752 / 5,641) | (+11.3 [-15, +37]) | (+8.6 [-18, +35]) | (+11.5 [-14, +37]) |
+| continuation | all | near vs within1 + spread | 443 (423 / 414 / 397) | 6,071 (5,890 / 5,752 / 5,641) | -0.8 [-5, +4] | +3.3 [-2, +8] | +4.3 [-1, +9] |
+| continuation | third | stacked (exact or near) vs within1 + spread | 45 (43 / 43 / 42) | 119 (114 / 113 / 112) | +2.4 [-15, +20] | +6.9 [-11, +24] | +3.6 [-14, +21] |
+| continuation | third | exact_shared vs within1 + spread | 36 (34 / 34 / 34) | 119 (114 / 113 / 112) | +1.7 [-17, +21] | +5.8 [-13, +25] | +3.6 [-16, +23] |
+| continuation | third | near vs within1 + spread | 9 (9 / 9 / 8) | 119 (114 / 113 / 112) | (+5.0 [-29, +39]) | (+11.3 [-22, +45]) | (+3.6 [-32, +39]) |
+| continuation | strict | stacked (exact or near) vs within1 + spread | 32 (32 / 32 / 32) | 20 (20 / 20 / 20) | (-2.5 [-30, +25]) | (+5.0 [-23, +33]) | (+5.0 [-23, +33]) |
+| continuation | strict | exact_shared vs within1 + spread | 30 (30 / 30 / 30) | 20 (20 / 20 / 20) | (+0.0 [-28, +28]) | (+5.0 [-23, +33]) | (+5.0 [-23, +33]) |
+| continuation | strict | near vs within1 + spread | 2 (2 / 2 / 2) | 20 (20 / 20 / 20) | (-40.0 [-61, -19]) | (+5.0 [-68, +78]) | (+5.0 [-68, +78]) |
+| inside | all | stacked (exact or near) vs within1 + spread | 1,117 (1,104 / 1,086 / 1,038) | 3,652 (3,561 / 3,488 / 3,350) | -6.2 [-9, -3] | -5.6 [-9, -2] | -4.9 [-8, -1] |
+| inside | all | exact_shared vs within1 + spread | 821 (816 / 805 / 770) | 3,652 (3,561 / 3,488 / 3,350) | -9.4 [-13, -6] | -8.3 [-12, -5] | -7.4 [-11, -4] |
+| inside | all | exact_plain vs within1 + spread | 8 (8 / 8 / 8) | 3,652 (3,561 / 3,488 / 3,350) | (+27.3 [-6, +61]) | (+31.7 [+2, +62]) | (+28.3 [-2, +58]) |
+| inside | all | near vs within1 + spread | 288 (280 / 273 / 260) | 3,652 (3,561 / 3,488 / 3,350) | +1.9 [-4, +8] | +1.4 [-5, +7] | +1.3 [-5, +8] |
+| inside | third | stacked (exact or near) vs within1 + spread | 129 (126 / 124 / 121) | 273 (269 / 266 / 265) | -9.8 [-19, -0] | -17.0 [-27, -7] | -17.4 [-28, -7] |
+| inside | third | exact_shared vs within1 + spread | 99 (97 / 96 / 94) | 273 (269 / 266 / 265) | -9.7 [-20, +1] | -19.0 [-30, -8] | -21.5 [-33, -11] |
+| inside | third | exact_plain vs within1 + spread | 1 (1 / 1 / 1) | 273 (269 / 266 / 265) | (-37.5 [-43, -32]) | (-49.2 [-55, -43]) | (-51.3 [-57, -45]) |
+| inside | third | near vs within1 + spread | 29 (28 / 27 / 26) | 273 (269 / 266 / 265) | (-9.0 [-27, +9]) | (-8.5 [-28, +11]) | (-1.3 [-21, +19]) |
+| inside | strict | stacked (exact or near) vs within1 + spread | 84 (82 / 82 / 81) | 80 (79 / 79 / 79) | -12.3 [-26, +2] | -22.6 [-37, -8] | -21.0 [-36, -6] |
+| inside | strict | exact_shared vs within1 + spread | 70 (69 / 69 / 68) | 80 (79 / 79 / 79) | -12.1 [-27, +3] | -21.6 [-37, -6] | -21.2 [-37, -6] |
+| inside | strict | exact_plain vs within1 + spread | 1 (1 / 1 / 1) | 80 (79 / 79 / 79) | (-36.7 [-47, -26]) | (-50.6 [-62, -40]) | (-50.6 [-62, -40]) |
+| inside | strict | near vs within1 + spread | 13 (12 / 12 / 12) | 80 (79 / 79 / 79) | (-11.7 [-38, +15]) | (-25.6 [-52, +1]) | (-17.3 [-46, +12]) |
+| outside | all | stacked (exact or near) vs within1 + spread | 632 (626 / 581 / 567) | 1,511 (1,493 / 1,407 / 1,390) | +0.8 [-3, +5] | -2.5 [-7, +2] | -3.1 [-8, +2] |
+| outside | all | exact_shared vs within1 + spread | 529 (525 / 493 / 482) | 1,511 (1,493 / 1,407 / 1,390) | -0.0 [-4, +4] | -3.6 [-8, +1] | -4.1 [-9, +1] |
+| outside | all | exact_plain vs within1 + spread | 1 (1 / 1 / 1) | 1,511 (1,493 / 1,407 / 1,390) | (-20.4 [-22, -18]) | (-33.8 [-36, -31]) | (-37.7 [-40, -35]) |
+| outside | all | near vs within1 + spread | 102 (100 / 87 / 84) | 1,511 (1,493 / 1,407 / 1,390) | +5.6 [-3, +14] | +4.1 [-6, +15] | +2.8 [-8, +14] |
+| outside | third | stacked (exact or near) vs within1 + spread | 44 (43 / 41 / 41) | 95 (95 / 95 / 95) | -14.7 [-28, -2] | -20.5 [-36, -5] | -21.2 [-37, -5] |
+| outside | third | exact_shared vs within1 + spread | 33 (32 / 32 / 32) | 95 (95 / 95 / 95) | -20.1 [-32, -8] | -21.3 [-38, -5] | -21.3 [-39, -4] |
+| outside | third | near vs within1 + spread | 11 (11 / 9 / 9) | 95 (95 / 95 / 95) | (+1.0 [-27, +29]) | (-17.8 [-47, +11]) | (-20.9 [-50, +8]) |
+| outside | strict | stacked (exact or near) vs within1 + spread | 29 (29 / 28 / 28) | 35 (35 / 35 / 35) | (-6.8 [-23, +10]) | (-7.1 [-28, +14]) | (-6.4 [-29, +16]) |
+| outside | strict | exact_shared vs within1 + spread | 25 (25 / 25 / 25) | 35 (35 / 35 / 35) | (-9.1 [-26, +7]) | (-8.6 [-30, +13]) | (-7.4 [-30, +15]) |
+| outside | strict | near vs within1 + spread | 4 (4 / 3 / 3) | 35 (35 / 35 / 35) | (+7.9 [-36, +52]) | (+4.8 [-51, +60]) | (+1.9 [-54, +57]) |
+
+Valid counts are per horizon (censored units excluded at that horizon); a difference in parentheses has fewer than 30 valid units on either side AT THAT HORIZON (close-out audit F3).
 
 ### Monthly units: setup x shape flag x gap to yesterday's level
 
@@ -342,72 +348,74 @@ n= is the VALID count at that horizon (censored units excluded); a cell in paren
 
 ### Monthly units: stacked minus the rest
 
-| setup | flag | comparison | units A+ (valid by 5) | units base (valid by 5) | diff by 1 [95%] | diff by 3 [95%] | diff by 5 [95%] |
+| setup | flag | comparison | units A+ (valid by 1 / 3 / 5) | units base (valid by 1 / 3 / 5) | diff by 1 [95%] | diff by 3 [95%] | diff by 5 [95%] |
 |---|---|---|---|---|---|---|---|
-| reversal | all | stacked (exact or near) vs within1 + spread | 79 (49) | 1,242 (912) | +0.6 [-10, +11] | +6.8 [-5, +19] | +1.5 [-13, +16] |
-| reversal | all | exact_shared vs within1 + spread | 37 (27) | 1,242 (912) | -3.5 [-17, +10] | -2.0 [-18, +14] | (-6.0 [-24, +12]) |
-| reversal | all | near vs within1 + spread | 42 (22) | 1,242 (912) | +4.5 [-11, +20] | +16.1 [-2, +34] | (+10.6 [-10, +32]) |
-| reversal | third | stacked (exact or near) vs within1 + spread | 17 (11) | 258 (188) | (+9.6 [-12, +31]) | (+16.4 [-9, +41]) | (-3.0 [-32, +26]) |
-| reversal | third | exact_shared vs within1 + spread | 7 (5) | 258 (188) | (-1.1 [-27, +25]) | (+1.2 [-33, +35]) | (-19.4 [-55, +16]) |
-| reversal | third | near vs within1 + spread | 10 (6) | 258 (188) | (+17.9 [-13, +49]) | (+28.2 [-5, +61]) | (+10.6 [-30, +51]) |
-| reversal | strict | stacked (exact or near) vs within1 + spread | 9 (6) | 87 (55) | (-1.6 [-26, +22]) | (+1.3 [-30, +33]) | (-19.7 [-52, +13]) |
-| reversal | strict | exact_shared vs within1 + spread | 4 (3) | 87 (55) | (-14.1 [-22, -7]) | (-23.8 [-33, -14]) | (-36.4 [-49, -24]) |
-| reversal | strict | near vs within1 + spread | 5 (3) | 87 (55) | (+10.9 [-32, +54]) | (+26.2 [-24, +76]) | (-3.0 [-58, +52]) |
-| continuation | all | stacked (exact or near) vs within1 + spread | 204 (121) | 1,644 (1,235) | -6.6 [-12, -1] | -2.4 [-10, +5] | -4.2 [-13, +4] |
-| continuation | all | exact_shared vs within1 + spread | 121 (73) | 1,644 (1,235) | -7.1 [-14, -0] | -3.3 [-12, +6] | -5.5 [-16, +5] |
-| continuation | all | exact_plain vs within1 + spread | 3 (2) | 1,644 (1,235) | (-22.0 [-24, -20]) | (-28.3 [-31, -26]) | (-31.5 [-34, -29]) |
-| continuation | all | near vs within1 + spread | 80 (46) | 1,644 (1,235) | -5.1 [-14, +4] | +0.6 [-12, +13] | -1.1 [-15, +12] |
-| continuation | third | stacked (exact or near) vs within1 + spread | 8 (5) | 50 (36) | (-25.0 [-52, +2]) | (-23.1 [-64, +18]) | (-21.1 [-67, +25]) |
-| continuation | third | exact_shared vs within1 + spread | 3 (1) | 50 (36) | (-37.5 [-51, -24]) | (-56.4 [-72, -41]) | (-61.1 [-77, -45]) |
-| continuation | third | near vs within1 + spread | 5 (4) | 50 (36) | (-17.5 [-55, +20]) | (-6.4 [-58, +45]) | (-11.1 [-63, +40]) |
-| continuation | strict | stacked (exact or near) vs within1 + spread | 4 (1) | 10 (8) | (-20.0 [-45, +5]) | (-37.5 [-71, -4]) | (-37.5 [-71, -4]) |
-| continuation | strict | exact_shared vs within1 + spread | 3 (1) | 10 (8) | (-20.0 [-45, +5]) | (-37.5 [-71, -4]) | (-37.5 [-71, -4]) |
-| continuation | strict | near vs within1 + spread | 1 (0) | 10 (8) | (-20.0 [-45, +5]) | (-) | (-) |
-| inside | all | stacked (exact or near) vs within1 + spread | 80 (53) | 818 (603) | +1.2 [-11, +13] | +5.1 [-8, +18] | +4.8 [-9, +19] |
-| inside | all | exact_shared vs within1 + spread | 41 (29) | 818 (603) | -7.3 [-23, +9] | +9.3 [-9, +27] | (+9.1 [-9, +28]) |
-| inside | all | exact_plain vs within1 + spread | 3 (2) | 818 (603) | (+62.4 [+59, +66]) | (+55.9 [+52, +60]) | (+53.9 [+50, +58]) |
-| inside | all | near vs within1 + spread | 36 (22) | 818 (603) | +6.2 [-11, +24] | (-3.3 [-22, +16]) | (-5.2 [-26, +16]) |
-| inside | third | stacked (exact or near) vs within1 + spread | 9 (4) | 92 (72) | (-15.9 [-44, +12]) | (-19.2 [-59, +20]) | (+19.4 [-25, +63]) |
-| inside | third | exact_shared vs within1 + spread | 5 (3) | 92 (72) | (-30.2 [-40, -21]) | (-19.2 [-74, +35]) | (+11.1 [-43, +66]) |
-| inside | third | near vs within1 + spread | 4 (1) | 92 (72) | (+3.1 [-51, +57]) | (-19.2 [-74, +35]) | (+44.4 [+33, +56]) |
-| inside | strict | stacked (exact or near) vs within1 + spread | 5 (2) | 32 (19) | (-22.2 [-38, -7]) | (-28.6 [-86, +29]) | (+36.8 [+15, +59]) |
-| inside | strict | exact_shared vs within1 + spread | 4 (2) | 32 (19) | (-22.2 [-38, -7]) | (-11.9 [-84, +60]) | (+36.8 [+15, +59]) |
-| inside | strict | near vs within1 + spread | 1 (0) | 32 (19) | (-22.2 [-38, -7]) | (-61.9 [-83, -41]) | (-) |
-| outside | all | stacked (exact or near) vs within1 + spread | 67 (49) | 328 (222) | +8.2 [-4, +20] | +6.4 [-7, +19] | +8.1 [-6, +22] |
-| outside | all | exact_shared vs within1 + spread | 51 (40) | 328 (222) | +12.0 [-2, +26] | +8.1 [-6, +22] | +10.0 [-6, +25] |
-| outside | all | exact_plain vs within1 + spread | 2 (2) | 328 (222) | (+32.8 [-37, +102]) | (+28.6 [-41, +98]) | (+27.5 [-42, +97]) |
-| outside | all | near vs within1 + spread | 14 (7) | 328 (222) | (-17.2 [-22, -13]) | (-8.9 [-32, +15]) | (-8.2 [-35, +18]) |
-| outside | third | stacked (exact or near) vs within1 + spread | 5 (3) | 58 (47) | (+7.7 [-28, +44]) | (+5.7 [-38, +49]) | (+18.4 [-36, +73]) |
-| outside | third | exact_shared vs within1 + spread | 3 (1) | 58 (47) | (-12.3 [-21, -4]) | (-19.3 [-30, -9]) | (-14.9 [-25, -5]) |
-| outside | third | exact_plain vs within1 + spread | 2 (2) | 58 (47) | (+37.7 [-32, +108]) | (+30.7 [-39, +101]) | (+35.1 [-35, +105]) |
-| outside | strict | stacked (exact or near) vs within1 + spread | 5 (3) | 23 (18) | (+2.6 [-36, +41]) | (-5.4 [-52, +41]) | (+11.1 [-46, +68]) |
-| outside | strict | exact_shared vs within1 + spread | 3 (1) | 23 (18) | (-17.4 [-33, -2]) | (-30.4 [-49, -12]) | (-22.2 [-41, -3]) |
-| outside | strict | exact_plain vs within1 + spread | 2 (2) | 23 (18) | (+32.6 [-38, +104]) | (+19.6 [-52, +91]) | (+27.8 [-44, +100]) |
+| reversal | all | stacked (exact or near) vs within1 + spread | 79 (69 / 64 / 49) | 1,242 (1,185 / 1,057 / 912) | +0.6 [-10, +11] | +6.8 [-5, +19] | +1.5 [-13, +16] |
+| reversal | all | exact_shared vs within1 + spread | 37 (34 / 33 / 27) | 1,242 (1,185 / 1,057 / 912) | -3.5 [-17, +10] | -2.0 [-18, +14] | (-6.0 [-24, +12]) |
+| reversal | all | near vs within1 + spread | 42 (35 / 31 / 22) | 1,242 (1,185 / 1,057 / 912) | +4.5 [-11, +20] | +16.1 [-2, +34] | (+10.6 [-10, +32]) |
+| reversal | third | stacked (exact or near) vs within1 + spread | 17 (16 / 16 / 11) | 258 (253 / 245 / 188) | (+9.6 [-12, +31]) | (+16.4 [-9, +41]) | (-3.0 [-32, +26]) |
+| reversal | third | exact_shared vs within1 + spread | 7 (7 / 7 / 5) | 258 (253 / 245 / 188) | (-1.1 [-27, +25]) | (+1.2 [-33, +35]) | (-19.4 [-55, +16]) |
+| reversal | third | near vs within1 + spread | 10 (9 / 9 / 6) | 258 (253 / 245 / 188) | (+17.9 [-13, +49]) | (+28.2 [-5, +61]) | (+10.6 [-30, +51]) |
+| reversal | strict | stacked (exact or near) vs within1 + spread | 9 (8 / 8 / 6) | 87 (85 / 80 / 55) | (-1.6 [-26, +22]) | (+1.3 [-30, +33]) | (-19.7 [-52, +13]) |
+| reversal | strict | exact_shared vs within1 + spread | 4 (4 / 4 / 3) | 87 (85 / 80 / 55) | (-14.1 [-22, -7]) | (-23.8 [-33, -14]) | (-36.4 [-49, -24]) |
+| reversal | strict | near vs within1 + spread | 5 (4 / 4 / 3) | 87 (85 / 80 / 55) | (+10.9 [-32, +54]) | (+26.2 [-24, +76]) | (-3.0 [-58, +52]) |
+| continuation | all | stacked (exact or near) vs within1 + spread | 204 (188 / 147 / 121) | 1,644 (1,499 / 1,351 / 1,235) | -6.6 [-12, -1] | -2.4 [-10, +5] | -4.2 [-13, +4] |
+| continuation | all | exact_shared vs within1 + spread | 121 (114 / 92 / 73) | 1,644 (1,499 / 1,351 / 1,235) | -7.1 [-14, -0] | -3.3 [-12, +6] | -5.5 [-16, +5] |
+| continuation | all | exact_plain vs within1 + spread | 3 (3 / 3 / 2) | 1,644 (1,499 / 1,351 / 1,235) | (-22.0 [-24, -20]) | (-28.3 [-31, -26]) | (-31.5 [-34, -29]) |
+| continuation | all | near vs within1 + spread | 80 (71 / 52 / 46) | 1,644 (1,499 / 1,351 / 1,235) | -5.1 [-14, +4] | +0.6 [-12, +13] | -1.1 [-15, +12] |
+| continuation | third | stacked (exact or near) vs within1 + spread | 8 (8 / 6 / 5) | 50 (48 / 39 / 36) | (-25.0 [-52, +2]) | (-23.1 [-64, +18]) | (-21.1 [-67, +25]) |
+| continuation | third | exact_shared vs within1 + spread | 3 (3 / 2 / 1) | 50 (48 / 39 / 36) | (-37.5 [-51, -24]) | (-56.4 [-72, -41]) | (-61.1 [-77, -45]) |
+| continuation | third | near vs within1 + spread | 5 (5 / 4 / 4) | 50 (48 / 39 / 36) | (-17.5 [-55, +20]) | (-6.4 [-58, +45]) | (-11.1 [-63, +40]) |
+| continuation | strict | stacked (exact or near) vs within1 + spread | 4 (4 / 2 / 1) | 10 (10 / 8 / 8) | (-20.0 [-45, +5]) | (-37.5 [-71, -4]) | (-37.5 [-71, -4]) |
+| continuation | strict | exact_shared vs within1 + spread | 3 (3 / 2 / 1) | 10 (10 / 8 / 8) | (-20.0 [-45, +5]) | (-37.5 [-71, -4]) | (-37.5 [-71, -4]) |
+| continuation | strict | near vs within1 + spread | 1 (1 / 0 / 0) | 10 (10 / 8 / 8) | (-20.0 [-45, +5]) | (-) | (-) |
+| inside | all | stacked (exact or near) vs within1 + spread | 80 (67 / 59 / 53) | 818 (764 / 683 / 603) | +1.2 [-11, +13] | +5.1 [-8, +18] | +4.8 [-9, +19] |
+| inside | all | exact_shared vs within1 + spread | 41 (33 / 30 / 29) | 818 (764 / 683 / 603) | -7.3 [-23, +9] | +9.3 [-9, +27] | (+9.1 [-9, +28]) |
+| inside | all | exact_plain vs within1 + spread | 3 (2 / 2 / 2) | 818 (764 / 683 / 603) | (+62.4 [+59, +66]) | (+55.9 [+52, +60]) | (+53.9 [+50, +58]) |
+| inside | all | near vs within1 + spread | 36 (32 / 27 / 22) | 818 (764 / 683 / 603) | +6.2 [-11, +24] | (-3.3 [-22, +16]) | (-5.2 [-26, +16]) |
+| inside | third | stacked (exact or near) vs within1 + spread | 9 (7 / 6 / 4) | 92 (86 / 78 / 72) | (-15.9 [-44, +12]) | (-19.2 [-59, +20]) | (+19.4 [-25, +63]) |
+| inside | third | exact_shared vs within1 + spread | 5 (4 / 3 / 3) | 92 (86 / 78 / 72) | (-30.2 [-40, -21]) | (-19.2 [-74, +35]) | (+11.1 [-43, +66]) |
+| inside | third | near vs within1 + spread | 4 (3 / 3 / 1) | 92 (86 / 78 / 72) | (+3.1 [-51, +57]) | (-19.2 [-74, +35]) | (+44.4 [+33, +56]) |
+| inside | strict | stacked (exact or near) vs within1 + spread | 5 (4 / 3 / 2) | 32 (27 / 21 / 19) | (-22.2 [-38, -7]) | (-28.6 [-86, +29]) | (+36.8 [+15, +59]) |
+| inside | strict | exact_shared vs within1 + spread | 4 (3 / 2 / 2) | 32 (27 / 21 / 19) | (-22.2 [-38, -7]) | (-11.9 [-84, +60]) | (+36.8 [+15, +59]) |
+| inside | strict | near vs within1 + spread | 1 (1 / 1 / 0) | 32 (27 / 21 / 19) | (-22.2 [-38, -7]) | (-61.9 [-83, -41]) | (-) |
+| outside | all | stacked (exact or near) vs within1 + spread | 67 (59 / 54 / 49) | 328 (285 / 271 / 222) | +8.2 [-4, +20] | +6.4 [-7, +19] | +8.1 [-6, +22] |
+| outside | all | exact_shared vs within1 + spread | 51 (48 / 44 / 40) | 328 (285 / 271 / 222) | +12.0 [-2, +26] | +8.1 [-6, +22] | +10.0 [-6, +25] |
+| outside | all | exact_plain vs within1 + spread | 2 (2 / 2 / 2) | 328 (285 / 271 / 222) | (+32.8 [-37, +102]) | (+28.6 [-41, +98]) | (+27.5 [-42, +97]) |
+| outside | all | near vs within1 + spread | 14 (9 / 8 / 7) | 328 (285 / 271 / 222) | (-17.2 [-22, -13]) | (-8.9 [-32, +15]) | (-8.2 [-35, +18]) |
+| outside | third | stacked (exact or near) vs within1 + spread | 5 (5 / 4 / 3) | 58 (57 / 57 / 47) | (+7.7 [-28, +44]) | (+5.7 [-38, +49]) | (+18.4 [-36, +73]) |
+| outside | third | exact_shared vs within1 + spread | 3 (3 / 2 / 1) | 58 (57 / 57 / 47) | (-12.3 [-21, -4]) | (-19.3 [-30, -9]) | (-14.9 [-25, -5]) |
+| outside | third | exact_plain vs within1 + spread | 2 (2 / 2 / 2) | 58 (57 / 57 / 47) | (+37.7 [-32, +108]) | (+30.7 [-39, +101]) | (+35.1 [-35, +105]) |
+| outside | strict | stacked (exact or near) vs within1 + spread | 5 (5 / 4 / 3) | 23 (23 / 23 / 18) | (+2.6 [-36, +41]) | (-5.4 [-52, +41]) | (+11.1 [-46, +68]) |
+| outside | strict | exact_shared vs within1 + spread | 3 (3 / 2 / 1) | 23 (23 / 23 / 18) | (-17.4 [-33, -2]) | (-30.4 [-49, -12]) | (-22.2 [-41, -3]) |
+| outside | strict | exact_plain vs within1 + spread | 2 (2 / 2 / 2) | 23 (23 / 23 / 18) | (+32.6 [-38, +104]) | (+19.6 [-52, +91]) | (+27.8 [-44, +100]) |
+
+Valid counts are per horizon (censored units excluded at that horizon); a difference in parentheses has fewer than 30 valid units on either side AT THAT HORIZON (close-out audit F3).
 
 ### Variant stop (owner's idea): stop at the previous WEEKLY bar's other side, daily units
 
-| setup | class | units (valid by 5) | median R % primary / variant | primary one R by 1 / 3 / 5 | variant one R by 1 / 3 / 5 | variant stopped by 5 |
+| setup | class | units (variant valid by 1 / 3 / 5) | median R % primary / variant | primary one R by 1 / 3 / 5 [95%] n= valid | variant one R by 1 / 3 / 5 [95%] n= valid | variant stopped by 5 |
 |---|---|---|---|---|---|---|
-| reversal | plain | 38,730 (38,389) | 5.83 / 10.10 | 25.3% / 34.8% / 38.5% | 11.9% / 19.7% / 24.0% | 36.3% |
-| reversal | exact_shared | 3 (3) | 1.06 / 6.40 | (0.0%) / (33.3%) / (33.3%) | (33.3%) / (66.7%) / (66.7%) | (33.3%) |
-| reversal | exact_plain | 4 (4) | 8.94 / 13.29 | (25.0%) / (50.0%) / (50.0%) | (25.0%) / (25.0%) / (50.0%) | (50.0%) |
-| reversal | near | 148 (146) | 4.67 / 12.19 | 27.7% / 37.8% / 38.4% | 4.7% / 14.9% / 21.2% | 14.4% |
-| reversal | within1 | 747 (729) | 3.75 / 10.97 | 26.5% / 33.4% / 35.4% | 6.7% / 15.4% / 18.7% | 18.8% |
-| continuation | plain | 53,965 (53,460) | 6.87 / 15.96 | 24.9% / 34.5% / 39.2% | 9.1% / 15.3% / 20.0% | 20.3% |
-| continuation | exact_shared | 3,619 (3,600) | 7.20 / 21.91 | 26.7% / 32.9% / 36.9% | 3.6% / 7.5% / 11.0% | 16.0% |
-| continuation | exact_plain | 25 (25) | 6.11 / 17.48 | (32.0%) / (44.0%) / (56.0%) | (0.0%) / (4.0%) / (12.0%) | (8.0%) |
-| continuation | near | 804 (779) | 4.91 / 12.96 | 31.6% / 40.8% / 46.1% | 8.6% / 15.7% / 20.0% | 13.0% |
-| continuation | within1 | 2,555 (2,511) | 5.11 / 13.28 | 30.0% / 38.6% / 43.4% | 9.2% / 16.3% / 21.6% | 17.2% |
-| inside | plain | 27,093 (26,938) | 4.59 / 12.03 | 31.5% / 38.7% / 41.0% | 11.1% / 18.3% / 22.9% | 28.8% |
-| inside | exact_shared | 6 (6) | 1.78 / 16.14 | (33.3%) / (50.0%) / (50.0%) | (0.0%) / (16.7%) / (33.3%) | (0.0%) |
-| inside | exact_plain | 6 (6) | 5.05 / 15.06 | (33.3%) / (33.3%) / (33.3%) | (0.0%) / (66.7%) / (66.7%) | (0.0%) |
-| inside | near | 231 (230) | 3.86 / 14.74 | 27.3% / 33.0% / 33.5% | 5.2% / 10.4% / 14.8% | 18.7% |
-| inside | within1 | 773 (766) | 3.48 / 14.00 | 28.8% / 34.5% / 36.3% | 5.6% / 11.7% / 17.2% | 17.9% |
-| outside | plain | 12,485 (12,308) | 7.96 / 12.31 | 21.5% / 31.9% / 36.7% | 11.9% / 19.6% / 23.7% | 27.6% |
-| outside | exact_shared | 633 (631) | 7.52 / 18.60 | 22.1% / 29.1% / 32.0% | 4.4% / 9.5% / 13.5% | 16.6% |
-| outside | exact_plain | 5 (5) | 7.18 / 16.68 | (20.0%) / (20.0%) / (20.0%) | (20.0%) / (20.0%) / (20.0%) | (60.0%) |
-| outside | near | 227 (218) | 5.26 / 11.42 | 26.0% / 33.9% / 38.1% | 5.7% / 12.3% / 17.4% | 21.1% |
-| outside | within1 | 718 (699) | 5.01 / 10.67 | 23.0% / 31.9% / 35.5% | 8.2% / 14.4% / 19.9% | 22.0% |
+| reversal | plain | 38,730 (38,682 / 38,576 / 38,389) | 5.83 / 10.10 | 25.3% [25, 26] n=38,682 / 34.8% [34, 35] n=38,576 / 38.5% [38, 39] n=38,389 | 11.9% [12, 12] n=38,682 / 19.7% [19, 20] n=38,576 / 24.0% [24, 24] n=38,389 | 36.3% |
+| reversal | exact_shared | 3 (3 / 3 / 3) | 1.06 / 6.40 | (0.0% [0, 56] n=3) / (33.3% [6, 79] n=3) / (33.3% [6, 79] n=3) | (33.3% [6, 79] n=3) / (66.7% [21, 94] n=3) / (66.7% [21, 94] n=3) | (33.3%) |
+| reversal | exact_plain | 4 (4 / 4 / 4) | 8.94 / 13.29 | (25.0% [5, 70] n=4) / (50.0% [15, 85] n=4) / (50.0% [15, 85] n=4) | (25.0% [5, 70] n=4) / (25.0% [5, 70] n=4) / (50.0% [15, 85] n=4) | (50.0%) |
+| reversal | near | 148 (148 / 148 / 146) | 4.67 / 12.19 | 27.7% [21, 35] n=148 / 37.8% [30, 46] n=148 / 38.4% [31, 46] n=146 | 4.7% [2, 9] n=148 / 14.9% [10, 21] n=148 / 21.2% [15, 29] n=146 | 14.4% |
+| reversal | within1 | 747 (746 / 740 / 729) | 3.75 / 10.97 | 26.5% [23, 30] n=746 / 33.4% [30, 37] n=740 / 35.4% [32, 39] n=729 | 6.7% [5, 9] n=746 / 15.4% [13, 18] n=740 / 18.7% [16, 22] n=729 | 18.8% |
+| continuation | plain | 53,965 (53,936 / 53,618 / 53,460) | 6.87 / 15.96 | 24.9% [25, 25] n=53,936 / 34.5% [34, 35] n=53,618 / 39.2% [39, 40] n=53,460 | 9.1% [9, 9] n=53,936 / 15.3% [15, 16] n=53,618 / 20.0% [20, 20] n=53,460 | 20.3% |
+| continuation | exact_shared | 3,619 (3,619 / 3,619 / 3,600) | 7.20 / 21.91 | 26.7% [25, 28] n=3,619 / 32.9% [31, 34] n=3,619 / 36.9% [35, 39] n=3,600 | 3.6% [3, 4] n=3,619 / 7.5% [7, 8] n=3,619 / 11.0% [10, 12] n=3,600 | 16.0% |
+| continuation | exact_plain | 25 (25 / 25 / 25) | 6.11 / 17.48 | (32.0% [17, 52] n=25) / (44.0% [27, 63] n=25) / (56.0% [37, 73] n=25) | (0.0% [0, 13] n=25) / (4.0% [1, 20] n=25) / (12.0% [4, 30] n=25) | (8.0%) |
+| continuation | near | 804 (803 / 789 / 779) | 4.91 / 12.96 | 31.6% [29, 35] n=803 / 40.8% [37, 44] n=789 / 46.1% [43, 50] n=779 | 8.6% [7, 11] n=803 / 15.7% [13, 18] n=789 / 20.0% [17, 23] n=779 | 13.0% |
+| continuation | within1 | 2,555 (2,550 / 2,529 / 2,511) | 5.11 / 13.28 | 30.0% [28, 32] n=2,550 / 38.6% [37, 41] n=2,529 / 43.4% [41, 45] n=2,511 | 9.2% [8, 10] n=2,550 / 16.3% [15, 18] n=2,529 / 21.6% [20, 23] n=2,511 | 17.2% |
+| inside | plain | 27,093 (27,087 / 27,029 / 26,938) | 4.59 / 12.03 | 31.5% [31, 32] n=27,087 / 38.7% [38, 39] n=27,029 / 41.0% [40, 42] n=26,938 | 11.1% [11, 12] n=27,087 / 18.3% [18, 19] n=27,029 / 22.9% [22, 23] n=26,938 | 28.8% |
+| inside | exact_shared | 6 (6 / 6 / 6) | 1.78 / 16.14 | (33.3% [10, 70] n=6) / (50.0% [19, 81] n=6) / (50.0% [19, 81] n=6) | (0.0% [0, 39] n=6) / (16.7% [3, 56] n=6) / (33.3% [10, 70] n=6) | (0.0%) |
+| inside | exact_plain | 6 (6 / 6 / 6) | 5.05 / 15.06 | (33.3% [10, 70] n=6) / (33.3% [10, 70] n=6) / (33.3% [10, 70] n=6) | (0.0% [0, 39] n=6) / (66.7% [30, 90] n=6) / (66.7% [30, 90] n=6) | (0.0%) |
+| inside | near | 231 (231 / 230 / 230) | 3.86 / 14.74 | 27.3% [22, 33] n=231 / 33.0% [27, 39] n=230 / 33.5% [28, 40] n=230 | 5.2% [3, 9] n=231 / 10.4% [7, 15] n=230 / 14.8% [11, 20] n=230 | 18.7% |
+| inside | within1 | 773 (773 / 772 / 766) | 3.48 / 14.00 | 28.8% [26, 32] n=773 / 34.5% [31, 38] n=772 / 36.3% [33, 40] n=766 | 5.6% [4, 7] n=773 / 11.7% [10, 14] n=772 / 17.2% [15, 20] n=766 | 17.9% |
+| outside | plain | 12,485 (12,473 / 12,431 / 12,308) | 7.96 / 12.31 | 21.5% [21, 22] n=12,473 / 31.9% [31, 33] n=12,431 / 36.7% [36, 38] n=12,308 | 11.9% [11, 13] n=12,473 / 19.6% [19, 20] n=12,431 / 23.7% [23, 24] n=12,308 | 27.6% |
+| outside | exact_shared | 633 (633 / 633 / 631) | 7.52 / 18.60 | 22.1% [19, 26] n=633 / 29.1% [26, 33] n=633 / 32.0% [28, 36] n=631 | 4.4% [3, 6] n=633 / 9.5% [7, 12] n=633 / 13.5% [11, 16] n=631 | 16.6% |
+| outside | exact_plain | 5 (5 / 5 / 5) | 7.18 / 16.68 | (20.0% [4, 62] n=5) / (20.0% [4, 62] n=5) / (20.0% [4, 62] n=5) | (20.0% [4, 62] n=5) / (20.0% [4, 62] n=5) / (20.0% [4, 62] n=5) | (60.0%) |
+| outside | near | 227 (227 / 227 / 218) | 5.26 / 11.42 | 26.0% [21, 32] n=227 / 33.9% [28, 40] n=227 / 38.1% [32, 45] n=218 | 5.7% [3, 10] n=227 / 12.3% [9, 17] n=227 / 17.4% [13, 23] n=218 | 21.1% |
+| outside | within1 | 718 (718 / 715 / 699) | 5.01 / 10.67 | 23.0% [20, 26] n=718 / 31.9% [29, 35] n=715 / 35.5% [32, 39] n=699 | 8.2% [6, 10] n=718 / 14.4% [12, 17] n=715 / 19.9% [17, 23] n=699 | 22.0% |
 
 R is a different distance under the variant (measured to the weekly bar), so one R is not the same target.
 
@@ -602,75 +610,79 @@ n= is the VALID count at that horizon (censored units excluded); a cell in paren
 
 ### Daily units: A+ class minus PLAIN (one-R chance, percentage points)
 
-| setup | flag | comparison | units A+ (valid by 5) | units base (valid by 5) | diff by 1 [95%] | diff by 3 [95%] | diff by 5 [95%] |
+| setup | flag | comparison | units A+ (valid by 1 / 3 / 5) | units base (valid by 1 / 3 / 5) | diff by 1 [95%] | diff by 3 [95%] | diff by 5 [95%] |
 |---|---|---|---|---|---|---|---|
-| reversal | all | stacked (exact or near) vs plain | 83 (81) | 20,532 (20,354) | -0.1 [-9, +9] | -0.1 [-10, +10] | -3.4 [-14, +7] |
-| reversal | all | exact_shared vs plain | 2 (2) | 20,532 (20,354) | (-24.2 [-25, -24]) | (-33.9 [-35, -33]) | (-37.9 [-39, -37]) |
-| reversal | all | exact_plain vs plain | 4 (4) | 20,532 (20,354) | (+0.8 [-42, +43]) | (+16.1 [-33, +65]) | (+12.1 [-37, +61]) |
-| reversal | all | near vs plain | 77 (75) | 20,532 (20,354) | +0.5 [-9, +10] | -0.1 [-11, +10] | -3.3 [-14, +8] |
-| reversal | all | within1 vs plain | 438 (432) | 20,532 (20,354) | +3.7 [-1, +8] | +1.3 [-3, +6] | -0.4 [-5, +4] |
-| reversal | third | stacked (exact or near) vs plain | 16 (16) | 3,558 (3,524) | (+2.7 [-20, +25]) | (+5.1 [-19, +30]) | (+0.5 [-24, +25]) |
-| reversal | third | exact_plain vs plain | 1 (1) | 3,558 (3,524) | (-28.5 [-30, -27]) | (-38.6 [-40, -37]) | (-43.2 [-45, -42]) |
-| reversal | third | near vs plain | 15 (15) | 3,558 (3,524) | (+4.8 [-19, +29]) | (+8.1 [-17, +33]) | (+3.4 [-22, +29]) |
-| reversal | third | within1 vs plain | 81 (81) | 3,558 (3,524) | +9.7 [-1, +20] | +5.8 [-5, +17] | +2.4 [-9, +13] |
-| reversal | strict | stacked (exact or near) vs plain | 7 (7) | 1,624 (1,611) | (+14.5 [-22, +51]) | (+5.7 [-31, +42]) | (+0.9 [-36, +38]) |
-| reversal | strict | exact_plain vs plain | 1 (1) | 1,624 (1,611) | (-28.3 [-31, -26]) | (-37.2 [-40, -35]) | (-42.0 [-44, -40]) |
-| reversal | strict | near vs plain | 6 (6) | 1,624 (1,611) | (+21.7 [-18, +62]) | (+12.8 [-27, +53]) | (+8.0 [-32, +48]) |
-| reversal | strict | within1 vs plain | 38 (38) | 1,624 (1,611) | +5.9 [-9, +21] | +2.3 [-13, +18] | +0.1 [-16, +16] |
-| continuation | all | stacked (exact or near) vs plain | 2,177 (2,156) | 26,354 (26,105) | +2.5 [+1, +4] | -0.4 [-2, +2] | -0.6 [-3, +1] |
-| continuation | all | exact_shared vs plain | 1,742 (1,733) | 26,354 (26,105) | +1.8 [-0, +4] | -1.8 [-4, +0] | -2.5 [-5, -0] |
-| continuation | all | exact_plain vs plain | 7 (7) | 26,354 (26,105) | (-24.6 [-25, -24]) | (-19.7 [-46, +6]) | (-24.3 [-50, +2]) |
-| continuation | all | near vs plain | 428 (416) | 26,354 (26,105) | +6.1 [+2, +11] | +5.9 [+1, +11] | +7.5 [+3, +12] |
-| continuation | all | within1 vs plain | 1,357 (1,328) | 26,354 (26,105) | +6.1 [+4, +9] | +4.6 [+2, +7] | +4.4 [+2, +7] |
-| continuation | third | stacked (exact or near) vs plain | 15 (15) | 385 (384) | (-34.8 [-40, -30]) | (-42.3 [-47, -37]) | (-38.1 [-52, -25]) |
-| continuation | third | exact_shared vs plain | 8 (8) | 385 (384) | (-34.8 [-40, -30]) | (-42.3 [-47, -37]) | (-32.3 [-56, -9]) |
-| continuation | third | exact_plain vs plain | 1 (1) | 385 (384) | (-34.8 [-40, -30]) | (-42.3 [-47, -37]) | (-44.8 [-50, -40]) |
-| continuation | third | near vs plain | 6 (6) | 385 (384) | (-34.8 [-40, -30]) | (-42.3 [-47, -37]) | (-44.8 [-50, -40]) |
-| continuation | third | within1 vs plain | 16 (16) | 385 (384) | (+21.4 [-3, +46]) | (+26.4 [+3, +50]) | (+24.0 [+1, +47]) |
-| continuation | strict | stacked (exact or near) vs plain | 8 (8) | 94 (94) | (-29.8 [-39, -21]) | (-38.3 [-48, -28]) | (-40.4 [-50, -31]) |
-| continuation | strict | exact_shared vs plain | 3 (3) | 94 (94) | (-29.8 [-39, -21]) | (-38.3 [-48, -28]) | (-40.4 [-50, -31]) |
-| continuation | strict | exact_plain vs plain | 1 (1) | 94 (94) | (-29.8 [-39, -21]) | (-38.3 [-48, -28]) | (-40.4 [-50, -31]) |
-| continuation | strict | near vs plain | 4 (4) | 94 (94) | (-29.8 [-39, -21]) | (-38.3 [-48, -28]) | (-40.4 [-50, -31]) |
-| continuation | strict | within1 vs plain | 4 (4) | 94 (94) | (+45.2 [+2, +89]) | (+36.7 [-7, +80]) | (+34.6 [-9, +78]) |
-| inside | all | stacked (exact or near) vs plain | 129 (128) | 14,435 (14,360) | -0.8 [-9, +7] | -5.1 [-13, +3] | -7.5 [-16, +1] |
-| inside | all | exact_shared vs plain | 4 (4) | 14,435 (14,360) | (+18.9 [-30, +68]) | (+12.1 [-37, +61]) | (+9.7 [-39, +59]) |
-| inside | all | exact_plain vs plain | 4 (4) | 14,435 (14,360) | (-6.1 [-49, +36]) | (-12.9 [-55, +30]) | (-15.3 [-58, +27]) |
-| inside | all | near vs plain | 121 (120) | 14,435 (14,360) | -1.3 [-10, +7] | -5.4 [-14, +3] | -7.8 [-16, +1] |
-| inside | all | within1 vs plain | 397 (396) | 14,435 (14,360) | -1.4 [-6, +3] | -3.7 [-8, +1] | -4.4 [-9, +0] |
-| inside | third | stacked (exact or near) vs plain | 15 (15) | 1,144 (1,135) | (+10.9 [-14, +36]) | (+4.0 [-21, +29]) | (+1.5 [-24, +27]) |
-| inside | third | exact_plain vs plain | 2 (2) | 1,144 (1,135) | (+14.2 [-55, +84]) | (+7.3 [-62, +77]) | (+4.8 [-65, +74]) |
-| inside | third | near vs plain | 13 (13) | 1,144 (1,135) | (+10.4 [-17, +38]) | (+3.5 [-24, +31]) | (+1.0 [-26, +28]) |
-| inside | third | within1 vs plain | 47 (47) | 1,144 (1,135) | +2.5 [-12, +17] | -2.3 [-17, +12] | -4.8 [-19, +10] |
-| inside | strict | stacked (exact or near) vs plain | 7 (7) | 464 (459) | (+36.7 [+3, +70]) | (+29.9 [-4, +64]) | (+27.0 [-7, +61]) |
-| inside | strict | exact_plain vs plain | 2 (2) | 464 (459) | (+15.3 [-54, +85]) | (+8.4 [-61, +78]) | (+5.6 [-64, +75]) |
-| inside | strict | near vs plain | 5 (5) | 464 (459) | (+45.3 [+10, +81]) | (+38.4 [+3, +74]) | (+35.6 [+0, +71]) |
-| inside | strict | within1 vs plain | 23 (23) | 464 (459) | (-8.6 [-27, +10]) | (-15.5 [-34, +3]) | (-18.4 [-37, +0]) |
-| outside | all | stacked (exact or near) vs plain | 435 (429) | 6,415 (6,320) | +3.6 [-1, +8] | +0.8 [-4, +5] | -0.5 [-5, +4] |
-| outside | all | exact_shared vs plain | 294 (293) | 6,415 (6,320) | +2.8 [-2, +8] | -0.4 [-6, +5] | -1.0 [-7, +5] |
-| outside | all | exact_plain vs plain | 1 (1) | 6,415 (6,320) | (-21.7 [-23, -21]) | (-31.6 [-33, -31]) | (-36.2 [-37, -35]) |
-| outside | all | near vs plain | 140 (135) | 6,415 (6,320) | +5.4 [-2, +13] | +3.4 [-5, +11] | +0.9 [-7, +9] |
-| outside | all | within1 vs plain | 437 (427) | 6,415 (6,320) | +0.3 [-4, +4] | -1.1 [-6, +3] | -2.2 [-7, +2] |
-| outside | third | stacked (exact or near) vs plain | 20 (20) | 393 (388) | (-3.2 [-21, +15]) | (-4.0 [-25, +17]) | (-3.1 [-25, +18]) |
-| outside | third | exact_shared vs plain | 8 (8) | 393 (388) | (-10.7 [-34, +13]) | (-9.0 [-39, +21]) | (-13.1 [-44, +17]) |
-| outside | third | near vs plain | 12 (12) | 393 (388) | (+1.8 [-23, +27]) | (-0.7 [-28, +26]) | (+3.5 [-25, +32]) |
-| outside | third | within1 vs plain | 28 (27) | 393 (388) | (+1.8 [-15, +18]) | (-5.4 [-23, +12]) | (-4.8 [-23, +14]) |
-| outside | strict | stacked (exact or near) vs plain | 9 (9) | 144 (143) | (-18.8 [-41, +3]) | (-28.7 [-51, -7]) | (-32.9 [-55, -11]) |
-| outside | strict | exact_shared vs plain | 6 (6) | 144 (143) | (-29.9 [-37, -22]) | (-39.9 [-48, -32]) | (-44.1 [-52, -36]) |
-| outside | strict | near vs plain | 3 (3) | 144 (143) | (+3.5 [-50, +57]) | (-6.5 [-60, +47]) | (-10.7 [-65, +43]) |
-| outside | strict | within1 vs plain | 7 (7) | 144 (143) | (-15.6 [-43, +11]) | (-11.3 [-46, +23]) | (-15.5 [-50, +19]) |
+| reversal | all | stacked (exact or near) vs plain | 83 (83 / 83 / 81) | 20,532 (20,510 / 20,451 / 20,354) | -0.1 [-9, +9] | -0.1 [-10, +10] | -3.4 [-14, +7] |
+| reversal | all | exact_shared vs plain | 2 (2 / 2 / 2) | 20,532 (20,510 / 20,451 / 20,354) | (-24.2 [-25, -24]) | (-33.9 [-35, -33]) | (-37.9 [-39, -37]) |
+| reversal | all | exact_plain vs plain | 4 (4 / 4 / 4) | 20,532 (20,510 / 20,451 / 20,354) | (+0.8 [-42, +43]) | (+16.1 [-33, +65]) | (+12.1 [-37, +61]) |
+| reversal | all | near vs plain | 77 (77 / 77 / 75) | 20,532 (20,510 / 20,451 / 20,354) | +0.5 [-9, +10] | -0.1 [-11, +10] | -3.3 [-14, +8] |
+| reversal | all | within1 vs plain | 438 (438 / 435 / 432) | 20,532 (20,510 / 20,451 / 20,354) | +3.7 [-1, +8] | +1.3 [-3, +6] | -0.4 [-5, +4] |
+| reversal | third | stacked (exact or near) vs plain | 16 (16 / 16 / 16) | 3,558 (3,549 / 3,538 / 3,524) | (+2.7 [-20, +25]) | (+5.1 [-19, +30]) | (+0.5 [-24, +25]) |
+| reversal | third | exact_plain vs plain | 1 (1 / 1 / 1) | 3,558 (3,549 / 3,538 / 3,524) | (-28.5 [-30, -27]) | (-38.6 [-40, -37]) | (-43.2 [-45, -42]) |
+| reversal | third | near vs plain | 15 (15 / 15 / 15) | 3,558 (3,549 / 3,538 / 3,524) | (+4.8 [-19, +29]) | (+8.1 [-17, +33]) | (+3.4 [-22, +29]) |
+| reversal | third | within1 vs plain | 81 (81 / 81 / 81) | 3,558 (3,549 / 3,538 / 3,524) | +9.7 [-1, +20] | +5.8 [-5, +17] | +2.4 [-9, +13] |
+| reversal | strict | stacked (exact or near) vs plain | 7 (7 / 7 / 7) | 1,624 (1,620 / 1,616 / 1,611) | (+14.5 [-22, +51]) | (+5.7 [-31, +42]) | (+0.9 [-36, +38]) |
+| reversal | strict | exact_plain vs plain | 1 (1 / 1 / 1) | 1,624 (1,620 / 1,616 / 1,611) | (-28.3 [-31, -26]) | (-37.2 [-40, -35]) | (-42.0 [-44, -40]) |
+| reversal | strict | near vs plain | 6 (6 / 6 / 6) | 1,624 (1,620 / 1,616 / 1,611) | (+21.7 [-18, +62]) | (+12.8 [-27, +53]) | (+8.0 [-32, +48]) |
+| reversal | strict | within1 vs plain | 38 (38 / 38 / 38) | 1,624 (1,620 / 1,616 / 1,611) | +5.9 [-9, +21] | +2.3 [-13, +18] | +0.1 [-16, +16] |
+| continuation | all | stacked (exact or near) vs plain | 2,177 (2,176 / 2,168 / 2,156) | 26,354 (26,340 / 26,191 / 26,105) | +2.5 [+1, +4] | -0.4 [-2, +2] | -0.6 [-3, +1] |
+| continuation | all | exact_shared vs plain | 1,742 (1,742 / 1,742 / 1,733) | 26,354 (26,340 / 26,191 / 26,105) | +1.8 [-0, +4] | -1.8 [-4, +0] | -2.5 [-5, -0] |
+| continuation | all | exact_plain vs plain | 7 (7 / 7 / 7) | 26,354 (26,340 / 26,191 / 26,105) | (-24.6 [-25, -24]) | (-19.7 [-46, +6]) | (-24.3 [-50, +2]) |
+| continuation | all | near vs plain | 428 (427 / 419 / 416) | 26,354 (26,340 / 26,191 / 26,105) | +6.1 [+2, +11] | +5.9 [+1, +11] | +7.5 [+3, +12] |
+| continuation | all | within1 vs plain | 1,357 (1,353 / 1,339 / 1,328) | 26,354 (26,340 / 26,191 / 26,105) | +6.1 [+4, +9] | +4.6 [+2, +7] | +4.4 [+2, +7] |
+| continuation | third | stacked (exact or near) vs plain | 15 (15 / 15 / 15) | 385 (385 / 385 / 384) | (-34.8 [-40, -30]) | (-42.3 [-47, -37]) | (-38.1 [-52, -25]) |
+| continuation | third | exact_shared vs plain | 8 (8 / 8 / 8) | 385 (385 / 385 / 384) | (-34.8 [-40, -30]) | (-42.3 [-47, -37]) | (-32.3 [-56, -9]) |
+| continuation | third | exact_plain vs plain | 1 (1 / 1 / 1) | 385 (385 / 385 / 384) | (-34.8 [-40, -30]) | (-42.3 [-47, -37]) | (-44.8 [-50, -40]) |
+| continuation | third | near vs plain | 6 (6 / 6 / 6) | 385 (385 / 385 / 384) | (-34.8 [-40, -30]) | (-42.3 [-47, -37]) | (-44.8 [-50, -40]) |
+| continuation | third | within1 vs plain | 16 (16 / 16 / 16) | 385 (385 / 385 / 384) | (+21.4 [-3, +46]) | (+26.4 [+3, +50]) | (+24.0 [+1, +47]) |
+| continuation | strict | stacked (exact or near) vs plain | 8 (8 / 8 / 8) | 94 (94 / 94 / 94) | (-29.8 [-39, -21]) | (-38.3 [-48, -28]) | (-40.4 [-50, -31]) |
+| continuation | strict | exact_shared vs plain | 3 (3 / 3 / 3) | 94 (94 / 94 / 94) | (-29.8 [-39, -21]) | (-38.3 [-48, -28]) | (-40.4 [-50, -31]) |
+| continuation | strict | exact_plain vs plain | 1 (1 / 1 / 1) | 94 (94 / 94 / 94) | (-29.8 [-39, -21]) | (-38.3 [-48, -28]) | (-40.4 [-50, -31]) |
+| continuation | strict | near vs plain | 4 (4 / 4 / 4) | 94 (94 / 94 / 94) | (-29.8 [-39, -21]) | (-38.3 [-48, -28]) | (-40.4 [-50, -31]) |
+| continuation | strict | within1 vs plain | 4 (4 / 4 / 4) | 94 (94 / 94 / 94) | (+45.2 [+2, +89]) | (+36.7 [-7, +80]) | (+34.6 [-9, +78]) |
+| inside | all | stacked (exact or near) vs plain | 129 (129 / 128 / 128) | 14,435 (14,430 / 14,396 / 14,360) | -0.8 [-9, +7] | -5.1 [-13, +3] | -7.5 [-16, +1] |
+| inside | all | exact_shared vs plain | 4 (4 / 4 / 4) | 14,435 (14,430 / 14,396 / 14,360) | (+18.9 [-30, +68]) | (+12.1 [-37, +61]) | (+9.7 [-39, +59]) |
+| inside | all | exact_plain vs plain | 4 (4 / 4 / 4) | 14,435 (14,430 / 14,396 / 14,360) | (-6.1 [-49, +36]) | (-12.9 [-55, +30]) | (-15.3 [-58, +27]) |
+| inside | all | near vs plain | 121 (121 / 120 / 120) | 14,435 (14,430 / 14,396 / 14,360) | -1.3 [-10, +7] | -5.4 [-14, +3] | -7.8 [-16, +1] |
+| inside | all | within1 vs plain | 397 (397 / 397 / 396) | 14,435 (14,430 / 14,396 / 14,360) | -1.4 [-6, +3] | -3.7 [-8, +1] | -4.4 [-9, +0] |
+| inside | third | stacked (exact or near) vs plain | 15 (15 / 15 / 15) | 1,144 (1,144 / 1,141 / 1,135) | (+10.9 [-14, +36]) | (+4.0 [-21, +29]) | (+1.5 [-24, +27]) |
+| inside | third | exact_plain vs plain | 2 (2 / 2 / 2) | 1,144 (1,144 / 1,141 / 1,135) | (+14.2 [-55, +84]) | (+7.3 [-62, +77]) | (+4.8 [-65, +74]) |
+| inside | third | near vs plain | 13 (13 / 13 / 13) | 1,144 (1,144 / 1,141 / 1,135) | (+10.4 [-17, +38]) | (+3.5 [-24, +31]) | (+1.0 [-26, +28]) |
+| inside | third | within1 vs plain | 47 (47 / 47 / 47) | 1,144 (1,144 / 1,141 / 1,135) | +2.5 [-12, +17] | -2.3 [-17, +12] | -4.8 [-19, +10] |
+| inside | strict | stacked (exact or near) vs plain | 7 (7 / 7 / 7) | 464 (464 / 462 / 459) | (+36.7 [+3, +70]) | (+29.9 [-4, +64]) | (+27.0 [-7, +61]) |
+| inside | strict | exact_plain vs plain | 2 (2 / 2 / 2) | 464 (464 / 462 / 459) | (+15.3 [-54, +85]) | (+8.4 [-61, +78]) | (+5.6 [-64, +75]) |
+| inside | strict | near vs plain | 5 (5 / 5 / 5) | 464 (464 / 462 / 459) | (+45.3 [+10, +81]) | (+38.4 [+3, +74]) | (+35.6 [+0, +71]) |
+| inside | strict | within1 vs plain | 23 (23 / 23 / 23) | 464 (464 / 462 / 459) | (-8.6 [-27, +10]) | (-15.5 [-34, +3]) | (-18.4 [-37, +0]) |
+| outside | all | stacked (exact or near) vs plain | 435 (435 / 435 / 429) | 6,415 (6,410 / 6,389 / 6,320) | +3.6 [-1, +8] | +0.8 [-4, +5] | -0.5 [-5, +4] |
+| outside | all | exact_shared vs plain | 294 (294 / 294 / 293) | 6,415 (6,410 / 6,389 / 6,320) | +2.8 [-2, +8] | -0.4 [-6, +5] | -1.0 [-7, +5] |
+| outside | all | exact_plain vs plain | 1 (1 / 1 / 1) | 6,415 (6,410 / 6,389 / 6,320) | (-21.7 [-23, -21]) | (-31.6 [-33, -31]) | (-36.2 [-37, -35]) |
+| outside | all | near vs plain | 140 (140 / 140 / 135) | 6,415 (6,410 / 6,389 / 6,320) | +5.4 [-2, +13] | +3.4 [-5, +11] | +0.9 [-7, +9] |
+| outside | all | within1 vs plain | 437 (437 / 436 / 427) | 6,415 (6,410 / 6,389 / 6,320) | +0.3 [-4, +4] | -1.1 [-6, +3] | -2.2 [-7, +2] |
+| outside | third | stacked (exact or near) vs plain | 20 (20 / 20 / 20) | 393 (393 / 391 / 388) | (-3.2 [-21, +15]) | (-4.0 [-25, +17]) | (-3.1 [-25, +18]) |
+| outside | third | exact_shared vs plain | 8 (8 / 8 / 8) | 393 (393 / 391 / 388) | (-10.7 [-34, +13]) | (-9.0 [-39, +21]) | (-13.1 [-44, +17]) |
+| outside | third | near vs plain | 12 (12 / 12 / 12) | 393 (393 / 391 / 388) | (+1.8 [-23, +27]) | (-0.7 [-28, +26]) | (+3.5 [-25, +32]) |
+| outside | third | within1 vs plain | 28 (28 / 28 / 27) | 393 (393 / 391 / 388) | (+1.8 [-15, +18]) | (-5.4 [-23, +12]) | (-4.8 [-23, +14]) |
+| outside | strict | stacked (exact or near) vs plain | 9 (9 / 9 / 9) | 144 (144 / 143 / 143) | (-18.8 [-41, +3]) | (-28.7 [-51, -7]) | (-32.9 [-55, -11]) |
+| outside | strict | exact_shared vs plain | 6 (6 / 6 / 6) | 144 (144 / 143 / 143) | (-29.9 [-37, -22]) | (-39.9 [-48, -32]) | (-44.1 [-52, -36]) |
+| outside | strict | near vs plain | 3 (3 / 3 / 3) | 144 (144 / 143 / 143) | (+3.5 [-50, +57]) | (-6.5 [-60, +47]) | (-10.7 [-65, +43]) |
+| outside | strict | within1 vs plain | 7 (7 / 7 / 7) | 144 (144 / 143 / 143) | (-15.6 [-43, +11]) | (-11.3 [-46, +23]) | (-15.5 [-50, +19]) |
+
+Valid counts are per horizon (censored units excluded at that horizon); a difference in parentheses has fewer than 30 valid units on either side AT THAT HORIZON (close-out audit F3).
 
 ### Hypothesis 1 (owner): same-price stacks at a shared open do WORSE than plain and than near
 
-| setup | flag | units exact shared (valid by 5) | one R by 1 / 3 / 5 | minus plain by 1 / 3 / 5 | minus near by 1 / 3 / 5 |
-|---|---|---|---|---|---|
-| reversal | all | 2 (2) | (0.0%) / (0.0%) / (0.0%) | (-24.2 [-25, -24]) / (-33.9 [-35, -33]) / (-37.9 [-39, -37]) | (-24.7 [-34, -15]) / (-33.8 [-44, -23]) / (-34.7 [-45, -24]) |
-| continuation | all | 1,742 (1,733) | 26.3% / 32.1% / 36.1% | +1.8 [-0, +4] / -1.8 [-4, +0] / -2.5 [-5, -0] | -4.3 [-9, +1] / -7.8 [-13, -3] / -10.0 [-15, -5] |
-| continuation | third | 8 (8) | (0.0%) / (0.0%) / (12.5%) | (-34.8 [-40, -30]) / (-42.3 [-47, -37]) / (-32.3 [-56, -9]) | (+0.0 [+0, +0]) / (+0.0 [+0, +0]) / (+12.5 [-10, +35]) |
-| continuation | strict | 3 (3) | (0.0%) / (0.0%) / (0.0%) | (-29.8 [-39, -21]) / (-38.3 [-48, -28]) / (-40.4 [-50, -31]) | (+0.0 [+0, +0]) / (+0.0 [+0, +0]) / (+0.0 [+0, +0]) |
-| inside | all | 4 (4) | (50.0%) / (50.0%) / (50.0%) | (+18.9 [-30, +68]) / (+12.1 [-37, +61]) / (+9.7 [-39, +59]) | (+20.2 [-29, +70]) / (+17.5 [-32, +67]) / (+17.5 [-32, +67]) |
-| outside | all | 294 (293) | 24.5% / 31.3% / 35.2% | +2.8 [-2, +8] / -0.4 [-6, +5] / -1.0 [-7, +5] | -2.7 [-12, +6] / -3.7 [-13, +6] / -1.9 [-12, +8] |
-| outside | third | 8 (8) | (12.5%) / (25.0%) / (25.0%) | (-10.7 [-34, +13]) / (-9.0 [-39, +21]) / (-13.1 [-44, +17]) | (-12.5 [-46, +21]) / (-8.3 [-48, +32]) / (-16.7 [-58, +24]) |
-| outside | strict | 6 (6) | (0.0%) / (0.0%) / (0.0%) | (-29.9 [-37, -22]) / (-39.9 [-48, -32]) / (-44.1 [-52, -36]) | (-33.3 [-87, +20]) / (-33.3 [-87, +20]) / (-33.3 [-87, +20]) |
+| setup | flag | units exact shared (valid by 1 / 3 / 5) | one R by 1 / 3 / 5 [95%] n= valid | plain units (valid by 1 / 3 / 5) | minus plain by 1 / 3 / 5 | near units (valid by 1 / 3 / 5) | minus near by 1 / 3 / 5 |
+|---|---|---|---|---|---|---|---|
+| reversal | all | 2 (2 / 2 / 2) | (0.0% [0, 66] n=2) / (0.0% [0, 66] n=2) / (0.0% [0, 66] n=2) | 20,532 (20,510 / 20,451 / 20,354) | (-24.2 [-25, -24]) / (-33.9 [-35, -33]) / (-37.9 [-39, -37]) | 77 (77 / 77 / 75) | (-24.7 [-34, -15]) / (-33.8 [-44, -23]) / (-34.7 [-45, -24]) |
+| continuation | all | 1,742 (1,742 / 1,742 / 1,733) | 26.3% [24, 28] n=1,742 / 32.1% [30, 34] n=1,742 / 36.1% [34, 38] n=1,733 | 26,354 (26,340 / 26,191 / 26,105) | +1.8 [-0, +4] / -1.8 [-4, +0] / -2.5 [-5, -0] | 428 (427 / 419 / 416) | -4.3 [-9, +1] / -7.8 [-13, -3] / -10.0 [-15, -5] |
+| continuation | third | 8 (8 / 8 / 8) | (0.0% [0, 32] n=8) / (0.0% [0, 32] n=8) / (12.5% [2, 47] n=8) | 385 (385 / 385 / 384) | (-34.8 [-40, -30]) / (-42.3 [-47, -37]) / (-32.3 [-56, -9]) | 6 (6 / 6 / 6) | (+0.0 [+0, +0]) / (+0.0 [+0, +0]) / (+12.5 [-10, +35]) |
+| continuation | strict | 3 (3 / 3 / 3) | (0.0% [0, 56] n=3) / (0.0% [0, 56] n=3) / (0.0% [0, 56] n=3) | 94 (94 / 94 / 94) | (-29.8 [-39, -21]) / (-38.3 [-48, -28]) / (-40.4 [-50, -31]) | 4 (4 / 4 / 4) | (+0.0 [+0, +0]) / (+0.0 [+0, +0]) / (+0.0 [+0, +0]) |
+| inside | all | 4 (4 / 4 / 4) | (50.0% [15, 85] n=4) / (50.0% [15, 85] n=4) / (50.0% [15, 85] n=4) | 14,435 (14,430 / 14,396 / 14,360) | (+18.9 [-30, +68]) / (+12.1 [-37, +61]) / (+9.7 [-39, +59]) | 121 (121 / 120 / 120) | (+20.2 [-29, +70]) / (+17.5 [-32, +67]) / (+17.5 [-32, +67]) |
+| outside | all | 294 (294 / 294 / 293) | 24.5% [20, 30] n=294 / 31.3% [26, 37] n=294 / 35.2% [30, 41] n=293 | 6,415 (6,410 / 6,389 / 6,320) | +2.8 [-2, +8] / -0.4 [-6, +5] / -1.0 [-7, +5] | 140 (140 / 140 / 135) | -2.7 [-12, +6] / -3.7 [-13, +6] / -1.9 [-12, +8] |
+| outside | third | 8 (8 / 8 / 8) | (12.5% [2, 47] n=8) / (25.0% [7, 59] n=8) / (25.0% [7, 59] n=8) | 393 (393 / 391 / 388) | (-10.7 [-34, +13]) / (-9.0 [-39, +21]) / (-13.1 [-44, +17]) | 12 (12 / 12 / 12) | (-12.5 [-46, +21]) / (-8.3 [-48, +32]) / (-16.7 [-58, +24]) |
+| outside | strict | 6 (6 / 6 / 6) | (0.0% [0, 39] n=6) / (0.0% [0, 39] n=6) / (0.0% [0, 39] n=6) | 144 (144 / 143 / 143) | (-29.9 [-37, -22]) / (-39.9 [-48, -32]) / (-44.1 [-52, -36]) | 3 (3 / 3 / 3) | (-33.3 [-87, +20]) / (-33.3 [-87, +20]) / (-33.3 [-87, +20]) |
+
+Own chances carry Wilson 95% intervals and their valid count; differences are greyed when either side has fewer than 30 valid units at that horizon.
 
 ### Weekly units: setup x shape flag x gap to yesterday's level
 
@@ -734,49 +746,51 @@ n= is the VALID count at that horizon (censored units excluded); a cell in paren
 
 ### Weekly units: stacked minus the rest
 
-| setup | flag | comparison | units A+ (valid by 5) | units base (valid by 5) | diff by 1 [95%] | diff by 3 [95%] | diff by 5 [95%] |
+| setup | flag | comparison | units A+ (valid by 1 / 3 / 5) | units base (valid by 1 / 3 / 5) | diff by 1 [95%] | diff by 3 [95%] | diff by 5 [95%] |
 |---|---|---|---|---|---|---|---|
-| reversal | all | stacked (exact or near) vs within1 + spread | 565 (495) | 2,449 (2,226) | -1.5 [-6, +3] | -3.4 [-8, +1] | -2.4 [-7, +2] |
-| reversal | all | exact_shared vs within1 + spread | 370 (320) | 2,449 (2,226) | -2.2 [-7, +3] | -4.2 [-10, +1] | -4.3 [-10, +1] |
-| reversal | all | exact_plain vs within1 + spread | 4 (4) | 2,449 (2,226) | (+22.1 [-27, +71]) | (+9.4 [-40, +58]) | (+5.3 [-44, +54]) |
-| reversal | all | near vs within1 + spread | 191 (171) | 2,449 (2,226) | -0.7 [-7, +6] | -2.2 [-10, +5] | +1.0 [-7, +9] |
-| reversal | third | stacked (exact or near) vs within1 + spread | 146 (138) | 383 (344) | +6.5 [-2, +15] | +1.4 [-8, +11] | +1.6 [-8, +11] |
-| reversal | third | exact_shared vs within1 + spread | 114 (108) | 383 (344) | +4.4 [-4, +13] | -1.4 [-12, +9] | -3.2 [-14, +7] |
-| reversal | third | near vs within1 + spread | 32 (30) | 383 (344) | +14.1 [-3, +31] | +11.4 [-7, +30] | +19.2 [+1, +38] |
-| reversal | strict | stacked (exact or near) vs within1 + spread | 88 (83) | 161 (142) | -3.0 [-12, +6] | -7.9 [-20, +4] | -9.7 [-22, +2] |
-| reversal | strict | exact_shared vs within1 + spread | 78 (73) | 161 (142) | -1.4 [-11, +8] | -8.9 [-21, +3] | -11.9 [-24, +0] |
-| reversal | strict | near vs within1 + spread | 10 (10) | 161 (142) | (-14.7 [-20, -9]) | (-0.8 [-30, +29]) | (+6.2 [-25, +38]) |
-| continuation | all | stacked (exact or near) vs within1 + spread | 1,196 (1,128) | 2,834 (2,616) | -7.0 [-10, -4] | -8.0 [-11, -5] | -8.2 [-12, -5] |
-| continuation | all | exact_shared vs within1 + spread | 938 (892) | 2,834 (2,616) | -9.4 [-12, -6] | -11.5 [-15, -8] | -12.0 [-16, -8] |
-| continuation | all | exact_plain vs within1 + spread | 6 (6) | 2,834 (2,616) | (+3.6 [-34, +41]) | (+10.0 [-30, +50]) | (+5.8 [-34, +46]) |
-| continuation | all | near vs within1 + spread | 252 (230) | 2,834 (2,616) | +2.0 [-4, +8] | +4.7 [-2, +11] | +6.2 [-0, +13] |
-| continuation | third | stacked (exact or near) vs within1 + spread | 24 (22) | 62 (59) | (+10.4 [-13, +34]) | (+17.3 [-7, +41]) | (+15.6 [-9, +40]) |
-| continuation | third | exact_shared vs within1 + spread | 20 (18) | 62 (59) | (+13.9 [-12, +40]) | (+18.3 [-8, +44]) | (+16.6 [-10, +43]) |
-| continuation | third | near vs within1 + spread | 4 (4) | 62 (59) | (-5.5 [-50, +39]) | (+12.7 [-38, +63]) | (+11.0 [-40, +62]) |
-| continuation | strict | stacked (exact or near) vs within1 + spread | 16 (16) | 10 (10) | (+13.8 [-24, +51]) | (+22.5 [-16, +61]) | (+22.5 [-16, +61]) |
-| continuation | strict | exact_shared vs within1 + spread | 15 (15) | 10 (10) | (+16.7 [-21, +55]) | (+20.0 [-19, +59]) | (+20.0 [-19, +59]) |
-| continuation | strict | near vs within1 + spread | 1 (1) | 10 (10) | (-30.0 [-58, -2]) | (+60.0 [+30, +90]) | (+60.0 [+30, +90]) |
-| inside | all | stacked (exact or near) vs within1 + spread | 502 (467) | 1,683 (1,546) | -2.7 [-7, +2] | -3.9 [-9, +1] | -3.4 [-9, +2] |
-| inside | all | exact_shared vs within1 + spread | 358 (336) | 1,683 (1,546) | -3.9 [-9, +1] | -5.2 [-11, +0] | -5.0 [-11, +1] |
-| inside | all | exact_plain vs within1 + spread | 4 (4) | 1,683 (1,546) | (+40.4 [-2, +83]) | (+32.1 [-10, +75]) | (+28.9 [-14, +71]) |
-| inside | all | near vs within1 + spread | 140 (127) | 1,683 (1,546) | -0.8 [-9, +7] | -1.6 [-10, +7] | -0.4 [-9, +9] |
-| inside | third | stacked (exact or near) vs within1 + spread | 60 (56) | 138 (135) | -5.5 [-20, +9] | -14.3 [-29, +0] | -16.4 [-31, -1] |
-| inside | third | exact_shared vs within1 + spread | 43 (40) | 138 (135) | -5.1 [-21, +11] | -16.1 [-32, +0] | -20.4 [-37, -4] |
-| inside | third | exact_plain vs within1 + spread | 1 (1) | 138 (135) | (-36.0 [-44, -28]) | (-47.1 [-55, -39]) | (-50.4 [-59, -42]) |
-| inside | third | near vs within1 + spread | 16 (15) | 138 (135) | (-4.8 [-29, +19]) | (-7.1 [-33, +19]) | (-3.7 [-30, +23]) |
-| inside | strict | stacked (exact or near) vs within1 + spread | 39 (37) | 44 (43) | -10.9 [-31, +9] | -20.2 [-41, +0] | -19.5 [-40, +1] |
-| inside | strict | exact_shared vs within1 + spread | 29 (27) | 44 (43) | (-8.6 [-31, +13]) | (-17.9 [-40, +4]) | (-16.9 [-40, +6]) |
-| inside | strict | exact_plain vs within1 + spread | 1 (1) | 44 (43) | (-37.2 [-52, -23]) | (-46.5 [-61, -32]) | (-46.5 [-61, -32]) |
-| inside | strict | near vs within1 + spread | 9 (9) | 44 (43) | (-15.0 [-46, +16]) | (-24.3 [-55, +7]) | (-24.3 [-55, +7]) |
-| outside | all | stacked (exact or near) vs within1 + spread | 300 (269) | 696 (640) | +3.6 [-2, +9] | +2.4 [-4, +9] | +1.5 [-5, +8] |
-| outside | all | exact_shared vs within1 + spread | 249 (228) | 696 (640) | +2.2 [-4, +8] | +0.2 [-7, +7] | -0.4 [-8, +7] |
-| outside | all | near vs within1 + spread | 51 (41) | 696 (640) | +10.8 [-2, +24] | +14.4 [-1, +30] | +12.4 [-3, +28] |
-| outside | third | stacked (exact or near) vs within1 + spread | 23 (23) | 33 (33) | (-6.9 [-28, +14]) | (-13.3 [-38, +11]) | (-16.3 [-41, +8]) |
-| outside | third | exact_shared vs within1 + spread | 18 (18) | 33 (33) | (-13.1 [-34, +7]) | (-17.2 [-43, +8]) | (-20.2 [-46, +5]) |
-| outside | third | near vs within1 + spread | 5 (5) | 33 (33) | (+15.8 [-30, +61]) | (+0.6 [-45, +47]) | (-2.4 [-49, +44]) |
-| outside | strict | stacked (exact or near) vs within1 + spread | 15 (15) | 11 (11) | (+1.8 [-29, +32]) | (+6.1 [-29, +42]) | (-3.0 [-40, +34]) |
-| outside | strict | exact_shared vs within1 + spread | 13 (13) | 11 (11) | (-2.8 [-33, +27]) | (+3.5 [-33, +40]) | (-5.6 [-44, +32]) |
-| outside | strict | near vs within1 + spread | 2 (2) | 11 (11) | (+31.8 [-41, +105]) | (+22.7 [-51, +97]) | (+13.6 [-61, +89]) |
+| reversal | all | stacked (exact or near) vs within1 + spread | 565 (554 / 519 / 495) | 2,449 (2,370 / 2,278 / 2,226) | -1.5 [-6, +3] | -3.4 [-8, +1] | -2.4 [-7, +2] |
+| reversal | all | exact_shared vs within1 + spread | 370 (366 / 338 / 320) | 2,449 (2,370 / 2,278 / 2,226) | -2.2 [-7, +3] | -4.2 [-10, +1] | -4.3 [-10, +1] |
+| reversal | all | exact_plain vs within1 + spread | 4 (4 / 4 / 4) | 2,449 (2,370 / 2,278 / 2,226) | (+22.1 [-27, +71]) | (+9.4 [-40, +58]) | (+5.3 [-44, +54]) |
+| reversal | all | near vs within1 + spread | 191 (184 / 177 / 171) | 2,449 (2,370 / 2,278 / 2,226) | -0.7 [-7, +6] | -2.2 [-10, +5] | +1.0 [-7, +9] |
+| reversal | third | stacked (exact or near) vs within1 + spread | 146 (142 / 139 / 138) | 383 (369 / 352 / 344) | +6.5 [-2, +15] | +1.4 [-8, +11] | +1.6 [-8, +11] |
+| reversal | third | exact_shared vs within1 + spread | 114 (111 / 108 / 108) | 383 (369 / 352 / 344) | +4.4 [-4, +13] | -1.4 [-12, +9] | -3.2 [-14, +7] |
+| reversal | third | near vs within1 + spread | 32 (31 / 31 / 30) | 383 (369 / 352 / 344) | +14.1 [-3, +31] | +11.4 [-7, +30] | +19.2 [+1, +38] |
+| reversal | strict | stacked (exact or near) vs within1 + spread | 88 (85 / 83 / 83) | 161 (156 / 146 / 142) | -3.0 [-12, +6] | -7.9 [-20, +4] | -9.7 [-22, +2] |
+| reversal | strict | exact_shared vs within1 + spread | 78 (75 / 73 / 73) | 161 (156 / 146 / 142) | -1.4 [-11, +8] | -8.9 [-21, +3] | -11.9 [-24, +0] |
+| reversal | strict | near vs within1 + spread | 10 (10 / 10 / 10) | 161 (156 / 146 / 142) | (-14.7 [-20, -9]) | (-0.8 [-30, +29]) | (+6.2 [-25, +38]) |
+| continuation | all | stacked (exact or near) vs within1 + spread | 1,196 (1,170 / 1,153 / 1,128) | 2,834 (2,747 / 2,681 / 2,616) | -7.0 [-10, -4] | -8.0 [-11, -5] | -8.2 [-12, -5] |
+| continuation | all | exact_shared vs within1 + spread | 938 (924 / 910 / 892) | 2,834 (2,747 / 2,681 / 2,616) | -9.4 [-12, -6] | -11.5 [-15, -8] | -12.0 [-16, -8] |
+| continuation | all | exact_plain vs within1 + spread | 6 (6 / 6 / 6) | 2,834 (2,747 / 2,681 / 2,616) | (+3.6 [-34, +41]) | (+10.0 [-30, +50]) | (+5.8 [-34, +46]) |
+| continuation | all | near vs within1 + spread | 252 (240 / 237 / 230) | 2,834 (2,747 / 2,681 / 2,616) | +2.0 [-4, +8] | +4.7 [-2, +11] | +6.2 [-0, +13] |
+| continuation | third | stacked (exact or near) vs within1 + spread | 24 (22 / 22 / 22) | 62 (59 / 59 / 59) | (+10.4 [-13, +34]) | (+17.3 [-7, +41]) | (+15.6 [-9, +40]) |
+| continuation | third | exact_shared vs within1 + spread | 20 (18 / 18 / 18) | 62 (59 / 59 / 59) | (+13.9 [-12, +40]) | (+18.3 [-8, +44]) | (+16.6 [-10, +43]) |
+| continuation | third | near vs within1 + spread | 4 (4 / 4 / 4) | 62 (59 / 59 / 59) | (-5.5 [-50, +39]) | (+12.7 [-38, +63]) | (+11.0 [-40, +62]) |
+| continuation | strict | stacked (exact or near) vs within1 + spread | 16 (16 / 16 / 16) | 10 (10 / 10 / 10) | (+13.8 [-24, +51]) | (+22.5 [-16, +61]) | (+22.5 [-16, +61]) |
+| continuation | strict | exact_shared vs within1 + spread | 15 (15 / 15 / 15) | 10 (10 / 10 / 10) | (+16.7 [-21, +55]) | (+20.0 [-19, +59]) | (+20.0 [-19, +59]) |
+| continuation | strict | near vs within1 + spread | 1 (1 / 1 / 1) | 10 (10 / 10 / 10) | (-30.0 [-58, -2]) | (+60.0 [+30, +90]) | (+60.0 [+30, +90]) |
+| inside | all | stacked (exact or near) vs within1 + spread | 502 (495 / 484 / 467) | 1,683 (1,641 / 1,609 / 1,546) | -2.7 [-7, +2] | -3.9 [-9, +1] | -3.4 [-9, +2] |
+| inside | all | exact_shared vs within1 + spread | 358 (355 / 347 / 336) | 1,683 (1,641 / 1,609 / 1,546) | -3.9 [-9, +1] | -5.2 [-11, +0] | -5.0 [-11, +1] |
+| inside | all | exact_plain vs within1 + spread | 4 (4 / 4 / 4) | 1,683 (1,641 / 1,609 / 1,546) | (+40.4 [-2, +83]) | (+32.1 [-10, +75]) | (+28.9 [-14, +71]) |
+| inside | all | near vs within1 + spread | 140 (136 / 133 / 127) | 1,683 (1,641 / 1,609 / 1,546) | -0.8 [-9, +7] | -1.6 [-10, +7] | -0.4 [-9, +9] |
+| inside | third | stacked (exact or near) vs within1 + spread | 60 (59 / 58 / 56) | 138 (136 / 136 / 135) | -5.5 [-20, +9] | -14.3 [-29, +0] | -16.4 [-31, -1] |
+| inside | third | exact_shared vs within1 + spread | 43 (42 / 42 / 40) | 138 (136 / 136 / 135) | -5.1 [-21, +11] | -16.1 [-32, +0] | -20.4 [-37, -4] |
+| inside | third | exact_plain vs within1 + spread | 1 (1 / 1 / 1) | 138 (136 / 136 / 135) | (-36.0 [-44, -28]) | (-47.1 [-55, -39]) | (-50.4 [-59, -42]) |
+| inside | third | near vs within1 + spread | 16 (16 / 15 / 15) | 138 (136 / 136 / 135) | (-4.8 [-29, +19]) | (-7.1 [-33, +19]) | (-3.7 [-30, +23]) |
+| inside | strict | stacked (exact or near) vs within1 + spread | 39 (38 / 38 / 37) | 44 (43 / 43 / 43) | -10.9 [-31, +9] | -20.2 [-41, +0] | -19.5 [-40, +1] |
+| inside | strict | exact_shared vs within1 + spread | 29 (28 / 28 / 27) | 44 (43 / 43 / 43) | (-8.6 [-31, +13]) | (-17.9 [-40, +4]) | (-16.9 [-40, +6]) |
+| inside | strict | exact_plain vs within1 + spread | 1 (1 / 1 / 1) | 44 (43 / 43 / 43) | (-37.2 [-52, -23]) | (-46.5 [-61, -32]) | (-46.5 [-61, -32]) |
+| inside | strict | near vs within1 + spread | 9 (9 / 9 / 9) | 44 (43 / 43 / 43) | (-15.0 [-46, +16]) | (-24.3 [-55, +7]) | (-24.3 [-55, +7]) |
+| outside | all | stacked (exact or near) vs within1 + spread | 300 (298 / 275 / 269) | 696 (688 / 650 / 640) | +3.6 [-2, +9] | +2.4 [-4, +9] | +1.5 [-5, +8] |
+| outside | all | exact_shared vs within1 + spread | 249 (248 / 232 / 228) | 696 (688 / 650 / 640) | +2.2 [-4, +8] | +0.2 [-7, +7] | -0.4 [-8, +7] |
+| outside | all | near vs within1 + spread | 51 (50 / 43 / 41) | 696 (688 / 650 / 640) | +10.8 [-2, +24] | +14.4 [-1, +30] | +12.4 [-3, +28] |
+| outside | third | stacked (exact or near) vs within1 + spread | 23 (23 / 23 / 23) | 33 (33 / 33 / 33) | (-6.9 [-28, +14]) | (-13.3 [-38, +11]) | (-16.3 [-41, +8]) |
+| outside | third | exact_shared vs within1 + spread | 18 (18 / 18 / 18) | 33 (33 / 33 / 33) | (-13.1 [-34, +7]) | (-17.2 [-43, +8]) | (-20.2 [-46, +5]) |
+| outside | third | near vs within1 + spread | 5 (5 / 5 / 5) | 33 (33 / 33 / 33) | (+15.8 [-30, +61]) | (+0.6 [-45, +47]) | (-2.4 [-49, +44]) |
+| outside | strict | stacked (exact or near) vs within1 + spread | 15 (15 / 15 / 15) | 11 (11 / 11 / 11) | (+1.8 [-29, +32]) | (+6.1 [-29, +42]) | (-3.0 [-40, +34]) |
+| outside | strict | exact_shared vs within1 + spread | 13 (13 / 13 / 13) | 11 (11 / 11 / 11) | (-2.8 [-33, +27]) | (+3.5 [-33, +40]) | (-5.6 [-44, +32]) |
+| outside | strict | near vs within1 + spread | 2 (2 / 2 / 2) | 11 (11 / 11 / 11) | (+31.8 [-41, +105]) | (+22.7 [-51, +97]) | (+13.6 [-61, +89]) |
+
+Valid counts are per horizon (censored units excluded at that horizon); a difference in parentheses has fewer than 30 valid units on either side AT THAT HORIZON (close-out audit F3).
 
 ### Monthly units: setup x shape flag x gap to yesterday's level
 
@@ -834,45 +848,47 @@ n= is the VALID count at that horizon (censored units excluded); a cell in paren
 
 ### Monthly units: stacked minus the rest
 
-| setup | flag | comparison | units A+ (valid by 5) | units base (valid by 5) | diff by 1 [95%] | diff by 3 [95%] | diff by 5 [95%] |
+| setup | flag | comparison | units A+ (valid by 1 / 3 / 5) | units base (valid by 1 / 3 / 5) | diff by 1 [95%] | diff by 3 [95%] | diff by 5 [95%] |
 |---|---|---|---|---|---|---|---|
-| reversal | all | stacked (exact or near) vs within1 + spread | 42 (22) | 579 (415) | +3.7 [-12, +20] | -1.5 [-18, +15] | (-8.0 [-29, +13]) |
-| reversal | all | exact_shared vs within1 + spread | 20 (14) | 579 (415) | (-1.4 [-22, +19]) | (-5.3 [-27, +16]) | (-8.6 [-34, +17]) |
-| reversal | all | near vs within1 + spread | 22 (8) | 579 (415) | (+9.8 [-14, +34]) | (+3.2 [-22, +28]) | (-6.8 [-41, +27]) |
-| reversal | third | stacked (exact or near) vs within1 + spread | 9 (6) | 130 (103) | (+17.7 [-17, +52]) | (+17.7 [-18, +53]) | (-7.4 [-46, +31]) |
-| reversal | third | exact_shared vs within1 + spread | 3 (2) | 130 (103) | (+13.5 [-40, +67]) | (+1.1 [-53, +55]) | (-40.8 [-50, -31]) |
-| reversal | third | near vs within1 + spread | 6 (4) | 130 (103) | (+20.2 [-23, +64]) | (+27.7 [-16, +71]) | (+9.2 [-41, +59]) |
-| reversal | strict | stacked (exact or near) vs within1 + spread | 5 (4) | 46 (32) | (-13.6 [-24, -3]) | (-1.2 [-46, +43]) | (-9.4 [-55, +36]) |
-| reversal | strict | exact_shared vs within1 + spread | 1 (1) | 46 (32) | (-13.6 [-24, -3]) | (-26.2 [-39, -13]) | (-34.4 [-51, -18]) |
-| reversal | strict | near vs within1 + spread | 4 (3) | 46 (32) | (-13.6 [-24, -3]) | (+7.1 [-48, +62]) | (-1.0 [-57, +55]) |
-| continuation | all | stacked (exact or near) vs within1 + spread | 105 (59) | 739 (549) | -5.0 [-13, +3] | -0.4 [-11, +10] | -1.6 [-14, +11] |
-| continuation | all | exact_shared vs within1 + spread | 62 (35) | 739 (549) | -10.2 [-20, -1] | -4.2 [-17, +8] | -7.6 [-22, +7] |
-| continuation | all | exact_plain vs within1 + spread | 3 (2) | 739 (549) | (-23.8 [-27, -21]) | (-28.6 [-32, -25]) | (-30.4 [-34, -27]) |
-| continuation | all | near vs within1 + spread | 40 (22) | 739 (549) | +5.6 [-10, +21] | (+9.8 [-9, +29]) | (+10.5 [-10, +31]) |
-| continuation | third | stacked (exact or near) vs within1 + spread | 5 (3) | 20 (15) | (-24.4 [-66, +17]) | (+6.7 [-52, +65]) | (+6.7 [-52, +65]) |
-| continuation | third | exact_shared vs within1 + spread | 1 (0) | 20 (15) | (-44.4 [-67, -21]) | (-) | (-) |
-| continuation | third | near vs within1 + spread | 4 (3) | 20 (15) | (-19.4 [-68, +29]) | (+6.7 [-52, +65]) | (+6.7 [-52, +65]) |
-| continuation | strict | stacked (exact or near) vs within1 + spread | 2 (0) | 2 (2) | (-50.0 [-119, +19]) | (-) | (-) |
-| continuation | strict | exact_shared vs within1 + spread | 1 (0) | 2 (2) | (-50.0 [-119, +19]) | (-) | (-) |
-| continuation | strict | near vs within1 + spread | 1 (0) | 2 (2) | (-50.0 [-119, +19]) | (-) | (-) |
-| inside | all | stacked (exact or near) vs within1 + spread | 38 (21) | 391 (282) | +10.8 [-7, +29] | (+13.8 [-6, +34]) | (+19.0 [-3, +41]) |
-| inside | all | exact_shared vs within1 + spread | 14 (8) | 391 (282) | (+0.8 [-30, +32]) | (+20.3 [-14, +54]) | (+32.1 [+2, +63]) |
-| inside | all | exact_plain vs within1 + spread | 1 (1) | 391 (282) | (+60.8 [+56, +66]) | (+57.8 [+52, +63]) | (+57.1 [+51, +63]) |
-| inside | all | near vs within1 + spread | 23 (12) | 391 (282) | (+13.2 [-9, +35]) | (+7.8 [-17, +33]) | (+7.1 [-22, +36]) |
-| inside | third | stacked (exact or near) vs within1 + spread | 5 (2) | 42 (31) | (-28.9 [-43, -15]) | (-45.5 [-62, -28]) | (+1.6 [-70, +73]) |
-| inside | third | exact_shared vs within1 + spread | 3 (2) | 42 (31) | (-28.9 [-43, -15]) | (-45.5 [-62, -28]) | (+1.6 [-70, +73]) |
-| inside | third | near vs within1 + spread | 2 (0) | 42 (31) | (-28.9 [-43, -15]) | (-45.5 [-62, -28]) | (-) |
-| inside | strict | stacked (exact or near) vs within1 + spread | 3 (1) | 14 (6) | (-18.2 [-41, +5]) | (-42.9 [-80, -6]) | (+50.0 [+10, +90]) |
-| inside | strict | exact_shared vs within1 + spread | 2 (1) | 14 (6) | (-18.2 [-41, +5]) | (-42.9 [-80, -6]) | (+50.0 [+10, +90]) |
-| inside | strict | near vs within1 + spread | 1 (0) | 14 (6) | (-18.2 [-41, +5]) | (-42.9 [-80, -6]) | (-) |
-| outside | all | stacked (exact or near) vs within1 + spread | 35 (26) | 158 (102) | +16.4 [-2, +35] | (+12.3 [-7, +32]) | (+17.7 [-3, +39]) |
-| outside | all | exact_shared vs within1 + spread | 25 (20) | 158 (102) | (+21.4 [+0, +42]) | (+13.9 [-8, +36]) | (+21.6 [-2, +45]) |
-| outside | all | exact_plain vs within1 + spread | 1 (1) | 158 (102) | (+79.7 [+73, +87]) | (+73.0 [+65, +81]) | (+71.6 [+63, +80]) |
-| outside | all | near vs within1 + spread | 9 (5) | 158 (102) | (-20.3 [-27, -13]) | (-7.0 [-43, +29]) | (-8.4 [-45, +28]) |
-| outside | third | stacked (exact or near) vs within1 + spread | 1 (1) | 18 (14) | (+88.9 [+74, +103]) | (+77.8 [+59, +97]) | (+85.7 [+67, +104]) |
-| outside | third | exact_plain vs within1 + spread | 1 (1) | 18 (14) | (+88.9 [+74, +103]) | (+77.8 [+59, +97]) | (+85.7 [+67, +104]) |
-| outside | strict | stacked (exact or near) vs within1 + spread | 1 (1) | 7 (4) | (+100.0 [+100, +100]) | (+71.4 [+38, +105]) | (+75.0 [+33, +117]) |
-| outside | strict | exact_plain vs within1 + spread | 1 (1) | 7 (4) | (+100.0 [+100, +100]) | (+71.4 [+38, +105]) | (+75.0 [+33, +117]) |
+| reversal | all | stacked (exact or near) vs within1 + spread | 42 (35 / 34 / 22) | 579 (556 / 486 / 415) | +3.7 [-12, +20] | -1.5 [-18, +15] | (-8.0 [-29, +13]) |
+| reversal | all | exact_shared vs within1 + spread | 20 (19 / 19 / 14) | 579 (556 / 486 / 415) | (-1.4 [-22, +19]) | (-5.3 [-27, +16]) | (-8.6 [-34, +17]) |
+| reversal | all | near vs within1 + spread | 22 (16 / 15 / 8) | 579 (556 / 486 / 415) | (+9.8 [-14, +34]) | (+3.2 [-22, +28]) | (-6.8 [-41, +27]) |
+| reversal | third | stacked (exact or near) vs within1 + spread | 9 (8 / 8 / 6) | 130 (126 / 124 / 103) | (+17.7 [-17, +52]) | (+17.7 [-18, +53]) | (-7.4 [-46, +31]) |
+| reversal | third | exact_shared vs within1 + spread | 3 (3 / 3 / 2) | 130 (126 / 124 / 103) | (+13.5 [-40, +67]) | (+1.1 [-53, +55]) | (-40.8 [-50, -31]) |
+| reversal | third | near vs within1 + spread | 6 (5 / 5 / 4) | 130 (126 / 124 / 103) | (+20.2 [-23, +64]) | (+27.7 [-16, +71]) | (+9.2 [-41, +59]) |
+| reversal | strict | stacked (exact or near) vs within1 + spread | 5 (4 / 4 / 4) | 46 (44 / 42 / 32) | (-13.6 [-24, -3]) | (-1.2 [-46, +43]) | (-9.4 [-55, +36]) |
+| reversal | strict | exact_shared vs within1 + spread | 1 (1 / 1 / 1) | 46 (44 / 42 / 32) | (-13.6 [-24, -3]) | (-26.2 [-39, -13]) | (-34.4 [-51, -18]) |
+| reversal | strict | near vs within1 + spread | 4 (3 / 3 / 3) | 46 (44 / 42 / 32) | (-13.6 [-24, -3]) | (+7.1 [-48, +62]) | (-1.0 [-57, +55]) |
+| continuation | all | stacked (exact or near) vs within1 + spread | 105 (96 / 78 / 59) | 739 (669 / 611 / 549) | -5.0 [-13, +3] | -0.4 [-11, +10] | -1.6 [-14, +11] |
+| continuation | all | exact_shared vs within1 + spread | 62 (59 / 49 / 35) | 739 (669 / 611 / 549) | -10.2 [-20, -1] | -4.2 [-17, +8] | -7.6 [-22, +7] |
+| continuation | all | exact_plain vs within1 + spread | 3 (3 / 3 / 2) | 739 (669 / 611 / 549) | (-23.8 [-27, -21]) | (-28.6 [-32, -25]) | (-30.4 [-34, -27]) |
+| continuation | all | near vs within1 + spread | 40 (34 / 26 / 22) | 739 (669 / 611 / 549) | +5.6 [-10, +21] | (+9.8 [-9, +29]) | (+10.5 [-10, +31]) |
+| continuation | third | stacked (exact or near) vs within1 + spread | 5 (5 / 3 / 3) | 20 (18 / 15 / 15) | (-24.4 [-66, +17]) | (+6.7 [-52, +65]) | (+6.7 [-52, +65]) |
+| continuation | third | exact_shared vs within1 + spread | 1 (1 / 0 / 0) | 20 (18 / 15 / 15) | (-44.4 [-67, -21]) | (-) | (-) |
+| continuation | third | near vs within1 + spread | 4 (4 / 3 / 3) | 20 (18 / 15 / 15) | (-19.4 [-68, +29]) | (+6.7 [-52, +65]) | (+6.7 [-52, +65]) |
+| continuation | strict | stacked (exact or near) vs within1 + spread | 2 (2 / 0 / 0) | 2 (2 / 2 / 2) | (-50.0 [-119, +19]) | (-) | (-) |
+| continuation | strict | exact_shared vs within1 + spread | 1 (1 / 0 / 0) | 2 (2 / 2 / 2) | (-50.0 [-119, +19]) | (-) | (-) |
+| continuation | strict | near vs within1 + spread | 1 (1 / 0 / 0) | 2 (2 / 2 / 2) | (-50.0 [-119, +19]) | (-) | (-) |
+| inside | all | stacked (exact or near) vs within1 + spread | 38 (32 / 25 / 21) | 391 (360 / 315 / 282) | +10.8 [-7, +29] | (+13.8 [-6, +34]) | (+19.0 [-3, +41]) |
+| inside | all | exact_shared vs within1 + spread | 14 (10 / 8 / 8) | 391 (360 / 315 / 282) | (+0.8 [-30, +32]) | (+20.3 [-14, +54]) | (+32.1 [+2, +63]) |
+| inside | all | exact_plain vs within1 + spread | 1 (1 / 1 / 1) | 391 (360 / 315 / 282) | (+60.8 [+56, +66]) | (+57.8 [+52, +63]) | (+57.1 [+51, +63]) |
+| inside | all | near vs within1 + spread | 23 (21 / 16 / 12) | 391 (360 / 315 / 282) | (+13.2 [-9, +35]) | (+7.8 [-17, +33]) | (+7.1 [-22, +36]) |
+| inside | third | stacked (exact or near) vs within1 + spread | 5 (4 / 3 / 2) | 42 (38 / 33 / 31) | (-28.9 [-43, -15]) | (-45.5 [-62, -28]) | (+1.6 [-70, +73]) |
+| inside | third | exact_shared vs within1 + spread | 3 (3 / 2 / 2) | 42 (38 / 33 / 31) | (-28.9 [-43, -15]) | (-45.5 [-62, -28]) | (+1.6 [-70, +73]) |
+| inside | third | near vs within1 + spread | 2 (1 / 1 / 0) | 42 (38 / 33 / 31) | (-28.9 [-43, -15]) | (-45.5 [-62, -28]) | (-) |
+| inside | strict | stacked (exact or near) vs within1 + spread | 3 (3 / 2 / 1) | 14 (11 / 7 / 6) | (-18.2 [-41, +5]) | (-42.9 [-80, -6]) | (+50.0 [+10, +90]) |
+| inside | strict | exact_shared vs within1 + spread | 2 (2 / 1 / 1) | 14 (11 / 7 / 6) | (-18.2 [-41, +5]) | (-42.9 [-80, -6]) | (+50.0 [+10, +90]) |
+| inside | strict | near vs within1 + spread | 1 (1 / 1 / 0) | 14 (11 / 7 / 6) | (-18.2 [-41, +5]) | (-42.9 [-80, -6]) | (-) |
+| outside | all | stacked (exact or near) vs within1 + spread | 35 (30 / 28 / 26) | 158 (133 / 126 / 102) | +16.4 [-2, +35] | (+12.3 [-7, +32]) | (+17.7 [-3, +39]) |
+| outside | all | exact_shared vs within1 + spread | 25 (24 / 22 / 20) | 158 (133 / 126 / 102) | (+21.4 [+0, +42]) | (+13.9 [-8, +36]) | (+21.6 [-2, +45]) |
+| outside | all | exact_plain vs within1 + spread | 1 (1 / 1 / 1) | 158 (133 / 126 / 102) | (+79.7 [+73, +87]) | (+73.0 [+65, +81]) | (+71.6 [+63, +80]) |
+| outside | all | near vs within1 + spread | 9 (5 / 5 / 5) | 158 (133 / 126 / 102) | (-20.3 [-27, -13]) | (-7.0 [-43, +29]) | (-8.4 [-45, +28]) |
+| outside | third | stacked (exact or near) vs within1 + spread | 1 (1 / 1 / 1) | 18 (18 / 18 / 14) | (+88.9 [+74, +103]) | (+77.8 [+59, +97]) | (+85.7 [+67, +104]) |
+| outside | third | exact_plain vs within1 + spread | 1 (1 / 1 / 1) | 18 (18 / 18 / 14) | (+88.9 [+74, +103]) | (+77.8 [+59, +97]) | (+85.7 [+67, +104]) |
+| outside | strict | stacked (exact or near) vs within1 + spread | 1 (1 / 1 / 1) | 7 (7 / 7 / 4) | (+100.0 [+100, +100]) | (+71.4 [+38, +105]) | (+75.0 [+33, +117]) |
+| outside | strict | exact_plain vs within1 + spread | 1 (1 / 1 / 1) | 7 (7 / 7 / 4) | (+100.0 [+100, +100]) | (+71.4 [+38, +105]) | (+75.0 [+33, +117]) |
+
+Valid counts are per horizon (censored units excluded at that horizon); a difference in parentheses has fewer than 30 valid units on either side AT THAT HORIZON (close-out audit F3).
 
 ## ALL (with the index-price prefix; check line): 292 coins, 232,085 units (D 198,421, W 27,741, M 5,923)
 
@@ -974,75 +990,79 @@ n= is the VALID count at that horizon (censored units excluded); a cell in paren
 
 ### Daily units: A+ class minus PLAIN (one-R chance, percentage points)
 
-| setup | flag | comparison | units A+ (valid by 5) | units base (valid by 5) | diff by 1 [95%] | diff by 3 [95%] | diff by 5 [95%] |
+| setup | flag | comparison | units A+ (valid by 1 / 3 / 5) | units base (valid by 1 / 3 / 5) | diff by 1 [95%] | diff by 3 [95%] | diff by 5 [95%] |
 |---|---|---|---|---|---|---|---|
-| reversal | all | stacked (exact or near) vs plain | 183 (181) | 56,800 (56,433) | +2.3 [-4, +9] | +2.0 [-5, +9] | -1.0 [-8, +6] |
-| reversal | all | exact_shared vs plain | 6 (6) | 56,800 (56,433) | (-24.5 [-25, -24]) | (-17.4 [-47, +12]) | (-21.3 [-51, +9]) |
-| reversal | all | exact_plain vs plain | 4 (4) | 56,800 (56,433) | (+0.5 [-42, +43]) | (+15.9 [-33, +65]) | (+12.0 [-37, +61]) |
-| reversal | all | near vs plain | 173 (171) | 56,800 (56,433) | +3.3 [-3, +10] | +2.3 [-5, +9] | -0.6 [-8, +7] |
-| reversal | all | within1 vs plain | 926 (908) | 56,800 (56,433) | +2.5 [-0, +5] | -0.8 [-4, +2] | -2.6 [-6, +1] |
-| reversal | third | stacked (exact or near) vs plain | 33 (33) | 10,090 (10,029) | -3.6 [-18, +11] | -1.4 [-18, +15] | -5.7 [-22, +11] |
-| reversal | third | exact_plain vs plain | 1 (1) | 10,090 (10,029) | (-27.8 [-29, -27]) | (-37.7 [-39, -37]) | (-42.1 [-43, -41]) |
-| reversal | third | near vs plain | 32 (32) | 10,090 (10,029) | -2.8 [-18, +12] | -0.2 [-17, +17] | -4.6 [-21, +12] |
-| reversal | third | within1 vs plain | 162 (161) | 10,090 (10,029) | +9.8 [+2, +17] | +5.5 [-2, +13] | +2.6 [-5, +10] |
-| reversal | strict | stacked (exact or near) vs plain | 15 (15) | 4,835 (4,811) | (+6.1 [-18, +30]) | (+2.7 [-22, +28]) | (-1.4 [-26, +23]) |
-| reversal | strict | exact_plain vs plain | 1 (1) | 4,835 (4,811) | (-27.3 [-29, -26]) | (-37.3 [-39, -36]) | (-41.4 [-43, -40]) |
-| reversal | strict | near vs plain | 14 (14) | 4,835 (4,811) | (+8.4 [-17, +34]) | (+5.6 [-20, +32]) | (+1.5 [-25, +27]) |
-| reversal | strict | within1 vs plain | 73 (73) | 4,835 (4,811) | +12.5 [+1, +24] | +6.5 [-5, +18] | +5.2 [-6, +17] |
-| continuation | all | stacked (exact or near) vs plain | 5,609 (5,565) | 72,004 (71,490) | +3.6 [+2, +5] | +0.8 [-1, +2] | +0.5 [-1, +2] |
-| continuation | all | exact_shared vs plain | 4,606 (4,587) | 72,004 (71,490) | +3.1 [+2, +4] | -0.0 [-1, +1] | -0.6 [-2, +1] |
-| continuation | all | exact_plain vs plain | 42 (42) | 72,004 (71,490) | +1.4 [-12, +15] | +1.1 [-13, +16] | +6.1 [-9, +21] |
-| continuation | all | near vs plain | 961 (936) | 72,004 (71,490) | +6.1 [+3, +9] | +4.6 [+1, +8] | +5.5 [+2, +9] |
-| continuation | all | within1 vs plain | 3,169 (3,125) | 72,004 (71,490) | +4.7 [+3, +6] | +3.5 [+2, +5] | +3.6 [+2, +5] |
-| continuation | third | stacked (exact or near) vs plain | 48 (48) | 1,156 (1,149) | +15.7 [+1, +30] | +8.3 [-6, +23] | +7.6 [-7, +22] |
-| continuation | third | exact_shared vs plain | 37 (37) | 1,156 (1,149) | +21.9 [+6, +38] | +15.1 [-1, +31] | +15.0 [-1, +31] |
-| continuation | third | exact_plain vs plain | 1 (1) | 1,156 (1,149) | (-32.2 [-35, -29]) | (-41.7 [-45, -39]) | (-44.5 [-47, -42]) |
-| continuation | third | near vs plain | 10 (10) | 1,156 (1,149) | (-2.2 [-31, +26]) | (-11.7 [-40, +17]) | (-14.5 [-43, +14]) |
-| continuation | third | within1 vs plain | 39 (39) | 1,156 (1,149) | +8.8 [-7, +25] | +7.0 [-9, +23] | +6.8 [-9, +23] |
-| continuation | strict | stacked (exact or near) vs plain | 19 (19) | 271 (270) | (+8.9 [-14, +32]) | (+5.3 [-18, +29]) | (+3.3 [-20, +27]) |
-| continuation | strict | exact_shared vs plain | 14 (14) | 271 (270) | (+23.9 [-3, +50]) | (+22.2 [-4, +48]) | (+20.2 [-6, +46]) |
-| continuation | strict | exact_plain vs plain | 1 (1) | 271 (270) | (-33.2 [-39, -28]) | (-42.1 [-48, -36]) | (-44.1 [-50, -38]) |
-| continuation | strict | near vs plain | 4 (4) | 271 (270) | (-33.2 [-39, -28]) | (-42.1 [-48, -36]) | (-44.1 [-50, -38]) |
-| continuation | strict | within1 vs plain | 11 (11) | 271 (270) | (+12.2 [-18, +42]) | (+3.4 [-27, +33]) | (+10.5 [-20, +40]) |
-| inside | all | stacked (exact or near) vs plain | 294 (293) | 40,080 (39,917) | -2.6 [-8, +3] | -4.9 [-10, +1] | -7.0 [-12, -2] |
-| inside | all | exact_shared vs plain | 7 (7) | 40,080 (39,917) | (-2.3 [-36, +31]) | (+4.9 [-32, +42]) | (+2.4 [-34, +39]) |
-| inside | all | exact_plain vs plain | 7 (7) | 40,080 (39,917) | (-2.3 [-36, +31]) | (-9.4 [-43, +24]) | (-11.9 [-45, +22]) |
-| inside | all | near vs plain | 280 (279) | 40,080 (39,917) | -2.6 [-8, +3] | -5.0 [-11, +1] | -7.1 [-13, -2] |
-| inside | all | within1 vs plain | 1,012 (1,005) | 40,080 (39,917) | -0.4 [-3, +2] | -2.3 [-5, +1] | -2.7 [-6, +0] |
-| inside | third | stacked (exact or near) vs plain | 23 (23) | 3,117 (3,096) | (+11.0 [-9, +32]) | (+3.7 [-17, +24]) | (+1.1 [-19, +22]) |
-| inside | third | exact_plain vs plain | 2 (2) | 3,117 (3,096) | (+13.2 [-56, +83]) | (+5.9 [-63, +75]) | (+3.3 [-66, +73]) |
-| inside | third | near vs plain | 21 (21) | 3,117 (3,096) | (+10.8 [-11, +32]) | (+3.5 [-18, +25]) | (+0.9 [-21, +22]) |
-| inside | third | within1 vs plain | 105 (104) | 3,117 (3,096) | +3.2 [-6, +13] | -0.3 [-10, +9] | -0.6 [-10, +9] |
-| inside | strict | stacked (exact or near) vs plain | 9 (9) | 1,189 (1,180) | (+29.7 [-1, +61]) | (+21.7 [-9, +53]) | (+18.8 [-12, +50]) |
-| inside | strict | exact_plain vs plain | 2 (2) | 1,189 (1,180) | (+13.1 [-56, +82]) | (+5.1 [-64, +74]) | (+2.1 [-67, +71]) |
-| inside | strict | near vs plain | 7 (7) | 1,189 (1,180) | (+34.5 [+1, +68]) | (+26.5 [-7, +60]) | (+23.5 [-10, +57]) |
-| inside | strict | within1 vs plain | 45 (45) | 1,189 (1,180) | -5.8 [-20, +8] | -9.4 [-24, +5] | -10.1 [-25, +4] |
-| outside | all | stacked (exact or near) vs plain | 1,161 (1,150) | 16,296 (16,115) | +3.5 [+1, +6] | -0.6 [-3, +2] | -2.3 [-5, +1] |
-| outside | all | exact_shared vs plain | 866 (864) | 16,296 (16,115) | +2.1 [-1, +5] | -2.5 [-6, +1] | -4.4 [-8, -1] |
-| outside | all | exact_plain vs plain | 10 (10) | 16,296 (16,115) | (+9.0 [-19, +37]) | (-2.1 [-30, +26]) | (-7.0 [-35, +21]) |
-| outside | all | near vs plain | 285 (276) | 16,296 (16,115) | +7.4 [+2, +13] | +5.1 [-1, +11] | +4.3 [-2, +10] |
-| outside | all | within1 vs plain | 887 (868) | 16,296 (16,115) | +3.7 [+1, +7] | +2.4 [-1, +6] | +1.3 [-2, +5] |
-| outside | third | stacked (exact or near) vs plain | 57 (57) | 1,008 (1,000) | -0.8 [-12, +10] | -7.7 [-19, +4] | -8.9 [-21, +3] |
-| outside | third | exact_shared vs plain | 36 (36) | 1,008 (1,000) | -2.4 [-16, +11] | -9.0 [-23, +5] | -10.9 [-26, +4] |
-| outside | third | near vs plain | 21 (21) | 1,008 (1,000) | (+2.0 [-16, +20]) | (-5.4 [-25, +14]) | (-5.4 [-26, +15]) |
-| outside | third | within1 vs plain | 65 (63) | 1,008 (1,000) | +7.4 [-4, +19] | +0.4 [-12, +12] | -2.2 [-14, +10] |
-| outside | strict | stacked (exact or near) vs plain | 26 (26) | 376 (375) | (-16.2 [-27, -5]) | (-23.7 [-37, -10]) | (-28.2 [-41, -15]) |
-| outside | strict | exact_shared vs plain | 19 (19) | 376 (375) | (-18.7 [-30, -8]) | (-24.7 [-39, -10]) | (-29.2 [-44, -15]) |
-| outside | strict | near vs plain | 7 (7) | 376 (375) | (-9.7 [-36, +17]) | (-20.9 [-47, +5]) | (-25.4 [-52, +1]) |
-| outside | strict | within1 vs plain | 18 (18) | 376 (375) | (-7.3 [-25, +10]) | (-7.4 [-29, +14]) | (-12.0 [-33, +9]) |
+| reversal | all | stacked (exact or near) vs plain | 183 (183 / 183 / 181) | 56,800 (56,740 / 56,620 / 56,433) | +2.3 [-4, +9] | +2.0 [-5, +9] | -1.0 [-8, +6] |
+| reversal | all | exact_shared vs plain | 6 (6 / 6 / 6) | 56,800 (56,740 / 56,620 / 56,433) | (-24.5 [-25, -24]) | (-17.4 [-47, +12]) | (-21.3 [-51, +9]) |
+| reversal | all | exact_plain vs plain | 4 (4 / 4 / 4) | 56,800 (56,740 / 56,620 / 56,433) | (+0.5 [-42, +43]) | (+15.9 [-33, +65]) | (+12.0 [-37, +61]) |
+| reversal | all | near vs plain | 173 (173 / 173 / 171) | 56,800 (56,740 / 56,620 / 56,433) | +3.3 [-3, +10] | +2.3 [-5, +9] | -0.6 [-8, +7] |
+| reversal | all | within1 vs plain | 926 (925 / 919 / 908) | 56,800 (56,740 / 56,620 / 56,433) | +2.5 [-0, +5] | -0.8 [-4, +2] | -2.6 [-6, +1] |
+| reversal | third | stacked (exact or near) vs plain | 33 (33 / 33 / 33) | 10,090 (10,077 / 10,055 / 10,029) | -3.6 [-18, +11] | -1.4 [-18, +15] | -5.7 [-22, +11] |
+| reversal | third | exact_plain vs plain | 1 (1 / 1 / 1) | 10,090 (10,077 / 10,055 / 10,029) | (-27.8 [-29, -27]) | (-37.7 [-39, -37]) | (-42.1 [-43, -41]) |
+| reversal | third | near vs plain | 32 (32 / 32 / 32) | 10,090 (10,077 / 10,055 / 10,029) | -2.8 [-18, +12] | -0.2 [-17, +17] | -4.6 [-21, +12] |
+| reversal | third | within1 vs plain | 162 (162 / 162 / 161) | 10,090 (10,077 / 10,055 / 10,029) | +9.8 [+2, +17] | +5.5 [-2, +13] | +2.6 [-5, +10] |
+| reversal | strict | stacked (exact or near) vs plain | 15 (15 / 15 / 15) | 4,835 (4,830 / 4,820 / 4,811) | (+6.1 [-18, +30]) | (+2.7 [-22, +28]) | (-1.4 [-26, +23]) |
+| reversal | strict | exact_plain vs plain | 1 (1 / 1 / 1) | 4,835 (4,830 / 4,820 / 4,811) | (-27.3 [-29, -26]) | (-37.3 [-39, -36]) | (-41.4 [-43, -40]) |
+| reversal | strict | near vs plain | 14 (14 / 14 / 14) | 4,835 (4,830 / 4,820 / 4,811) | (+8.4 [-17, +34]) | (+5.6 [-20, +32]) | (+1.5 [-25, +27]) |
+| reversal | strict | within1 vs plain | 73 (73 / 73 / 73) | 4,835 (4,830 / 4,820 / 4,811) | +12.5 [+1, +24] | +6.5 [-5, +18] | +5.2 [-6, +17] |
+| continuation | all | stacked (exact or near) vs plain | 5,609 (5,608 / 5,594 / 5,565) | 72,004 (71,975 / 71,648 / 71,490) | +3.6 [+2, +5] | +0.8 [-1, +2] | +0.5 [-1, +2] |
+| continuation | all | exact_shared vs plain | 4,606 (4,606 / 4,606 / 4,587) | 72,004 (71,975 / 71,648 / 71,490) | +3.1 [+2, +4] | -0.0 [-1, +1] | -0.6 [-2, +1] |
+| continuation | all | exact_plain vs plain | 42 (42 / 42 / 42) | 72,004 (71,975 / 71,648 / 71,490) | +1.4 [-12, +15] | +1.1 [-13, +16] | +6.1 [-9, +21] |
+| continuation | all | near vs plain | 961 (960 / 946 / 936) | 72,004 (71,975 / 71,648 / 71,490) | +6.1 [+3, +9] | +4.6 [+1, +8] | +5.5 [+2, +9] |
+| continuation | all | within1 vs plain | 3,169 (3,164 / 3,143 / 3,125) | 72,004 (71,975 / 71,648 / 71,490) | +4.7 [+3, +6] | +3.5 [+2, +5] | +3.6 [+2, +5] |
+| continuation | third | stacked (exact or near) vs plain | 48 (48 / 48 / 48) | 1,156 (1,156 / 1,156 / 1,149) | +15.7 [+1, +30] | +8.3 [-6, +23] | +7.6 [-7, +22] |
+| continuation | third | exact_shared vs plain | 37 (37 / 37 / 37) | 1,156 (1,156 / 1,156 / 1,149) | +21.9 [+6, +38] | +15.1 [-1, +31] | +15.0 [-1, +31] |
+| continuation | third | exact_plain vs plain | 1 (1 / 1 / 1) | 1,156 (1,156 / 1,156 / 1,149) | (-32.2 [-35, -29]) | (-41.7 [-45, -39]) | (-44.5 [-47, -42]) |
+| continuation | third | near vs plain | 10 (10 / 10 / 10) | 1,156 (1,156 / 1,156 / 1,149) | (-2.2 [-31, +26]) | (-11.7 [-40, +17]) | (-14.5 [-43, +14]) |
+| continuation | third | within1 vs plain | 39 (39 / 39 / 39) | 1,156 (1,156 / 1,156 / 1,149) | +8.8 [-7, +25] | +7.0 [-9, +23] | +6.8 [-9, +23] |
+| continuation | strict | stacked (exact or near) vs plain | 19 (19 / 19 / 19) | 271 (271 / 271 / 270) | (+8.9 [-14, +32]) | (+5.3 [-18, +29]) | (+3.3 [-20, +27]) |
+| continuation | strict | exact_shared vs plain | 14 (14 / 14 / 14) | 271 (271 / 271 / 270) | (+23.9 [-3, +50]) | (+22.2 [-4, +48]) | (+20.2 [-6, +46]) |
+| continuation | strict | exact_plain vs plain | 1 (1 / 1 / 1) | 271 (271 / 271 / 270) | (-33.2 [-39, -28]) | (-42.1 [-48, -36]) | (-44.1 [-50, -38]) |
+| continuation | strict | near vs plain | 4 (4 / 4 / 4) | 271 (271 / 271 / 270) | (-33.2 [-39, -28]) | (-42.1 [-48, -36]) | (-44.1 [-50, -38]) |
+| continuation | strict | within1 vs plain | 11 (11 / 11 / 11) | 271 (271 / 271 / 270) | (+12.2 [-18, +42]) | (+3.4 [-27, +33]) | (+10.5 [-20, +40]) |
+| inside | all | stacked (exact or near) vs plain | 294 (294 / 293 / 293) | 40,080 (40,072 / 40,009 / 39,917) | -2.6 [-8, +3] | -4.9 [-10, +1] | -7.0 [-12, -2] |
+| inside | all | exact_shared vs plain | 7 (7 / 7 / 7) | 40,080 (40,072 / 40,009 / 39,917) | (-2.3 [-36, +31]) | (+4.9 [-32, +42]) | (+2.4 [-34, +39]) |
+| inside | all | exact_plain vs plain | 7 (7 / 7 / 7) | 40,080 (40,072 / 40,009 / 39,917) | (-2.3 [-36, +31]) | (-9.4 [-43, +24]) | (-11.9 [-45, +22]) |
+| inside | all | near vs plain | 280 (280 / 279 / 279) | 40,080 (40,072 / 40,009 / 39,917) | -2.6 [-8, +3] | -5.0 [-11, +1] | -7.1 [-13, -2] |
+| inside | all | within1 vs plain | 1,012 (1,012 / 1,011 / 1,005) | 40,080 (40,072 / 40,009 / 39,917) | -0.4 [-3, +2] | -2.3 [-5, +1] | -2.7 [-6, +0] |
+| inside | third | stacked (exact or near) vs plain | 23 (23 / 23 / 23) | 3,117 (3,117 / 3,109 / 3,096) | (+11.0 [-9, +32]) | (+3.7 [-17, +24]) | (+1.1 [-19, +22]) |
+| inside | third | exact_plain vs plain | 2 (2 / 2 / 2) | 3,117 (3,117 / 3,109 / 3,096) | (+13.2 [-56, +83]) | (+5.9 [-63, +75]) | (+3.3 [-66, +73]) |
+| inside | third | near vs plain | 21 (21 / 21 / 21) | 3,117 (3,117 / 3,109 / 3,096) | (+10.8 [-11, +32]) | (+3.5 [-18, +25]) | (+0.9 [-21, +22]) |
+| inside | third | within1 vs plain | 105 (105 / 105 / 104) | 3,117 (3,117 / 3,109 / 3,096) | +3.2 [-6, +13] | -0.3 [-10, +9] | -0.6 [-10, +9] |
+| inside | strict | stacked (exact or near) vs plain | 9 (9 / 9 / 9) | 1,189 (1,189 / 1,186 / 1,180) | (+29.7 [-1, +61]) | (+21.7 [-9, +53]) | (+18.8 [-12, +50]) |
+| inside | strict | exact_plain vs plain | 2 (2 / 2 / 2) | 1,189 (1,189 / 1,186 / 1,180) | (+13.1 [-56, +82]) | (+5.1 [-64, +74]) | (+2.1 [-67, +71]) |
+| inside | strict | near vs plain | 7 (7 / 7 / 7) | 1,189 (1,189 / 1,186 / 1,180) | (+34.5 [+1, +68]) | (+26.5 [-7, +60]) | (+23.5 [-10, +57]) |
+| inside | strict | within1 vs plain | 45 (45 / 45 / 45) | 1,189 (1,189 / 1,186 / 1,180) | -5.8 [-20, +8] | -9.4 [-24, +5] | -10.1 [-25, +4] |
+| outside | all | stacked (exact or near) vs plain | 1,161 (1,161 / 1,161 / 1,150) | 16,296 (16,282 / 16,238 / 16,115) | +3.5 [+1, +6] | -0.6 [-3, +2] | -2.3 [-5, +1] |
+| outside | all | exact_shared vs plain | 866 (866 / 866 / 864) | 16,296 (16,282 / 16,238 / 16,115) | +2.1 [-1, +5] | -2.5 [-6, +1] | -4.4 [-8, -1] |
+| outside | all | exact_plain vs plain | 10 (10 / 10 / 10) | 16,296 (16,282 / 16,238 / 16,115) | (+9.0 [-19, +37]) | (-2.1 [-30, +26]) | (-7.0 [-35, +21]) |
+| outside | all | near vs plain | 285 (285 / 285 / 276) | 16,296 (16,282 / 16,238 / 16,115) | +7.4 [+2, +13] | +5.1 [-1, +11] | +4.3 [-2, +10] |
+| outside | all | within1 vs plain | 887 (887 / 884 / 868) | 16,296 (16,282 / 16,238 / 16,115) | +3.7 [+1, +7] | +2.4 [-1, +6] | +1.3 [-2, +5] |
+| outside | third | stacked (exact or near) vs plain | 57 (57 / 57 / 57) | 1,008 (1,008 / 1,006 / 1,000) | -0.8 [-12, +10] | -7.7 [-19, +4] | -8.9 [-21, +3] |
+| outside | third | exact_shared vs plain | 36 (36 / 36 / 36) | 1,008 (1,008 / 1,006 / 1,000) | -2.4 [-16, +11] | -9.0 [-23, +5] | -10.9 [-26, +4] |
+| outside | third | near vs plain | 21 (21 / 21 / 21) | 1,008 (1,008 / 1,006 / 1,000) | (+2.0 [-16, +20]) | (-5.4 [-25, +14]) | (-5.4 [-26, +15]) |
+| outside | third | within1 vs plain | 65 (65 / 64 / 63) | 1,008 (1,008 / 1,006 / 1,000) | +7.4 [-4, +19] | +0.4 [-12, +12] | -2.2 [-14, +10] |
+| outside | strict | stacked (exact or near) vs plain | 26 (26 / 26 / 26) | 376 (376 / 375 / 375) | (-16.2 [-27, -5]) | (-23.7 [-37, -10]) | (-28.2 [-41, -15]) |
+| outside | strict | exact_shared vs plain | 19 (19 / 19 / 19) | 376 (376 / 375 / 375) | (-18.7 [-30, -8]) | (-24.7 [-39, -10]) | (-29.2 [-44, -15]) |
+| outside | strict | near vs plain | 7 (7 / 7 / 7) | 376 (376 / 375 / 375) | (-9.7 [-36, +17]) | (-20.9 [-47, +5]) | (-25.4 [-52, +1]) |
+| outside | strict | within1 vs plain | 18 (18 / 18 / 18) | 376 (376 / 375 / 375) | (-7.3 [-25, +10]) | (-7.4 [-29, +14]) | (-12.0 [-33, +9]) |
+
+Valid counts are per horizon (censored units excluded at that horizon); a difference in parentheses has fewer than 30 valid units on either side AT THAT HORIZON (close-out audit F3).
 
 ### Hypothesis 1 (owner): same-price stacks at a shared open do WORSE than plain and than near
 
-| setup | flag | units exact shared (valid by 5) | one R by 1 / 3 / 5 | minus plain by 1 / 3 / 5 | minus near by 1 / 3 / 5 |
-|---|---|---|---|---|---|
-| reversal | all | 6 (6) | (0.0%) / (16.7%) / (16.7%) | (-24.5 [-25, -24]) / (-17.4 [-47, +12]) / (-21.3 [-51, +9]) | (-27.7 [-34, -21]) / (-19.7 [-50, +11]) / (-20.8 [-51, +10]) |
-| continuation | all | 4,606 (4,587) | 27.9% / 34.6% / 38.5% | +3.1 [+2, +4] / -0.0 [-1, +1] / -0.6 [-2, +1] | -3.0 [-6, +0] / -4.6 [-8, -1] / -6.2 [-10, -3] |
-| continuation | third | 37 (37) | 54.1% / 56.8% / 59.5% | +21.9 [+6, +38] / +15.1 [-1, +31] / +15.0 [-1, +31] | (+24.1 [-9, +57]) / (+26.8 [-6, +59]) / (+29.5 [-3, +62]) |
-| continuation | strict | 14 (14) | (57.1%) / (64.3%) / (64.3%) | (+23.9 [-3, +50]) / (+22.2 [-4, +48]) / (+20.2 [-6, +46]) | (+57.1 [+31, +83]) / (+64.3 [+39, +89]) / (+64.3 [+39, +89]) |
-| inside | all | 7 (7) | (28.6%) / (42.9%) / (42.9%) | (-2.3 [-36, +31]) / (+4.9 [-32, +42]) / (+2.4 [-34, +39]) | (+0.4 [-34, +34]) / (+9.9 [-27, +47]) / (+9.5 [-28, +47]) |
-| outside | all | 866 (864) | 23.1% / 29.6% / 32.6% | +2.1 [-1, +5] / -2.5 [-6, +1] / -4.4 [-8, -1] | -5.3 [-11, +1] / -7.6 [-14, -1] / -8.7 [-15, -2] |
-| outside | third | 36 (36) | 19.4% / 25.0% / 27.8% | -2.4 [-16, +11] / -9.0 [-23, +5] / -10.9 [-26, +4] | (-4.4 [-27, +18]) / (-3.6 [-28, +20]) / (-5.6 [-30, +19]) |
-| outside | strict | 19 (19) | (5.3%) / (10.5%) / (10.5%) | (-18.7 [-30, -8]) / (-24.7 [-39, -10]) / (-29.2 [-44, -15]) | (-9.0 [-37, +19]) / (-3.8 [-33, +26]) / (-3.8 [-33, +26]) |
+| setup | flag | units exact shared (valid by 1 / 3 / 5) | one R by 1 / 3 / 5 [95%] n= valid | plain units (valid by 1 / 3 / 5) | minus plain by 1 / 3 / 5 | near units (valid by 1 / 3 / 5) | minus near by 1 / 3 / 5 |
+|---|---|---|---|---|---|---|---|
+| reversal | all | 6 (6 / 6 / 6) | (0.0% [0, 39] n=6) / (16.7% [3, 56] n=6) / (16.7% [3, 56] n=6) | 56,800 (56,740 / 56,620 / 56,433) | (-24.5 [-25, -24]) / (-17.4 [-47, +12]) / (-21.3 [-51, +9]) | 173 (173 / 173 / 171) | (-27.7 [-34, -21]) / (-19.7 [-50, +11]) / (-20.8 [-51, +10]) |
+| continuation | all | 4,606 (4,606 / 4,606 / 4,587) | 27.9% [27, 29] n=4,606 / 34.6% [33, 36] n=4,606 / 38.5% [37, 40] n=4,587 | 72,004 (71,975 / 71,648 / 71,490) | +3.1 [+2, +4] / -0.0 [-1, +1] / -0.6 [-2, +1] | 961 (960 / 946 / 936) | -3.0 [-6, +0] / -4.6 [-8, -1] / -6.2 [-10, -3] |
+| continuation | third | 37 (37 / 37 / 37) | 54.1% [38, 69] n=37 / 56.8% [41, 71] n=37 / 59.5% [43, 74] n=37 | 1,156 (1,156 / 1,156 / 1,149) | +21.9 [+6, +38] / +15.1 [-1, +31] / +15.0 [-1, +31] | 10 (10 / 10 / 10) | (+24.1 [-9, +57]) / (+26.8 [-6, +59]) / (+29.5 [-3, +62]) |
+| continuation | strict | 14 (14 / 14 / 14) | (57.1% [33, 79] n=14) / (64.3% [39, 84] n=14) / (64.3% [39, 84] n=14) | 271 (271 / 271 / 270) | (+23.9 [-3, +50]) / (+22.2 [-4, +48]) / (+20.2 [-6, +46]) | 4 (4 / 4 / 4) | (+57.1 [+31, +83]) / (+64.3 [+39, +89]) / (+64.3 [+39, +89]) |
+| inside | all | 7 (7 / 7 / 7) | (28.6% [8, 64] n=7) / (42.9% [16, 75] n=7) / (42.9% [16, 75] n=7) | 40,080 (40,072 / 40,009 / 39,917) | (-2.3 [-36, +31]) / (+4.9 [-32, +42]) / (+2.4 [-34, +39]) | 280 (280 / 279 / 279) | (+0.4 [-34, +34]) / (+9.9 [-27, +47]) / (+9.5 [-28, +47]) |
+| outside | all | 866 (866 / 866 / 864) | 23.1% [20, 26] n=866 / 29.6% [27, 33] n=866 / 32.6% [30, 36] n=864 | 16,296 (16,282 / 16,238 / 16,115) | +2.1 [-1, +5] / -2.5 [-6, +1] / -4.4 [-8, -1] | 285 (285 / 285 / 276) | -5.3 [-11, +1] / -7.6 [-14, -1] / -8.7 [-15, -2] |
+| outside | third | 36 (36 / 36 / 36) | 19.4% [10, 35] n=36 / 25.0% [14, 41] n=36 / 27.8% [16, 44] n=36 | 1,008 (1,008 / 1,006 / 1,000) | -2.4 [-16, +11] / -9.0 [-23, +5] / -10.9 [-26, +4] | 21 (21 / 21 / 21) | (-4.4 [-27, +18]) / (-3.6 [-28, +20]) / (-5.6 [-30, +19]) |
+| outside | strict | 19 (19 / 19 / 19) | (5.3% [1, 25] n=19) / (10.5% [3, 31] n=19) / (10.5% [3, 31] n=19) | 376 (376 / 375 / 375) | (-18.7 [-30, -8]) / (-24.7 [-39, -10]) / (-29.2 [-44, -15]) | 7 (7 / 7 / 7) | (-9.0 [-37, +19]) / (-3.8 [-33, +26]) / (-3.8 [-33, +26]) |
+
+Own chances carry Wilson 95% intervals and their valid count; differences are greyed when either side has fewer than 30 valid units at that horizon.
 
 ### Weekly units: setup x shape flag x gap to yesterday's level
 
@@ -1109,52 +1129,54 @@ n= is the VALID count at that horizon (censored units excluded); a cell in paren
 
 ### Weekly units: stacked minus the rest
 
-| setup | flag | comparison | units A+ (valid by 5) | units base (valid by 5) | diff by 1 [95%] | diff by 3 [95%] | diff by 5 [95%] |
+| setup | flag | comparison | units A+ (valid by 1 / 3 / 5) | units base (valid by 1 / 3 / 5) | diff by 1 [95%] | diff by 3 [95%] | diff by 5 [95%] |
 |---|---|---|---|---|---|---|---|
-| reversal | all | stacked (exact or near) vs within1 + spread | 1,371 (1,244) | 6,628 (6,221) | -1.4 [-4, +1] | -3.2 [-6, -0] | -2.6 [-6, +0] |
-| reversal | all | exact_shared vs within1 + spread | 926 (838) | 6,628 (6,221) | -2.7 [-6, +0] | -4.9 [-8, -2] | -4.7 [-8, -1] |
-| reversal | all | exact_plain vs within1 + spread | 16 (16) | 6,628 (6,221) | (-2.9 [-24, +18]) | (-2.7 [-26, +21]) | (-6.9 [-31, +17]) |
-| reversal | all | near vs within1 + spread | 429 (390) | 6,628 (6,221) | +1.7 [-3, +6] | +0.5 [-4, +5] | +2.2 [-3, +7] |
-| reversal | third | stacked (exact or near) vs within1 + spread | 357 (338) | 987 (919) | +3.3 [-2, +9] | -0.0 [-6, +6] | -1.1 [-7, +5] |
-| reversal | third | exact_shared vs within1 + spread | 262 (250) | 987 (919) | +1.2 [-5, +7] | -2.2 [-9, +4] | -4.2 [-11, +3] |
-| reversal | third | exact_plain vs within1 + spread | 6 (6) | 987 (919) | (-5.9 [-36, +24]) | (-1.9 [-40, +36]) | (-6.5 [-44, +31]) |
-| reversal | third | near vs within1 + spread | 89 (82) | 987 (919) | +10.0 [-0, +20] | +6.4 [-5, +17] | +9.0 [-2, +20] |
-| reversal | strict | stacked (exact or near) vs within1 + spread | 223 (210) | 414 (380) | +1.7 [-5, +8] | -1.2 [-9, +6] | -2.5 [-10, +5] |
-| reversal | strict | exact_shared vs within1 + spread | 175 (165) | 414 (380) | +0.7 [-6, +8] | -3.0 [-11, +5] | -5.5 [-14, +3] |
-| reversal | strict | exact_plain vs within1 + spread | 5 (5) | 414 (380) | (+1.9 [-33, +37]) | (+10.5 [-33, +54]) | (+6.6 [-37, +50]) |
-| reversal | strict | near vs within1 + spread | 43 (40) | 414 (380) | +5.7 [-8, +19] | +4.7 [-11, +20] | +9.1 [-7, +25] |
-| continuation | all | stacked (exact or near) vs within1 + spread | 3,152 (3,024) | 7,837 (7,407) | -6.5 [-8, -5] | -7.5 [-10, -5] | -7.4 [-9, -5] |
-| continuation | all | exact_shared vs within1 + spread | 2,579 (2,497) | 7,837 (7,407) | -7.9 [-10, -6] | -9.9 [-12, -8] | -9.9 [-12, -8] |
-| continuation | all | exact_plain vs within1 + spread | 25 (25) | 7,837 (7,407) | (+4.0 [-15, +23]) | (+2.4 [-17, +22]) | (+2.5 [-17, +22]) |
-| continuation | all | near vs within1 + spread | 548 (502) | 7,837 (7,407) | +0.0 [-4, +4] | +3.5 [-1, +8] | +4.5 [-0, +9] |
-| continuation | third | stacked (exact or near) vs within1 + spread | 67 (64) | 139 (132) | -5.7 [-20, +8] | -5.9 [-20, +9] | -6.3 [-21, +9] |
-| continuation | third | exact_shared vs within1 + spread | 52 (50) | 139 (132) | -5.6 [-21, +10] | -5.9 [-22, +10] | -6.5 [-23, +10] |
-| continuation | third | near vs within1 + spread | 15 (14) | 139 (132) | (-6.2 [-31, +19]) | (-5.9 [-32, +20]) | (-5.6 [-33, +22]) |
-| continuation | strict | stacked (exact or near) vs within1 + spread | 43 (43) | 25 (25) | (-1.1 [-25, +22]) | (+0.2 [-24, +25]) | (-3.8 [-28, +21]) |
-| continuation | strict | exact_shared vs within1 + spread | 38 (38) | 25 (25) | (+0.8 [-23, +25]) | (+0.7 [-24, +26]) | (-3.3 [-28, +22]) |
-| continuation | strict | near vs within1 + spread | 5 (5) | 25 (25) | (-16.0 [-56, +24]) | (-4.0 [-51, +43]) | (-8.0 [-55, +39]) |
-| inside | all | stacked (exact or near) vs within1 + spread | 1,368 (1,289) | 4,761 (4,459) | -3.7 [-6, -1] | -3.2 [-6, -0] | -2.5 [-6, +1] |
-| inside | all | exact_shared vs within1 + spread | 1,006 (955) | 4,761 (4,459) | -6.5 [-10, -3] | -5.9 [-9, -3] | -4.9 [-8, -1] |
-| inside | all | exact_plain vs within1 + spread | 11 (11) | 4,761 (4,459) | (+19.8 [-10, +49]) | (+20.1 [-8, +49]) | (+16.8 [-12, +45]) |
-| inside | all | near vs within1 + spread | 351 (323) | 4,761 (4,459) | +3.8 [-2, +9] | +4.1 [-1, +10] | +3.9 [-2, +10] |
-| inside | third | stacked (exact or near) vs within1 + spread | 167 (159) | 377 (369) | -9.6 [-18, -1] | -15.6 [-25, -7] | -15.8 [-25, -7] |
-| inside | third | exact_shared vs within1 + spread | 127 (122) | 377 (369) | -7.7 [-17, +2] | -16.1 [-26, -6] | -17.9 [-28, -8] |
-| inside | third | exact_plain vs within1 + spread | 1 (1) | 377 (369) | (-38.9 [-44, -34]) | (-50.8 [-56, -46]) | (-52.3 [-57, -47]) |
-| inside | third | near vs within1 + spread | 39 (36) | 377 (369) | -15.2 [-30, -1] | -13.0 [-29, +3] | -7.9 [-25, +9] |
-| inside | strict | stacked (exact or near) vs within1 + spread | 101 (98) | 97 (96) | -9.2 [-22, +4] | -18.7 [-32, -5] | -17.3 [-31, -4] |
-| inside | strict | exact_shared vs within1 + spread | 82 (80) | 97 (96) | -7.0 [-21, +7] | -16.7 [-31, -2] | -16.2 [-31, -2] |
-| inside | strict | exact_plain vs within1 + spread | 1 (1) | 97 (96) | (-35.4 [-45, -26]) | (-50.0 [-60, -40]) | (-50.0 [-60, -40]) |
-| inside | strict | near vs within1 + spread | 18 (17) | 97 (96) | (-17.8 [-38, +3]) | (-26.5 [-49, -4]) | (-20.6 [-44, +3]) |
-| outside | all | stacked (exact or near) vs within1 + spread | 775 (710) | 1,849 (1,728) | +1.1 [-2, +5] | -1.8 [-6, +2] | -2.2 [-6, +2] |
-| outside | all | exact_shared vs within1 + spread | 652 (605) | 1,849 (1,728) | +0.5 [-3, +4] | -2.6 [-7, +2] | -2.9 [-7, +2] |
-| outside | all | exact_plain vs within1 + spread | 3 (3) | 1,849 (1,728) | (+45.5 [-8, +99]) | (+32.9 [-21, +86]) | (+28.9 [-24, +82]) |
-| outside | all | near vs within1 + spread | 120 (102) | 1,849 (1,728) | +3.4 [-5, +11] | +2.4 [-7, +12] | +0.5 [-9, +10] |
-| outside | third | stacked (exact or near) vs within1 + spread | 50 (47) | 120 (120) | -16.9 [-29, -5] | -24.2 [-39, -10] | -26.2 [-41, -12] |
-| outside | third | exact_shared vs within1 + spread | 38 (37) | 120 (120) | -21.1 [-33, -9] | -24.4 [-40, -9] | -25.9 [-42, -10] |
-| outside | third | near vs within1 + spread | 12 (10) | 120 (120) | (-4.2 [-30, +22]) | (-23.3 [-50, +3]) | (-27.5 [-54, -1]) |
-| outside | strict | stacked (exact or near) vs within1 + spread | 32 (31) | 40 (40) | -5.6 [-21, +9] | -5.6 [-25, +14] | -4.9 [-25, +15] |
-| outside | strict | exact_shared vs within1 + spread | 27 (27) | 40 (40) | (-7.6 [-22, +7]) | (-6.5 [-26, +13]) | (-5.3 [-26, +16]) |
-| outside | strict | near vs within1 + spread | 5 (4) | 40 (40) | (+5.0 [-32, +42]) | (+0.0 [-45, +45]) | (-2.5 [-47, +42]) |
+| reversal | all | stacked (exact or near) vs within1 + spread | 1,371 (1,347 / 1,280 / 1,244) | 6,628 (6,480 / 6,312 / 6,221) | -1.4 [-4, +1] | -3.2 [-6, -0] | -2.6 [-6, +0] |
+| reversal | all | exact_shared vs within1 + spread | 926 (916 / 864 / 838) | 6,628 (6,480 / 6,312 / 6,221) | -2.7 [-6, +0] | -4.9 [-8, -2] | -4.7 [-8, -1] |
+| reversal | all | exact_plain vs within1 + spread | 16 (16 / 16 / 16) | 6,628 (6,480 / 6,312 / 6,221) | (-2.9 [-24, +18]) | (-2.7 [-26, +21]) | (-6.9 [-31, +17]) |
+| reversal | all | near vs within1 + spread | 429 (415 / 400 / 390) | 6,628 (6,480 / 6,312 / 6,221) | +1.7 [-3, +6] | +0.5 [-4, +5] | +2.2 [-3, +7] |
+| reversal | third | stacked (exact or near) vs within1 + spread | 357 (349 / 341 / 338) | 987 (963 / 934 / 919) | +3.3 [-2, +9] | -0.0 [-6, +6] | -1.1 [-7, +5] |
+| reversal | third | exact_shared vs within1 + spread | 262 (257 / 251 / 250) | 987 (963 / 934 / 919) | +1.2 [-5, +7] | -2.2 [-9, +4] | -4.2 [-11, +3] |
+| reversal | third | exact_plain vs within1 + spread | 6 (6 / 6 / 6) | 987 (963 / 934 / 919) | (-5.9 [-36, +24]) | (-1.9 [-40, +36]) | (-6.5 [-44, +31]) |
+| reversal | third | near vs within1 + spread | 89 (86 / 84 / 82) | 987 (963 / 934 / 919) | +10.0 [-0, +20] | +6.4 [-5, +17] | +9.0 [-2, +20] |
+| reversal | strict | stacked (exact or near) vs within1 + spread | 223 (217 / 212 / 210) | 414 (403 / 387 / 380) | +1.7 [-5, +8] | -1.2 [-9, +6] | -2.5 [-10, +5] |
+| reversal | strict | exact_shared vs within1 + spread | 175 (170 / 166 / 165) | 414 (403 / 387 / 380) | +0.7 [-6, +8] | -3.0 [-11, +5] | -5.5 [-14, +3] |
+| reversal | strict | exact_plain vs within1 + spread | 5 (5 / 5 / 5) | 414 (403 / 387 / 380) | (+1.9 [-33, +37]) | (+10.5 [-33, +54]) | (+6.6 [-37, +50]) |
+| reversal | strict | near vs within1 + spread | 43 (42 / 41 / 40) | 414 (403 / 387 / 380) | +5.7 [-8, +19] | +4.7 [-11, +20] | +9.1 [-7, +25] |
+| continuation | all | stacked (exact or near) vs within1 + spread | 3,152 (3,109 / 3,074 / 3,024) | 7,837 (7,656 / 7,518 / 7,407) | -6.5 [-8, -5] | -7.5 [-10, -5] | -7.4 [-9, -5] |
+| continuation | all | exact_shared vs within1 + spread | 2,579 (2,556 / 2,530 / 2,497) | 7,837 (7,656 / 7,518 / 7,407) | -7.9 [-10, -6] | -9.9 [-12, -8] | -9.9 [-12, -8] |
+| continuation | all | exact_plain vs within1 + spread | 25 (25 / 25 / 25) | 7,837 (7,656 / 7,518 / 7,407) | (+4.0 [-15, +23]) | (+2.4 [-17, +22]) | (+2.5 [-17, +22]) |
+| continuation | all | near vs within1 + spread | 548 (528 / 519 / 502) | 7,837 (7,656 / 7,518 / 7,407) | +0.0 [-4, +4] | +3.5 [-1, +8] | +4.5 [-0, +9] |
+| continuation | third | stacked (exact or near) vs within1 + spread | 67 (65 / 65 / 64) | 139 (134 / 133 / 132) | -5.7 [-20, +8] | -5.9 [-20, +9] | -6.3 [-21, +9] |
+| continuation | third | exact_shared vs within1 + spread | 52 (50 / 50 / 50) | 139 (134 / 133 / 132) | -5.6 [-21, +10] | -5.9 [-22, +10] | -6.5 [-23, +10] |
+| continuation | third | near vs within1 + spread | 15 (15 / 15 / 14) | 139 (134 / 133 / 132) | (-6.2 [-31, +19]) | (-5.9 [-32, +20]) | (-5.6 [-33, +22]) |
+| continuation | strict | stacked (exact or near) vs within1 + spread | 43 (43 / 43 / 43) | 25 (25 / 25 / 25) | (-1.1 [-25, +22]) | (+0.2 [-24, +25]) | (-3.8 [-28, +21]) |
+| continuation | strict | exact_shared vs within1 + spread | 38 (38 / 38 / 38) | 25 (25 / 25 / 25) | (+0.8 [-23, +25]) | (+0.7 [-24, +26]) | (-3.3 [-28, +22]) |
+| continuation | strict | near vs within1 + spread | 5 (5 / 5 / 5) | 25 (25 / 25 / 25) | (-16.0 [-56, +24]) | (-4.0 [-51, +43]) | (-8.0 [-55, +39]) |
+| inside | all | stacked (exact or near) vs within1 + spread | 1,368 (1,355 / 1,337 / 1,289) | 4,761 (4,670 / 4,597 / 4,459) | -3.7 [-6, -1] | -3.2 [-6, -0] | -2.5 [-6, +1] |
+| inside | all | exact_shared vs within1 + spread | 1,006 (1,001 / 990 / 955) | 4,761 (4,670 / 4,597 / 4,459) | -6.5 [-10, -3] | -5.9 [-9, -3] | -4.9 [-8, -1] |
+| inside | all | exact_plain vs within1 + spread | 11 (11 / 11 / 11) | 4,761 (4,670 / 4,597 / 4,459) | (+19.8 [-10, +49]) | (+20.1 [-8, +49]) | (+16.8 [-12, +45]) |
+| inside | all | near vs within1 + spread | 351 (343 / 336 / 323) | 4,761 (4,670 / 4,597 / 4,459) | +3.8 [-2, +9] | +4.1 [-1, +10] | +3.9 [-2, +10] |
+| inside | third | stacked (exact or near) vs within1 + spread | 167 (164 / 162 / 159) | 377 (373 / 370 / 369) | -9.6 [-18, -1] | -15.6 [-25, -7] | -15.8 [-25, -7] |
+| inside | third | exact_shared vs within1 + spread | 127 (125 / 124 / 122) | 377 (373 / 370 / 369) | -7.7 [-17, +2] | -16.1 [-26, -6] | -17.9 [-28, -8] |
+| inside | third | exact_plain vs within1 + spread | 1 (1 / 1 / 1) | 377 (373 / 370 / 369) | (-38.9 [-44, -34]) | (-50.8 [-56, -46]) | (-52.3 [-57, -47]) |
+| inside | third | near vs within1 + spread | 39 (38 / 37 / 36) | 377 (373 / 370 / 369) | -15.2 [-30, -1] | -13.0 [-29, +3] | -7.9 [-25, +9] |
+| inside | strict | stacked (exact or near) vs within1 + spread | 101 (99 / 99 / 98) | 97 (96 / 96 / 96) | -9.2 [-22, +4] | -18.7 [-32, -5] | -17.3 [-31, -4] |
+| inside | strict | exact_shared vs within1 + spread | 82 (81 / 81 / 80) | 97 (96 / 96 / 96) | -7.0 [-21, +7] | -16.7 [-31, -2] | -16.2 [-31, -2] |
+| inside | strict | exact_plain vs within1 + spread | 1 (1 / 1 / 1) | 97 (96 / 96 / 96) | (-35.4 [-45, -26]) | (-50.0 [-60, -40]) | (-50.0 [-60, -40]) |
+| inside | strict | near vs within1 + spread | 18 (17 / 17 / 17) | 97 (96 / 96 / 96) | (-17.8 [-38, +3]) | (-26.5 [-49, -4]) | (-20.6 [-44, +3]) |
+| outside | all | stacked (exact or near) vs within1 + spread | 775 (769 / 724 / 710) | 1,849 (1,831 / 1,745 / 1,728) | +1.1 [-2, +5] | -1.8 [-6, +2] | -2.2 [-6, +2] |
+| outside | all | exact_shared vs within1 + spread | 652 (648 / 616 / 605) | 1,849 (1,831 / 1,745 / 1,728) | +0.5 [-3, +4] | -2.6 [-7, +2] | -2.9 [-7, +2] |
+| outside | all | exact_plain vs within1 + spread | 3 (3 / 3 / 3) | 1,849 (1,831 / 1,745 / 1,728) | (+45.5 [-8, +99]) | (+32.9 [-21, +86]) | (+28.9 [-24, +82]) |
+| outside | all | near vs within1 + spread | 120 (118 / 105 / 102) | 1,849 (1,831 / 1,745 / 1,728) | +3.4 [-5, +11] | +2.4 [-7, +12] | +0.5 [-9, +10] |
+| outside | third | stacked (exact or near) vs within1 + spread | 50 (49 / 47 / 47) | 120 (120 / 120 / 120) | -16.9 [-29, -5] | -24.2 [-39, -10] | -26.2 [-41, -12] |
+| outside | third | exact_shared vs within1 + spread | 38 (37 / 37 / 37) | 120 (120 / 120 / 120) | -21.1 [-33, -9] | -24.4 [-40, -9] | -25.9 [-42, -10] |
+| outside | third | near vs within1 + spread | 12 (12 / 10 / 10) | 120 (120 / 120 / 120) | (-4.2 [-30, +22]) | (-23.3 [-50, +3]) | (-27.5 [-54, -1]) |
+| outside | strict | stacked (exact or near) vs within1 + spread | 32 (32 / 31 / 31) | 40 (40 / 40 / 40) | -5.6 [-21, +9] | -5.6 [-25, +14] | -4.9 [-25, +15] |
+| outside | strict | exact_shared vs within1 + spread | 27 (27 / 27 / 27) | 40 (40 / 40 / 40) | (-7.6 [-22, +7]) | (-6.5 [-26, +13]) | (-5.3 [-26, +16]) |
+| outside | strict | near vs within1 + spread | 5 (5 / 4 / 4) | 40 (40 / 40 / 40) | (+5.0 [-32, +42]) | (+0.0 [-45, +45]) | (-2.5 [-47, +42]) |
+
+Valid counts are per horizon (censored units excluded at that horizon); a difference in parentheses has fewer than 30 valid units on either side AT THAT HORIZON (close-out audit F3).
 
 ### Monthly units: setup x shape flag x gap to yesterday's level
 
@@ -1217,45 +1239,47 @@ n= is the VALID count at that horizon (censored units excluded); a cell in paren
 
 ### Monthly units: stacked minus the rest
 
-| setup | flag | comparison | units A+ (valid by 5) | units base (valid by 5) | diff by 1 [95%] | diff by 3 [95%] | diff by 5 [95%] |
+| setup | flag | comparison | units A+ (valid by 1 / 3 / 5) | units base (valid by 1 / 3 / 5) | diff by 1 [95%] | diff by 3 [95%] | diff by 5 [95%] |
 |---|---|---|---|---|---|---|---|
-| reversal | all | stacked (exact or near) vs within1 + spread | 102 (72) | 1,655 (1,325) | +1.4 [-8, +11] | +7.2 [-3, +18] | +3.8 [-8, +16] |
-| reversal | all | exact_shared vs within1 + spread | 47 (37) | 1,655 (1,325) | +2.6 [-11, +16] | +1.8 [-13, +16] | -1.4 [-17, +14] |
-| reversal | all | exact_plain vs within1 + spread | 3 (3) | 1,655 (1,325) | (-24.7 [-27, -23]) | (-33.1 [-35, -31]) | (-39.2 [-42, -37]) |
-| reversal | all | near vs within1 + spread | 52 (32) | 1,655 (1,325) | +2.0 [-11, +15] | +15.7 [+0, +31] | +13.9 [-4, +31] |
-| reversal | third | stacked (exact or near) vs within1 + spread | 25 (19) | 338 (268) | (+9.1 [-9, +27]) | (+13.4 [-7, +34]) | (-1.2 [-24, +21]) |
-| reversal | third | exact_shared vs within1 + spread | 11 (9) | 338 (268) | (+2.3 [-21, +25]) | (-1.0 [-28, +26]) | (-15.8 [-44, +12]) |
-| reversal | third | near vs within1 + spread | 14 (10) | 338 (268) | (+14.9 [-11, +40]) | (+25.5 [-2, +53]) | (+11.9 [-20, +43]) |
-| reversal | strict | stacked (exact or near) vs within1 + spread | 16 (13) | 119 (87) | (+5.5 [-16, +27]) | (+5.2 [-18, +29]) | (-6.8 [-32, +18]) |
-| reversal | strict | exact_shared vs within1 + spread | 8 (7) | 119 (87) | (-2.0 [-26, +22]) | (-8.9 [-33, +15]) | (-15.6 [-43, +12]) |
-| reversal | strict | near vs within1 + spread | 8 (6) | 119 (87) | (+14.0 [-20, +48]) | (+21.4 [-16, +59]) | (+3.4 [-35, +42]) |
-| continuation | all | stacked (exact or near) vs within1 + spread | 262 (179) | 2,160 (1,751) | +0.4 [-5, +6] | +5.7 [-1, +13] | +4.8 [-3, +12] |
-| continuation | all | exact_shared vs within1 + spread | 161 (113) | 2,160 (1,751) | +2.5 [-5, +10] | +8.5 [-0, +17] | +8.0 [-1, +17] |
-| continuation | all | exact_plain vs within1 + spread | 5 (4) | 2,160 (1,751) | (-2.8 [-38, +32]) | (-9.4 [-45, +26]) | (-7.7 [-50, +35]) |
-| continuation | all | near vs within1 + spread | 96 (62) | 2,160 (1,751) | -3.2 [-12, +5] | +1.5 [-10, +13] | -0.4 [-12, +11] |
-| continuation | third | stacked (exact or near) vs within1 + spread | 9 (6) | 52 (38) | (-26.9 [-51, -2]) | (-27.5 [-64, +9]) | (-27.2 [-68, +14]) |
-| continuation | third | exact_shared vs within1 + spread | 3 (1) | 52 (38) | (-38.0 [-51, -25]) | (-56.1 [-71, -41]) | (-60.5 [-76, -45]) |
-| continuation | third | near vs within1 + spread | 6 (5) | 52 (38) | (-21.3 [-54, +11]) | (-16.1 [-62, +29]) | (-20.5 [-66, +25]) |
-| continuation | strict | stacked (exact or near) vs within1 + spread | 4 (1) | 11 (9) | (-18.2 [-41, +5]) | (-33.3 [-64, -3]) | (-33.3 [-64, -3]) |
-| continuation | strict | exact_shared vs within1 + spread | 3 (1) | 11 (9) | (-18.2 [-41, +5]) | (-33.3 [-64, -3]) | (-33.3 [-64, -3]) |
-| continuation | strict | near vs within1 + spread | 1 (0) | 11 (9) | (-18.2 [-41, +5]) | (-) | (-) |
-| inside | all | stacked (exact or near) vs within1 + spread | 108 (81) | 1,117 (902) | +9.0 [-1, +19] | +10.1 [-1, +21] | +9.7 [-2, +21] |
-| inside | all | exact_shared vs within1 + spread | 58 (46) | 1,117 (902) | +6.7 [-7, +21] | +15.7 [+1, +30] | +15.0 [+0, +29] |
-| inside | all | exact_plain vs within1 + spread | 5 (4) | 1,117 (902) | (+37.7 [-5, +80]) | (+31.1 [-11, +74]) | (+29.1 [-13, +72]) |
-| inside | all | near vs within1 + spread | 45 (31) | 1,117 (902) | +9.0 [-7, +25] | +0.6 [-16, +17] | -0.7 [-19, +17] |
-| inside | third | stacked (exact or near) vs within1 + spread | 11 (6) | 116 (96) | (-13.2 [-42, +15]) | (-18.4 [-53, +17]) | (+8.3 [-31, +47]) |
-| inside | third | exact_shared vs within1 + spread | 7 (5) | 116 (96) | (-18.8 [-50, +12]) | (-15.9 [-60, +28]) | (+1.7 [-42, +46]) |
-| inside | third | near vs within1 + spread | 4 (1) | 116 (96) | (-2.1 [-56, +52]) | (-22.5 [-77, +32]) | (+41.7 [+32, +52]) |
-| inside | strict | stacked (exact or near) vs within1 + spread | 7 (4) | 41 (28) | (-13.9 [-47, +20]) | (-23.3 [-70, +23]) | (+10.7 [-35, +57]) |
-| inside | strict | exact_shared vs within1 + spread | 6 (4) | 41 (28) | (-10.6 [-49, +28]) | (-13.3 [-65, +39]) | (+10.7 [-35, +57]) |
-| inside | strict | near vs within1 + spread | 1 (0) | 41 (28) | (-30.6 [-46, -16]) | (-63.3 [-81, -46]) | (-) |
-| outside | all | stacked (exact or near) vs within1 + spread | 81 (63) | 438 (332) | +10.5 [-1, +22] | +10.3 [-2, +22] | +9.3 [-3, +22] |
-| outside | all | exact_shared vs within1 + spread | 62 (51) | 438 (332) | +14.0 [+1, +26] | +12.5 [-1, +26] | +11.7 [-2, +26] |
-| outside | all | exact_plain vs within1 + spread | 2 (2) | 438 (332) | (+31.8 [-38, +101]) | (+28.0 [-41, +97]) | (+24.4 [-45, +94]) |
-| outside | all | near vs within1 + spread | 17 (10) | 438 (332) | (-9.9 [-26, +6]) | (-3.9 [-27, +19]) | (-5.6 [-31, +20]) |
-| outside | third | stacked (exact or near) vs within1 + spread | 5 (3) | 60 (49) | (+8.1 [-28, +44]) | (+6.4 [-37, +50]) | (+19.0 [-35, +73]) |
-| outside | third | exact_shared vs within1 + spread | 3 (1) | 60 (49) | (-11.9 [-20, -4]) | (-18.6 [-29, -9]) | (-14.3 [-24, -4]) |
-| outside | third | exact_plain vs within1 + spread | 2 (2) | 60 (49) | (+38.1 [-32, +108]) | (+31.4 [-39, +101]) | (+35.7 [-34, +106]) |
-| outside | strict | stacked (exact or near) vs within1 + spread | 5 (3) | 23 (18) | (+2.6 [-36, +41]) | (-5.4 [-52, +41]) | (+11.1 [-46, +68]) |
-| outside | strict | exact_shared vs within1 + spread | 3 (1) | 23 (18) | (-17.4 [-33, -2]) | (-30.4 [-49, -12]) | (-22.2 [-41, -3]) |
-| outside | strict | exact_plain vs within1 + spread | 2 (2) | 23 (18) | (+32.6 [-38, +104]) | (+19.6 [-52, +91]) | (+27.8 [-44, +100]) |
+| reversal | all | stacked (exact or near) vs within1 + spread | 102 (92 / 87 / 72) | 1,655 (1,598 / 1,470 / 1,325) | +1.4 [-8, +11] | +7.2 [-3, +18] | +3.8 [-8, +16] |
+| reversal | all | exact_shared vs within1 + spread | 47 (44 / 43 / 37) | 1,655 (1,598 / 1,470 / 1,325) | +2.6 [-11, +16] | +1.8 [-13, +16] | -1.4 [-17, +14] |
+| reversal | all | exact_plain vs within1 + spread | 3 (3 / 3 / 3) | 1,655 (1,598 / 1,470 / 1,325) | (-24.7 [-27, -23]) | (-33.1 [-35, -31]) | (-39.2 [-42, -37]) |
+| reversal | all | near vs within1 + spread | 52 (45 / 41 / 32) | 1,655 (1,598 / 1,470 / 1,325) | +2.0 [-11, +15] | +15.7 [+0, +31] | +13.9 [-4, +31] |
+| reversal | third | stacked (exact or near) vs within1 + spread | 25 (24 / 24 / 19) | 338 (333 / 325 / 268) | (+9.1 [-9, +27]) | (+13.4 [-7, +34]) | (-1.2 [-24, +21]) |
+| reversal | third | exact_shared vs within1 + spread | 11 (11 / 11 / 9) | 338 (333 / 325 / 268) | (+2.3 [-21, +25]) | (-1.0 [-28, +26]) | (-15.8 [-44, +12]) |
+| reversal | third | near vs within1 + spread | 14 (13 / 13 / 10) | 338 (333 / 325 / 268) | (+14.9 [-11, +40]) | (+25.5 [-2, +53]) | (+11.9 [-20, +43]) |
+| reversal | strict | stacked (exact or near) vs within1 + spread | 16 (15 / 15 / 13) | 119 (117 / 112 / 87) | (+5.5 [-16, +27]) | (+5.2 [-18, +29]) | (-6.8 [-32, +18]) |
+| reversal | strict | exact_shared vs within1 + spread | 8 (8 / 8 / 7) | 119 (117 / 112 / 87) | (-2.0 [-26, +22]) | (-8.9 [-33, +15]) | (-15.6 [-43, +12]) |
+| reversal | strict | near vs within1 + spread | 8 (7 / 7 / 6) | 119 (117 / 112 / 87) | (+14.0 [-20, +48]) | (+21.4 [-16, +59]) | (+3.4 [-35, +42]) |
+| continuation | all | stacked (exact or near) vs within1 + spread | 262 (246 / 205 / 179) | 2,160 (2,015 / 1,867 / 1,751) | +0.4 [-5, +6] | +5.7 [-1, +13] | +4.8 [-3, +12] |
+| continuation | all | exact_shared vs within1 + spread | 161 (154 / 132 / 113) | 2,160 (2,015 / 1,867 / 1,751) | +2.5 [-5, +10] | +8.5 [-0, +17] | +8.0 [-1, +17] |
+| continuation | all | exact_plain vs within1 + spread | 5 (5 / 5 / 4) | 2,160 (2,015 / 1,867 / 1,751) | (-2.8 [-38, +32]) | (-9.4 [-45, +26]) | (-7.7 [-50, +35]) |
+| continuation | all | near vs within1 + spread | 96 (87 / 68 / 62) | 2,160 (2,015 / 1,867 / 1,751) | -3.2 [-12, +5] | +1.5 [-10, +13] | -0.4 [-12, +11] |
+| continuation | third | stacked (exact or near) vs within1 + spread | 9 (9 / 7 / 6) | 52 (50 / 41 / 38) | (-26.9 [-51, -2]) | (-27.5 [-64, +9]) | (-27.2 [-68, +14]) |
+| continuation | third | exact_shared vs within1 + spread | 3 (3 / 2 / 1) | 52 (50 / 41 / 38) | (-38.0 [-51, -25]) | (-56.1 [-71, -41]) | (-60.5 [-76, -45]) |
+| continuation | third | near vs within1 + spread | 6 (6 / 5 / 5) | 52 (50 / 41 / 38) | (-21.3 [-54, +11]) | (-16.1 [-62, +29]) | (-20.5 [-66, +25]) |
+| continuation | strict | stacked (exact or near) vs within1 + spread | 4 (4 / 2 / 1) | 11 (11 / 9 / 9) | (-18.2 [-41, +5]) | (-33.3 [-64, -3]) | (-33.3 [-64, -3]) |
+| continuation | strict | exact_shared vs within1 + spread | 3 (3 / 2 / 1) | 11 (11 / 9 / 9) | (-18.2 [-41, +5]) | (-33.3 [-64, -3]) | (-33.3 [-64, -3]) |
+| continuation | strict | near vs within1 + spread | 1 (1 / 0 / 0) | 11 (11 / 9 / 9) | (-18.2 [-41, +5]) | (-) | (-) |
+| inside | all | stacked (exact or near) vs within1 + spread | 108 (95 / 87 / 81) | 1,117 (1,063 / 982 / 902) | +9.0 [-1, +19] | +10.1 [-1, +21] | +9.7 [-2, +21] |
+| inside | all | exact_shared vs within1 + spread | 58 (50 / 47 / 46) | 1,117 (1,063 / 982 / 902) | +6.7 [-7, +21] | +15.7 [+1, +30] | +15.0 [+0, +29] |
+| inside | all | exact_plain vs within1 + spread | 5 (4 / 4 / 4) | 1,117 (1,063 / 982 / 902) | (+37.7 [-5, +80]) | (+31.1 [-11, +74]) | (+29.1 [-13, +72]) |
+| inside | all | near vs within1 + spread | 45 (41 / 36 / 31) | 1,117 (1,063 / 982 / 902) | +9.0 [-7, +25] | +0.6 [-16, +17] | -0.7 [-19, +17] |
+| inside | third | stacked (exact or near) vs within1 + spread | 11 (9 / 8 / 6) | 116 (110 / 102 / 96) | (-13.2 [-42, +15]) | (-18.4 [-53, +17]) | (+8.3 [-31, +47]) |
+| inside | third | exact_shared vs within1 + spread | 7 (6 / 5 / 5) | 116 (110 / 102 / 96) | (-18.8 [-50, +12]) | (-15.9 [-60, +28]) | (+1.7 [-42, +46]) |
+| inside | third | near vs within1 + spread | 4 (3 / 3 / 1) | 116 (110 / 102 / 96) | (-2.1 [-56, +52]) | (-22.5 [-77, +32]) | (+41.7 [+32, +52]) |
+| inside | strict | stacked (exact or near) vs within1 + spread | 7 (6 / 5 / 4) | 41 (36 / 30 / 28) | (-13.9 [-47, +20]) | (-23.3 [-70, +23]) | (+10.7 [-35, +57]) |
+| inside | strict | exact_shared vs within1 + spread | 6 (5 / 4 / 4) | 41 (36 / 30 / 28) | (-10.6 [-49, +28]) | (-13.3 [-65, +39]) | (+10.7 [-35, +57]) |
+| inside | strict | near vs within1 + spread | 1 (1 / 1 / 0) | 41 (36 / 30 / 28) | (-30.6 [-46, -16]) | (-63.3 [-81, -46]) | (-) |
+| outside | all | stacked (exact or near) vs within1 + spread | 81 (73 / 68 / 63) | 438 (395 / 381 / 332) | +10.5 [-1, +22] | +10.3 [-2, +22] | +9.3 [-3, +22] |
+| outside | all | exact_shared vs within1 + spread | 62 (59 / 55 / 51) | 438 (395 / 381 / 332) | +14.0 [+1, +26] | +12.5 [-1, +26] | +11.7 [-2, +26] |
+| outside | all | exact_plain vs within1 + spread | 2 (2 / 2 / 2) | 438 (395 / 381 / 332) | (+31.8 [-38, +101]) | (+28.0 [-41, +97]) | (+24.4 [-45, +94]) |
+| outside | all | near vs within1 + spread | 17 (12 / 11 / 10) | 438 (395 / 381 / 332) | (-9.9 [-26, +6]) | (-3.9 [-27, +19]) | (-5.6 [-31, +20]) |
+| outside | third | stacked (exact or near) vs within1 + spread | 5 (5 / 4 / 3) | 60 (59 / 59 / 49) | (+8.1 [-28, +44]) | (+6.4 [-37, +50]) | (+19.0 [-35, +73]) |
+| outside | third | exact_shared vs within1 + spread | 3 (3 / 2 / 1) | 60 (59 / 59 / 49) | (-11.9 [-20, -4]) | (-18.6 [-29, -9]) | (-14.3 [-24, -4]) |
+| outside | third | exact_plain vs within1 + spread | 2 (2 / 2 / 2) | 60 (59 / 59 / 49) | (+38.1 [-32, +108]) | (+31.4 [-39, +101]) | (+35.7 [-34, +106]) |
+| outside | strict | stacked (exact or near) vs within1 + spread | 5 (5 / 4 / 3) | 23 (23 / 23 / 18) | (+2.6 [-36, +41]) | (-5.4 [-52, +41]) | (+11.1 [-46, +68]) |
+| outside | strict | exact_shared vs within1 + spread | 3 (3 / 2 / 1) | 23 (23 / 23 / 18) | (-17.4 [-33, -2]) | (-30.4 [-49, -12]) | (-22.2 [-41, -3]) |
+| outside | strict | exact_plain vs within1 + spread | 2 (2 / 2 / 2) | 23 (23 / 23 / 18) | (+32.6 [-38, +104]) | (+19.6 [-52, +91]) | (+27.8 [-44, +100]) |
+
+Valid counts are per horizon (censored units excluded at that horizon); a difference in parentheses has fewer than 30 valid units on either side AT THAT HORIZON (close-out audit F3).

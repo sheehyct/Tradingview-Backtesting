@@ -17,8 +17,8 @@ comparison (the same STRAT pattern plain against stacked), and the equal-size
 book with its R-matched check and a private chart page. Two mid-session Codex
 audits were requested by the owner and folded the same day. The session closed
 on the design of product 3, the STRAT-management book, with two forks awaiting
-the owner's one-word answers. The owner's closing words: "this was a hard one.
-Very very impressed, great work."
+the owner's one-word answers. (A personal remark recorded here on 2026-10-10
+was removed 2026-10-11 per the close-out audit F9: this is a public record.)
 
 ### What was accomplished
 
@@ -54,7 +54,11 @@ Very very impressed, great work."
 - The data point that opened product 3: price reached a full R within 5 bars
   in 57% of plain reversals and 67% of inside-bar breaks, against 38% and 41%
   recorded as one R first; a third to a half of the stopped trades saw the
-  target anyway. The stop, not the target, is what loses.
+  target anyway. That makes the setup-bar stop the suspect, not the verdict:
+  reaching a target after a pessimistically assigned stop does not show that
+  a book without the stop does better (timing, adverse travel, holding cost
+  and the alternate exit are unspecified); product 3 is the declared
+  comparison that tests it (reworded 2026-10-11, close-out audit F7).
 - Tests 295 -> 324 passing (census 16, chance 9 + 8, book 3 hand vectors).
   Memory: three new standing items (trader language reinforced, book + charts,
   the Codex exec recipe), the chart page reference, the project record.
@@ -149,10 +153,13 @@ and as charts; chance tables alone do not land.
   vectors); receipt `analysis/domino/RECEIPT.md` with a trader's glossary;
   ledger card under "Data products (counts, not arms)". Commit 8b800a7, then
   the audit fold.
-- Headline, in chart terms: of all days that took out yesterday's high or
-  low, about one in six also took last week's or last month's level for the
+- Headline, in chart terms: of all directional breaks of yesterday's high or
+  low, about one in six (15.9% of events; 17.8% of break days, an outside day
+  being two events) also took last week's or last month's level for the
   first time. Four in five of those are day plus week. Same-price stacks are a
-  shared-open phenomenon (99%: the old bar closed on its extreme). Two thirds
+  shared-open phenomenon (99%: the old week or month made its extreme on its
+  last day, which is not the same as closing there; wording corrected
+  2026-10-11, close-out audit F4). Two thirds
   of multi-level days have the levels more than 1% apart. Down's share rises
   with rank (52% / 61% / 71%). Reversal setups are under a third of classified
   setups on the day, week and month; a hammer or shooter sits on about one in
@@ -326,15 +333,21 @@ IDEA and run as one variant table, with the setup-bar stop as the primary.
   (29% vs 42%, -12 points). A 2-2 continuation with an unbroken higher level
   within a quarter percent beyond the trigger did better (+6 points); the same
   compression hurt inside-bar breaks (-5). The hammer shape on the setup bar
-  lifted the reversal, continuation and inside break by four to seven points (the outside break by about three), with fewer stops on all but the continuation (second audit F5). One in four
-  to one in three daily units traded their stop on the entry day (the owner's
-  "2 going 3"), all counted as stops. Nothing flips across direction, year,
-  liquidity or the month's open. Hypothesis 1 reads as supported on the
-  weekly, weak on the daily, untestable on reversals (7 shared-open exact
-  reversal stacks in the whole sample: a bar that closes the week on its
-  extreme is a 2 or a 3, not a reversal setup).
-- Not done, flagged: an R-matched comparison (exact shared-open stacks carry
-  the biggest setup bars); fees / funding / sizing; the Underlying-RTH mirror.
+  lifted the reversal, continuation and inside break by four to seven points (the outside break by about three), with fewer stops on all but the continuation (second audit F5). Between one in
+  seven and one in three daily units traded their stop on the entry day
+  (13.9% outside to 32.2% inside; the owner's "2 going 3"), all counted as
+  stops. The continuation stack stays within two points of plain by
+  direction, liquidity and the month's open, and by year except 2023 (+4.7).
+  Hypothesis 1 was declared on DAILY units: there it reads weak (no gain,
+  more stops) and is untestable on reversals (7 shared-open exact reversal
+  stacks in the whole sample: a bar that makes the week's extreme on its last
+  day is a 2 or a 3, not a reversal setup); the weekly shared-open result is a
+  separate descriptive comparison, not a test of it. (This paragraph was the
+  stale copy the close-out audit F6 caught; corrected 2026-10-11 to match the
+  second-audit synthesis above.)
+- Flagged here, then run as product 2b under amendment A3: the R-matched
+  check (bar size held equal within five bins, nothing else). Still not done:
+  fees / funding / sizing; the Underlying-RTH mirror.
 
 ### Product 2b: the book view, the R-matched check and the chart page (DONE 2026-10-10)
 
@@ -438,8 +451,84 @@ product gets a book view and a chart page beside the receipt.
   says" against its tables; tests missing for `chart_page`; public-repo
   hygiene (no claude.ai artifact link, no host, no secret; page output and run
   logs ignored); no Pine file changed.
-- Reviewed by: pending
-- Findings: (blank until docs/reviews/tvb37-close-codex-audit.md exists)
+- Reviewed by: local Codex CLI, owner-run backlog prompt
+  (`docs/reviews/CODEX_BACKLOG_PROMPT.md`), written 2026-10-11 05:39
+- Findings: `docs/reviews/tvb37-close-codex-audit.md` -- NEEDS-CHANGES, 9
+  findings (F1-F7 MEDIUM, F8 F9 LOW, no HIGH); all 233 book cells, both
+  horizons, 12 curves and the R-matched statistics reproduced by the
+  reviewer from the saved rows; the census fold F1-F12 confirmed folded;
+  no artifact link, host or secret in the range; no Pine file changed
+- Review status: ADDRESSED 2026-10-11 (TVB-38): every finding acted on in
+  this repo (code by two delegated agents, each finding reproduced before
+  the change and the regenerated artifacts checked leaf by leaf by the
+  lead; prose by the lead)
+
+### Critical synthesis of the close-out audit (TVB-38, 2026-10-11)
+
+- **F1 MEDIUM, drawdown ignored the starting zero -- AGREE, FIXED,
+  REPRODUCED** (one -2% trade read drawdown 0). The high-water mark now
+  starts at zero. Regenerated offline on the 2026-10-10 cache (a new
+  `--as-of` flag on `book` and `chance` builds the universe from the cached
+  files, no venue call, so the window cannot move): exactly 110 drawdown
+  values moved across 62 of 233 cells, the audit's count; every other leaf
+  of `book.json` is bit-identical (checked independently). The headline
+  daily plain reversal cell did not move (its curve was above zero before
+  its trough); the two receipt rows that moved are the daily outside
+  shared-open stack (-15,053 to -15,121) and the weekly inside shared-open
+  stack (-13,221 to -13,316). Three vectors added.
+- **F2 MEDIUM, zero shared bar-size bin divides by zero; partial cover
+  hidden -- AGREE, FIXED, REPRODUCED.** `r_matched` now returns unavailable
+  on no overlap and publishes `covered`, the effective count and a
+  conditional flag; the tables and the page print them. Every saved row has
+  full cover, so no number changed. Three vectors.
+- **F3 MEDIUM, per-horizon counts and greying not carried through -- AGREE,
+  FIXED, REPRODUCED** (monthly reversal shared-open 33 valid by 3, 27 by 5,
+  ungreyed at 5). Each horizon now greys on its own valid count in the
+  R-matched table; the chance difference rows print valid counts at every
+  horizon; the hypothesis-1 and variant one-R chances carry Wilson
+  intervals (so prereg A4's promise is now met rather than narrowed); the
+  chart's bar n is the valid count by 3 (daily plain reversal 43,629, not
+  43,809) with faded small cells. `chance_tables.md` regenerated: every old
+  number in place, only counts and intervals added; `chance.json`
+  byte-identical.
+- **F4 MEDIUM, chart labels -- AGREE, FIXED.** Weekly and monthly matched
+  rows now name their base (the rest: within 1% plus spread); the
+  shared-open mechanism no longer says the old week "closed" on its extreme
+  (it made the extreme on its last day); the same wording is corrected in
+  the chance glossary, the census headline above and the ledger;
+  entry-date attribution of the curves is stated on the page.
+- **F5 MEDIUM, book receipt sentences outran the tables -- AGREE on every
+  item, CORRECTED and tagged [F5]:** the near 2-2 continuation has a
+  positive median; the near outside break (+0.28%, 218 trades) is a second
+  daily cell in the black (no chance uplift, negative R expectancy: bigger
+  moves, not more hits); hammer stop rates are 8 points lower on the
+  reversal, 5 to 6 on the inside and outside breaks and 2 points HIGHER on
+  the continuation; entry-day stops are 13.9% to 32.2%, not one in four to
+  one in three; the weekly "biggest positive" is by total dollars (near is
+  larger per trade); the weekly shared-open floor is -0.8%; hypothesis 1
+  is daily-only and the daily matched gap "vanishes" only for the
+  continuation (the outside break's stays below zero by 5 bars).
+- **F6 MEDIUM, the second fold left wrong numbers and stale copies --
+  AGREE, FIXED.** The chance receipt's outside-break hammer figures were
+  wrong in sign (34.3% vs 31.7% by 3, 38.8% vs 36.5% by 5, stops 35.3%,
+  not 28.9% / 33.2% / 39.3%); this entry's product-2 paragraph still
+  carried "nothing flips" and "supported on the weekly" (corrected to the
+  second-audit synthesis); the census headline now gives both
+  denominators; the chance limitations no longer deny the R-matched check.
+- **F7 MEDIUM, descriptive findings stated as causes -- AGREE, REWORDED.**
+  "The stop, not the target, is what loses" is now "the setup-bar stop is
+  the suspect; product 3 is the declared comparison that tests it" (this
+  entry and the startup prompt); the page's "the raw gap WAS bar size" is
+  now attenuation after reweighting. The owner's product-3 design is
+  unchanged; only what this receipt is allowed to claim changed.
+- **F8 LOW, non-strict JSON -- AGREE, FIXED.** `allow_nan=False`, non-finite
+  to null, the open top bin as `r_to` null plus `r_to_unbounded`; strict
+  parse verified.
+- **F9 LOW, a personal remark in the public record -- AGREE, REMOVED.**
+- **Disputed: nothing.** Tests 324 -> 344 (11 book / chart-page vectors, 9
+  regime vectors from the TVB-35 fold). The private chart page is NOT
+  republished yet: the rebuilt page reflects these fixes locally and goes
+  up with the next product-3 page build.
 
 ---
 
@@ -929,8 +1018,12 @@ detection (dollar / 10-year yield / crude sensitivity of the traded names).
   query started at the round open and missed it). Outside the ledger by
   time; fouls the phone-app lifetime view only.
 - Labels for the replay: Labor Day (xyz clock has no holiday calendar; 394
-  "rth" rows, one entry = SK Hynix); the weekly dot vetoed 2/91 (Sun/Mon
-  coupling with the daily open); BCH's TP filled in three fragments with
+  "rth" rows, one entry = SK Hynix); the weekly dot vetoed 2/91 (the
+  "Sun/Mon coupling with the daily open" explanation given here was wrong:
+  the scanner's week opens Monday 00:00 UTC, so weekly and daily opens
+  coincide only during Monday UTC, Sunday 20:00 to Monday 20:00 New York;
+  the 2/91 count stands, its explanation does not -- TVB-35 audit F5,
+  2026-10-11); BCH's TP filled in three fragments with
   protection_mismatch logged every 6 s; sheet stack "mixed" on 9/18
   entries (all shorts, 8 lost) = a question.
 - KILL_FLAT on the user's word 19:00:17Z: SKHX long + ENA short closed in
@@ -955,15 +1048,26 @@ detection (dollar / 10-year yield / crude sensitivity of the traded names).
   against/mixed; whipsaw = S&P or BTC running outside day). CAUGHT AND
   FIXED before reading: a frozen Friday close was labeling weekend trades
   as live dots -- a reference with no 60m bar in 2 h now reads "closed"
-  (R18 on my own script). HEADLINE = a structural one: the label EXISTS
-  for only 32 of 84 trades. Weekend 1: 29/34 trades entered while both
-  references were closed; round 3: the 10-year was closed all Labor Day,
-  18/18 mixed. Only round 2 is labelable: with 16 trades (7 wins, +6.75pp,
-  +$1.80), mixed 12 (+4.3pp), against 4 (0 wins, -2.94pp) -- the sign
-  matches the prior, n=4 says nothing. The running outside-day whipsaw
-  flag fired on 2/84 entries = inert as an entry-time label (needs a
-  different a-priori measure: prior-day outside bar, range vs ATR, or
-  realized vol). NOW (23:33Z): dollar down daily+weekly, 10-year closed,
+  (R18 on my own script). HEADLINE = a structural one: the label is
+  mostly UNAVAILABLE at entry. [Paragraph regenerated 2026-10-11 (TVB-38)
+  after the TVB-35 Codex audit F6 / F7 / F8: the first labeler read the
+  current hour's final close and extremes at the hour's open (look-ahead;
+  12 of 84 daily composites moved) and counted a missing whipsaw input as
+  "false". Corrected labels, from `analysis/regime/REGIME_RECEIPT.md`:]
+  both the dollar and the 10-year daily dots live at entry on 36 of 84
+  trades (round 2: 27 of 32; weekend 1: 9 of 34; round 3: 0 of 18, the
+  10-year closed all Labor Day). Of the 36, 17 carried a directional
+  label (13 with, 4 against) and 19 had both inputs live but disagreeing
+  or flat. Round 2, the only readable ledger: with 11 trades (4 wins,
+  -3.93pp), mixed 18 (7 wins, +14.84pp), against 3 (0 wins, -2.79pp);
+  pooled with 13 (5 wins, -6.37pp) against 4 (0 wins, -4.33pp). The old
+  paragraph's "with +6.75pp, sign matches the prior" does NOT survive the
+  fix; the "against" cell is still 0 wins on n=4, which says nothing. The
+  running outside-day whipsaw flag: true 0, false 10, unknown 74 (weekend
+  1 had no BTC history at all) -- the old "fired on 2/84 = inert" claim is
+  WITHDRAWN; the flag was mostly unknowable, not inert, and a different
+  a-priori measure (prior-day outside bar, range vs ATR, realized vol)
+  remains the open design item. NOW (23:33Z): dollar down daily+weekly, 10-year closed,
   WTI up daily+weekly, BTC down, S&P closed -> mixed. Output:
   analysis/regime/REGIME_RECEIPT.md + receipt.json. Characterization only.
 
@@ -1042,8 +1146,62 @@ new one is the user's call.
   the Labor Day rows are correctly labeled by `session` alone; the ZEC
   liquidation placement relative to the ledger window; no Pine file changed
   (verify).
-- Reviewed by: pending
-- Findings: (blank until docs/reviews/tvb35-codex-audit.md exists)
+- Reviewed by: local Codex CLI, owner-run backlog prompt, 2026-10-10
+- Findings: `docs/reviews/tvb35-codex-audit.md` -- NEEDS-CHANGES, 9
+  findings (F2 F6 HIGH; F1 F3 F5 F7 F8 MEDIUM; F4 F9 LOW); the public pin
+  held the regime script, data, receipt and harvest script, not docs only
+  as this block said; no Pine file changed
+- Review status: ADDRESSED 2026-10-11 (TVB-38): F6 F7 F8 F9 fixed in this
+  repo and the receipt regenerated; F5's wrong explanation annotated here
+  and in the ledger; F1-F4 recorded for the private repo
+
+#### Critical synthesis (TVB-38, 2026-10-11)
+
+- **F6 HIGH, the macro labeler read the future -- AGREE, FIXED, REPRODUCED.**
+  `price_at` took the latest hourly bar whose OPEN was at or before the
+  instant and returned its CLOSE; the running day took that hour's full
+  high and low. At an hour's opening instant neither is known. The audit's
+  synthetic hour reproduced (opens 101, closes 90: the label read 90 at the
+  open). Now a 60m bar is known at open + 60 minutes; price now is the
+  latest COMPLETED close; the running day uses completed bars only;
+  freshness runs from the last completed close; a day or week whose first
+  hourly bar has not started has no known open (US10Y's daily bar is
+  stamped 23:00, first trade 00:00). Regenerated: 12 of 84 daily
+  composites moved (8 round 2, 4 weekend 1), exactly the audit's count.
+  Nine hand vectors in `tests/test_regime_receipt.py`. The two TVB-36
+  receipts (`index_continuity.py`, `venue_mrc.py`) were checked for the same
+  pattern: neither reads a bar before its close.
+- **F7 MEDIUM, missing whipsaw history became "false" -- AGREE, FIXED.** All
+  34 weekend-1 trades had no BTC running day and were counted false. The
+  flag and its components are now true / false / unknown with availability
+  counts; the result is 0 true, 10 false, 74 unknown. The "inert as an
+  entry-time label" inference is withdrawn (above).
+- **F8 MEDIUM, the availability narrative contradicted its own labels --
+  AGREE, FIXED.** The receipt now separates inputs available (36 of 84 with
+  both dots live), available-but-mixed (19) and directional (17: 13 with,
+  4 against), per ledger and pooled; this entry's paragraph is regenerated
+  from those counts. The old "with +6.75pp" reading does not survive the
+  F6 fix (pooled with is now -6.37pp over 13).
+- **F9 LOW, a timed-out harvest could save the wrong symbol -- AGREE,
+  FIXED.** A settle timeout or identity mismatch is now a failed manifest
+  entry with no file written (`scripts/tvb35_regime_harvest.mjs`, not run).
+- **F5 MEDIUM, the Sun/Mon weekly-dot explanation is wrong -- AGREE,
+  ANNOTATED** here and in `docs/ARM_LEDGER.md`: the scanner's week opens
+  Monday 00:00 UTC, so weekly and daily opens coincide only during Monday
+  UTC; the 2-of-91 count stands, the calendar story does not. The executor
+  README carries the same sentence (recorded for the private repo).
+- **F2 HIGH, an unbounded order-book read in front of the safety loop --
+  AGREE.** The shadow's `book_top` uses the shared Info client with no
+  timeout, before `_enter` and before every later stop check and kill-file
+  read. OPEN in the executor before any restart: bounded or asynchronous
+  shadow reads with a total time budget.
+- **F1 / F3 / F4 (seat-competition population omits `already_in_position`;
+  the paper shadow cannot resolve builder-dex names; non-finite book
+  values pass) -- AGREE, recorded for the private repo.** F1 is a
+  definition to preregister, not a round-3 count change (zero such rows).
+- **Disputed: nothing.** One nuance accepted from the reviewer: the ZEC
+  liquidation's placement is internally consistent but rests on a venue
+  fill record not present in the run files, so it stays a documented claim.
 
 ---
 
@@ -1108,6 +1266,9 @@ withdrawal, re-approve the agent before re-funding and check `extraAgents`.
 - [ ] Round-3 close-out replay: add the round-3 LedgerSpec (contrast_control
       "as_built"; read the journaled shadows first: stack, rank, session, lev,
       backing_invalidated) and replay it against round 2 at close.
+      NOTE 2026-10-11 (TVB-34 audit F3): `backing_invalidated` is computed in
+      rules.py but never written by the decision journaler, so it cannot be
+      read journaled-first until the executor repair lands.
 - [ ] Scanner release with the three STRAT rulings (3-1-2 cont target, 3-2-2
       stop, nested mother) + PR-B pivot ladder / PR-A `1-3h`.
 - [ ] The July A0b anchor under feasible fills is not written by the runner
@@ -1137,8 +1298,39 @@ withdrawal, re-approve the agent before re-funding and check `extraAgents`.
   amendment j's decision-price convention is the right D4 successor; the
   feasible-fill twin change (only the arm-mode entry touched?); whether three
   admission changes on round 2 stay separable from the shadows.
-- Reviewed by: pending
-- Findings: (blank until docs/reviews/tvb34-codex-audit.md exists)
+- Reviewed by: local Codex CLI, owner-run backlog prompt, 2026-10-10
+- Findings: `docs/reviews/tvb34-codex-audit.md` -- NEEDS-CHANGES, 3
+  findings (F1 F2 HIGH, F3 MEDIUM), all in the executor; the liquidation
+  formula and clearing leverage, the weekly-dot gate / flip symmetry, the
+  VWAP arithmetic, amendment j and the twin's `entry_fill` branch checked
+  clean within their declared scope
+- Review status: ADDRESSED 2026-10-11 (TVB-38): the one public-repo
+  consequence (the `backing_invalidated` replay promise) is annotated in
+  this entry's Open list; the repairs are recorded for the private repo
+
+#### Critical synthesis (TVB-38, 2026-10-11)
+
+- **F1 HIGH, the malformed-flat repair stops at the outer list -- AGREE.**
+  A row with no position object, or a position with no size, still reads as
+  zero and proves absence. This is the TVB-31 F1 fold left half done. OPEN
+  in the executor before any restart: validate every row (coin, finite
+  signed size); any malformed member raises "unknown".
+- **F2 HIGH, a partial close during protection loss becomes an unretryable
+  mismatch -- AGREE.** The generic handler swallows the partial fill without
+  booking the fragment; the next poll sees a size mismatch and continues
+  BEFORE checking or restoring a stop, so the residual can sit unprotected
+  indefinitely. The same classification hits the legitimate software-exit
+  residual. OPEN before any restart: persist fragments and pending close
+  intent, track expected residual separately from original size, route
+  every close caller through one resumable reconciliation path.
+- **F3 MEDIUM, the invalidated-sponsor shadow is computed and dropped --
+  AGREE.** `extra['backing_invalidated']` never reaches the decision row,
+  so the "journaled-first" replay promise in this entry and in the round-3
+  prereg cannot be kept until the journaler writes it. Annotated in the
+  Open list above. OPEN: persist the field, test the emitted row.
+- **Disputed: nothing.** The reviewer's refusal to treat the go-live and
+  the agent-pruning statements as revalidated is correct; they are
+  historical claims.
 
 ---
 
@@ -1469,10 +1661,41 @@ receipt, prereg amendment, ARM_LEDGER corrections, this section.
 
 ### External Review (for Codex / cloud review agents)
 
-- Review status: REQUESTED 2026-09-05 (docs/reviews/REVIEW_REQUEST.md);
-  the separate DEEP-DIVE review RETURNED 2026-09-05 and was FOLDED
-  2026-09-06 (section 7). The TVB-33 session review is still open; its
-  reviewer should read section 7 and the fold commits first.
+- Review status: ADDRESSED 2026-10-11 (TVB-38). Requested 2026-09-05; the
+  separate DEEP-DIVE review RETURNED 2026-09-05 and was FOLDED 2026-09-06
+  (section 7). The session review itself returned 2026-10-10 from the
+  owner-run Codex backlog prompt.
+- Commits reviewed: this repo `7a29dad..7ad92f4`; hip3-executor
+  `4b5d248..d8a07b0` (derived range, confirmed by the reviewer in that
+  repo's log).
+- Findings: `docs/reviews/tvb33-codex-audit.md` -- NEEDS-CHANGES, 3
+  findings (F1 HIGH, F2 F3 MEDIUM), all in the executor's replay harness;
+  the prereg amendments, the live fee gate and the round-3 build checked
+  clean within their declared scope.
+
+#### Critical synthesis (TVB-38, 2026-10-11)
+
+- **F1 HIGH, the parity PASS is not pinned to the sweep setting -- AGREE.**
+  The pins hash files, ledgers, candles and source but not `roll_freeze_ms`,
+  so a PASS earned at 75 seconds authorizes a run at zero seconds with
+  nothing watermarked. That weakens the pre-registered stop gate exactly
+  where it is supposed to bite. OPEN in the executor: include every
+  behaviour-changing runtime argument in the compared pins; a mismatch
+  refuses unless forced and watermarked.
+- **F2 MEDIUM, duplicate ledger entries collapse silently in P1 -- AGREE
+  (latent).** OPEN: assert ledger-key uniqueness and require ledger, replay
+  and matched counts to agree.
+- **F3 MEDIUM, builder fee counted twice -- AGREE, conditional on the API
+  reading.** The reviewer cites the venue's user-fills reference defining
+  `fee` as inclusive of `builderFee`; both saved ledgers have zero nonzero
+  builder-fee rows, so no committed table moved. OPEN: verify the field
+  definition once more in the executor session, then charge the inclusive
+  fee once and report the component.
+- **The reviewer's framing is accepted:** a high replay-agreement figure is
+  a disclosed characterization contract conditioned on historical
+  decisions and exits, not fidelity, edge or safety evidence. That is how
+  TVB-33 already reads it.
+- **Disputed: nothing.**
 
 ---
 

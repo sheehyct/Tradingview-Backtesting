@@ -87,8 +87,15 @@ per-wallet parallel-strategies mechanism the user wants.
   for maker arms; our IOC-entry taker flow mostly dodges this); fills
   are all-or-nothing (no partials); paper fills consume no liquidity;
   NO liquidation enforcement exists (liq price is display-only,
-  position.ts) -- irrelevant at $0.50 risk with venue-resident stops,
-  but disqualifying for any leverage-stress question.
+  position.ts) -- a standing simulator limitation at ANY dollar risk,
+  not only a leverage-stress one: whether liquidation comes before the
+  stop depends on leverage, maintenance margin and stop distance, not
+  on the dollars risked, so a small position with a venue-resident stop
+  can still liquidate first (the class TVB-34 later corrected with the
+  clearing-leverage rule). Any adoption claim is conditional on an
+  independent stop-clearance check. (Corrected 2026-10-11, TVB-31
+  Codex audit F4; the earlier sentence called it "irrelevant at $0.50
+  risk".)
 
 ## Why bother at all (unchanged from TVB-30)
 

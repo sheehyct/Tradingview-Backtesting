@@ -28,6 +28,7 @@ Everything here is arithmetic on counts. No fee, funding, sizing or management e
 
 from __future__ import annotations
 
+import argparse
 import csv
 import gzip
 import json
@@ -41,6 +42,7 @@ from pathlib import Path
 import pandas as pd
 
 from analysis.domino.census import (
+    CACHE,
     NEAR_BAND,
     WITHIN_BAND,
     _context,
@@ -261,6 +263,31 @@ def next_bar(
     if t == "3":
         return "outside"
     return "with" if (t == "2U") == (direction == "up") else "against"
+
+
+# ----------------------------------------------------------------------------- offline rerun
+
+
+def parse_as_of(text: str) -> int:
+    """'YYYY-MM-DD' -> that day's 00:00 UTC in ms (the pinned as_of of a cached rerun)."""
+    dt = datetime.strptime(text, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    return day_start(int(dt.timestamp()) * 1000)
+
+
+def cached_universe(as_of_ms: int) -> list[dict]:
+    """The universe as the candle cache recorded it on as_of: one entry per cached file stamped
+    that day, main dex first, then xyz, each alphabetical. No venue call; with every file
+    present, fetch_daily then reads the cache only, so the data window cannot move. Raises if
+    the stamp has no files. (The venue's own listing order is not recorded, so float sums can
+    differ from a live-order run in the last bits; counts cannot.)"""
+    stamp = datetime.fromtimestamp(as_of_ms / 1000, tz=timezone.utc).strftime("%Y%m%d")
+    suffix = f"_1d_{stamp}.json"
+    names = sorted(p.name[: -len(suffix)] for p in CACHE.glob(f"*{suffix}"))
+    if not names:
+        raise FileNotFoundError(f"no cached candles stamped {stamp} in {CACHE}")
+    main = [{"coin": nm, "dex": "main"} for nm in names if not nm.startswith("xyz_")]
+    xyz = [{"coin": "xyz:" + nm[4:], "dex": "xyz"} for nm in names if nm.startswith("xyz_")]
+    return main + xyz
 
 
 def wilson(k: int, n: int, z: float = 1.96) -> tuple[float, float]:
@@ -494,8 +521,9 @@ def table_pattern_by_class(
 def table_differences(df: pd.DataFrame, tf: str, title: str) -> list[str]:
     """A+ class minus PLAIN (daily) or stacked minus the rest (weekly / monthly), per kind x flag."""
     lines = [f"### {title}", ""]
+    valid_by = " / ".join(str(n) for n in HORIZONS)
     lines.append(
-        "| setup | flag | comparison | units A+ (valid by 5) | units base (valid by 5) | "
+        f"| setup | flag | comparison | units A+ (valid by {valid_by}) | units base (valid by {valid_by}) | "
         + " | ".join(f"diff by {n} [95%]" for n in HORIZONS)
         + " |"
     )
@@ -545,11 +573,22 @@ def table_differences(df: pd.DataFrame, tf: str, title: str) -> list[str]:
                     )
                     diffs.append(txt if min(ca[f"n{n}"], cb[f"n{n}"]) >= MIN_CELL else f"({txt})")
                 lines.append(
-                    f"| {kind} | {level} | {name} {label} | {ca['n']:,} ({ca['n5']:,}) | "
-                    f"{cb['n']:,} ({cb['n5']:,}) | " + " | ".join(diffs) + " |"
+                    f"| {kind} | {level} | {name} {label} | {_valid(ca)} | {_valid(cb)} | "
+                    + " | ".join(diffs)
+                    + " |"
                 )
     lines.append("")
+    lines.append(
+        "Valid counts are per horizon (censored units excluded at that horizon); a difference in "
+        "parentheses has fewer than 30 valid units on either side AT THAT HORIZON (close-out audit F3)."
+    )
+    lines.append("")
     return lines
+
+
+def _valid(c: dict) -> str:
+    """Units and their VALID count at every horizon, e.g. '1,234 (1,230 / 1,201 / 1,180)'."""
+    return f"{c['n']:,} (" + " / ".join(f"{c[f'n{n}']:,}" for n in HORIZONS) + ")"
 
 
 def table_hypothesis1(df: pd.DataFrame) -> list[str]:
@@ -559,9 +598,11 @@ def table_hypothesis1(df: pd.DataFrame) -> list[str]:
         "",
     ]
     lines.append(
-        "| setup | flag | units exact shared (valid by 5) | one R by 1 / 3 / 5 | minus plain by 1 / 3 / 5 | minus near by 1 / 3 / 5 |"
+        "| setup | flag | units exact shared (valid by 1 / 3 / 5) | one R by 1 / 3 / 5 [95%] n= valid | "
+        "plain units (valid by 1 / 3 / 5) | minus plain by 1 / 3 / 5 | near units (valid by 1 / 3 / 5) | "
+        "minus near by 1 / 3 / 5 |"
     )
-    lines.append("|---|---|---|---|---|---|")
+    lines.append("|---|---|---|---|---|---|---|---|")
     sub = df[df["tf"] == "D"]
     for kind in KINDS:
         for level in ("all", "third", "strict"):
@@ -574,10 +615,8 @@ def table_hypothesis1(df: pd.DataFrame) -> list[str]:
                 cell(base[base["cls"] == "plain"]),
                 cell(base[base["cls"] == "near"]),
             )
-            own = " / ".join(
-                _p(ce[f"one_r{n}"]) if ce[f"n{n}"] >= MIN_CELL else f"({_p(ce[f'one_r{n}'])})"
-                for n in HORIZONS
-            )
+            # the one-R chance carries its Wilson interval, as prereg A4 says (close-out audit F3)
+            own = " / ".join(_ci(ce, n) for n in HORIZONS)
 
             def diffs(cb):
                 parts = []
@@ -592,8 +631,14 @@ def table_hypothesis1(df: pd.DataFrame) -> list[str]:
                 return " / ".join(parts)
 
             lines.append(
-                f"| {kind} | {level} | {ce['n']:,} ({ce['n5']:,}) | {own} | {diffs(cp)} | {diffs(cn)} |"
+                f"| {kind} | {level} | {_valid(ce)} | {own} | {_valid(cp)} | {diffs(cp)} | "
+                f"{_valid(cn)} | {diffs(cn)} |"
             )
+    lines.append("")
+    lines.append(
+        "Own chances carry Wilson 95% intervals and their valid count; differences are greyed when "
+        "either side has fewer than 30 valid units at that horizon."
+    )
     lines.append("")
     return lines
 
@@ -631,7 +676,9 @@ def table_variant(df: pd.DataFrame) -> list[str]:
         "",
     ]
     lines.append(
-        "| setup | class | units (valid by 5) | median R % primary / variant | primary one R by 1 / 3 / 5 | variant one R by 1 / 3 / 5 | variant stopped by 5 |"
+        "| setup | class | units (variant valid by 1 / 3 / 5) | median R % primary / variant | "
+        "primary one R by 1 / 3 / 5 [95%] n= valid | variant one R by 1 / 3 / 5 [95%] n= valid | "
+        "variant stopped by 5 |"
     )
     lines.append("|---|---|---|---|---|---|---|")
     sub = df[(df["tf"] == "D") & (df["vout1"] != "n/a")]
@@ -642,10 +689,11 @@ def table_variant(df: pd.DataFrame) -> list[str]:
                 continue
             cp, cv = cell(part), cell(part, "vout")
             g = lambda c, n, t: t if c[f"n{n}"] >= MIN_CELL else f"({t})"  # noqa: E731
-            pr = " / ".join(g(cp, n, _p(cp[f"one_r{n}"])) for n in HORIZONS)
-            vr = " / ".join(g(cv, n, _p(cv[f"one_r{n}"])) for n in HORIZONS)
+            # one-R chances carry their Wilson interval and valid count (close-out audit F3, A4)
+            pr = " / ".join(_ci(cp, n) for n in HORIZONS)
+            vr = " / ".join(_ci(cv, n) for n in HORIZONS)
             lines.append(
-                f"| {kind} | {cls} | {cv['n']:,} ({cv['n5']:,}) | {cp['r_pct_med']:.2f} / {float(part['v_r_pct'].median()):.2f} | "
+                f"| {kind} | {cls} | {_valid(cv)} | {cp['r_pct_med']:.2f} / {float(part['v_r_pct'].median()):.2f} | "
                 f"{pr} | {vr} | {g(cv, 5, _p(cv['stop5']))} |"
             )
     lines.append("")
@@ -751,13 +799,25 @@ def report(name: str, df: pd.DataFrame, counts: Counter | None, full: bool) -> l
 # ----------------------------------------------------------------------------- main
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
+    ap = argparse.ArgumentParser(description="TVB-37 chance comparison")
+    ap.add_argument(
+        "--as-of",
+        help="YYYY-MM-DD: rerun OFFLINE on the cached candle snapshot of that date (no venue call); "
+        "default = today with the live universe and a fresh fetch",
+    )
+    args = ap.parse_args(argv)
     RESULTS.mkdir(parents=True, exist_ok=True)
-    now_ms = int(time.time() * 1000)
-    as_of = day_start(now_ms)
-    uni = universe()
+    if args.as_of:
+        as_of = parse_as_of(args.as_of)
+        uni = cached_universe(as_of)
+        src = "cached perps (offline)"
+    else:
+        as_of = day_start(int(time.time() * 1000))
+        uni = universe()
+        src = "live perps"
     print(
-        f"universe: {len(uni)} live perps; as_of {datetime.fromtimestamp(as_of / 1000, tz=timezone.utc):%Y-%m-%d} UTC",
+        f"universe: {len(uni)} {src}; as_of {datetime.fromtimestamp(as_of / 1000, tz=timezone.utc):%Y-%m-%d} UTC",
         flush=True,
     )
     rows_venue: list[dict] = []

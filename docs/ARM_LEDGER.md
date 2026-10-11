@@ -424,9 +424,14 @@ receipt, not a package number. Trader's read, one tape, questions only:
 - **Watch list clean:** no stop ever sat beyond liquidation, no missing
   fee rate, leverage + venue liquidation price on every entry.
 - **WEEK5 was nearly inert:** the week vetoed 2 of 91 continuity
-  refusals. Structural: on Sunday/Monday the forming weekly candle opens
-  where the day opens, so the weekly dot IS the daily dot until midweek.
-  The arm cannot be read on a Sunday-to-Monday tape.
+  refusals. The explanation first written here ("on Sunday/Monday the
+  weekly candle opens where the day opens, so the weekly dot IS the daily
+  dot until midweek") was wrong (TVB-35 Codex audit F5, 2026-10-11): the
+  scanner's week opens Monday 00:00 UTC, so the two opens coincide only
+  during Monday UTC (Sunday 20:00 to Monday 20:00 New York); before that
+  the weekly open is the previous Monday's, and from Tuesday UTC the daily
+  open moves again. The 2-of-91 count stands; the arm was read on a tape
+  that straddled that boundary.
 - **SEATS4 bound 7 times** (no_slot_free) and the daily cap bound 7 times.
 - **The sheet stack (60/D/W/M) read "mixed" on 9 of 18 entries, all
   shorts; 8 of those 9 lost.** Nine trades. A question for the replay,
@@ -553,8 +558,9 @@ settings at $1 risk, but with 26 fills they stay unread as arms.
   level never sit short of the daily one); no coin-flip baseline, the owner's one-in-three
   "a 2 going 3" reference recorded; the weekly-bar stop logged as the owner's idea and run as
   one variant table; quarter recorded, not ruled; momo hammer in both forms, kept apart.
-- **Hypothesis 1 (owner):** stacks that exist only because yesterday closed the old bar on its
-  extreme (same price at the open) do WORSE than the plain pattern and than the midweek stacks.
+- **Hypothesis 1 (owner):** stacks that exist only because the old week or month made its
+  extreme on its last day (same price at the open; it need not have closed there) do WORSE than
+  the plain pattern and than the midweek stacks. Declared on DAILY units (prereg A4).
 - **Numbers (venue era, one R by 3 bars):** 153,931 daily, 21,520 weekly, 4,462 monthly units.
   Plain 2-2 continuation 34.4% (55,976); same-price stack at the Monday / 1st open 32.9%
   (3,619; -1.5 [-3, +0], -2.2 by 5 bars, stops 50.7% vs 46.0%); an unbroken higher level within a
@@ -568,12 +574,14 @@ settings at $1 risk, but with 26 fills they stay unread as arms.
 - **Book view (2b, amendment A3, same rows):** one unit per trade, no leverage / fees /
   funding, closed at one R or the stop, marked at the fifth bar. Every plain daily pattern loses:
   2-2 reversal -0.84% per trade (43,442), 2-2 continuation -0.43%, inside break -0.54%, outside
-  -0.21%; the hammer flag brings each to about flat (-0.10% to +0.31%); the stacked continuation
-  is the one A+ class in the black (+0.44% near, +0.33% within 1%); the same-price-at-the-open
-  stack loses more than plain (-1.19%, outside -2.23%) and on the weekly loses on every setup
-  (-0.9% to -3.2%). R-matched: the daily near-continuation gap survives (+4.7 [+1, +8]), the
-  daily shared-open gap vanishes (-0.7 [-2, +1]), the weekly shared-open deficit keeps two thirds
-  of its size (-8.0 [-10, -6]) in every bar-size bin. Receipt `analysis/domino/BOOK_RECEIPT.md`;
+  -0.21%; the hammer flag brings each to about flat (-0.10% to +0.31%); two A+ cells are in the
+  black, the stacked continuation (+0.44% near, +0.33% within 1%) and the near outside break
+  (+0.28% on 218 trades, no chance uplift); the same-price-at-the-open stack loses more than
+  plain (-1.19%, outside -2.23%) and on the weekly loses on every setup (-0.8% to -3.2%).
+  R-matched (bar size reweighted, nothing else held equal): the daily near-continuation gap
+  survives (+4.7 [+1, +8]), the daily shared-open continuation gap shrinks to -0.7 [-2, +1], the
+  weekly shared-open continuation deficit keeps two thirds of its size (-8.0 [-10, -6]) in every
+  bar-size bin. (Corrected 2026-10-11, close-out audit F5.) Receipt `analysis/domino/BOOK_RECEIPT.md`;
   a private chart page draws the same numbers (link not in the repo).
 - **Audit:** chance engine reviewed by Codex 2026-10-10 (`docs/reviews/tvb37-chance-codex-audit.md`, NEEDS-CHANGES, 8 findings, no remaining look-ahead) and FOLDED the same day (decimal fills, valid-count greying, wording);
   the book view and chart page go in the session-end request.

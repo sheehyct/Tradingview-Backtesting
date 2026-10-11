@@ -12,6 +12,8 @@ import json
 import sys
 from pathlib import Path
 
+from analysis.domino.chance import MIN_CELL
+
 HERE = Path(__file__).parent
 RESULTS = HERE / "results"
 KINDS = ("reversal", "continuation", "inside", "outside")
@@ -33,9 +35,18 @@ CLS_LABEL = {
 }
 
 
-def build_data() -> dict:
-    chance = json.load(open(RESULTS / "chance.json"))
-    book = json.load(open(RESULTS / "book.json"))
+BASE_LABEL = {"plain": "plain", "within1 + spread": "the rest (within 1% + spread)"}
+
+
+def build_data(results: Path = RESULTS) -> dict:
+    """The page's numbers, read from chance.json and book.json and nothing else.
+
+    Close-out audit folds: a bar's n is the VALID count at the displayed horizon and cells under
+    MIN_CELL valid are flagged `small` (F3); R-matched rows name their base and carry coverage,
+    the effective count and the conditional / unavailable state (F2, F4).
+    """
+    chance = json.load(open(results / "chance.json"))
+    book = json.load(open(results / "book.json"))
     cells = {(c["tf"], c["kind"], c["flag"], c["cls"]): c for c in chance["cells"]["venue_era"]}
 
     def bar(tf: str, kind: str, flag: str, cls: str, n: int = 3) -> dict | None:
@@ -46,7 +57,8 @@ def build_data() -> dict:
             "p": c[f"one_r{n}"],
             "lo": c[f"lo{n}"],
             "hi": c[f"hi{n}"],
-            "n": c["n"],
+            "n": c[f"n{n}"],  # the valid count at THIS horizon, not every unit (audit F3)
+            "small": c[f"n{n}"] < MIN_CELL,
             "stop": c[f"stop{n}"],
         }
 
@@ -63,6 +75,7 @@ def build_data() -> dict:
                     "setup": KIND_LABEL[kind],
                     "cls": CLS_LABEL[cls],
                     "n": h["n"],
+                    "small": h["n"] < MIN_CELL,
                     "avg": h["avg_pct"],
                     "hit": h["hit"],
                     "stop": h["stop"],
@@ -73,17 +86,28 @@ def build_data() -> dict:
                 }
             )
     matched = []
-    for r in book["r_matched"]:
-        if r["flag"] != "all" or r["n_stacked"] < 30 or r["raw"] is None:
+    for r in book["r_matched"]:  # the top level of each row is the 3-bar result, as drawn
+        if r["flag"] != "all" or r["n_stacked"] < MIN_CELL or r["raw"] is None:
             continue
+        base = BASE_LABEL[r["base"]]
+        label = f"{r['tf']} {KIND_LABEL[r['kind']]}: {CLS_LABEL[r['cls']]} vs {base}"
+        if not r["available"]:
+            label += " (no shared bar-size bin: unavailable)"
+        elif r["conditional"]:
+            label += f" (conditional on {100 * r['covered']:.0f}% of stacked)"
         matched.append(
             {
-                "label": f"{r['tf']} {KIND_LABEL[r['kind']]}: {CLS_LABEL[r['cls']]}",
+                "label": label,
+                "base": base,
                 "raw": r["raw"],
                 "matched": r["matched"],
                 "lo": r["lo"],
                 "hi": r["hi"],
                 "n": r["n_stacked"],
+                "n_effective": r["n_effective"],
+                "covered": r["covered"],
+                "available": r["available"],
+                "conditional": r["conditional"],
             }
         )
     return {
@@ -149,6 +173,7 @@ th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: l
 th { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
 td.num { font-family: var(--font-mono); }
 td.neg { color: var(--loss); }
+tr.small td { opacity: 0.45; }
 .notes { color: var(--muted); font-size: 0.9rem; max-width: 75ch; }
 .notes li { margin-bottom: 6px; }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
@@ -163,14 +188,14 @@ td.neg { color: var(--loss); }
 
 <section>
   <h2>Daily triggers: chance of one R before the stop, by 3 bars</h2>
-  <p class="read">Each bar is one setup in one stack class. The thin line is the 95% interval. Plain means no unbroken weekly or monthly level within 1% beyond yesterday's level at the moment it broke.</p>
+  <p class="read">Each bar is one setup in one stack class. The thin line is the 95% interval; n in the tooltip is the valid count by 3 bars. Faded bars hold fewer than 30 valid trades: counted, not read. Plain means no unbroken weekly or monthly level within 1% beyond yesterday's level at the moment it broke.</p>
   <div class="panel"><div class="chart"><canvas id="barsDaily"></canvas></div>
   <ul class="legend"><li style="--c:var(--plain)">plain</li><li style="--c:var(--stack)">same price at the Monday / 1st open</li><li style="--c:var(--near)">level within 0.25% beyond</li><li style="--c:var(--within)">level within 1% beyond</li></ul></div>
 </section>
 
 <section>
   <h2>The book: daily 2-2 continuation, plain against stacked</h2>
-  <p class="read">Cumulative P/L on a book that takes every trade at 1,000 dollars, closes at one R or the stop, and marks the rest at the close of the fifth bar. Many trades are open at once, so this is the sum of equal-size trades, not an account balance.</p>
+  <p class="read">Cumulative P/L on a book that takes every trade at 1,000 dollars, closes at one R or the stop, and marks the rest at the close of the fifth bar. Each trade's final return is placed on its ENTRY date, although it was only known up to five bars later, and many trades overlap: the line is the sum of equal-size trades by entry date, not an equity path or an account balance. The drawn line is sampled; the drawdown in the table uses every date.</p>
   <div class="panel"><div class="chart tall"><canvas id="curvesDaily"></canvas></div>
   <ul class="legend" id="legendDaily"></ul></div>
 </section>
@@ -186,7 +211,7 @@ td.neg { color: var(--loss); }
 
 <section>
   <h2>Weekly triggers: chance of one R by 3 weeks</h2>
-  <p class="read">Entry at last week's level. Same price at the Monday open means Sunday closed the old week on its extreme and the new week broke it off the open.</p>
+  <p class="read">Entry at last week's level. Same price at the Monday open means Sunday's high (or low) was the old week's high (or low) and Monday opened the new week: the old week made its extreme on its last day, which is not the same as closing there. Faded bars hold fewer than 30 valid trades by 3 weeks.</p>
   <div class="panel"><div class="chart"><canvas id="barsWeekly"></canvas></div>
   <ul class="legend"><li style="--c:var(--stack)">same price at the Monday / 1st open</li><li style="--c:var(--near)">within 0.25%</li><li style="--c:var(--within)">within 1%</li><li style="--c:var(--spread)">more than 1% (the day already ran)</li></ul></div>
   <div class="panel" style="margin-top:12px"><div class="chart tall"><canvas id="curvesWeekly"></canvas></div>
@@ -195,7 +220,7 @@ td.neg { color: var(--loss); }
 
 <section>
   <h2>Is it the stack or the bar size? The R-matched check</h2>
-  <p class="read">Stacked minus plain one-R chance by 3 bars, in percentage points. The pale bar is the raw gap; the solid bar reweights the plain group to the stacked group's setup-bar sizes, with its 95% interval. If the solid bar shrinks toward zero, the raw gap was bar size.</p>
+  <p class="read">Stacked minus base one-R chance by 3 bars, in percentage points. The base is plain for daily setups and the rest (level within 1% or more than 1% beyond) for weekly and monthly setups; each row names its base. The pale bar is the raw gap; the solid bar reweights the base to the stacked group's setup-bar sizes, with its 95% interval. Where the solid bar is nearer zero, the gap shrinks after reweighting to the stacked group's bar sizes: that is attenuation, not proof that bar size caused the gap. A row marked conditional matches only part of the stacked group.</p>
   <div class="panel"><div class="chart tall"><canvas id="barsMatched"></canvas></div>
   <ul class="legend"><li style="--c:var(--spread)">raw difference</li><li style="--c:var(--stack)">R-matched difference</li></ul></div>
 </section>
@@ -208,7 +233,9 @@ td.neg { color: var(--loss); }
 <section>
   <h2>Read with these in mind</h2>
   <ul class="notes">
-    <li>A day whose range traded both the stop and the target counts as a stop; so does a stop level traded on the entry day even if it came before the break. One in four to one in three plain daily triggers did that.</li>
+    <li>A day whose range traded both the stop and the target counts as a stop; so does a stop level traded on the entry day even if it came before the break. Between 13.9% (outside break) and 32.2% (inside break) of plain daily triggers did that.</li>
+    <li>The curves place each trade's final return on its entry date; they are not an equity path.</li>
+    <li>Faded bars and table rows hold fewer than 30 valid trades at the horizon shown: counted, not read.</li>
     <li>Units on the same day across coins move together; the intervals are tighter than the truth.</li>
     <li>Survivors only (coins listed today), venue era only (each coin from its first traded day). No fees, funding, slippage or sizing. Nothing here is a rule.</li>
     <li>Record: analysis/domino/CHANCE_RECEIPT.md and BOOK_RECEIPT.md in the research repo.</li>
@@ -264,16 +291,20 @@ function baseOptions(yTitle, yMin, yMax) {
 
 function groupedBars(id, groups, series, yTitle, yMax) {
   // groups: [{label, cells: {key: bar}}]; series: [{key, color}]
+  // a cell under 30 valid trades is drawn faded (alpha 0x4d) and its tooltip is parenthesised, as the tables grey it
   const datasets = series.map((s) => ({
-    label: s.label, backgroundColor: css(s.color), borderRadius: 2, maxBarThickness: 44,
+    label: s.label, borderRadius: 2, maxBarThickness: 44,
+    backgroundColor: groups.map((g) => css(s.color) + (g.cells[s.key] && g.cells[s.key].small ? "4d" : "")),
     data: groups.map((g) => (g.cells[s.key] ? 100 * g.cells[s.key].p : null)),
     intervals: groups.map((g) => (g.cells[s.key] ? [100 * g.cells[s.key].lo, 100 * g.cells[s.key].hi] : null)),
     ns: groups.map((g) => (g.cells[s.key] ? g.cells[s.key].n : null)),
+    small: groups.map((g) => (g.cells[s.key] ? g.cells[s.key].small : false)),
   }));
   const opts = baseOptions(yTitle, 0, yMax);
   opts.plugins.tooltip.callbacks.label = (c) => {
     const ds = c.dataset; const iv = ds.intervals[c.dataIndex];
-    return `${ds.label}: ${c.parsed.y.toFixed(1)}% [${iv[0].toFixed(0)}, ${iv[1].toFixed(0)}], n ${ds.ns[c.dataIndex].toLocaleString()}`;
+    const txt = `${ds.label}: ${c.parsed.y.toFixed(1)}% [${iv[0].toFixed(0)}, ${iv[1].toFixed(0)}], valid n ${ds.ns[c.dataIndex].toLocaleString()}`;
+    return ds.small[c.dataIndex] ? `(${txt}; under 30 valid, counted not read)` : txt;
   };
   charts.push(new Chart(document.getElementById(id), { type: "bar", data: { labels: groups.map((g) => g.label), datasets }, options: opts }));
 }
@@ -300,7 +331,7 @@ function curves(id, legendId, lines, yTitle) {
 
 function matchedBars(id) {
   const rows = DATA.matched;
-  const opts = baseOptions("percentage points, stacked minus plain", undefined, undefined);
+  const opts = baseOptions("percentage points, stacked minus base", undefined, undefined);
   opts.indexAxis = "y";
   opts.scales = {
     y: { grid: { display: false }, ticks: { color: css("--muted"), font: { family: css("--font-body"), size: 11 }, autoSkip: false } },
@@ -312,18 +343,23 @@ function matchedBars(id) {
     afterDatasetsDraw(chart) {
       const ds = chart.data.datasets[1]; const meta = chart.getDatasetMeta(1); const { ctx } = chart;
       meta.data.forEach((bar, i) => {
+        if (rows[i].lo == null || rows[i].hi == null) return;  // unavailable: no interval to draw
         const x1 = chart.scales.x.getPixelForValue(100 * rows[i].lo), x2 = chart.scales.x.getPixelForValue(100 * rows[i].hi);
         ctx.save(); ctx.strokeStyle = css("--fg"); ctx.globalAlpha = 0.7; ctx.lineWidth = 1.2;
         ctx.beginPath(); ctx.moveTo(x1, bar.y); ctx.lineTo(x2, bar.y); ctx.moveTo(x1, bar.y - 4); ctx.lineTo(x1, bar.y + 4); ctx.moveTo(x2, bar.y - 4); ctx.lineTo(x2, bar.y + 4); ctx.stroke(); ctx.restore();
       });
     },
   };
-  opts.plugins.tooltip.callbacks.label = (c) => `${c.dataset.label}: ${c.parsed.x >= 0 ? "+" : ""}${c.parsed.x.toFixed(1)} pts, n stacked ${rows[c.dataIndex].n.toLocaleString()}`;
+  opts.plugins.tooltip.callbacks.label = (c) => {
+    const r = rows[c.dataIndex];
+    const cover = r.covered == null ? "" : `, covered ${(100 * r.covered).toFixed(0)}% (${r.n_effective.toLocaleString()} matched)`;
+    return `${c.dataset.label}: ${c.parsed.x >= 0 ? "+" : ""}${c.parsed.x.toFixed(1)} pts vs ${r.base}, valid n stacked ${r.n.toLocaleString()}${cover}`;
+  };
   charts.push(new Chart(document.getElementById(id), {
     type: "bar",
     data: { labels: rows.map((r) => r.label), datasets: [
       { label: "raw", data: rows.map((r) => 100 * r.raw), backgroundColor: css("--spread"), maxBarThickness: 14 },
-      { label: "R-matched", data: rows.map((r) => 100 * r.matched), backgroundColor: css("--stack"), maxBarThickness: 14 },
+      { label: "R-matched", data: rows.map((r) => (r.matched == null ? null : 100 * r.matched)), backgroundColor: css("--stack"), maxBarThickness: 14 },
     ] },
     options: opts, plugins: [hPlugin],
   }));
@@ -331,7 +367,7 @@ function matchedBars(id) {
 
 function table() {
   const tb = document.querySelector("#bookTable tbody");
-  tb.innerHTML = DATA.book.map((r) => `<tr><td>${r.setup}</td><td>${r.cls}</td><td class="num">${r.n.toLocaleString()}</td>
+  tb.innerHTML = DATA.book.map((r) => `<tr class="${r.small ? "small" : ""}"><td>${r.setup}</td><td>${r.cls}</td><td class="num">${r.n.toLocaleString()}</td>
     <td class="num ${r.avg < 0 ? "neg" : ""}">${r.avg >= 0 ? "+" : ""}${r.avg.toFixed(2)}%</td><td class="num">${pct(r.hit)}</td><td class="num">${pct(r.stop)}</td>
     <td class="num ${r.exp_r < 0 ? "neg" : ""}">${r.exp_r >= 0 ? "+" : ""}${r.exp_r.toFixed(3)}</td><td class="num ${r.total < 0 ? "neg" : ""}">${usd(r.total)}</td>
     <td class="num neg">${usd(r.dd)}</td><td class="num">${r.r.toFixed(2)}</td></tr>`).join("");
@@ -378,7 +414,9 @@ window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", dra
 
 def main() -> None:
     data = build_data()
-    html = TEMPLATE.replace("__ASOF__", data["as_of"]).replace("__DATA__", json.dumps(data))
+    html = TEMPLATE.replace("__ASOF__", data["as_of"]).replace(
+        "__DATA__", json.dumps(data, allow_nan=False)
+    )
     out = RESULTS / "chance_book_page.html"
     out.write_text(html, encoding="utf-8")
     print(f"wrote {out} ({len(html):,} bytes)")

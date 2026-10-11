@@ -13,13 +13,21 @@ a cut; it re-reads the units that analysis/domino/chance.py produces.
               on the stop, else marked to the close of the horizon's last bar (3 and 5 bars);
               per cell: trades, average / median % per trade, hit rate, expectancy in R, total and
               max drawdown on a 1,000-dollar-per-trade book (sum of equal-size trades by entry
-              date -- NOT an account balance), distinct dates; curves for a declared handful
+              date -- NOT an account balance), distinct dates; curves for a declared handful.
+              Drawdown is measured from a zero start: a book that opens by losing shows that
+              loss as drawdown.
+
+Close-out audit folds (docs/reviews/tvb37-close-codex-audit.md): F1 zero-seeded drawdown; F2
+R-matched coverage (unavailable on zero shared bins, `covered` and the effective count published,
+partial cover labelled conditional); F3 each horizon greyed on its OWN valid stacked count; F8
+strict JSON (non-finite values to null, the open top bin edge as r_to null + r_to_unbounded true).
 
 Everything here is arithmetic on counts. It is a presentation of the same chances, not a strategy.
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import math
 import sys
@@ -37,9 +45,11 @@ from analysis.domino.chance import (
     MIN_CELL,
     PATTERN_TFS,
     STACKED,
+    cached_universe,
     coin_units,
     flag_mask,
     horizon_ends,
+    parse_as_of,
     venue_era,
 )
 
@@ -119,7 +129,9 @@ def book_cell(df: pd.DataFrame, n: int) -> tuple[dict, pd.Series | None]:
     k = int((v[f"out{n}"] == "one_r").sum())
     by_day = (ret.groupby(v["date"]).sum().sort_index() * UNIT_USD / 100.0).astype(float)
     cum = by_day.cumsum()
-    dd = float((cum - cum.cummax()).min())
+    # the book starts at zero: the high-water mark is never below it (close-out audit F1)
+    peak = cum.cummax().clip(lower=0.0)
+    dd = float(min(0.0, (cum - peak).min()))
     return {
         "n": m,
         "dates": int(v["date"].nunique()),
@@ -200,9 +212,21 @@ def table_book(df: pd.DataFrame, tf: str, title: str, levels: tuple = LEVELS) ->
 # ----------------------------------------------------------------------------- R-matched
 
 
+def base_name(tf: str) -> str:
+    """The comparison base of the R-matched check: PLAIN for daily units, the rest otherwise."""
+    return "plain" if tf == "D" else "within1 + spread"
+
+
 def r_matched(df: pd.DataFrame, tf: str, kind: str, level: str, cls: str, n: int) -> dict:
     """Stacked-class minus base one-R chance at horizon n, raw and reweighted to the stacked group's
-    setup-bar sizes (five bins at the base's R quintiles). Returns the bins too (prereg A3)."""
+    setup-bar sizes (five bins at the base's R quintiles). Returns the bins too (prereg A3).
+
+    `covered` = the share of stacked units sitting in a bin that also holds base units, and
+    `n_effective` = their count (close-out audit F2). The matched difference is taken over the
+    covered units only: below full cover it is CONDITIONAL on them (`conditional` true); with no
+    covered unit it is unavailable (`available` false, matched and interval NaN), never a
+    division by zero. n_stacked / n_base are VALID counts at horizon n (censored excluded).
+    """
     sub = df[(df["tf"] == tf) & (df["kind"] == kind) & flag_mask(df, level)]
     sub = sub[sub[f"out{n}"] != "censored"]
     base = sub[sub["cls"] == "plain"] if tf == "D" else sub[~sub["cls"].isin(STACKED)]
@@ -212,13 +236,20 @@ def r_matched(df: pd.DataFrame, tf: str, kind: str, level: str, cls: str, n: int
         "kind": kind,
         "flag": level,
         "cls": cls,
+        "base": base_name(tf),
         "n_stacked": int(len(stk)),
         "n_base": int(len(base)),
     }
+    unavailable = {
+        "matched": math.nan,
+        "lo": math.nan,
+        "hi": math.nan,
+        "available": False,
+        "n_effective": 0,
+        "conditional": False,
+    }
     if len(base) < MIN_CELL or len(stk) == 0:
-        out.update(
-            {"raw": math.nan, "matched": math.nan, "lo": math.nan, "hi": math.nan, "bins": []}
-        )
+        out.update({"raw": math.nan, "bins": [], "covered": math.nan} | unavailable)
         return out
     edges = base["r_pct"].quantile([0.2, 0.4, 0.6, 0.8]).to_numpy()
     b_bin = np.searchsorted(edges, base["r_pct"].to_numpy(), side="right")
@@ -236,12 +267,13 @@ def r_matched(df: pd.DataFrame, tf: str, kind: str, level: str, cls: str, n: int
         ps = float((sb[f"out{n}"] == "one_r").mean()) if ns else math.nan
         pb = float((bb[f"out{n}"] == "one_r").mean()) if nb else math.nan
         lo_edge = float(edges[b - 1]) if b > 0 else 0.0
-        hi_edge = float(edges[b]) if b < 4 else math.inf
+        hi_edge = float(edges[b]) if b < 4 else None  # the top bin is open-ended (audit F8)
         bins.append(
             {
                 "bin": b,
                 "r_from": lo_edge,
                 "r_to": hi_edge,
+                "r_to_unbounded": b == 4,
                 "n_stacked": ns,
                 "n_base": nb,
                 "p_stacked": ps,
@@ -254,7 +286,10 @@ def r_matched(df: pd.DataFrame, tf: str, kind: str, level: str, cls: str, n: int
             matched += w * (ps - pb)
             var += w * w * (ps * (1 - ps) / ns + pb * (1 - pb) / nb)
             used += ns
-    if used < len(stk):  # renormalise if a bin had no base units
+    if used == 0:  # no stacked unit shares a bar-size bin with the base: nothing to match on
+        out.update({"raw": p_s_all - p_b_all, "bins": bins, "covered": 0.0} | unavailable)
+        return out
+    if used < len(stk):  # renormalise over the covered units; the estimate is then conditional
         matched *= len(stk) / used
         var *= (len(stk) / used) ** 2
     se = math.sqrt(var)
@@ -265,10 +300,23 @@ def r_matched(df: pd.DataFrame, tf: str, kind: str, level: str, cls: str, n: int
             "lo": matched - 1.96 * se,
             "hi": matched + 1.96 * se,
             "bins": bins,
+            "available": True,
             "covered": used / len(stk),
+            "n_effective": int(used),
+            "conditional": used < len(stk),
         }
     )
     return out
+
+
+def matched_txt(r: dict) -> str:
+    """The matched difference with its interval, or why there is none; conditional when partial."""
+    if not r.get("available"):
+        return "unavailable (no shared bar-size bin)" if r.get("covered") == 0.0 else "-"
+    txt = f"{_pct(r['matched'], True)} [{100 * r['lo']:+.0f}, {100 * r['hi']:+.0f}]"
+    if r["conditional"]:
+        txt += f" conditional on {100 * r['covered']:.0f}% of stacked"
+    return txt
 
 
 def table_r_matched(df: pd.DataFrame) -> list[str]:
@@ -277,9 +325,10 @@ def table_r_matched(df: pd.DataFrame) -> list[str]:
         "",
     ]
     lines.append(
-        "| timeframe | setup | flag | stacked class | n stacked | n base | raw diff by 3 | matched by 3 [95%] | raw diff by 5 | matched by 5 [95%] |"
+        "| timeframe | setup | flag | stacked class | base | valid stacked by 3 / 5 | valid base by 3 / 5 | "
+        "covered by 3 / 5 | raw diff by 3 | matched by 3 [95%] | raw diff by 5 | matched by 5 [95%] |"
     )
-    lines.append("|---|---|---|---|---|---|---|---|---|---|")
+    lines.append("|---|---|---|---|---|---|---|---|---|---|---|---|")
     results = []
     for tf in PATTERN_TFS:
         for kind in KINDS:
@@ -290,15 +339,25 @@ def table_r_matched(df: pd.DataFrame) -> list[str]:
                     if r3["n_stacked"] == 0 or math.isnan(r3["raw"]):
                         continue
                     results.append({"h3": r3, "h5": r5})
-                    g = lambda t: _grey(r3["n_stacked"], t)  # noqa: E731
+                    # each horizon is greyed on ITS OWN valid stacked count (close-out audit F3)
+                    g3 = lambda t: _grey(r3["n_stacked"], t)  # noqa: E731
+                    g5 = lambda t: _grey(r5["n_stacked"], t)  # noqa: E731
                     lines.append(
-                        f"| {tf} | {kind} | {level} | {cls} | {r3['n_stacked']:,} | {r3['n_base']:,} | "
-                        f"{g(_pct(r3['raw'], True))} | {g(f'{_pct(r3["matched"], True)} [{100 * r3["lo"]:+.0f}, {100 * r3["hi"]:+.0f}]')} | "
-                        f"{g(_pct(r5['raw'], True))} | {g(f'{_pct(r5["matched"], True)} [{100 * r5["lo"]:+.0f}, {100 * r5["hi"]:+.0f}]')} |"
+                        f"| {tf} | {kind} | {level} | {cls} | {r3['base']} | "
+                        f"{r3['n_stacked']:,} / {r5['n_stacked']:,} | {r3['n_base']:,} / {r5['n_base']:,} | "
+                        f"{_pct(r3['covered'])} / {_pct(r5['covered'])} | "
+                        f"{g3(_pct(r3['raw'], True))} | {g3(matched_txt(r3))} | "
+                        f"{g5(_pct(r5['raw'], True))} | {g5(matched_txt(r5))} |"
                     )
     lines.append("")
     lines.append(
-        "Base = PLAIN for daily units, WITHIN 1% + SPREAD for weekly and monthly. Bins = the base's R quintiles; the matched difference weights each bin's difference by the stacked group's share in that bin. Cells in parentheses: fewer than 30 stacked units."
+        "Base = PLAIN for daily units, WITHIN 1% + SPREAD for weekly and monthly. Bins = the base's R "
+        "quintiles; the matched difference weights each bin's difference by the stacked group's share "
+        "in that bin. Valid = censored units excluded at that horizon. Covered = the share of stacked "
+        "units in a bin that also holds base units; below 100% the matched figure is conditional on "
+        "those units, at 0% it is unavailable. Cells in parentheses: fewer than 30 valid stacked units "
+        "at THAT horizon. A shrinking matched gap is attenuation after reweighting to the stacked "
+        "group's bar sizes, not proof that bar size caused the raw gap."
     )
     lines.append("")
     return lines, results
@@ -311,7 +370,7 @@ def table_bins(r: dict, title: str) -> list[str]:
     )
     lines.append("|---|---|---|---|---|---|")
     for b in r["bins"]:
-        hi = "and up" if math.isinf(b["r_to"]) else f"to {b['r_to']:.2f}"
+        hi = "and up" if b["r_to_unbounded"] else f"to {b['r_to']:.2f}"
         lines.append(
             f"| {b['r_from']:.2f} {hi} | {b['n_stacked']:,} | {b['n_base']:,} | {_pct(b['p_stacked'])} | {_pct(b['p_base'])} | {_pct(b['diff'], True)} |"
         )
@@ -333,11 +392,36 @@ def _curve_points(cum: pd.Series, max_points: int = 300) -> list:
     return pts
 
 
-def main() -> None:
+def strict_json(x: object) -> object:
+    """Non-finite floats to null and numpy scalars to Python, recursively (close-out audit F8)."""
+    if isinstance(x, dict):
+        return {k: strict_json(v) for k, v in x.items()}
+    if isinstance(x, (list, tuple)):
+        return [strict_json(v) for v in x]
+    if isinstance(x, np.generic):
+        x = x.item()
+    if isinstance(x, float) and not math.isfinite(x):
+        return None
+    return x
+
+
+def main(argv: list[str] | None = None) -> None:
+    ap = argparse.ArgumentParser(description="TVB-37 book view and R-matched check")
+    ap.add_argument(
+        "--as-of",
+        help="YYYY-MM-DD: rerun OFFLINE on the cached candle snapshot of that date (no venue call); "
+        "default = today with the live universe and a fresh fetch",
+    )
+    args = ap.parse_args(argv)
     RESULTS.mkdir(parents=True, exist_ok=True)
-    as_of = day_start(int(time.time() * 1000))
-    uni = universe()
-    print(f"universe: {len(uni)} live perps", flush=True)
+    if args.as_of:
+        as_of = parse_as_of(args.as_of)
+        uni = cached_universe(as_of)
+        print(f"universe: {len(uni)} cached perps (offline, as of {args.as_of})", flush=True)
+    else:
+        as_of = day_start(int(time.time() * 1000))
+        uni = universe()
+        print(f"universe: {len(uni)} live perps", flush=True)
     rows: list[dict] = []
     excluded = []
     for n, u in enumerate(uni, 1):
@@ -416,12 +500,8 @@ def main() -> None:
             for r in rm_results
         ],
     }
-    json.dump(
-        out,
-        open(RESULTS / "book.json", "w"),
-        indent=1,
-        default=lambda x: None if isinstance(x, float) and math.isnan(x) else x,
-    )
+    with open(RESULTS / "book.json", "w") as fh:
+        json.dump(strict_json(out), fh, indent=1, allow_nan=False)
     print("\n".join(md[:40]))
     print(f"... tables written to {RESULTS / 'book_tables.md'}")
 

@@ -61,19 +61,23 @@ async function setSymbol(sym) {
 async function setResolution(tf) {
   await evaluate(`(function(){ ${CHART}.setResolution(${safeString(tf)}, {}); })()`);
 }
+const identityOk = (r, sym, tf) => !!r && !r.error && r.interval === tf && (r.pro_symbol === sym || r.symbol === sym);
 // Wait until the series reports the requested symbol/interval and the bar
-// count stops changing (data settled), or give up after ~20 s.
+// count stops changing (data settled). A timeout (~20 s) is a HARD failure:
+// it returns an explicit error record, never the last dump, so a stale chart
+// can never be written under the requested name (Codex TVB-35 audit F9).
 async function settle(sym, tf) {
-  let lastCount = -1, stable = 0;
+  let lastCount = -1, stable = 0, r = null;
   for (let i = 0; i < 40; i++) {
     await sleep(500);
-    const r = await evaluate(DUMP);
-    if (r && !r.error && r.interval === tf && (r.pro_symbol === sym || r.symbol === sym)) {
+    r = await evaluate(DUMP);
+    if (identityOk(r, sym, tf)) {
       if (r.count === lastCount && r.count > 0) { stable += 1; if (stable >= 3) return r; }
       else { stable = 0; lastCount = r.count; }
     }
   }
-  return evaluate(DUMP);
+  const seen = r && !r.error ? `${r.pro_symbol || r.symbol}/${r.interval}` : (r && r.error) || 'no dump';
+  return { error: `settle timeout: wanted ${sym}/${tf}, last seen ${seen}` };
 }
 
 const iso = t => new Date(t * 1000).toISOString();
@@ -86,7 +90,13 @@ try {
     for (const tf of TFS) {
       await setResolution(tf);
       const r = await settle(sym, tf);
-      if (!r || r.error) { console.error('FAILED', key, tf, r && r.error); manifest.push({ key, sym, tf, error: r && r.error }); continue; }
+      if (!r || r.error) { console.error('FAILED', key, tf, r && r.error); manifest.push({ key, sym, tf, error: (r && r.error) || 'no dump' }); continue; }
+      // Re-check identity before writing: a mismatched dump is a failed receipt
+      // entry and no file is written under the requested name.
+      if (!identityOk(r, sym, tf)) {
+        const error = `identity mismatch: wanted ${sym}/${tf}, got ${r.pro_symbol || r.symbol}/${r.interval}`;
+        console.error('FAILED', key, tf, error); manifest.push({ key, sym, tf, error }); continue;
+      }
       r.firstISO = r.bars.length ? iso(r.bars[0][0]) : null;
       r.lastISO = r.bars.length ? iso(r.bars[r.bars.length - 1][0]) : null;
       r.requested = sym; r.harvested_at = new Date().toISOString();
