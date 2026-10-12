@@ -263,3 +263,110 @@ the receipt lists every number that moved.
 - **Noted, not changed:** the entry day's adverse extreme is counted in MAE although a daily bar
   cannot say whether it came before the break; the tail is therefore a conservative daily-bar
   bound (receipt limitation added).
+
+## Amendment A2 (2026-10-12, TVB-39, declared BEFORE code): the lead's five candidates, on the owner's word
+
+The owner: "You may run your 'would test next'" (2026-10-12). Each candidate is ONE change to
+the headline book on the SAME units and is reported beside the headline as a declared variant.
+None is a tuning pass; nothing is promoted; the owner reads the numbers themselves. Plain-English
+restatements first, then the definitions, then the readings declared before the run.
+
+**In trader terms.** (1) Only take the trade when the week is already on your side at the
+break. (2) Manage the trade on the hourly instead of waiting for the daily close: get out on the
+first red hour while the day is red (mirror for shorts). (3) Take half off at the first target
+and let the rest ride to the exit. (4) Charge the venue's real taker fee on both legs of every
+book. (5) Read "against" as "under water": the day closed through your entry price, not merely
+a red candle.
+
+### A2.1 The week's side at entry, as a condition
+
+- Already recorded per unit as `w_support`: WITH when the entry price is on the week's side of
+  the Monday 00:00 UTC open (long above it, short below it), AGAINST otherwise. Known at the
+  break; no engine change.
+- The condition's book = every headline book (A, B, C, D, D5, reference) on the WITH rows; the
+  AGAINST rows are printed beside it. Per kind, plain daily, the book cohort (a T1 and a
+  reference return).
+
+### A2.2 The hourly exit clock
+
+- Data: the venue's closed 1h candles, cached stamped like the daily (`*_1h_<stamp>.json`; the
+  venue serves at most the most recent 5000 hours, about 208 days), normalised the same way
+  (hour starts only, the forming hour cut, the last copy of a duplicate wins).
+- Rows: units whose entry day lies inside the hourly window and whose entry hour exists; a unit
+  with no hour that reached the level on the entry day is dropped and counted. The hourly arm is
+  therefore a SUBSET of the headline's rows; every comparison is paired on that subset only.
+- Entry hour: the first hour of the entry day whose high reached the level (long) or whose low
+  reached it (short); the fill stays L.
+- Exit: the first hour, the entry hour included, whose close is against its OWN open (strict)
+  AND against the DAY's open (strict; the daily bar's open of that UTC day). The clock steps
+  down one rung as a whole: the headline tests the day and its parent the week, the hourly tests
+  the hour and its parent the day. The week is not tested. Fill = that hour's close.
+- Targets: the same prices as the headline (T1, one R); a target fills on the first hour that
+  touched it, the entry hour or later (equality fills). A touch EARLIER on the entry day, before
+  the entry hour, does not fill, which the headline's daily bar could not distinguish. The
+  hourly books therefore differ from the daily books by the clock AND by this ordering; the
+  receipt says so.
+- Cap: the last hour of the headline's twentieth day after entry (status OPEN, marked at that
+  hour's close); CENSORED when the hourly data ends first.
+- Books on the hourly clock: C_h (exit only), A_h (all out at T1), D_h (one R or the exit),
+  each paired with C, A, D on the same rows. Recorded per row: the entry hour, the exit hour,
+  hours held, the T1 touch hour.
+
+### A2.3 Half at T1 (book E)
+
+- E = half the position filled at T1 when T1 is touched on or before the exit day (the
+  headline's A fill), the other half at the exit-only fill (C): E = (A + C) / 2 when A hit its
+  target, else C. On the T1 cohort, from the recorded columns; no engine change.
+
+### A2.4 Fees at the venue's taker rate
+
+- Per fill, in percent of L: main dex 0.0432, xyz dex 0.0125 (TVB-2's measurement by the
+  venue's own `crossed` flag; the published base-tier figure for native crypto, the
+  notional-weighted figure for xyz). Every book is two fills (one entry, one exit; A and D fill
+  their target or the exit, never both): net = gross - 2 x taker. Applied to every line,
+  including the reference and book E; the paired stop-swap difference is fee-neutral by
+  construction (both sides pay the same), so only the sign of each line is at stake.
+
+### A2.5 "Against" read as under water
+
+- Exit at the first daily close THROUGH the entry price (long: close under L; short: close over
+  L; equality is not through) AND the week against at that close (the headline's second test,
+  unchanged: close under the Monday open for a long, over it for a short). The entry day can
+  exit. Fill = that close. The candle's colour is not tested.
+- Books C_u, A_u, D_u, each paired with C, A, D on the same rows; days held and the adverse
+  travel to the exit recorded (the tail moves when the exit waits).
+
+### Readings declared before the run
+
+- **R1 (week side).** WITH beats AGAINST on books A and C for every plain daily kind (the T1
+  reach gap seen in the splits, 39 vs 15 percent on the continuation, says so). If AGAINST wins
+  anywhere, the split was outcome noise, not a condition.
+- **R2 (hourly clock).** No prediction on the sign. Declared expectation: the hourly exits
+  sooner (fewer hours held than the daily's days x 24), the exit-only book loses less per losing
+  trade, and fewer trades reach T1 before the exit. Read C_h - C and A_h - A paired.
+- **R3 (half at T1).** E sits between A and C on every kind.
+- **R4 (fees).** Every plain daily book line within one round trip of zero gross is read as
+  flat net; the lines that stay positive net are listed, nothing else is claimed.
+- **R5 (under water).** The lead's call: the under-water exit holds longer, reaches T1 more
+  often, and loses MORE on the exit-only book (C_u < C) with a fatter tail (more trades past one
+  R against). If C_u > C the candle-colour exit was too quick and the lead was wrong.
+
+### Bug tests (hand vectors, before the run)
+
+- v16 under water: a long whose first day closes red but above L does not exit; a day that
+  opened under L and closed green but under L, with the week against, exits at that close; the
+  colour clock on the same bars gives a different day.
+- v17 hourly: the entry hour is the first hour whose high reaches L; T1 touched in an EARLIER
+  hour of the entry day does not fill; a red hour while the day is green does not exit; the first
+  red hour with the day red exits at that hour's close; the hourly cap marks at the last hour of
+  the twentieth day; a coin with no hourly bars yields no hourly rows and the headline rows are
+  unchanged.
+- v18 arithmetic: book E and the fee arithmetic on fixed rows, main and xyz rates.
+- v19 the with / against condition counts on a fixture.
+
+### Not in A2
+
+No hourly ENTRY (the entry stays the daily level, the hourly only times the exit). No hourly
+clock on weekly or monthly units beyond what the subset holds (reported only for plain daily).
+No funding, slippage or sizing. No combination of candidates (each is one change; a package is a
+later declaration).
