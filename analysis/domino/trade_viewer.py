@@ -7,7 +7,7 @@ day, the targets, the touch days and the exit day are read off the row as the en
 
     uv run python -m analysis.domino.trade_viewer build  --as-of 2026-10-10
     uv run python -m analysis.domino.trade_viewer hourly --as-of 2026-10-10 BTC ETH   (or: all)
-    uv run python -m analysis.domino.trade_viewer serve  [--port 8765]
+    uv run python -m analysis.domino.trade_viewer serve  [--port 8765] [--host 0.0.0.0] [--no-open]
 
 `build` writes one compact JSON per coin into `viewer/data/` (gitignored, regenerable): the
 closed daily bars exactly as the census normalised them, any cached hourly bars, and that
@@ -269,15 +269,21 @@ class _Quiet(http.server.SimpleHTTPRequestHandler):
         pass
 
 
-def serve(port: int) -> None:
+def serve(port: int, host: str = "127.0.0.1", open_browser: bool = True) -> None:
+    """Host viewer/ over plain HTTP. `host` 127.0.0.1 = this machine only (the default); a
+    Tailscale address or 0.0.0.0 lets a laptop on the tailnet browse it; an SSH tunnel
+    (`ssh -L 8765:127.0.0.1:8765 ...`) needs no host change. `open_browser` False for SSH
+    shells, where opening a browser on the desktop is noise."""
     if not (DATA / "index.json").exists():
         sys.exit("no viewer data: run `build --as-of YYYY-MM-DD` first")
     ensure_vendor()
     handler = partial(_Quiet, directory=str(VIEWER))
-    httpd = http.server.ThreadingHTTPServer(("127.0.0.1", port), handler)
-    url = f"http://127.0.0.1:{port}/"
+    httpd = http.server.ThreadingHTTPServer((host, port), handler)
+    shown = "127.0.0.1" if host in ("0.0.0.0", "") else host
+    url = f"http://{shown}:{port}/"
     print(f"trade viewer at {url} (Ctrl+C stops it)")
-    webbrowser.open(url)
+    if open_browser:
+        webbrowser.open(url)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
@@ -296,13 +302,15 @@ def main(argv: list[str] | None = None) -> None:
     h.add_argument("coins", nargs="+")
     s = sub.add_parser("serve", help="host viewer/ on localhost and open the browser")
     s.add_argument("--port", type=int, default=8765)
+    s.add_argument("--host", default="127.0.0.1", help="bind address (0.0.0.0 = every interface)")
+    s.add_argument("--no-open", action="store_true", help="do not open a browser (SSH shells)")
     args = ap.parse_args(argv)
     if args.cmd == "build":
         build(parse_as_of(args.as_of))
     elif args.cmd == "hourly":
         hourly(parse_as_of(args.as_of), args.coins)
     else:
-        serve(args.port)
+        serve(args.port, args.host, not args.no_open)
 
 
 if __name__ == "__main__":

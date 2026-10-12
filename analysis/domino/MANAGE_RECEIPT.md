@@ -363,6 +363,7 @@ engine wrote them, so a chart that disagrees with a row is evidence against the 
     uv run python -m analysis.domino.trade_viewer hourly --as-of 2026-10-10 all   # once, ~9 min
     uv run python -m analysis.domino.trade_viewer build  --as-of 2026-10-10       # ~1 min
     uv run python -m analysis.domino.trade_viewer serve                            # opens the browser
+    uv run python -m analysis.domino.trade_viewer serve --no-open                  # from an SSH shell; browse through a port forward
 
 What it shows: one coin at a time (or every trade entered on one day, across coins); 1H / 1D /
 1W / 1M toggles (weeks and months bucketed by the census's calendar rules; the venue serves
