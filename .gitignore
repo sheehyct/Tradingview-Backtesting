@@ -111,3 +111,6 @@ analysis/domino/results/book_run.log
 analysis/domino/results/chance_book_page.html
 analysis/domino/results/manage_trades.csv.gz
 analysis/domino/results/manage_run.log
+
+# TVB-39 trade viewer: vendored chart library (re-fetched by `trade_viewer build`) and its data
+analysis/domino/viewer/vendor/

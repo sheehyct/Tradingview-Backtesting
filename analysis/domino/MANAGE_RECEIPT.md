@@ -289,6 +289,33 @@ sides: fewer winners thrown away, and losers that average 0.6 to 1.0 R instead o
 - The ladder is the weekly and monthly levels only, fixed at entry; no daily pivots, no
   quarter, no rolling.
 
+## The trade viewer (TVB-39): every row on its own candles
+
+Visual verification against TradingView was the slowest step of every earlier round and the
+step that caught the errors the tables could not. The viewer puts the engine's rows on the raw
+candles locally, with no TradingView and no re-run of any trade logic: the entry day, the
+targets, the touch days and the exit day are read off `manage_trades.csv.gz` exactly as the
+engine wrote them, so a chart that disagrees with a row is evidence against the engine.
+
+    uv run python -m analysis.domino.trade_viewer hourly --as-of 2026-10-10 all   # once, ~9 min
+    uv run python -m analysis.domino.trade_viewer build  --as-of 2026-10-10       # ~1 min
+    uv run python -m analysis.domino.trade_viewer serve                            # opens the browser
+
+What it shows: one coin at a time (or every trade entered on one day, across coins); 1H / 1D /
+1W / 1M toggles (weeks and months bucketed by the census's calendar rules; the venue serves
+about 208 days of hourly bars, so older trades say so on the hourly view); candles not in a
+trade grey, the setup bar amber, the bar before it dark amber, the trade's own candles green or
+red by their close; lines for the entry level ("Position opened"), the exit close ("Position
+closed"), T1 / T2 / T3 with their sources, one R, the chance book's setup-bar stop and the
+measured move; markers on the first bar that touched each price (on the hourly view, the hour
+inside the day); the exit day's test spelled out (close versus the day's open and the week's
+open, with the colours); every book's fill for the row; and a strip of trade cards (filters by
+unit timeframe, kind, side, liquid, has-T1; the book and an equal size in dollars for the
+printed P/L). Arrow keys step through trades. The address bar carries the trade
+(`#coin=BTC&date=2025-06-17&tf=D&dir=down&view=1D`), so a trade can be bookmarked or pasted
+into a note. The worked example above is that address. The viewer's data folder and the
+vendored chart library are regenerable and stay out of the repo.
+
 ## Provenance
 
 288 coins, 179,498 units (D 153,516, W 21,520, M 4,462): product 2's 179,913 less 415 daily
