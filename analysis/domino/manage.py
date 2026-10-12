@@ -52,15 +52,20 @@ from analysis.domino.book import (
     strict_json,
 )
 from analysis.domino.census import (
+    DAY,
+    HOUR,
     _context,
     _dec,
     aggregate,
+    cached_hourly,
     cached_universe,
     day_events,
     day_start,
     fetch_daily,
+    fetch_hourly,
     liquid,
     normalize,
+    normalize_hourly,
     parse_as_of,
     universe,
 )
@@ -105,6 +110,23 @@ CURVES = (
     ("W", "continuation", "all", "rest"),
 )
 SPLITS = ("direction", "year", "liquid", "m_support", "w_support", "stop0")
+# amendment A2.4: the venue's taker fee per fill, percent of notional (TVB-2, by the `crossed` flag)
+TAKER = {"main": 0.0432, "xyz": 0.0125}
+BOOK_RET = {
+    "A": "ret_A",
+    "B": "ret_B",
+    "C": "ret_C",
+    "D": "ret_D",
+    "D5": "ret_D5",
+    "ref": "ret_ref",
+}
+CAND_LABEL = {
+    "week": "A2.1 the week's side at entry as a condition",
+    "hourly": "A2.2 the hourly exit clock (hour red AND day red; entry stays the daily level)",
+    "half": "A2.3 half at T1, the rest on the exit (book E)",
+    "fees": "A2.4 the venue's taker fee on both legs",
+    "under": "A2.5 'against' read as under water (close through the entry price AND the week against)",
+}
 
 
 # ----------------------------------------------------------------------------- mechanics
@@ -261,7 +283,7 @@ def walk(
     fav: list[float] = []
     adv: list[float] = []
     run_f = run_a = 0.0
-    exit_d = exit_o = None
+    exit_d = exit_o = exit_u = None
     for j in range(i, last + 1):
         bar = daily[j]
         bh, bl = _dec(bar["h"]), _dec(bar["l"])
@@ -288,6 +310,14 @@ def walk(
                 and against(bar["c"], wk["open"], direction)
             ):
                 exit_d = j
+        if exit_u is None:  # amendment A2.5: through the entry price AND the week against
+            wk = ctx["W"].get(j)
+            if (
+                wk is not None
+                and against(bar["c"], level, direction)
+                and against(bar["c"], wk["open"], direction)
+            ):
+                exit_u = j
         if own is not None and exit_o is None and j in own["close_days"]:
             ok = against(bar["c"], own["close_days"][j], direction)
             if ok and own["confirm"] is not None:
@@ -295,7 +325,14 @@ def walk(
             if ok:
                 exit_o = j
     _ = lv
-    return {"touch": touch, "fav": fav, "adv": adv, "exit_d": exit_d, "exit_o": exit_o}
+    return {
+        "touch": touch,
+        "fav": fav,
+        "adv": adv,
+        "exit_d": exit_d,
+        "exit_o": exit_o,
+        "exit_u": exit_u,
+    }
 
 
 def settle(
@@ -309,7 +346,7 @@ def settle(
 ) -> dict:
     """Status and fills at one cap under one clock: exit / open / censored, the end day, the
     close the exit-only book fills at, travel through the end, days held."""
-    exit_j = w["exit_d"] if clock == "daily" else w["exit_o"]
+    exit_j = {"daily": w["exit_d"], "own": w["exit_o"], "under": w.get("exit_u")}[clock]
     if cap_end is None:
         if exit_j is None:
             return {"status": "censored"}
@@ -355,15 +392,112 @@ def long_cap_end(tf: str, i: int, daily: list[dict], buckets: dict, bucket_of: d
     return bl[k]["days"][-1] if k is not None and k < len(bl) and bl[k]["complete"] else None
 
 
+def hours_by_day(hourly: list[dict]) -> dict[int, list[int]]:
+    """Day start (ms) -> the indices of that day's cached hours, ascending."""
+    out: dict[int, list[int]] = {}
+    for k, b in enumerate(hourly):
+        out.setdefault(b["t"] - b["t"] % DAY, []).append(k)
+    return out
+
+
+def walk_hourly(
+    hourly: list[dict],
+    by_day: dict[int, list[int]],
+    daily: list[dict],
+    i: int,
+    direction: str,
+    level: float,
+    prices: dict,
+    cap_end: int | None,
+) -> dict | None:
+    """Amendment A2.2: the hourly exit clock. None when the entry day has no cached hours or no
+    hour reached the level (the caller counts which). Otherwise the entry hour (the first hour of
+    the entry day whose high / low reached L), the first hour at or after it that closed against
+    its own open AND the day's open (fill = that close), the first touch hour of every named
+    price from the entry hour on, and the status: exit / open (marked at the last hour of the cap
+    day) / censored (the hourly data ends before the cap day's last hour)."""
+    hs = by_day.get(daily[i]["t"])
+    if not hs:
+        return None
+    lv = _dec(level)
+    entry = None
+    for h in hs:
+        b = hourly[h]
+        if (direction == "up" and _dec(b["h"]) >= lv) or (
+            direction == "down" and _dec(b["l"]) <= lv
+        ):
+            entry = h
+            break
+    if entry is None:
+        return {"status": "no_entry_hour"}
+    last_h = None
+    if cap_end is not None:
+        cap_hs = by_day.get(daily[cap_end]["t"])
+        if cap_hs and hourly[cap_hs[-1]]["t"] == daily[cap_end]["t"] + 23 * HOUR:
+            last_h = cap_hs[-1]
+    day_idx = {d["t"]: k for k, d in enumerate(daily)}
+    tgt = {
+        k: (p if isinstance(p, Decimal) else _dec(p)) for k, p in prices.items() if p is not None
+    }
+    touch: dict[str, int | None] = dict.fromkeys(prices, None)
+    exit_h = None
+    stop = last_h if last_h is not None else len(hourly) - 1
+    for h in range(entry, stop + 1):
+        b = hourly[h]
+        bh, bl = _dec(b["h"]), _dec(b["l"])
+        for k, p in tgt.items():
+            if touch[k] is None and (bh >= p if direction == "up" else bl <= p):
+                touch[k] = h
+        di = day_idx.get(b["t"] - b["t"] % DAY)
+        if (
+            di is not None
+            and against(b["c"], b["o"], direction)
+            and against(b["c"], daily[di]["o"], direction)
+        ):
+            exit_h = h
+            break
+    if exit_h is not None:
+        status, end = "exit", exit_h
+    elif last_h is not None:
+        status, end = "open", last_h
+    else:
+        return {"status": "censored", "entry": entry}
+    sign = 1.0 if direction == "up" else -1.0
+    close = hourly[end]["c"]
+    return {
+        "status": status,
+        "entry": entry,
+        "entry_hour": (hourly[entry]["t"] - daily[i]["t"]) // HOUR,
+        "end": end,
+        "hours": end - entry,
+        "ret_c": sign * (close - level) / level * 100.0,
+        "touch": touch,
+    }
+
+
+def hourly_fill(wh: dict, key: str, price, direction: str, level: float) -> tuple[float, bool]:
+    """A book's fill on the hourly clock: the target when touched at or before the exit hour,
+    else the exit hour's close."""
+    h = wh["touch"].get(key)
+    if price is not None and h is not None and h <= wh["end"]:
+        sign = 1.0 if direction == "up" else -1.0
+        return sign * (float(price) - level) / level * 100.0, True
+    return wh["ret_c"], False
+
+
 # ----------------------------------------------------------------------------- units per coin
 
 
-def coin_manage_rows(meta: dict, daily: list[dict]) -> tuple[list[dict], Counter]:
-    """The chance units of one coin with the management book's targets, exits and fills."""
+def coin_manage_rows(
+    meta: dict, daily: list[dict], hourly: list[dict] | None = None
+) -> tuple[list[dict], Counter]:
+    """The chance units of one coin with the management book's targets, exits and fills.
+    `hourly`: the coin's closed hourly bars for amendment A2.2 (None or [] = no hourly arm)."""
     counts: Counter = Counter()
     units = coin_book_rows(meta, daily)
     if not units:
         return [], counts
+    by_day = hours_by_day(hourly) if hourly else {}
     buckets = {tf: aggregate(daily, tf) for tf in ("W", "M", "Q")}
     ctx = _context(daily, buckets)
     bucket_of = {
@@ -484,6 +618,43 @@ def coin_manage_rows(meta: dict, daily: list[dict]) -> tuple[list[dict], Counter
             row["ret_A"], row["hit_A"] = book_fill(s, w, "t1", tg["t1"], direction, level)
             row["ret_B"], row["hit_B"] = book_fill(s, w, "t2", tg["t2"], direction, level)
             row["ret_D"], row["hit_D"] = book_fill(s, w, "one_r", one_r, direction, level)
+            # amendment A2.5: the under-water exit on the same walk, same cap
+            su = settle(w, daily, i, direction, level, cap_end, "under")
+            row["status_u"] = su["status"]
+            if su["status"] != "censored":
+                row["ret_C_u"] = su["ret_c"]
+                row["days_u"] = su["days"]
+                row["exit_k_u"] = su["days"] if su["status"] == "exit" else None
+                row["mae_u"] = su["mae"]
+                row["ret_A_u"], row["hit_A_u"] = book_fill(su, w, "t1", tg["t1"], direction, level)
+                row["ret_D_u"], row["hit_D_u"] = book_fill(su, w, "one_r", one_r, direction, level)
+            # amendment A2.2: the hourly exit clock on the hourly-window subset
+            row["status_h"] = None
+            if by_day:
+                wh = walk_hourly(hourly, by_day, daily, i, direction, level, prices, cap_end)
+                if wh is None:
+                    counts["hourly_outside_window"] += 1
+                elif wh["status"] == "no_entry_hour":
+                    counts["hourly_no_entry_hour"] += 1
+                    row["status_h"] = "no_entry_hour"
+                else:
+                    row["status_h"] = wh["status"]
+                    counts[f"hourly_{wh['status']}"] += 1
+                    if wh["status"] != "censored":
+                        row["entry_h"] = wh["entry_hour"]
+                        row["hours_h"] = wh["hours"]
+                        row["exit_h"] = wh["hours"] if wh["status"] == "exit" else None
+                        row["ret_C_h"] = wh["ret_c"]
+                        row["ret_A_h"], row["hit_A_h"] = hourly_fill(
+                            wh, "t1", tg["t1"], direction, level
+                        )
+                        row["ret_D_h"], row["hit_D_h"] = hourly_fill(
+                            wh, "one_r", one_r_d, direction, level
+                        )
+                        t1h = wh["touch"].get("t1")
+                        row["t1_h"] = (
+                            t1h - wh["entry"] if t1h is not None and t1h <= wh["end"] else None
+                        )
             # each book's own holding time: the day it filled its target, else the exit / mark
             # day (audit F4)
             row["days_A"] = row["t1_k"] if row["hit_A"] else s["days"]
@@ -1115,6 +1286,217 @@ def table_splits(df: pd.DataFrame, tf: str = "D") -> list[str]:
     return lines
 
 
+def _mean(s: pd.Series) -> float:
+    s = s.dropna().astype(float)
+    return float(s.mean()) if len(s) else math.nan
+
+
+def _ci(s: pd.Series) -> dict:
+    s = s.dropna().astype(float)
+    n = int(len(s))
+    if n < 2:
+        return {"n": n, "avg": _mean(s), "lo": math.nan, "hi": math.nan}
+    m, h = float(s.mean()), 1.96 * float(s.std(ddof=1)) / math.sqrt(n)
+    return {"n": n, "avg": m, "lo": m - h, "hi": m + h}
+
+
+def candidates(df: pd.DataFrame) -> dict:
+    """Amendment A2: the five candidates beside the headline, plain daily, the book cohort."""
+    base = df[(df["tf"] == "D") & (df["cls"] == "plain") & (df["status"] != "censored")]
+    out: dict = {}
+    for kind in KINDS:
+        rows = base[(base["kind"] == kind) & base["t1"].notna() & base["ret_ref"].notna()]
+        if rows.empty:
+            continue
+        c: dict = {"n": int(len(rows))}
+        # A2.1 the week's side at entry
+        c["week"] = {}
+        for val in ("with", "against"):
+            part = rows[rows["w_support"] == val]
+            c["week"][val] = {
+                "n": int(len(part)),
+                "reach1": share(part["reached1"]),
+                **{b: _ci(part[BOOK_RET[b]]) for b in BOOKS},
+            }
+        # A2.3 half at T1
+        e = (
+            rows["ret_C"]
+            .astype(float)
+            .where(
+                ~rows["hit_A"].fillna(False).astype(bool),
+                (rows["ret_A"].astype(float) + rows["ret_C"].astype(float)) / 2.0,
+            )
+        )
+        c["half"] = {
+            "E": _ci(e),
+            "A": _ci(rows["ret_A"]),
+            "C": _ci(rows["ret_C"]),
+            "E_minus_A": paired(e, rows["ret_A"]),
+            "E_minus_C": paired(e, rows["ret_C"]),
+        }
+        # A2.4 fees: two fills at the dex's taker rate
+        fee = rows["dex"].map(TAKER).astype(float) * 2.0
+        c["fees"] = {"rt_avg": _mean(fee), "books": {}}
+        for b in BOOKS:
+            g = rows[BOOK_RET[b]].astype(float)
+            c["fees"]["books"][b] = {"gross": _ci(g), "net": _ci(g - fee)}
+        c["fees"]["books"]["E"] = {"gross": _ci(e), "net": _ci(e - fee)}
+        # A2.5 under water
+        ru = rows[rows["status_u"].isin(["exit", "open"])]
+        c["under"] = {
+            "n": int(len(ru)),
+            "C": paired(ru["ret_C_u"], ru["ret_C"]),
+            "A": paired(ru["ret_A_u"], ru["ret_A"]),
+            "D": paired(ru["ret_D_u"], ru["ret_D"]),
+            "C_u": _ci(ru["ret_C_u"]),
+            "A_u": _ci(ru["ret_A_u"]),
+            "D_u": _ci(ru["ret_D_u"]),
+            "C_d": _ci(ru["ret_C"]),
+            "A_d": _ci(ru["ret_A"]),
+            "D_d": _ci(ru["ret_D"]),
+            "reach1_u": share(ru["hit_A_u"]),
+            "reach1_d": share(ru["reached1"]),
+            "med_days_u": float(ru["days_u"].median()) if len(ru) else math.nan,
+            "med_days_d": float(ru["days"].median()) if len(ru) else math.nan,
+            "tail_u": share((ru["mae_u"].astype(float) / ru["r_pct"].astype(float)) > 1.0),
+            "tail_d": share((ru["mae_x"].astype(float) / ru["r_pct"].astype(float)) > 1.0),
+        }
+        # A2.2 the hourly clock, on the rows that have it
+        if "status_h" in rows.columns:
+            rh = rows[rows["status_h"].isin(["exit", "open"])]
+        else:
+            rh = rows.iloc[0:0]
+        losers_h = rh[rh["ret_C_h"].astype(float) < 0] if len(rh) else rh
+        losers_d = rh[rh["ret_C"].astype(float) < 0] if len(rh) else rh
+        c["hourly"] = {
+            "n": int(len(rh)),
+            "C": paired(rh["ret_C_h"], rh["ret_C"])
+            if len(rh)
+            else paired(pd.Series(dtype=float), pd.Series(dtype=float)),
+            "A": paired(rh["ret_A_h"], rh["ret_A"])
+            if len(rh)
+            else paired(pd.Series(dtype=float), pd.Series(dtype=float)),
+            "D": paired(rh["ret_D_h"], rh["ret_D"])
+            if len(rh)
+            else paired(pd.Series(dtype=float), pd.Series(dtype=float)),
+            "C_h": _ci(rh["ret_C_h"]) if len(rh) else {"n": 0},
+            "A_h": _ci(rh["ret_A_h"]) if len(rh) else {"n": 0},
+            "D_h": _ci(rh["ret_D_h"]) if len(rh) else {"n": 0},
+            "C_d": _ci(rh["ret_C"]) if len(rh) else {"n": 0},
+            "A_d": _ci(rh["ret_A"]) if len(rh) else {"n": 0},
+            "D_d": _ci(rh["ret_D"]) if len(rh) else {"n": 0},
+            "reach1_h": share(rh["hit_A_h"]) if len(rh) else share(pd.Series(dtype=object)),
+            "reach1_d": share(rh["reached1"]) if len(rh) else share(pd.Series(dtype=object)),
+            "med_hours_h": float(rh["hours_h"].median()) if len(rh) else math.nan,
+            "med_hours_d": float(rh["days"].median() * 24) if len(rh) else math.nan,
+            "exit_share_h": share(rh["status_h"] == "exit")
+            if len(rh)
+            else share(pd.Series(dtype=object)),
+            "loser_avg_h": _mean(losers_h["ret_C_h"]) if len(rh) else math.nan,
+            "loser_avg_d": _mean(losers_d["ret_C"]) if len(rh) else math.nan,
+            "loser_share_h": float((rh["ret_C_h"].astype(float) < 0).mean())
+            if len(rh)
+            else math.nan,
+            "loser_share_d": float((rh["ret_C"].astype(float) < 0).mean()) if len(rh) else math.nan,
+        }
+        out[kind] = c
+    return out
+
+
+def _ci_s(x: dict) -> str:
+    if not x or not x.get("n"):
+        return "-"
+    return f"{_f(x['avg'])} [{_f(x['lo'])}, {_f(x['hi'])}]"
+
+
+def _pr(x: dict) -> str:
+    if not x or not x.get("n") or x["n"] < 2:
+        return "-"
+    return f"{_f(x['diff'])} [{_f(x['lo'])}, {_f(x['hi'])}]"
+
+
+def table_candidates(cands: dict) -> list[str]:
+    lines = [
+        "### Amendment A2: the lead's five candidates, plain daily, the book cohort (declared variants, one change each)",
+        "",
+        "#### " + CAND_LABEL["week"],
+        "",
+        "| setup | side | n | T1 before the exit | A avg % | C avg % | D avg % | D5 avg % | reference avg % |",
+        "|---|---|---|---|---|---|---|---|---|",
+    ]
+    for kind, c in cands.items():
+        for val in ("with", "against"):
+            w = c["week"][val]
+            lines.append(
+                f"| {kind} | {val} | {w['n']:,} | {_sh(w['reach1'])} | {_ci_s(w['A'])} | {_ci_s(w['C'])} | "
+                f"{_ci_s(w['D'])} | {_ci_s(w['D5'])} | {_ci_s(w['ref'])} |"
+            )
+    lines += ["", "#### " + CAND_LABEL["hourly"], ""]
+    lines.append(
+        "| setup | n (hourly window) | exit fired | T1 before exit: hourly / daily | median hours held: hourly / daily | "
+        "C hourly | C daily | C_h - C | A hourly | A daily | A_h - A | D hourly | D daily | D_h - D | losing trade avg: hourly / daily | losers: hourly / daily |"
+    )
+    lines.append("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
+    for kind, c in cands.items():
+        h = c["hourly"]
+        if not h["n"]:
+            lines.append(f"| {kind} | 0 | | | | | | | | | | | | | | |")
+            continue
+        lines.append(
+            f"| {kind} | {h['n']:,} | {_sh(h['exit_share_h'])} | {_sh(h['reach1_h'])} / {_sh(h['reach1_d'])} | "
+            f"{h['med_hours_h']:.0f} / {h['med_hours_d']:.0f} | {_ci_s(h['C_h'])} | {_ci_s(h['C_d'])} | {_pr(h['C'])} | "
+            f"{_ci_s(h['A_h'])} | {_ci_s(h['A_d'])} | {_pr(h['A'])} | {_ci_s(h['D_h'])} | {_ci_s(h['D_d'])} | {_pr(h['D'])} | "
+            f"{_f(h['loser_avg_h'])} / {_f(h['loser_avg_d'])} | {h['loser_share_h'] * 100:.1f}% / {h['loser_share_d'] * 100:.1f}% |"
+        )
+    lines += ["", "#### " + CAND_LABEL["half"], ""]
+    lines.append("| setup | n | A avg % | E avg % | C avg % | E - A | E - C |")
+    lines.append("|---|---|---|---|---|---|---|")
+    for kind, c in cands.items():
+        hf = c["half"]
+        lines.append(
+            f"| {kind} | {c['n']:,} | {_ci_s(hf['A'])} | {_ci_s(hf['E'])} | {_ci_s(hf['C'])} | "
+            f"{_pr(hf['E_minus_A'])} | {_pr(hf['E_minus_C'])} |"
+        )
+    lines += ["", "#### " + CAND_LABEL["fees"], ""]
+    lines.append(
+        "| setup | n | round trip avg % | "
+        + " | ".join(f"{b} gross / net" for b in (*BOOKS, "E"))
+        + " |"
+    )
+    lines.append("|---|---|---|" + "---|" * (len(BOOKS) + 1))
+    for kind, c in cands.items():
+        f = c["fees"]
+        cells = []
+        for b in (*BOOKS, "E"):
+            g, n = f["books"][b]["gross"], f["books"][b]["net"]
+            cells.append(f"{_f(g['avg'])} / {_f(n['avg'])} [{_f(n['lo'])}, {_f(n['hi'])}]")
+        lines.append(f"| {kind} | {c['n']:,} | {f['rt_avg']:.4f} | " + " | ".join(cells) + " |")
+    lines += ["", "#### " + CAND_LABEL["under"], ""]
+    lines.append(
+        "| setup | n | T1 before exit: under / colour | median days: under / colour | past one R against: under / colour | "
+        "C under | C colour | C_u - C | A under | A colour | A_u - A | D under | D colour | D_u - D |"
+    )
+    lines.append("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
+    for kind, c in cands.items():
+        u = c["under"]
+        lines.append(
+            f"| {kind} | {u['n']:,} | {_sh(u['reach1_u'])} / {_sh(u['reach1_d'])} | {u['med_days_u']:.0f} / {u['med_days_d']:.0f} | "
+            f"{_sh(u['tail_u'])} / {_sh(u['tail_d'])} | {_ci_s(u['C_u'])} | {_ci_s(u['C_d'])} | {_pr(u['C'])} | "
+            f"{_ci_s(u['A_u'])} | {_ci_s(u['A_d'])} | {_pr(u['A'])} | {_ci_s(u['D_u'])} | {_ci_s(u['D_d'])} | {_pr(u['D'])} |"
+        )
+    lines += [
+        "",
+        "Each candidate is one change to the headline on the same rows (prereg amendment A2); the paired "
+        "differences are mean and normal 95% interval of the per-trade difference. The hourly arm is the "
+        "subset of rows inside the venue's hourly window (about 208 days) whose entry day had an hour that "
+        "reached the level; its targets fill only from the entry hour on, so it differs from the daily "
+        "books by the clock AND by that ordering. Fees: two fills at the dex's taker rate (main 0.0432%, "
+        "xyz 0.0125%, TVB-2 by the venue's own flag); the stop-swap difference is fee-neutral.",
+        "",
+    ]
+    return lines
+
+
 # ----------------------------------------------------------------------------- main
 
 
@@ -1170,13 +1552,22 @@ def main(argv: list[str] | None = None) -> None:
             excluded.append({"coin": u["coin"], "reason": f"data quality {st}"})
             continue
         meta = {"coin": u["coin"], "dex": u["dex"], "liquid": liquid(daily)}
-        r, c = coin_manage_rows(meta, venue_era(daily))
+        try:
+            raw_h = (
+                cached_hourly(u["coin"], as_of) if args.as_of else fetch_hourly(u["coin"], as_of)
+            )
+        except Exception as exc:  # noqa: BLE001
+            print(f"  hourly fetch failed for {u['coin']}: {exc}", flush=True)
+            raw_h = []
+        hourly = normalize_hourly(raw_h, as_of)
+        r, c = coin_manage_rows(meta, venue_era(daily), hourly)
         rows += r
         counts.update(c)
         if n % 50 == 0:
             print(f"  {n}/{len(uni)} coins, {len(rows):,} units", flush=True)
     df = pd.DataFrame(rows)
     cells, clocks = compute(df)
+    cands = candidates(df)
     stamp = datetime.fromtimestamp(as_of / 1000, tz=timezone.utc).strftime("%Y-%m-%d")
     md = [
         f"# The STRAT-management book, as of {stamp} UTC (generated by analysis/domino/manage.py; venue era)",
@@ -1202,6 +1593,7 @@ def main(argv: list[str] | None = None) -> None:
     md += table_clocks(df, "M", "Fork 2: the exit clock, monthly units", clocks)
     md += table_hypotheses(cells)
     md += table_splits(df, "D")
+    md += table_candidates(cands)
     (RESULTS / "manage_tables.md").write_text("\n".join(md), encoding="utf-8")
     out_cells = []
     curves = {}
@@ -1256,6 +1648,9 @@ def main(argv: list[str] | None = None) -> None:
         "book_label": BOOK_LABEL,
         "cells": strict_json(out_cells),
         "curves": strict_json(curves),
+        "taker_pct": TAKER,
+        "candidate_label": CAND_LABEL,
+        "candidates": strict_json(cands),
     }
     with open(RESULTS / "manage.json", "w") as fh:
         json.dump(out, fh, indent=1, allow_nan=False)

@@ -5,6 +5,126 @@
 
 ---
 
+## Session TVB-39: the trade viewer (every row on its own candles, locally) and the lead's five candidates run as prereg amendment A2 (COMPLETE)
+
+**Date:** 2026-10-12
+**Status:** COMPLETE -- two pieces on the owner's word of 2026-10-12: "You may run your 'would
+test next'", and a request to start implementing a local chart tool so the rows can be checked
+visually without TradingView ("visually verifying via TradingView is one of the most time
+consuming tasks, almost impossible to accurately do ... the numbers were there and seemed right
+until visually verified, which showed inaccuracies"), styled like the owner's screenshot (grey
+context candles, the trade's candles coloured, opened / closed lines, a strip of trade cards,
+1H / 1D / 1W / 1M toggles). Both delivered, pushed. The owner has still not made their own pass
+over the management book; nothing is promoted and nothing is read into the hierarchy rulings.
+
+### What was accomplished
+
+- **The trade viewer** (`analysis/domino/trade_viewer.py` + `analysis/domino/viewer/`): a local
+  page served on localhost that draws the management book's recorded rows on the census's raw
+  candles. It re-runs NO trade logic: the entry day, targets, touch days, exit day and every
+  book's fill come off `manage_trades.csv.gz` as the engine wrote them, so a chart that
+  disagrees with a row is evidence against the engine. One coin at a time or every trade
+  entered on one day across coins; 1H / 1D / 1W / 1M (weeks and months bucketed by the census's
+  calendar rules, tested against `census.week_start` / `month_start` through node); candles not
+  in a trade grey, the setup bar amber, the bar before it dark amber, the trade's candles green /
+  red by close; lines for the entry level, the exit close, T1 / T2 / T3 with sources, one R, the
+  setup-bar stop, the measured move; markers on the first bar (hour, on the hourly view) that
+  touched each price; the exit day's test spelled out (close against the day's open and the
+  week's open, with colours); every book's fill; the two A2 exits (under water on the daily,
+  the hourly clock on the hourly view); filters (unit timeframe, kind, side, liquid, has T1),
+  book and equal-size selectors for the printed P/L; arrow keys; bookmarkable addresses
+  (`#coin=BTC&date=2025-06-17&tf=D&dir=down&view=1D`, the receipt's worked example). Hourly
+  candles fetched for all 292 coins (the venue serves ~208 days) into the census cache, stamped.
+  Recipe in the receipt's viewer section: `hourly --as-of ... all` (once), `build --as-of ...`,
+  `serve`. The data folder and the vendored chart library are gitignored and regenerable.
+- **Prereg amendment A2, declared before code (f505f9d):** the five candidates restated in
+  trader terms, each one change on the same trades, with readings R1-R5 and vectors v16-v19
+  written first. One sentence was corrected while writing v17, labelled in the prereg: a target
+  on the trade's side cannot be touched before the level, so the hourly ordering difference is
+  on the EXIT day (the daily bar fills any touch that day, the hourly clock only up to the exit
+  hour).
+- **Engine (`manage.py`):** the under-water exit recorded on the same walk (`exit_u`, books
+  C_u / A_u / D_u); the hourly clock (`walk_hourly`: entry hour = first hour reaching L; exit =
+  first hour closing against its own open AND the day's open; cap = the last hour of day 20;
+  censored when the hours end; books C_h / A_h / D_h) on the hourly-window subset; book E and
+  the fees as arithmetic on the recorded columns; the week's side as a split of every book.
+  Hourly helpers (`fetch_hourly`, `cached_hourly`, `normalize_hourly`, `HOUR`) live in
+  `census.py`. `candidates()` + `table_candidates()`; `manage.json` carries a `candidates`
+  block; the CSV carries the new columns. Offline rerun as before (`--as-of 2026-10-10`, ~10
+  min with the hourly). Headline numbers did not move (same rows, same walk; the hourly and
+  under-water columns are additions).
+- **Receipt** (`MANAGE_RECEIPT.md`): a viewer section and an A2 section (what each candidate
+  did, in trader terms, against its declared reading). **Ledger** card extended. **Page**
+  republished (version 5) with a candidates section. 23 manage vectors + 7 A2 vectors + 4
+  viewer tests; full suite green.
+
+### The five, against their declared readings (plain daily, the book cohort)
+
+- **R1 the week's side at entry: NOT a general condition.** With beats against on the reversal,
+  the continuation and the outside break (reversal C +0.28 with / +0.13 against; continuation
+  C -0.20 / -0.53), but the inside break pays MORE against the week (A +0.18 / C +0.16 / D +0.38
+  against; -0.07 / -0.13 / +0.16 with) and reaches T1 nearly as often. The declared rule said
+  one reversal of the split means it is not a condition. An inside-bar break against the week is
+  a counter-trend break with the week's open ahead as a level: a pattern-specific read.
+- **R2 the hourly clock: a different trade, not a better one.** On ~38k trades inside the
+  hourly window: held 9-11 hours against 48-72; every trade exits inside the cap; losers shrink
+  to less than half (-1.5..-1.9 against -3.8..-4.9); T1 before the exit falls by a third to a
+  half. Net paired: C_h - C reversal -0.14 [-0.28, +0.01], continuation 0.00, inside +0.21
+  [+0.04, +0.37], outside -0.27 [-0.59, +0.05]; A and D within a tenth. The declared
+  expectations (sooner, smaller losers, fewer targets) all held; no sign was predicted.
+- **R3 half at T1: holds.** E between A and C on every kind (reversal -0.05 / +0.09 / +0.22).
+- **R4 fees: three lines survive.** Two taker fills cost 0.077-0.082 per trade; net of that,
+  intervals clear of zero: reversal C +0.14 [+0.02, +0.27]; inside D +0.16 [+0.08, +0.23] and
+  D5 +0.16 [+0.09, +0.24]. Everything else flat net; the reference -0.35..-0.92 net.
+- **R5 under water: the lead was wrong.** The lead called C_u < C (holds longer, loses more).
+  Holding time is the same (median 2-4 days), the tail a little fatter (44-57% past one R
+  against 42-54%), and the exit-only book loses LESS or the same: C_u - C +0.20 [+0.09, +0.32]
+  on the continuation, +0.04 / +0.04 / +0.23 elsewhere; A slips a few hundredths; D unchanged.
+  On the continuation a red candle above the entry is not evidence against the trade.
+
+### What the lead would say next (not done; the owner decides)
+
+- The headline's "against" is the weaker reading on the continuation; a declared headline
+  change (under water) is a one-line amendment if the owner wants it.
+- The week's side belongs to the reversal and the continuation; the inside break against the
+  week is worth the owner's eye on the viewer (filter: Inside + Short/Long, cards show
+  `w_support` in the details line).
+- The viewer is the instrument for the owner's own pass; the BTC 2025-06-17 short and the BTC
+  2026-10-04 inside break (hourly view, three exits on one chart) are the two worked examples.
+
+### Files created/modified
+
+- New: `analysis/domino/trade_viewer.py`, `analysis/domino/viewer/{index.html,app.js}`,
+  `tests/test_domino_viewer.py`, `tests/test_domino_manage_a2.py`.
+- Modified: `analysis/domino/{manage.py,census.py,chart_page.py,MANAGE_RECEIPT.md}`,
+  `results/{manage.json,manage_tables.md}` (+ the gitignored CSV / log / viewer data),
+  `docs/experiments/tvb37_management_book_prereg.md` (A2), `docs/ARM_LEDGER.md`, `.gitignore`,
+  `.session_startup_prompt.md`, this file.
+- Commits: dbeaffe (viewer), f505f9d (A2 prereg), then the A2 build commit.
+
+### External review
+
+- Not requested this session. The A2 build and the viewer are unreviewed; a Codex pass on
+  `4dc5f6b..HEAD` (focus: `walk_hourly` cap / censor logic, the under-water exit sharing the
+  headline walk, the viewer's calendar bucketing and its claim of re-running no logic) is the
+  next review candidate, at the owner's word.
+
+### Open
+
+- [ ] The owner's own pass over the management book on the viewer before anything is read into
+      the hierarchy rulings; the two worked examples above.
+- [ ] A declared headline change to the under-water exit, if the owner wants it (one-line
+      amendment, rerun 10 min).
+- [ ] The hierarchy rulings the owner deferred (stop owner in a stack, continuation ranking,
+      seat competition, which higher-timeframe event ends a trade).
+- [ ] Codex review of `4dc5f6b..HEAD` (block above), at the owner's word.
+- [ ] HANDOFF is over the 1,500-line limit (TVB-33..34 are the next archive candidates):
+      archiving asks the owner.
+- [ ] Executor repairs owed before any real-money restart (TVB-31..35 syntheses); fresh
+      wallet; scanner STRAT rulings; the carried list in the TVB-37 entry.
+
+---
+
 ## Session TVB-38: the Codex backlog folded, then product 3 -- the STRAT-management book (no stop, a close exit, a ladder of targets) built and receipted (COMPLETE)
 
 **Date:** 2026-10-11
@@ -207,7 +327,9 @@ commit after 058395f); the engine rerun and every moved number listed in the rec
 ### Open
 
 - [ ] The owner's own pass over the management book (charts and rows) before anything is read
-      into the hierarchy rulings; the lead's "would test next" list above awaits a word.
+      into the hierarchy rulings (the TVB-39 trade viewer is the instrument for it).
+- [x] The lead's "would test next" list: run in TVB-39 as prereg amendment A2 (owner's word
+      2026-10-12).
 - [ ] The hierarchy rulings the owner deferred (stop owner in a stack, continuation ranking,
       seat competition, which higher-timeframe event ends a trade).
 - [ ] Codex review of this session's range (block above); fold next session.

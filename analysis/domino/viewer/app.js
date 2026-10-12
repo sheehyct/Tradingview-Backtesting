@@ -10,7 +10,7 @@
     up: "#22c55e", down: "#ef4444",
     setup: "#f59e0b", ref: "#b7791f",
     level: "#3b82f6", exit: "#f43f5e", target: "#22c55e", oneR: "#a78bfa", stop: "#9ca3af", mm: "#f59e0b",
-    week: "#38bdf8",
+    week: "#38bdf8", violet: "#a78bfa",
   };
   const BOOK_RET = { C: "ret_C", A: "ret_A", B: "ret_B", D: "ret_D", D5: "ret_D5", ref: "ret5" };
   const BOOK_HIT = { A: "hit_A", B: "hit_B", D: "hit_D", D5: "hit_D5" };
@@ -183,6 +183,16 @@
       }
       if (t.stop_k != null && span.i + t.stop_k <= span.end) put(touchBar(span.i + t.stop_k, t.stop, long ? "lo" : "hi"), "stop", !long, COL.stop, "circle");
       if (t.status === "exit") put(barOfDay(span.end, (ks) => ks[ks.length - 1]), "out " + fmtPrice(endBar[4], p), long, COL.exit, long ? "arrowDown" : "arrowUp");
+      // the declared alternative clocks (prereg A2): under water on the daily, the hourly clock on the hourly view
+      if (t.status_u === "exit" && t.exit_k_u != null && t.exit_k_u !== t.exit_k) {
+        const ku = Math.min(span.i + t.exit_k_u, state.daily.length - 1);
+        put(barOfDay(ku, (ks) => ks[ks.length - 1]), "out: under water", long, COL.violet, "square");
+      }
+      if (state.chartTf === "1H" && t.status_h === "exit" && t.entry_h != null && t.exit_h != null) {
+        const t0 = state.daily[span.i][0] + t.entry_h * HOUR + t.exit_h * HOUR;
+        const kh = bs.findIndex((b) => b.t === t0);
+        if (kh >= 0) put(kh, "out: hourly clock", long, COL.mm, "square");
+      }
       else put(barOfDay(span.end, (ks) => ks[ks.length - 1]), t.status === "open" ? "cap (open)" : "data ends", long, COL.stop, "square");
       markers.sort((a, b) => a.time - b.time);
       if (firstIn >= 0) {
@@ -236,6 +246,12 @@
         ", week open " + fmtPrice(wo, p) + " (" + (wo == null ? "?" : endBar[4] < wo ? "red" : endBar[4] > wo ? "green" : "flat") + ")";
     } else if (t.status === "open") exitTxt = '<span class="k">exit</span> none inside the 20-day cap; marked at the day-20 close ' + fmtPrice(endBar[4], p);
     else exitTxt = '<span class="k">exit</span> censored (the data ends before the cap)';
+    const alt = [];
+    if (t.status_u === "exit" && t.exit_k_u != null) alt.push('<span class="k">under-water clock</span> day ' + t.exit_k_u + " " + fmtPct(t.ret_C_u));
+    else if (t.status_u === "open") alt.push('<span class="k">under-water clock</span> open at the cap ' + fmtPct(t.ret_C_u));
+    if (t.status_h === "exit" && t.exit_h != null) alt.push('<span class="k">hourly clock</span> in at hour ' + t.entry_h + ", out " + t.exit_h + "h later " + fmtPct(t.ret_C_h));
+    else if (t.status_h === "open") alt.push('<span class="k">hourly clock</span> open at the cap ' + fmtPct(t.ret_C_h));
+    if (alt.length) exitTxt += " &middot; " + alt.join(" &middot; ");
     const books = ["C", "A", "B", "D", "D5", "ref"].map((b) => {
       const v = t[BOOK_RET[b]];
       const hit = BOOK_HIT[b] ? (t[BOOK_HIT[b]] ? " target" : " exit") : b === "ref" ? " " + (t.out5 || "") : "";

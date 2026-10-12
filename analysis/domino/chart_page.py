@@ -126,6 +126,8 @@ def management_data(m: dict) -> dict:
         "reach": reach_rows,
         "books": book_rows,
         "hyp": hyp,
+        "cands": m.get("candidates", {}),
+        "cand_label": m.get("candidate_label", {}),
         "curves": m["curves"],
     }
 
@@ -350,6 +352,16 @@ tr.small td { opacity: 0.45; }
   <div class="panel tbl"><table id="hypTable"><thead><tr><th>setup</th><th>trades</th><th>D5 minus reference (stop only)</th><th>D minus reference (20 days)</th><th>D5 exited, saw one R in 5 bars</th><th>stopped, saw one R in 5 bars</th><th>MAE over 1R</th><th>over 2R</th><th>worst trade</th></tr></thead><tbody></tbody></table></div>
 </section>
 
+<section id="manageCand" hidden>
+  <h2>The lead's five candidates, one change each (prereg amendment A2, 2026-10-12)</h2>
+  <p class="read">Each row is the plain daily book cohort under one change to the headline, beside the headline on the same trades. Paired differences are mean and 95% interval of the per-trade difference. The hourly clock runs only on the venue's hourly window (about 208 days); its trades are a subset. Fees are two fills at the dex's taker rate. Read the receipt's A2 section for what each one did; the declared readings were R1 week side, R2 hourly, R3 half at T1, R4 fees, R5 under water.</p>
+  <div class="panel tbl"><table id="candWeek"><thead><tr><th>setup</th><th>week at entry</th><th>trades</th><th>T1 before the exit</th><th>A</th><th>C</th><th>D</th><th>D5</th><th>reference</th></tr></thead><tbody></tbody></table></div>
+  <div class="panel tbl" style="margin-top:12px"><table id="candHourly"><thead><tr><th>setup</th><th>trades (hourly window)</th><th>T1 before exit: hourly / daily</th><th>median hours: hourly / daily</th><th>losing trade avg: hourly / daily</th><th>C hourly minus daily</th><th>A hourly minus daily</th><th>D hourly minus daily</th></tr></thead><tbody></tbody></table></div>
+  <div class="panel tbl" style="margin-top:12px"><table id="candHalf"><thead><tr><th>setup</th><th>trades</th><th>A</th><th>E: half at T1</th><th>C</th><th>E minus A</th><th>E minus C</th></tr></thead><tbody></tbody></table></div>
+  <div class="panel tbl" style="margin-top:12px"><table id="candFees"><thead><tr><th>setup</th><th>round trip %</th><th>A net</th><th>B net</th><th>C net</th><th>D net</th><th>D5 net</th><th>E net</th><th>reference net</th></tr></thead><tbody></tbody></table></div>
+  <div class="panel tbl" style="margin-top:12px"><table id="candUnder"><thead><tr><th>setup</th><th>trades</th><th>T1 before exit: under / colour</th><th>median days: under / colour</th><th>past one R against: under / colour</th><th>C under minus colour</th><th>A under minus colour</th><th>D under minus colour</th></tr></thead><tbody></tbody></table></div>
+</section>
+
 <section id="manageTable" hidden>
   <h2>The management books by cell, daily triggers</h2>
   <div class="panel tbl"><table id="manageBookTable"><thead><tr><th>setup</th><th>class</th><th>book</th><th>trades</th><th>avg % / trade</th><th>median %</th><th>in profit</th><th>at target</th><th>total $</th><th>max DD $</th><th>days</th><th>minus reference</th></tr></thead><tbody></tbody></table></div>
@@ -511,7 +523,8 @@ function manageCurves(id, legendId, key) {
 function manage() {
   const M = DATA.manage;
   if (!M) return;
-  ["manage", "manageCurves", "manageHyp", "manageTable"].forEach((id) => { document.getElementById(id).hidden = false; });
+  ["manage", "manageCurves", "manageHyp", "manageTable", "manageCand"].forEach((id) => { document.getElementById(id).hidden = false; });
+  candidates();
   const K = DATA.kind_label;
   groupedBars("barsReach", Object.keys(M.reach).map((k) => ({ label: K[k], cells: M.reach[k] })),
     [{ key: "exit", color: "--plain", label: "T1 before the exit" }, { key: "cap", color: "--spread", label: "T1 any time in 20 days" },
@@ -531,6 +544,25 @@ function manage() {
     <td class="num ${r.avg < 0 ? "neg" : ""}">${sgn(r.avg, 2)}%</td><td class="num ${r.med < 0 ? "neg" : ""}">${sgn(r.med, 2)}%</td><td class="num">${pct(r.win)}</td><td class="num">${pct(r.at_target)}</td>
     <td class="num ${r.total < 0 ? "neg" : ""}">${usd(r.total)}</td><td class="num neg">${usd(r.dd)}</td><td class="num">${r.days.toFixed(0)}</td>
     <td class="num">${r.diff == null ? "-" : sgn(r.diff, 2) + " [" + sgn(r.lo, 2) + ", " + sgn(r.hi, 2) + "]"}</td></tr>`).join("");
+}
+
+function candidates() {
+  const C = DATA.manage.cands || {};
+  const K = DATA.kind_label;
+  const ci = (x) => (x && x.n ? `<span class="${x.avg < 0 ? "neg" : ""}">${sgn(x.avg, 2)}%</span> <small>[${sgn(x.lo, 2)}, ${sgn(x.hi, 2)}]</small>` : "-");
+  const pr = (x) => (x && x.n >= 2 ? `<span class="${x.diff < 0 ? "neg" : ""}">${sgn(x.diff, 2)}</span> <small>[${sgn(x.lo, 2)}, ${sgn(x.hi, 2)}]</small>` : "-");
+  const sh = (x) => (x && x.n ? pct(x.p) : "-");
+  const kinds = Object.keys(C);
+  document.querySelector("#candWeek tbody").innerHTML = kinds.flatMap((k) => ["with", "against"].map((v) => { const w = C[k].week[v];
+    return `<tr><td>${K[k]}</td><td>${v}</td><td class="num">${w.n.toLocaleString()}</td><td class="num">${sh(w.reach1)}</td><td class="num">${ci(w.A)}</td><td class="num">${ci(w.C)}</td><td class="num">${ci(w.D)}</td><td class="num">${ci(w.D5)}</td><td class="num">${ci(w.ref)}</td></tr>`; })).join("");
+  document.querySelector("#candHourly tbody").innerHTML = kinds.map((k) => { const h = C[k].hourly; if (!h.n) return `<tr><td>${K[k]}</td><td class="num">0</td><td colspan="6">-</td></tr>`;
+    return `<tr><td>${K[k]}</td><td class="num">${h.n.toLocaleString()}</td><td class="num">${sh(h.reach1_h)} / ${sh(h.reach1_d)}</td><td class="num">${h.med_hours_h.toFixed(0)} / ${h.med_hours_d.toFixed(0)}</td><td class="num neg">${sgn(h.loser_avg_h, 2)} / ${sgn(h.loser_avg_d, 2)}</td><td class="num">${pr(h.C)}</td><td class="num">${pr(h.A)}</td><td class="num">${pr(h.D)}</td></tr>`; }).join("");
+  document.querySelector("#candHalf tbody").innerHTML = kinds.map((k) => { const h = C[k].half;
+    return `<tr><td>${K[k]}</td><td class="num">${C[k].n.toLocaleString()}</td><td class="num">${ci(h.A)}</td><td class="num">${ci(h.E)}</td><td class="num">${ci(h.C)}</td><td class="num">${pr(h.E_minus_A)}</td><td class="num">${pr(h.E_minus_C)}</td></tr>`; }).join("");
+  document.querySelector("#candFees tbody").innerHTML = kinds.map((k) => { const f = C[k].fees; const b = f.books;
+    return `<tr><td>${K[k]}</td><td class="num">${f.rt_avg.toFixed(3)}</td>${["A", "B", "C", "D", "D5", "E", "ref"].map((x) => `<td class="num">${ci(b[x].net)}</td>`).join("")}</tr>`; }).join("");
+  document.querySelector("#candUnder tbody").innerHTML = kinds.map((k) => { const u = C[k].under;
+    return `<tr><td>${K[k]}</td><td class="num">${u.n.toLocaleString()}</td><td class="num">${sh(u.reach1_u)} / ${sh(u.reach1_d)}</td><td class="num">${u.med_days_u.toFixed(0)} / ${u.med_days_d.toFixed(0)}</td><td class="num">${sh(u.tail_u)} / ${sh(u.tail_d)}</td><td class="num">${pr(u.C)}</td><td class="num">${pr(u.A)}</td><td class="num">${pr(u.D)}</td></tr>`; }).join("");
 }
 
 function draw() {

@@ -664,6 +664,26 @@ settings at $1 risk, but with 26 fills they stay unread as arms.
 - **What it is for:** the direct comparison the setup-bar stop needed (it has it: the stop was
   the suspect and the suspect is guilty of a full R per loser, not of the pattern's edge), and
   the tables the deferred hierarchy rulings will be read from. It picks no cell.
+- **Amendment A2 (2026-10-12, TVB-39; owner: "you may run your would-test-next"), five
+  declared variants, one change each, on the same plain daily trades:** (1) only when the week
+  is on your side at the break: better on the reversal, the continuation and the outside break
+  (reversal C +0.28 with against +0.13; continuation C -0.20 against -0.53) but WORSE on the
+  inside break (against the week A +0.18 / C +0.16 / D +0.38, with it -0.07 / -0.13 / +0.16), so
+  by the declared reading it is not a general condition. (2) The hourly exit clock (first red
+  hour while the day is red; 13k / 12.5k / 8.7k / 3.7k trades inside the venue's 208-day hourly
+  window): holds 9-11 hours instead of 48-72, losers shrink to less than half (-1.5 to -1.9
+  against -3.8 to -4.9), T1 before the exit falls by a third to a half; net per trade about the
+  same (C_h - C: reversal -0.14, continuation 0.00, inside +0.21 [+0.04, +0.37], outside -0.27;
+  A and D move under a tenth). (3) Half at T1 sits between A and C everywhere (reversal A -0.05,
+  E +0.09, C +0.22). (4) Two taker fills (0.077-0.082 per trade): three lines stay positive net
+  with their interval clear, the reversal exit-only book +0.14 [+0.02, +0.27] and the inside
+  break's D +0.16 and D5 +0.16; everything else is flat net; the reference -0.35 to -0.92.
+  (5) "Against" as under water (close through the entry price, week against): the same holding
+  time, a slightly fatter tail, and the exit-only book does NOT lose more (C_u - C +0.20 [+0.09,
+  +0.32] on the continuation, +0.04 / +0.04 / +0.23 elsewhere); A slips by a few hundredths, D
+  unchanged. The lead's call on (5) was wrong. The trade viewer (`analysis/domino/trade_viewer.py`,
+  local, 1H / 1D / 1W / 1M, grey context and coloured trade candles) draws every row with its
+  three exits for the owner's own pass.
 
 ## Maintenance rule
 

@@ -11,7 +11,8 @@ from datetime import datetime, timezone
 import pytest
 
 from analysis.domino import census
-from analysis.domino.trade_viewer import HOUR, VIEWER, _bool, _num, compact, normalize_hourly
+from analysis.domino.census import HOUR, normalize_hourly
+from analysis.domino.trade_viewer import VIEWER, _bool, _num, compact
 
 DAY = census.DAY
 

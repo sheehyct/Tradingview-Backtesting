@@ -46,6 +46,7 @@ CACHE = HERE / "data"
 RESULTS = HERE / "results"
 INFO = "https://api.hyperliquid.xyz/info"
 DAY = 86_400_000
+HOUR = 3_600_000
 TFS = ("D", "W", "M", "Q")
 NEAR_BAND = Decimal("0.0025")  # the dashboard's domino band (fraction of the lowest level)
 WITHIN_BAND = Decimal("0.01")
@@ -132,6 +133,55 @@ def fetch_daily(coin: str, as_of_ms: int) -> list[dict]:
     )
     json.dump(rows, open(p, "w"))
     return rows
+
+
+def fetch_hourly(coin: str, as_of_ms: int) -> list[dict]:
+    """The venue's most recent hourly candles up to as_of (at most 5000, about 208 days), cached
+    beside the daily with the same stamp (prereg amendment A2.2)."""
+    CACHE.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.fromtimestamp(as_of_ms / 1000, tz=timezone.utc).strftime("%Y%m%d")
+    p = CACHE / f"{coin.replace(':', '_')}_1h_{stamp}.json"
+    if p.exists():
+        return json.load(open(p))
+    rows = post(
+        {
+            "type": "candleSnapshot",
+            "req": {
+                "coin": coin,
+                "interval": "1h",
+                "startTime": as_of_ms - MAX_CANDLES * HOUR,
+                "endTime": as_of_ms,
+            },
+        }
+    )
+    json.dump(rows, open(p, "w"))
+    return rows
+
+
+def cached_hourly(coin: str, as_of_ms: int) -> list[dict]:
+    """The cached hourly candles for an offline rerun; [] when none were fetched (no venue call)."""
+    stamp = datetime.fromtimestamp(as_of_ms / 1000, tz=timezone.utc).strftime("%Y%m%d")
+    p = CACHE / f"{coin.replace(':', '_')}_1h_{stamp}.json"
+    return json.load(open(p)) if p.exists() else []
+
+
+def normalize_hourly(rows: list[dict], now_ms: int) -> list[dict]:
+    """Closed hourly bars, ascending, numeric, one per hour start; the forming hour is cut, a
+    timestamp off the hour is dropped, the last copy of a duplicate wins (as `normalize`)."""
+    by_t: dict[int, dict] = {}
+    for r in rows:
+        t = int(r["t"])
+        if t % HOUR != 0 or t + HOUR > now_ms:
+            continue
+        by_t[t] = {
+            "t": t,
+            "o": float(r["o"]),
+            "h": float(r["h"]),
+            "l": float(r["l"]),
+            "c": float(r["c"]),
+            "v": float(r.get("v", 0.0)),
+        }
+    return [by_t[t] for t in sorted(by_t)]
 
 
 # ----------------------------------------------------------------------------- calendar

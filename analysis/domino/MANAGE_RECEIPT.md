@@ -271,6 +271,69 @@ sides: fewer winners thrown away, and losers that average 0.6 to 1.0 R instead o
   every management book gains 0.5 to 1.2 and the reference 0.7 to 1.3. The invalidation the
   stop encoded was real information; it just cost a full R to act on it.
 
+## Amendment A2 (TVB-39): the lead's five candidates, each one change on the same trades
+
+The owner said "you may run your would-test-next" on 2026-10-12; the five were declared in the
+prereg (amendment A2) before the engine changed, each with its reading written down first. All
+five run on the plain daily book cohort (a T1 and a reference return), beside the headline, and
+nothing is combined or promoted. Tables: `results/manage_tables.md`, "Amendment A2".
+
+**In trader terms, what each one did.**
+
+- **Only take it when the week is already on your side (A2.1).** On the 2-2 reversal, the 2-2
+  continuation and the outside break, with-the-week trades beat against-the-week trades on books
+  A and C (reversal A +0.04 against -0.19, C +0.28 against +0.13; continuation A -0.19 against
+  -0.49, C -0.20 against -0.53; outside A +0.01 against -0.16, C +0.18 against +0.16). The inside
+  break goes the other way: against the week it reaches T1 almost as often (49.8 against 55.8
+  percent) and pays better on every book (A +0.18 against -0.07, C +0.16 against -0.13, D +0.38
+  against +0.16). The declared reading R1 said "if AGAINST wins anywhere, the split was outcome
+  noise, not a condition": it wins on the inside break, so the week's side is not a general
+  condition; it is a pattern-specific read the owner can take or leave (an inside-bar break
+  against the week is a counter-trend break with the week's open ahead of it as a level).
+- **Manage on the hourly (A2.2).** On the hourly window (the venue keeps about 208 days of
+  hours: 13,013 reversal, 12,521 continuation, 8,731 inside, 3,664 outside trades since
+  2026-03-18), getting out on the first red hour while the day is red holds a median 9-11 hours
+  against 48-72 on the daily clock, every trade exits inside the cap, and the losing trades
+  shrink to less than half (average loser -1.5 to -1.9 against -3.8 to -4.9). The price is the
+  targets: T1 before the exit falls from 65 to 45 percent on the reversal, 36 to 14 on the
+  continuation, 51 to 32 on the inside, 39 to 16 on the outside. Net, paired on the same trades,
+  the exit-only book moves -0.14 [-0.28, +0.01] on the reversal, 0.00 on the continuation, +0.21
+  [+0.04, +0.37] on the inside break, -0.27 [-0.59, +0.05] on the outside; books A and D move by
+  under a tenth with every interval over zero. R2 made no sign prediction; the declared
+  expectations (sooner, smaller losers, fewer targets) all held. Small losers and few winners
+  come out where big losers and more winners did. The hourly books fill a target only up to the
+  exit hour, where the daily bar fills any touch on the exit day; that ordering is part of the
+  difference and is not separated here.
+- **Half off at T1 (A2.3).** Book E sits between A and C on every pattern (reversal A -0.05, E
+  +0.09, C +0.22; outside -0.00, +0.09, +0.18; continuation and inside flat across all three).
+  R3 holds. Nothing more: half at T1 buys half the exit-only book's right tail at half its cost.
+- **Charge the taker fee (A2.4).** Two fills at the venue's rate are 0.077 to 0.082 per trade
+  on these books. Net of that, the lines whose interval stays over zero are three: the reversal
+  exit-only book +0.14 [+0.02, +0.27], the inside break's book D +0.16 [+0.08, +0.23] and D5
+  +0.16 [+0.09, +0.24]. Every other management line is flat net (intervals through zero); the
+  reference is -0.35 to -0.92 net. R4 asked which lines survive; these three do, on gross
+  intervals that already cleared zero. Slippage is not charged (the entry is a taker at a level
+  that just broke; TVB-2's finding that slippage, not the fee, is the binding cost stands).
+- **"Against" as under water (A2.5).** Exiting on a daily close THROUGH the entry price (with
+  the week against) instead of on a red candle holds about the same time (median 2-4 days on
+  both), fattens the tail a little (past one R against: 44 to 57 percent against 42 to 54) and
+  does NOT lose more on the exit-only book: C_u - C is +0.04 on the reversal, +0.20 [+0.09,
+  +0.32] on the continuation, +0.04 on the inside, +0.23 [-0.02, +0.49] on the outside. Book A
+  slips by a few hundredths (the under-water exit fires on some days the colour exit would not,
+  a green day that opened and closed under the entry), book D does not move. R5 was the lead's
+  call that the under-water exit loses MORE; it loses less or the same, so the lead was wrong on
+  the continuation and unproven elsewhere. On the continuation a red candle above the entry
+  price is not evidence against the trade; the under-water read keeps those trades on.
+
+**What the lead takes from the five, for the owner to weigh.** The headline exit (red candle
+with the week red) is not the best reading of "against": under water does better on the
+continuation and no worse elsewhere. The hourly clock is a different trade, not a better one.
+The week's side is a reversal / continuation condition, not an inside-break one. After fees
+three lines stand: the reversal held to the exit, and the inside break managed to one R. None of
+this is promoted; each is a declared variant whose rows are in `manage_trades.csv.gz`
+(columns `*_u` for under water, `*_h` for the hourly clock, `w_support` for the week's side;
+E and the fees are arithmetic on the recorded columns) and on the trade viewer.
+
 ## Limitations, stated
 
 - No fees, funding, slippage, sizing or liquidation arithmetic. The averages are of the same

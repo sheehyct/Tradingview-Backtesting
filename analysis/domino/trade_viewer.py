@@ -38,12 +38,12 @@ from pathlib import Path
 
 from analysis.domino.census import (
     CACHE,
-    MAX_CANDLES,
     RESULTS,
     cached_universe,
+    fetch_hourly,
     normalize,
+    normalize_hourly,
     parse_as_of,
-    post,
 )
 
 HERE = Path(__file__).parent
@@ -51,7 +51,6 @@ VIEWER = HERE / "viewer"
 DATA = VIEWER / "data"
 VENDOR = VIEWER / "vendor"
 TRADES = RESULTS / "manage_trades.csv.gz"
-HOUR = 3_600_000
 LWC_URL = (
     "https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"
 )
@@ -92,6 +91,12 @@ NUMERIC = (
     "days_own",
     "ret_C_long",
     "days_long",
+    "exit_k_u",
+    "ret_C_u",
+    "entry_h",
+    "exit_h",
+    "ret_C_h",
+    "hours_h",
 )
 TEXT = (
     "date",
@@ -111,6 +116,8 @@ TEXT = (
     "status5",
     "status_own",
     "status_long",
+    "status_u",
+    "status_h",
     "out5",
     "next_bar",
     "dex",
@@ -169,45 +176,6 @@ def cache_path(coin: str, interval: str, as_of_ms: int) -> Path:
 
 def compact(bars: list[dict]) -> list[list[float]]:
     return [[b["t"] // 1000, b["o"], b["h"], b["l"], b["c"], b["v"]] for b in bars]
-
-
-def normalize_hourly(rows: list[dict], now_ms: int) -> list[dict]:
-    """Closed hourly bars, ascending, one per hour start, last copy wins; the forming hour cut."""
-    by_t: dict[int, dict] = {}
-    for r in rows:
-        t = int(r["t"])
-        if t % HOUR != 0 or t + HOUR > now_ms:
-            continue
-        by_t[t] = {
-            "t": t,
-            "o": float(r["o"]),
-            "h": float(r["h"]),
-            "l": float(r["l"]),
-            "c": float(r["c"]),
-            "v": float(r.get("v", 0.0)),
-        }
-    return [by_t[t] for t in sorted(by_t)]
-
-
-def fetch_hourly(coin: str, as_of_ms: int) -> list[dict]:
-    """The venue's most recent hourly candles up to as_of (at most 5000), cached like the daily."""
-    CACHE.mkdir(parents=True, exist_ok=True)
-    p = cache_path(coin, "1h", as_of_ms)
-    if p.exists():
-        return json.load(open(p))
-    rows = post(
-        {
-            "type": "candleSnapshot",
-            "req": {
-                "coin": coin,
-                "interval": "1h",
-                "startTime": as_of_ms - MAX_CANDLES * HOUR,
-                "endTime": as_of_ms,
-            },
-        }
-    )
-    json.dump(rows, open(p, "w"))
-    return rows
 
 
 def ensure_vendor() -> None:

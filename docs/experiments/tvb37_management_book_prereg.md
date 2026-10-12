@@ -302,10 +302,12 @@ a red candle.
   down one rung as a whole: the headline tests the day and its parent the week, the hourly tests
   the hour and its parent the day. The week is not tested. Fill = that hour's close.
 - Targets: the same prices as the headline (T1, one R); a target fills on the first hour that
-  touched it, the entry hour or later (equality fills). A touch EARLIER on the entry day, before
-  the entry hour, does not fill, which the headline's daily bar could not distinguish. The
-  hourly books therefore differ from the daily books by the clock AND by this ordering; the
-  receipt says so.
+  touched it, the entry hour or later (equality fills). [Corrected while writing vector v17,
+  before the run was read: a target on the trade's side cannot be touched before the level, so
+  "before the entry hour" is empty; the ordering that DOES differ is on the exit day, where the
+  daily bar fills a target touched any time that day ("targets are intraday") and the hourly
+  clock fills only a touch at or before the exit hour.] The hourly books therefore differ from
+  the daily books by the clock AND by this ordering; the receipt says so.
 - Cap: the last hour of the headline's twentieth day after entry (status OPEN, marked at that
   hour's close); CENSORED when the hourly data ends first.
 - Books on the hourly clock: C_h (exit only), A_h (all out at T1), D_h (one R or the exit),
@@ -356,8 +358,8 @@ a red candle.
 - v16 under water: a long whose first day closes red but above L does not exit; a day that
   opened under L and closed green but under L, with the week against, exits at that close; the
   colour clock on the same bars gives a different day.
-- v17 hourly: the entry hour is the first hour whose high reaches L; T1 touched in an EARLIER
-  hour of the entry day does not fill; a red hour while the day is green does not exit; the first
+- v17 hourly: the entry hour is the first hour whose high reaches L; a target touched on the
+  exit day AFTER the exit hour does not fill (corrected as above); a red hour while the day is green does not exit; the first
   red hour with the day red exits at that hour's close; the hourly cap marks at the last hour of
   the twentieth day; a coin with no hourly bars yields no hourly rows and the headline rows are
   unchanged.
