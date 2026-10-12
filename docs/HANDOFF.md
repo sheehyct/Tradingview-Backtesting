@@ -33,7 +33,16 @@ over the management book; nothing is promoted and nothing is read into the hiera
   week's open, with colours); every book's fill; the two A2 exits (under water on the daily,
   the hourly clock on the hourly view); filters (unit timeframe, kind, side, liquid, has T1),
   book and equal-size selectors for the printed P/L; arrow keys; bookmarkable addresses
-  (`#coin=BTC&date=2025-06-17&tf=D&dir=down&view=1D`, the receipt's worked example). Hourly
+  (`#coin=BTC&date=2025-06-17&tf=D&dir=down&view=1D`, the receipt's worked example). On the
+  owner's first pass (BTC 2026-03-27 weekly short: "we hit T1, no exit") three additions and
+  one fix, same day: the book box now drives the chart (candles, closed line and out arrow at
+  the selected book's own settle day and fill, read off the row; the headline clock kept as a
+  small square); every timeframe that broke the same day is drawn with the gap band and a
+  "domino" label on a converged stack (the chart's calendar level checked equal to every row's
+  recorded level, all 179,498 units); a magnet ray tool (Draw / R, snaps to the bar's OHLC on
+  the active view, persists across timeframes per coin); and the misplaced "data ends" marker
+  (the A2 markers had split the exit arrow's `if` from its `else`) fixed. `serve` takes
+  `--host` and `--no-open` for the owner's laptop over SSH / Tailscale. Hourly
   candles fetched for all 292 coins (the venue serves ~208 days) into the census cache, stamped.
   Recipe in the receipt's viewer section: `hourly --as-of ... all` (once), `build --as-of ...`,
   `serve`. The data folder and the vendored chart library are gitignored and regenerable.

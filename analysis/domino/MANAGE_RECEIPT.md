@@ -377,8 +377,27 @@ open, with the colours); every book's fill for the row; and a strip of trade car
 unit timeframe, kind, side, liquid, has-T1; the book and an equal size in dollars for the
 printed P/L). Arrow keys step through trades. The address bar carries the trade
 (`#coin=BTC&date=2025-06-17&tf=D&dir=down&view=1D`), so a trade can be bookmarked or pasted
-into a note. The worked example above is that address. The viewer's data folder and the
-vendored chart library are regenerable and stay out of the repo.
+into a note (`&book=A` carries the book box). The worked example above is that address. The
+viewer's data folder and the vendored chart library are regenerable and stay out of the repo.
+
+Added on the owner's first pass (2026-10-12, same session): the book box drives the chart, not
+just the cards. The trade's candles run to the selected book's own settle day (`days_X` on the
+row), "Position closed" sits at that book's fill (the entry level moved by the recorded return,
+so it is the engine's own number) and the out arrow lands on the bar that touched the target
+when the book took one; the headline daily clock stays as a small "daily clock out" square when
+it left on a different day. Every timeframe the row says broke that day is drawn: the trade's
+own trigger as "Position opened", the others as dashed "daily / weekly / monthly trigger, broke
+the same day", with a stack line in the details (each trigger's price, the gap between them,
+the census band: same price / near / within 1% / spread). On a converged stack the entry line
+is labelled "domino". The chart's previous-complete-bar level was checked against every row's
+recorded level across all 179,498 units: no mismatch, so the amber "bug hypothesis" note on
+that line should never print. A magnet ray tool (Draw / R): a click drops a one-pixel blue line
+at the nearest open / high / low / close of the bar under the cursor on the active timeframe;
+it stays across the 1H / 1D / 1W / 1M toggles and across trades on that coin (browser storage,
+per coin); click near a ray to move it to a finer level on a faster view, Alt+click or the
+cross beside its price removes it, Delete removes the last, Clear empties the coin. One viewer
+bug fixed: the A2 markers had been spliced between the exit arrow's `if` and its `else`, so a
+"data ends" square printed on every exited trade.
 
 ## Provenance
 

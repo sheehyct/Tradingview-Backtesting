@@ -63,6 +63,10 @@
   .card .st { font-size: 11px; color: var(--dim); }
   kbd { background: var(--panel2); border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; font-size: 11px; }
   a { color: #93c5fd; }
+  #chart.ray { cursor: crosshair; }
+  #rays .ray { font-size: 12px; color: #93c5fd; margin-right: 8px; }
+  #rays a { cursor: pointer; color: var(--muted); text-decoration: none; }
+  #rays a:hover { color: var(--red); }
 </style>
 </head>
 <body>
@@ -99,6 +103,9 @@
       <option value="ref">Chance book (setup-bar stop, 5 bars)</option>
     </select>
     <span class="lab">Size $</span><input id="size" type="number" value="1000" min="1" step="100">
+    <span class="lab">Ray</span>
+    <span class="seg"><button id="rayMode" title="R: click the chart to drop a magnet line on the nearest open / high / low / close of the bar under the cursor; click a line to move it; Alt+click removes it; Delete removes the last">Draw</button><button id="rayClear" title="remove every ray on this coin">Clear</button></span>
+    <span id="rays"></span>
   </div>
   <div class="row">
     <span id="summary"></span>
@@ -114,7 +121,7 @@
 <footer>
   <div class="row" style="margin-bottom:6px">
     <span class="sub" id="cardsTitle"></span>
-    <span class="sub" style="margin-left:auto"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> previous / next trade &middot; <kbd>Esc</kbd> clear</span>
+    <span class="sub" style="margin-left:auto"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> previous / next trade &middot; <kbd>Esc</kbd> clear &middot; <kbd>R</kbd> ray tool</span>
   </div>
   <div id="cards"></div>
 </footer>

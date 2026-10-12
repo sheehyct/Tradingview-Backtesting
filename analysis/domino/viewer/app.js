@@ -14,6 +14,9 @@
   };
   const BOOK_RET = { C: "ret_C", A: "ret_A", B: "ret_B", D: "ret_D", D5: "ret_D5", ref: "ret5" };
   const BOOK_HIT = { A: "hit_A", B: "hit_B", D: "hit_D", D5: "hit_D5" };
+  const BOOK_DAYS = { A: "days_A", B: "days_B", D: "days_D", D5: "days_D5", ref: "days_ref" };
+  const CLS_LABEL = { exact_shared: "same price", near: "near, within 0.25%", within1: "within 1%", spread: "spread, more than 1% apart" };
+  const RAY = "rgba(59,130,246,0.7)";
   const KIND_LABEL = { reversal: "reversal", continuation: "continuation", inside: "inside break", outside: "outside break" };
   const TF_LABEL = { D: "daily", W: "weekly", M: "monthly" };
 
@@ -23,6 +26,7 @@
     chartTf: "1D", tf: new Set(["D", "W", "M"]), kind: new Set(["reversal", "continuation", "inside", "outside"]),
     dir: new Set(["up", "down"]), liquid: false, hasT1: false, book: "C", size: 1000,
     list: [], sel: -1, cur: null, dateMode: null, chart: null, series: null, weekLine: null, lines: [],
+    rays: [], rayLines: [], rayMode: false,
   };
 
   // ---------------------------------------------------------------- calendar (census rules)
@@ -64,13 +68,45 @@
   function tradeRet(t) { return t[BOOK_RET[state.book]]; }
 
   // ---------------------------------------------------------------- trade geometry (from the row)
-  function tradeSpan(t) {
-    // day index of the entry day, and the last day the engine held the trade under the daily clock
+  function settle(t, book) {
+    // how a book settled, as the row recorded it: the day held (days_X), the fill (level moved by the
+    // recorded return, so it is the engine's own number) and why. Book C is the headline exit clock.
+    const b = book || state.book;
+    const long = t.direction === "up";
+    const fill = (ret) => ret == null ? null : t.level * (1 + (long ? 1 : -1) * ret / 100);
+    const head = { book: "C", k: t.exit_k != null ? t.exit_k : t.days != null ? t.days : CAP, ret: t.ret_C, target: false,
+      how: t.status === "exit" ? "daily-close exit" : t.status === "open" ? "marked at the 20-day cap" : "censored (data ends)" };
+    head.price = t.status === "exit" || t.status === "open" ? fill(t.ret_C) : null;
+    const ret = t[BOOK_RET[b]];
+    if (b === "C" || ret == null || t[BOOK_DAYS[b]] == null) return head;
+    const k = t[BOOK_DAYS[b]];
+    let how, target = false;
+    if (b === "A") { target = !!t.hit_A; how = target ? "all out at T1" : head.how; }
+    else if (b === "B") { target = !!t.hit_B; how = target ? "all out at T2" : head.how; }
+    else if (b === "D") { target = !!t.hit_D; how = target ? "one R" : head.how; }
+    else if (b === "D5") { target = !!t.hit_D5; how = target ? "one R" : k === head.k && t.status === "exit" ? "daily-close exit" : "marked at the 5-bar horizon"; }
+    else { target = t.out5 === "one_r"; how = t.out5 === "stop" ? "setup-bar stop" : target ? "one R" : t.out5 === "neither" ? "marked at bar 5" : "censored (data ends)"; }
+    return { book: b, k, ret, target, how, price: fill(ret) };
+  }
+  function tradeSpan(t, book) {
+    // day index of the entry day, and the last day the given book (default: the book box) held the trade
     const i = state.dayIdx.get(t.date);
     if (i == null) return null;
-    let n = t.exit_k != null ? t.exit_k : t.days != null ? t.days : CAP;
-    const end = Math.min(i + n, state.daily.length - 1);
+    const end = Math.min(i + settle(t, book).k, state.daily.length - 1);
     return { i, end };
+  }
+  function stackLevels(t, i) {
+    // the previous complete bar's high / low on each timeframe the row says broke that day (the census's
+    // "levels": the day's = yesterday's; the week's = last week's; the month's = last month's)
+    const long = t.direction === "up";
+    const out = [];
+    for (const tf of (t.stack || t.tf).split("+")) {
+      let bar = null;
+      if (tf === "D") { if (i - 1 >= 0) bar = { h: state.daily[i - 1][2], l: state.daily[i - 1][3] }; }
+      else { const buckets = tf === "W" ? state.weeks : state.months; const bi = buckets.findIndex((b) => b.days.includes(i)); if (bi > 0) bar = buckets[bi - 1]; }
+      if (bar) out.push({ tf, price: long ? bar.h : bar.l });
+    }
+    return out;
   }
   function setupDays(t, i) {
     // the setup bar and the bar before it, as day-index sets, per the unit's own timeframe
@@ -100,7 +136,45 @@
       priceLineVisible: false, lastValueVisible: false,
     });
     state.weekLine = state.chart.addLineSeries({ color: COL.week, lineWidth: 1, lineStyle: 3, lineType: 1, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+    state.chart.subscribeClick(onChartClick);
     $("empty").style.display = "none";
+  }
+
+  // ---------------------------------------------------------------- rays: a magnet horizontal line, per coin, across every timeframe
+  function rayKey() { return "domino-viewer-rays:" + state.coin; }
+  function loadRays() { try { state.rays = JSON.parse(localStorage.getItem(rayKey()) || "[]").filter((x) => typeof x === "number"); } catch (e) { state.rays = []; } }
+  function saveRays() { try { localStorage.setItem(rayKey(), JSON.stringify(state.rays)); } catch (e) { /* no storage: rays live for the page only */ } }
+  function drawRays() {
+    if (!state.series) return;
+    for (const l of state.rayLines) state.series.removePriceLine(l);
+    state.rayLines = state.rays.map((price) => state.series.createPriceLine({ price, color: RAY, lineWidth: 1, lineStyle: 0, axisLabelVisible: true, title: "" }));
+    const p = precisionFor(state.daily, state.cur);
+    $("rays").innerHTML = state.rays.map((r, k) => '<span class="ray">' + fmtPrice(r, p) + ' <a data-k="' + k + '" title="remove this ray">&times;</a></span>').join("");
+    $("rays").querySelectorAll("a").forEach((a) => a.onclick = () => { state.rays.splice(Number(a.dataset.k), 1); saveRays(); drawRays(); });
+  }
+  function setRayMode(on) {
+    state.rayMode = on;
+    $("rayMode").classList.toggle("on", on);
+    $("chart").classList.toggle("ray", on);
+    if (state.chart) state.chart.applyOptions({ crosshair: { mode: on ? 1 : 0 } });
+  }
+  function onChartClick(param) {
+    if (!state.rayMode || !param.point || !state.series) return;
+    let price = state.series.coordinateToPrice(param.point.y);
+    if (price == null) return;
+    const bar = param.seriesData && param.seriesData.get(state.series);
+    if (bar && bar.open != null) {
+      // strong magnet: the nearest of the bar's open / high / low / close under the cursor, on the active timeframe
+      const cands = [bar.open, bar.high, bar.low, bar.close];
+      price = cands.reduce((best, x) => Math.abs(x - price) < Math.abs(best - price) ? x : best, cands[0]);
+    }
+    // a click within 8px of an existing ray moves that ray to the new magnet price; Alt+click removes it; else a new ray
+    const near = state.rays.findIndex((r) => Math.abs(state.series.priceToCoordinate(r) - param.point.y) <= 8);
+    const alt = !!(param.sourceEvent && param.sourceEvent.altKey);
+    if (near >= 0 && alt) state.rays.splice(near, 1);
+    else if (near >= 0) state.rays[near] = price;
+    else if (!alt) state.rays.push(price);
+    saveRays(); drawRays();
   }
 
   function clearLines() { for (const l of state.lines) state.series.removePriceLine(l); state.lines = []; }
@@ -152,9 +226,13 @@
     const markers = [];
     if (t && span) {
       const long = t.direction === "up";
-      const endBar = state.daily[span.end];
-      addLine(t.level, COL.level, 0, "Position opened");
-      if (t.status === "exit") addLine(endBar[4], COL.exit, 2, "Position closed");
+      const st = settle(t);
+      const hs = tradeSpan(t, "C");
+      const levels = stackLevels(t, span.i);
+      const domino = levels.length > 1 && CLS_LABEL[t.cls] && t.cls !== "spread";
+      addLine(t.level, COL.level, 0, domino ? "Position opened: domino " + t.stack + " (" + CLS_LABEL[t.cls] + ")" : "Position opened (" + TF_LABEL[t.tf] + " trigger)");
+      for (const l of levels) if (l.tf !== t.tf) addLine(l.price, COL.level, 2, TF_LABEL[l.tf] + " trigger, broke the same day");
+      if (st.price != null) addLine(st.price, COL.exit, 2, "Position closed: " + st.book + " " + st.how);
       addLine(t.t1, COL.target, 2, "T1 " + (t.t1_src || ""));
       addLine(t.t2, COL.target, 2, "T2 " + (t.t2_src || ""));
       addLine(t.t3, COL.target, 2, "T3 " + (t.t3_src || ""));
@@ -182,7 +260,12 @@
         put(touchBar(d, price, long ? "hi" : "lo"), label, long, key === "one_r_k" ? COL.oneR : key === "mm1_k" ? COL.mm : COL.target, "circle");
       }
       if (t.stop_k != null && span.i + t.stop_k <= span.end) put(touchBar(span.i + t.stop_k, t.stop, long ? "lo" : "hi"), "stop", !long, COL.stop, "circle");
-      if (t.status === "exit") put(barOfDay(span.end, (ks) => ks[ks.length - 1]), "out " + fmtPrice(endBar[4], p), long, COL.exit, long ? "arrowDown" : "arrowUp");
+      // the selected book's fill: at its target price on the touch bar, else at the settle day's close
+      if (st.price != null && st.target) put(touchBar(span.end, st.price, long ? "hi" : "lo"), "out " + fmtPrice(st.price, p) + " (" + st.how + ")", long, COL.exit, long ? "arrowDown" : "arrowUp");
+      else if (st.price != null) put(barOfDay(span.end, (ks) => ks[ks.length - 1]), "out " + fmtPrice(st.price, p) + (st.book === "C" ? "" : " (" + st.how + ")"), long, COL.exit, long ? "arrowDown" : "arrowUp");
+      else put(barOfDay(span.end, (ks) => ks[ks.length - 1]), "data ends", long, COL.stop, "square");
+      // the headline daily clock, when the book box left the trade on another day
+      if (st.book !== "C" && hs && hs.end !== span.end && t.status === "exit") put(barOfDay(hs.end, (ks) => ks[ks.length - 1]), "daily clock out", long, COL.stop, "square");
       // the declared alternative clocks (prereg A2): under water on the daily, the hourly clock on the hourly view
       if (t.status_u === "exit" && t.exit_k_u != null && t.exit_k_u !== t.exit_k) {
         const ku = Math.min(span.i + t.exit_k_u, state.daily.length - 1);
@@ -193,7 +276,6 @@
         const kh = bs.findIndex((b) => b.t === t0);
         if (kh >= 0) put(kh, "out: hourly clock", long, COL.mm, "square");
       }
-      else put(barOfDay(span.end, (ks) => ks[ks.length - 1]), t.status === "open" ? "cap (open)" : "data ends", long, COL.stop, "square");
       markers.sort((a, b) => a.time - b.time);
       if (firstIn >= 0) {
         const from = Math.max(0, firstIn - (state.chartTf === "1H" ? 48 : 40)), to = Math.min(bs.length - 1, lastIn + (state.chartTf === "1H" ? 24 : 15));
@@ -203,6 +285,7 @@
       state.chart.timeScale().setVisibleLogicalRange({ from: Math.max(0, bs.length - 160), to: bs.length + 4 });
     }
     state.series.setMarkers(markers);
+    drawRays();
     legend(t, span, bs.length);
     details(t, span, p);
   }
@@ -222,7 +305,9 @@
     const el = $("trade");
     if (!t || !span) { el.innerHTML = '<span class="k">Pick a trade below (or press &rarr;).</span>'; return; }
     const long = t.direction === "up";
-    const endBar = state.daily[span.end];
+    const st = settle(t);
+    const hs = tradeSpan(t, "C") || span;
+    const endBar = state.daily[hs.end];
     const chips = ['<span class="chip ' + (long ? "long" : "short") + '">' + (long ? "LONG" : "SHORT") + "</span>",
       '<span class="chip tf">' + TF_LABEL[t.tf] + "</span>", '<span class="chip kind">' + KIND_LABEL[t.kind] + "</span>"];
     if (t.cls && t.cls !== "plain") chips.push('<span class="chip flag">' + t.cls + (t.stack && t.stack !== t.tf ? " " + t.stack : "") + "</span>");
@@ -238,14 +323,23 @@
       oneR != null ? '<span class="k">one R</span> ' + fmtPrice(oneR, p) + " (" + (t.r_pct != null ? t.r_pct.toFixed(2) + "% of price" : "") + ")" + dayAt(t.one_r_k) : "",
       t.stop != null ? '<span class="k">setup-bar stop</span> ' + fmtPrice(t.stop, p) + (t.stop_k != null ? dayAt(t.stop_k) : " (never hit inside the window)") : "",
       t.mm_t1 != null ? '<span class="k">measured move</span> ' + fmtPrice(t.mm_t1, p) + dayAt(t.mm1_k) : ""].filter(Boolean).join(" &middot; ");
-    let exitTxt;
+    const levels = stackLevels(t, span.i);
+    let stackTxt = "";
+    if (levels.length > 1) {
+      const prices = levels.map((l) => l.price), gap = (Math.max(...prices) - Math.min(...prices)) / Math.min(...prices) * 100;
+      stackTxt = '<span class="k">stack</span> ' + t.stack + ": " + levels.map((l) => TF_LABEL[l.tf] + " trigger " + fmtPrice(l.price, p)).join(", ") +
+        " &middot; gap " + gap.toFixed(2) + "% (" + (CLS_LABEL[t.cls] || t.cls) + ")";
+    } else stackTxt = '<span class="k">stack</span> ' + TF_LABEL[t.tf] + " alone that day";
+    const own = levels.find((l) => l.tf === t.tf);
+    if (own && t.level != null && Math.abs(own.price - t.level) > Math.pow(10, -p) / 2) stackTxt += ' <span style="color:#f59e0b">row level ' + fmtPrice(t.level, p) + " differs from the chart's " + TF_LABEL[t.tf] + " level " + fmtPrice(own.price, p) + ": bug hypothesis</span>";
+    let exitTxt = '<span class="k">book ' + st.book + "</span> " + st.how + (st.price != null ? " on day " + st.k + " (" + iso(state.daily[span.end][0]) + ") at " + fmtPrice(st.price, p) + " <b class=\"" + cls(st.ret) + '">' + fmtPct(st.ret) + "</b>" : "") + " &middot; ";
     if (t.status === "exit") {
       const wo = state.weekOpenAt(endBar[0]);
-      exitTxt = '<span class="k">exit</span> day ' + (span.end - span.i) + " (" + iso(endBar[0]) + ") at the close " + fmtPrice(endBar[4], p) +
+      exitTxt += '<span class="k">daily clock</span> out day ' + (hs.end - hs.i) + " (" + iso(endBar[0]) + ") at the close " + fmtPrice(endBar[4], p) +
         ": day open " + fmtPrice(endBar[1], p) + " (" + (endBar[4] < endBar[1] ? "red" : endBar[4] > endBar[1] ? "green" : "flat") + ")" +
         ", week open " + fmtPrice(wo, p) + " (" + (wo == null ? "?" : endBar[4] < wo ? "red" : endBar[4] > wo ? "green" : "flat") + ")";
-    } else if (t.status === "open") exitTxt = '<span class="k">exit</span> none inside the 20-day cap; marked at the day-20 close ' + fmtPrice(endBar[4], p);
-    else exitTxt = '<span class="k">exit</span> censored (the data ends before the cap)';
+    } else if (t.status === "open") exitTxt += '<span class="k">daily clock</span> no exit inside the 20-day cap; marked at the day-20 close ' + fmtPrice(endBar[4], p);
+    else exitTxt += '<span class="k">daily clock</span> censored (the data ends before the cap)';
     const alt = [];
     if (t.status_u === "exit" && t.exit_k_u != null) alt.push('<span class="k">under-water clock</span> day ' + t.exit_k_u + " " + fmtPct(t.ret_C_u));
     else if (t.status_u === "open") alt.push('<span class="k">under-water clock</span> open at the cap ' + fmtPct(t.ret_C_u));
@@ -258,7 +352,7 @@
       return '<span class="k">' + b + "</span> <b class=\"" + cls(v) + '">' + fmtPct(v) + "</b>" + '<span class="k">' + hit + "</span>";
     }).join(" &middot; ");
     const extra = '<span class="k">travel to the exit</span> +' + (t.mfe_x != null ? t.mfe_x.toFixed(2) : "?") + "% / -" + (t.mae_x != null ? t.mae_x.toFixed(2) : "?") + "%";
-    el.innerHTML = chips.join(" ") + "<br>" + line2 + "<br>" + exitTxt + " &middot; " + extra + "<br>" + books;
+    el.innerHTML = chips.join(" ") + "<br>" + line2 + "<br>" + stackTxt + "<br>" + exitTxt + " &middot; " + extra + "<br>" + books;
   }
 
   // ---------------------------------------------------------------- lists, cards, filters
@@ -275,7 +369,7 @@
       '<div class="when">' + t.date + (endTxt ? " &rarr; " + endTxt : "") + "</div>" +
       '<div class="what">' + TF_LABEL[t.tf] + " " + KIND_LABEL[t.kind] + (t.cls && t.cls !== "plain" ? " &middot; " + t.cls : "") + (t.flag && t.flag !== "none" ? " &middot; " + t.flag : "") + "</div>" +
       '<div class="pl ' + cls(v) + '">' + fmtPct(v) + ' <span style="font-size:12px;font-weight:500">' + fmtUsd(v) + "</span></div>" +
-      '<div class="st">' + (t.status || "") + (BOOK_HIT[state.book] ? (t[BOOK_HIT[state.book]] ? " &middot; target filled" : " &middot; filled at the exit") : "") + "</div>";
+      '<div class="st">' + settle(t).how + "</div>";
     el.onclick = () => select(k, coin);
     return el;
   }
@@ -299,6 +393,7 @@
     const res = await fetch("data/" + entry.file);
     const d = await res.json();
     state.coin = coin; state.data = d; state.daily = d.daily; state.hourly = d.hourly;
+    loadRays();
     state.dayIdx = new Map(d.daily.map((b, i) => [iso(b[0]), i]));
     state.weeks = aggregate(d.daily, "W"); state.months = aggregate(d.daily, "M");
     const wo = new Map(); for (const w of state.weeks) for (const di of w.days) wo.set(d.daily[di][0], w.o);
@@ -324,12 +419,12 @@
   function syncHash() {
     // a bookmarkable address for the trade on screen: #coin=BTC&date=2025-06-17&tf=D&dir=down&view=1D
     const t = state.cur;
-    const h = t ? "coin=" + encodeURIComponent(state.coin) + "&date=" + t.date + "&tf=" + t.tf + "&dir=" + t.direction + "&view=" + state.chartTf : state.coin ? "coin=" + encodeURIComponent(state.coin) + "&view=" + state.chartTf : "";
+    const h = t ? "coin=" + encodeURIComponent(state.coin) + "&date=" + t.date + "&tf=" + t.tf + "&dir=" + t.direction + "&view=" + state.chartTf + "&book=" + state.book : state.coin ? "coin=" + encodeURIComponent(state.coin) + "&view=" + state.chartTf : "";
     history.replaceState(null, "", h ? "#" + h : location.pathname);
   }
   function fromHash() {
     const q = new URLSearchParams(location.hash.slice(1));
-    return { coin: q.get("coin"), date: q.get("date"), tf: q.get("tf"), dir: q.get("dir"), view: q.get("view") };
+    return { coin: q.get("coin"), date: q.get("date"), tf: q.get("tf"), dir: q.get("dir"), view: q.get("view"), book: q.get("book") };
   }
   function lastSettled(list) { for (let k = list.length - 1; k >= 0; k--) if (list[k].status === "exit") return k; return list.length - 1; }
 
@@ -389,7 +484,9 @@
     seg("fDir", () => { state.dir = setOf("fDir"); refilter(); }, true);
     seg("fLiq", (v, on) => { state.liquid = on; refilter(); }, true);
     seg("fT1", (v, on) => { state.hasT1 = on; refilter(); }, true);
-    $("book").onchange = (e) => { state.book = e.target.value; renderCards(); };
+    $("book").onchange = (e) => { state.book = e.target.value; draw(); renderCards(); };
+    $("rayMode").onclick = () => setRayMode(!state.rayMode);
+    $("rayClear").onclick = () => { state.rays = []; saveRays(); drawRays(); };
     $("size").onchange = (e) => { state.size = Number(e.target.value) || 1000; renderCards(); };
     $("coinBox").onchange = async (e) => {
       const v = e.target.value.trim();
@@ -404,9 +501,12 @@
       const n = state.dateMode ? state.dateMode.items.length : state.list.length;
       if (e.key === "ArrowRight" && state.sel < n - 1) { select(state.sel + 1, state.dateMode ? state.dateMode.items[state.sel + 1].coin : state.coin); e.preventDefault(); }
       else if (e.key === "ArrowLeft" && state.sel > 0) { select(state.sel - 1, state.dateMode ? state.dateMode.items[state.sel - 1].coin : state.coin); e.preventDefault(); }
-      else if (e.key === "Escape") { state.sel = -1; state.cur = null; draw(); renderCards(); }
+      else if (e.key === "Escape") { if (state.rayMode) setRayMode(false); else { state.sel = -1; state.cur = null; draw(); renderCards(); } }
+      else if (e.key === "r" || e.key === "R") setRayMode(!state.rayMode);
+      else if ((e.key === "Delete" || e.key === "Backspace") && state.rays.length) { state.rays.pop(); saveRays(); drawRays(); }
     });
     const want = fromHash();
+    if (want.book && BOOK_RET[want.book]) { state.book = want.book; $("book").value = want.book; }
     const first = state.index.coins.find((c) => c.coin === (want.coin || "BTC")) || state.index.coins[0];
     $("coinBox").value = first.coin;
     await loadCoin(first.coin);
