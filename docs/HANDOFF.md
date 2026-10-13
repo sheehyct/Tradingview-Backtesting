@@ -184,10 +184,10 @@ out". The owner's first pass is BEGUN, not finished.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: `4dc5f6b..HEAD` on `main` (4dc5f6b is the pre-session sha; the range is
-  dbeaffe, f505f9d, 340c86e, ed08ae5, 7f3fc88 and the close-out commit). Pinned to the exact
-  head in `docs/reviews/REVIEW_REQUEST.md` after the push. Sanity-check:
-  `git diff --name-status 4dc5f6b..HEAD` must list every file above.
+- Commits to review: `4dc5f6b..30391fb` on `main` (4dc5f6b is the pre-session sha; the range
+  is dbeaffe, f505f9d, 340c86e, ed08ae5, 7f3fc88, 30391fb close-out; the sha-pin commit after
+  it is docs only). Sanity-check: `git diff --name-status 4dc5f6b..30391fb` lists every file
+  above (verified at pin time: 16 source / doc files plus the gitignore).
 - Scope / what changed: the trade viewer (a static page + a build / hourly / serve CLI that
   draws recorded rows on cached candles and claims to re-run no trade logic) and prereg
   amendment A2 in `manage.py` / `census.py` (the under-water exit on the shared walk, the

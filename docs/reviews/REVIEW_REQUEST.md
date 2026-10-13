@@ -28,7 +28,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `{pending push}` -- pinned after the session-end push as `4dc5f6b..{head}` (4dc5f6b is the pre-session sha; the range holds dbeaffe viewer, f505f9d A2 prereg, 340c86e A2 build, ed08ae5 serve flags, 7f3fc88 viewer second pass, then the close-out). Verify with `git diff --name-status 4dc5f6b..HEAD`. |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `4dc5f6b..30391fb` (4dc5f6b is the pre-session sha; the range holds dbeaffe viewer, f505f9d A2 prereg, 340c86e A2 build, ed08ae5 serve flags, 7f3fc88 viewer second pass, 30391fb close-out; the sha-pin commit after it is docs only). Verify with `git diff --name-status 4dc5f6b..30391fb`. |
 
 No sibling-repo commits. The candle cache (daily and hourly), the unit rows
 (`manage_trades.csv.gz`), the viewer's data folder and vendored chart library, the page output
