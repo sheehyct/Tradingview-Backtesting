@@ -14,8 +14,12 @@ visually without TradingView ("visually verifying via TradingView is one of the 
 consuming tasks, almost impossible to accurately do ... the numbers were there and seemed right
 until visually verified, which showed inaccuracies"), styled like the owner's screenshot (grey
 context candles, the trade's candles coloured, opened / closed lines, a strip of trade cards,
-1H / 1D / 1W / 1M toggles). Both delivered, pushed. The owner has still not made their own pass
-over the management book; nothing is promoted and nothing is read into the hierarchy rulings.
+1H / 1D / 1W / 1M toggles). Both delivered, pushed. The owner began their own pass the same
+evening on the viewer (two BTC trades walked, section below): three viewer additions and one
+viewer bug fix came out of it, plus one STRAT STOP-and-ASK question (the with-trend inside
+break's T1) that is OPEN, and two direction signals from the owner recorded below (the
+daily-close exit is likely to be retired; higher-timeframe inside bars are the hazard the domino
+test was meant to answer). Nothing is promoted; nothing is read into the hierarchy rulings.
 
 ### What was accomplished
 
@@ -91,15 +95,76 @@ over the management book; nothing is promoted and nothing is read into the hiera
   on the continuation, +0.04 / +0.04 / +0.23 elsewhere; A slips a few hundredths; D unchanged.
   On the continuation a red candle above the entry is not evidence against the trade.
 
+### The owner's first pass on the viewer (same evening; two BTC trades)
+
+**Trade 1, BTC 2026-03-27 weekly reversal short, "we hit T1, no exit; a second trip through
+T1, no exit; hard to tell which level is the domino level".** The row was right; the viewer was
+the problem. The book box was on C (exit only, no target by rule) and the "Position closed"
+line was hard-wired to the headline exit whatever the box said; the trade's only level drawn
+was its own weekly trigger, and "spread D+W" (the daily trigger broke the same day more than 1%
+away) was printed as a chip, not drawn. Fixed the same evening (7f3fc88): the book box now
+drives the chart (candles to the selected book's own settle day, the closed line at that
+book's fill read off the row's return, the out arrow on the bar that touched the target when
+the book took one, the headline clock kept as a small square); every timeframe the row says
+broke that day is drawn, with a stack line in the details (each trigger's price, the gap, the
+census band) and a "domino" label on a converged stack; the chart's previous-complete-bar
+level was checked equal to the recorded entry level on all 179,498 rows (no mismatch); a magnet
+ray tool (the owner's TradingView habit: a one-pixel blue line at 70% opacity snapped to the
+bar's open / high / low / close, kept across the timeframe toggles per coin, moved by clicking
+near it on a faster view); `&book=` in the address. One viewer bug found on the owner's
+screenshot: the A2 markers had been spliced between the exit arrow's `if` and its `else`, so a
+"data ends" square printed on every exited trade. Also `serve --host / --no-open` (ed08ae5) so
+the owner can browse the viewer from their laptop over an SSH port forward or the tailnet.
+
+**Trade 2, BTC 2026-03-25 daily inside break long, -6.99% in two days, "a 2D week and an
+inside month, a recipe for disaster, yet it hit its daily target, and a weekly target on the
+upside on a 2D week?"** Checked against the candles:
+
+- The week was NOT 2D at entry: through 03-24 the week of 03-23 ran 67,404-71,785 inside the
+  prior week's 67,313-75,972, with price above the week's open at 67,831 (the row's "week
+  with"). It went 2D on 03-27, the exit day. The 2D week is hindsight.
+- The month was inside (March 65,000-75,972 inside February's 60,000-79,417). The engine reads
+  neither the month nor the week's bar type; it takes every daily break by design, and the
+  only week read is its colour at entry (A2.1).
+- T1 75,972 [W] is last week's high, the first unbroken weekly level above the entry: a level
+  from the ladder, not the week's direction.
+- The owner's "daily target" at 71,785 is the mother bar's high (03-23, a 2U). It was hit on
+  the entry day (high 72,034); book A would have left at +0.56%. **Code-versus-skill drift,
+  STOP-and-ASK raised, OPEN:** the prereg's definition says a with-trend inside break has no
+  magnitude of its own and takes the first weekly / monthly rung (`anchor = ladder`); the
+  strat-methodology skill's rulings R14 / R18 say unfilled structure containing the trigger is
+  a real structural magnitude, and the 2U mother bar's far side contains this trigger. The
+  owner's ruling decides; any change is prereg amendment A3 BEFORE code (rerun ~10 min). The
+  question put to the owner: "Mother bar's far side as T1 for the with-trend inside break:
+  amend?" Not answered this session.
+- Why -6.99%: 03-26 closed red on the day but above the week's open, so the two-test exit did
+  not fire; 03-27 closed below both, out at 66,396. The week-colour test let it ride through a
+  3.6% red day; the setup-bar stop (68,904, the inside bar's low) would have cost 3.48%.
+- Feed note: the venue API prints the inside bar's high at 71,385, TradingView at 71,387.
+
+**The owner's closing words, as direction (not rulings):** the trade is "the danger of trading
+lower timeframes when you have higher timeframes as inside bars", which is "why we tried to go
+with the domino test" (the coincident-level event, TVB-37); "I think the daily exit close also
+is going to be thrown out, the amount of trades this affects is pretty ridiculous"; more trade
+reviews to come ("it does take time"); "we are making progress ... still some bugs to work
+out". The owner's first pass is BEGUN, not finished.
+
 ### What the lead would say next (not done; the owner decides)
 
-- The headline's "against" is the weaker reading on the continuation; a declared headline
-  change (under water) is a one-line amendment if the owner wants it.
-- The week's side belongs to the reversal and the continuation; the inside break against the
-  week is worth the owner's eye on the viewer (filter: Inside + Short/Long, cards show
-  `w_support` in the details line).
-- The viewer is the instrument for the owner's own pass; the BTC 2025-06-17 short and the BTC
-  2026-10-04 inside break (hourly view, three exits on one chart) are the two worked examples.
+- The with-trend inside break's T1 is the first amendment candidate (A3): the mother bar's far
+  side per the skill, against the prereg's ladder. The viewer should draw the mother bar's far
+  side on every inside break so the owner can see the skill's reading trade by trade before
+  ruling.
+- If the daily-close exit is retired, the replacements are already measured on the same rows:
+  under water (A2.5, loses less or the same), the hourly clock (A2.2, a different trade, flat
+  net), the own-bar clock (fork 2, holds longer and loses more), the chance book's setup-bar
+  stop (the reference). The owner picks; prereg before any rerun; no pick-the-winner.
+- The owner's hazard (higher-timeframe inside bars around a lower-timeframe entry) is a
+  context split the rows can already carry: the week's and month's bar type at entry (inside /
+  2 with / 2 against / 3) as a declared split of every book, like A2.1 did for the week's
+  colour. A one-line amendment if the owner wants it.
+- The headline's "against" is the weaker reading on the continuation (A2.5); the week's side
+  belongs to the reversal and the continuation (A2.1).
 
 ### Files created/modified
 
@@ -108,27 +173,58 @@ over the management book; nothing is promoted and nothing is read into the hiera
 - Modified: `analysis/domino/{manage.py,census.py,chart_page.py,MANAGE_RECEIPT.md}`,
   `results/{manage.json,manage_tables.md}` (+ the gitignored CSV / log / viewer data),
   `docs/experiments/tvb37_management_book_prereg.md` (A2), `docs/ARM_LEDGER.md`, `.gitignore`,
-  `.session_startup_prompt.md`, this file.
-- Commits: dbeaffe (viewer), f505f9d (A2 prereg), then the A2 build commit.
+  `docs/reviews/REVIEW_REQUEST.md`, `.session_startup_prompt.md`, this file.
+- Commits: dbeaffe (viewer), f505f9d (A2 prereg), 340c86e (A2 build), ed08ae5 (serve flags),
+  7f3fc88 (viewer: book box, same-day triggers, ray tool, marker fix), then the close-out.
 
-### External review
+### External Review (for Codex / cloud review agents)
 
-- Not requested this session. The A2 build and the viewer are unreviewed; a Codex pass on
-  `4dc5f6b..HEAD` (focus: `walk_hourly` cap / censor logic, the under-water exit sharing the
-  headline walk, the viewer's calendar bucketing and its claim of re-running no logic) is the
-  next review candidate, at the owner's word.
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb39-codex-audit.md.
+> See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: `4dc5f6b..HEAD` on `main` (4dc5f6b is the pre-session sha; the range is
+  dbeaffe, f505f9d, 340c86e, ed08ae5, 7f3fc88 and the close-out commit). Pinned to the exact
+  head in `docs/reviews/REVIEW_REQUEST.md` after the push. Sanity-check:
+  `git diff --name-status 4dc5f6b..HEAD` must list every file above.
+- Scope / what changed: the trade viewer (a static page + a build / hourly / serve CLI that
+  draws recorded rows on cached candles and claims to re-run no trade logic) and prereg
+  amendment A2 in `manage.py` / `census.py` (the under-water exit on the shared walk, the
+  hourly clock on the hourly window, book E and fees as arithmetic, the week's side as a
+  split, `candidates()` and its tables / page section).
+- Focus areas (scrutinize these): `walk_hourly` (entry hour = first hour reaching L, exit =
+  first hour closing against its own open AND the day's open, cap = the last hour of day 20,
+  censoring when the hours end; the ordering claim that a target cannot be touched before
+  the entry hour and the exit-day difference); `exit_u` sharing the headline `walk()` without
+  changing it (headline numbers byte-identical: 179,498 units, same tables); book E and the fee
+  arithmetic against the prereg's A2.3 / A2.4 definitions; the viewer's calendar bucketing
+  (`weekStart` / `monthStart` against `census.week_start` / `month_start`), its `settle()`
+  (the fill = level moved by the recorded return; is that always the engine's own price?),
+  `stackLevels()` (previous complete bar's extreme per stack timeframe; checked equal to every
+  row's `level` for its own timeframe) and the claim of re-running no trade logic; the "data
+  ends" marker fix.
+- Reviewed by: pending
+- Findings: {blank until docs/reviews/tvb39-codex-audit.md exists}
 
 ### Open
 
-- [ ] The owner's own pass over the management book on the viewer before anything is read into
-      the hierarchy rulings; the two worked examples above.
-- [ ] A declared headline change to the under-water exit, if the owner wants it (one-line
-      amendment, rerun 10 min).
+- [ ] The owner's own pass over the management book on the viewer (BEGUN 2026-10-12 evening,
+      two BTC trades; continues) before anything is read into the hierarchy rulings.
+- [ ] STOP-and-ASK, open: the with-trend inside break's T1 (the mother bar's far side per
+      skill R14 / R18, against the prereg's weekly / monthly ladder). The owner rules; prereg
+      amendment A3 BEFORE code; rerun ~10 min.
+- [ ] The owner's signal that the daily-close exit "is going to be thrown out": a declared
+      replacement (prereg) before any rerun. Already measured on the same rows: under water
+      (A2.5), the hourly clock (A2.2), the own-bar clock (fork 2), the setup-bar stop
+      (reference).
+- [ ] Viewer: draw the mother bar's far side on every inside break; optionally the week's and
+      month's bar type at entry as chips (the owner's hazard).
+- [ ] Codex review of `4dc5f6b..HEAD` (block above): REQUESTED at session end.
 - [ ] The hierarchy rulings the owner deferred (stop owner in a stack, continuation ranking,
       seat competition, which higher-timeframe event ends a trade).
-- [ ] Codex review of `4dc5f6b..HEAD` (block above), at the owner's word.
-- [ ] HANDOFF is over the 1,500-line limit (TVB-33..34 are the next archive candidates):
-      archiving asks the owner.
+- [ ] HANDOFF is over the 1,500-line limit (2,100+; TVB-33..34 are the next archive
+      candidates): archiving asks the owner.
 - [ ] Executor repairs owed before any real-money restart (TVB-31..35 syntheses); fresh
       wallet; scanner STRAT rulings; the carried list in the TVB-37 entry.
 

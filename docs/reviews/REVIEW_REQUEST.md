@@ -10,74 +10,92 @@
 
 ## Status
 
-- Status: ADDRESSED (returned 2026-10-11 the same session via `codex exec`; folded the same
-  day -- synthesis in the TVB-38 HANDOFF entry; prereg amendment A1)
+- Status: REQUESTED
   <!-- REQUESTED | RETURNED (audit file written) | ADDRESSED | N/A -->
-- Session under review: TVB-38 (2026-10-11) -- product 3 of the data redirect: the
-  STRAT-management book (no price stop, exit at a daily close against the trade with the week
-  against it, a ladder of structural targets, four books beside the chance book on the same
-  rows, two declared fork variants). The same session also folded the six-audit backlog
-  (TVB-31..35 + the TVB-37 close-out) in 5e6c59a; that commit is a fold of returned audits and
-  needs no second audit unless a synthesis is disputed.
-- Requested: 2026-10-11
-- Write the audit to: `docs/reviews/tvb38-codex-audit.md` (copy `docs/reviews/_TEMPLATE.md`)
+- Session under review: TVB-39 (2026-10-12) -- the trade viewer (a local page + a build /
+  hourly / serve CLI that draws the management book's recorded rows on the cached candles and
+  claims to re-run no trade logic) and prereg amendment A2 (the lead's five candidates, each
+  one change on the same trades: the week's side as a split, the hourly exit clock, book E =
+  half at T1, fees at two taker fills, the under-water reading of "against"). The same
+  evening the owner's first pass on the viewer produced three viewer additions and one viewer
+  bug fix (7f3fc88) and surfaced an OPEN code-versus-skill question (the with-trend inside
+  break's T1); that question is the owner's to rule, not the reviewer's, but the reviewer may
+  say which reading the prereg text and the skill text actually support.
+- Requested: 2026-10-12
+- Write the audit to: `docs/reviews/tvb39-codex-audit.md` (copy `docs/reviews/_TEMPLATE.md`)
 
 ## Commits to review
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `a0c52df..058395f` reviewed (caaba12 prereg, 058395f build); the fold commit after it is unreviewed and carries the next request. Verify with `git diff --name-status a0c52df..HEAD`. |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `{pending push}` -- pinned after the session-end push as `4dc5f6b..{head}` (4dc5f6b is the pre-session sha; the range holds dbeaffe viewer, f505f9d A2 prereg, 340c86e A2 build, ed08ae5 serve flags, 7f3fc88 viewer second pass, then the close-out). Verify with `git diff --name-status 4dc5f6b..HEAD`. |
 
-No sibling-repo commits. The candle cache, the unit rows (`manage_trades.csv.gz`), the page
-output and the run logs are gitignored; the run is reproducible offline with
-`uv run python -m analysis.domino.manage --as-of 2026-10-10` (3-4 minutes; needs the cached
-`*_1d_20261010.json` files, which the owner's machine has).
+No sibling-repo commits. The candle cache (daily and hourly), the unit rows
+(`manage_trades.csv.gz`), the viewer's data folder and vendored chart library, the page output
+and the run logs are gitignored; the run is reproducible offline with
+`uv run python -m analysis.domino.manage --as-of 2026-10-10` (about 10 minutes with the hourly
+cache; needs the cached `*_1d_20261010.json` and `*_1h_20261010.json` files, which the owner's
+machine has), then `uv run python -m analysis.domino.trade_viewer build --as-of 2026-10-10`.
 
 ## What to read first
 
-1. `docs/experiments/tvb37_management_book_prereg.md` -- the contract: definitions 1-17, the
-   two forks, hypotheses H2 / H3, the declared hand vectors and bug tests.
-2. `analysis/domino/manage.py` -- the engine (module docstring = the short form).
-3. `tests/test_domino_manage.py` -- the vectors; check each against the prereg's definition 16.
-4. `analysis/domino/MANAGE_RECEIPT.md` and `results/manage_tables.md` -- every sentence in the
-   receipt should trace to a table cell.
-5. `analysis/domino/census.py` (`_context`, `day_events`) and `chance.py` -- the extension and
-   the moved helpers; the HANDOFF entry records the byte-identical census check.
-6. `analysis/domino/chart_page.py` (`management_data`, the four new sections).
+1. `docs/experiments/tvb37_management_book_prereg.md`, "Amendment A2" -- the five definitions
+   (A2.1-A2.5), the readings R1-R5 and the vectors v16-v19, written BEFORE the code (f505f9d
+   precedes 340c86e); one labelled in-flight correction (the hourly ordering difference is on
+   the exit day).
+2. `analysis/domino/manage.py` -- `walk()` (unchanged except `exit_u` recorded on the same
+   pass), `settle(clock="under")`, `hours_by_day`, `walk_hourly`, `hourly_fill`,
+   `coin_manage_rows(meta, daily, hourly)`, `candidates()`, `table_candidates()`.
+3. `analysis/domino/census.py` -- `HOUR`, `fetch_hourly`, `cached_hourly`, `normalize_hourly`.
+4. `tests/test_domino_manage_a2.py` (7 vectors) and `tests/test_domino_viewer.py` (calendar
+   bucketing through node against `census.week_start` / `month_start`).
+5. `analysis/domino/trade_viewer.py` and `analysis/domino/viewer/app.js` -- `settle()`,
+   `tradeSpan()`, `stackLevels()`, `draw()`, the ray tool; `index.html` for the controls.
+6. `analysis/domino/MANAGE_RECEIPT.md` (viewer section with the first-pass additions; A2
+   section) and `results/manage_tables.md` ("Amendment A2" tables), `manage.json`
+   (`candidates`, `taker_pct`, `candidate_label`).
+7. `docs/HANDOFF.md` TVB-39 entry, "The owner's first pass on the viewer" -- the two walked
+   trades and the open question.
 
 ## Focus areas
 
-- **Look-ahead.** Every ladder rung is a previous complete weekly / monthly bar's extreme that
-  is still unbroken in its current bar BEFORE the entry day, strictly beyond L; the exit tests
-  use the day's own open / close and the calendar week's open. Find anything that uses the
-  entry day's travel or a later bar's information at decision time.
-- **T1 rules.** Reversal = the far wick of the bar before the setup bar; inside break off a 2
-  against or a 3 = that bar's far wick; with-trend inside, 2-2 continuation, 3-2, stacked inside
-  = the first rung. Check `structural()` and `targets()` against the prereg and the
-  strat-methodology skill 5.1 / the resource's reversal anatomy.
-- **Intraday order.** Targets are intraday, the exit is at the close; on the entry day the
-  break precedes any target touch (perp bars open at the prior close). Check `walk()` and
-  `book_fill()`; equality fills on targets (decimals); equality on the exit tests = not
-  against.
-- **Same rows.** The five books are computed on units with a T1 and a non-null 5-bar reference
-  return; book C on every unit is one extra line. Check the paired-difference interval and that
-  the reference equals the book view's `ret5` on the same rows.
-- **Settlement.** `settle()` at the headline cap and the long cap under both clocks; censoring
-  only when the data ends before both the exit and the cap; OPEN marked at the cap's close.
-- **Fork 2.** Own-bar clock: weekly = last day of a COMPLETE week bucket, close against the
-  week's open AND the month's open; monthly = close against the month's open alone. Check
-  `own_close_days()` and the `confirm` dict; units with no month context are n/a, counted.
-- **Reach denominators.** T2 after T1 among units that reached T1 and HAVE a T2; T3 likewise;
-  the ceiling among units with a cap end; `died` among units with a T1 that exited before it;
-  `died_r` among units that exited before one R.
-- **Receipt honesty.** The "finding" paragraph and every table against `manage_tables.md`; the
-  fee sentence; the tail sentence (shorts beyond -100%); the weekly / monthly sentence.
-- **Page.** `management_data()` reads only `manage.json`; cells under 30 faded; the hypothesis
-  table's fields exist on every row.
-- **Hygiene.** ruff, tests (358 passed, 2 skipped), no secrets, no private link in the repo,
-  the `.gitignore` additions, the census `--out` routing.
+- **`walk_hourly` cap and censor logic.** Entry hour = the first hour of the entry day
+  reaching L (strict); exit = the first hour (entry hour included) closing against its own
+  open AND the day's open (strict, both); the week is NOT tested; cap = the last hour (23:00)
+  of day 20, OPEN marked at that close; CENSORED if the hours end first. Check the hour
+  indexing (`hours_by_day`), the day-open the hour is tested against (the daily bar's open,
+  not the hour's), and what happens on an entry day whose hours are partial.
+- **The ordering claim.** The prereg says a target on the trade's side cannot be touched
+  before the entry hour, so the hourly-versus-daily ordering difference is only on the EXIT
+  day (the daily bar fills any touch that day; the hourly clock fills only up to the exit
+  hour). Is that true for every target source, including the measured move and one R?
+- **`exit_u` on the shared walk.** Under water = first daily close through L (strict) AND the
+  week against; recorded on the same pass as the headline exit WITHOUT changing it. The
+  headline tables are claimed byte-identical (179,498 units, same numbers). Verify.
+- **Book E and the fees.** E = (A + C) / 2 when A hit T1 else C; fees = two taker fills at the
+  dex's rate (main 0.0432%, xyz 0.0125% per fill), net = gross minus round trip. Arithmetic on
+  recorded columns only.
+- **The week's side.** `w_support` = price above / below the week's open at entry (colour),
+  not the week's bar type. Confirm the split and the reach denominators.
+- **The viewer's claim of re-running no logic.** `settle()` derives the fill from the row's
+  recorded return (level moved by the return): is that always the engine's own fill price,
+  including OPEN marks, shorts beyond -100%, and the reference book's five-bar mark?
+  `stackLevels()` computes the previous complete bar's extreme per stack timeframe; the
+  session checked it equals every row's `level` on its own timeframe (no mismatch on 179,498
+  rows), but the OTHER timeframes' levels are drawn without a row to check against: is "first
+  break of the current higher-timeframe bar" needed for them to be the census's levels?
+- **The "data ends" marker fix.** The A2 markers had split the exit arrow's `if` / `else`;
+  confirm no other marker is misbound and that the headline clock square appears only when
+  the book box left on a different day.
+- **The open question (opinion only).** Prereg definition: a with-trend inside break has no
+  magnitude of its own and takes the first weekly / monthly rung. Skill R14 / R18: unfilled
+  structure containing the trigger is a real structural magnitude. Which does the prereg text
+  say, and does the skill's 2-1-2 continuation row ("reversal-exit" paradigm) point at the
+  mother bar's far side? State the texts; do not rule.
+- **Hygiene.** ruff clean; tests 372 passed, 2 skipped; no secrets; no private link in the
+  repo; the `.gitignore` additions (`viewer/vendor/`); `serve --host` binds only on request.
 
 ## What is NOT in scope
 
-The TVB-31..35 executor findings (private repo); the chance / book engines (audited twice in
-TVB-37 and folded); the regime receipt fold (folded 2026-10-11 from the TVB-35 audit).
+The TVB-38 management-book engine as audited and folded (`tvb38-codex-audit.md`, A1); the
+TVB-37 chance / book engines (audited twice); the TVB-31..35 executor findings (private repo).
