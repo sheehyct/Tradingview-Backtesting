@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Domino Trade Viewer (amCharts prototype)</title>
+<style>
+  :root {
+    --bg: #0f1117; --panel: #161a23; --panel2: #1c2130; --line: #262c3a; --text: #e6e8ee;
+    --muted: #8a90a2; --dim: #5b6172; --green: #22c55e; --red: #ef4444; --blue: #3b82f6;
+    --amber: #f59e0b; --violet: #a78bfa; --gray: #6b7280;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font: 14px/1.4 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  body { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+  header { padding: 10px 16px 8px; border-bottom: 1px solid var(--line); background: var(--panel); }
+  .row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+  .row + .row { margin-top: 8px; }
+  h1 { font-size: 22px; margin: 0 12px 0 0; font-weight: 600; letter-spacing: 0.2px; }
+  .sub { color: var(--muted); font-size: 13px; }
+  select, input[type=date], input[type=number], input[type=text] {
+    background: var(--panel2); color: var(--text); border: 1px solid var(--line); border-radius: 6px;
+    padding: 5px 8px; font: inherit; }
+  input[type=number] { width: 80px; }
+  input[type=text] { width: 110px; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .seg button { background: transparent; color: var(--muted); border: 0; padding: 5px 11px;
+    font: inherit; cursor: pointer; border-right: 1px solid var(--line); }
+  .seg button:last-child { border-right: 0; }
+  .seg button.on { background: var(--panel2); color: var(--text); font-weight: 600; }
+  .seg button:disabled { color: var(--dim); cursor: default; }
+  .lab { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .chip { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+  .chip.long { background: rgba(34,197,94,.18); color: var(--green); }
+  .chip.short { background: rgba(239,68,68,.18); color: var(--red); }
+  .chip.tf { background: rgba(59,130,246,.18); color: #93c5fd; }
+  .chip.kind { background: rgba(167,139,250,.18); color: var(--violet); }
+  .chip.flag { background: rgba(245,158,11,.18); color: var(--amber); }
+  /* the week's / month's bar type at entry (last CLOSED bar of that timeframe, STRAT type vs the bar before it) */
+  .chip.bt { font-family: Consolas, "Courier New", monospace; font-size: 11px; padding: 1px 6px; border: 1px solid transparent; }
+  .chip.bt.t1 { background: rgba(245,158,11,.22); color: var(--amber); border-color: rgba(245,158,11,.5); }
+  .chip.bt.t2u { background: rgba(34,197,94,.16); color: var(--green); }
+  .chip.bt.t2d { background: rgba(239,68,68,.16); color: var(--red); }
+  .chip.bt.t3 { background: rgba(167,139,250,.18); color: var(--violet); }
+  .chip.bt.tq { background: rgba(107,114,128,.18); color: var(--muted); }
+  #summary { font-size: 13px; color: var(--muted); }
+  #summary b { color: var(--text); font-weight: 600; }
+  #trade { font-size: 13px; line-height: 1.6; }
+  #trade .k { color: var(--muted); }
+  main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  #toolbar { flex: 0 0 auto; background: var(--panel); border-bottom: 1px solid var(--line); min-height: 38px; }
+  #chart { flex: 1; min-height: 0; position: relative; }
+  #chart .empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: var(--dim); font-size: 15px; }
+  #legend { position: absolute; left: 12px; top: 8px; z-index: 5; font-size: 12px; color: var(--muted);
+    background: rgba(15,17,23,.75); padding: 4px 8px; border-radius: 6px; pointer-events: none; }
+  #legend span { display: inline-block; margin-right: 10px; }
+  #legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+  footer { border-top: 1px solid var(--line); background: var(--panel); padding: 8px 12px; }
+  #cards { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; scroll-behavior: smooth; }
+  .card { flex: 0 0 236px; background: var(--panel2); border: 2px solid transparent; border-radius: 12px;
+    padding: 10px 12px; cursor: pointer; user-select: none; }
+  .card:hover { border-color: var(--line); }
+  .card.sel { border-color: var(--blue); }
+  .card .top { display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
+  .card .when { color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .card .what { color: var(--muted); font-size: 12px; }
+  .card .bt { margin-top: 4px; display: flex; gap: 4px; }
+  .card .pl { font-size: 18px; font-weight: 700; margin-top: 6px; letter-spacing: 0.3px; }
+  .pos { color: var(--green); } .neg { color: var(--red); } .flat { color: var(--muted); }
+  .card .st { font-size: 11px; color: var(--dim); }
+  kbd { background: var(--panel2); border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; font-size: 11px; }
+  a { color: #93c5fd; }
+  /* amCharts stock toolbar, re-skinned to the viewer's dark panel (the library injects its own light CSS) */
+  .am5stock-control-button { background: var(--panel2) !important; color: var(--text) !important; border-color: var(--line) !important; }
+  .am5stock-control-button:hover, .am5stock-control-button.am5stock-control-button-active { background: #2a3146 !important; border-color: var(--blue) !important; }
+  .am5stock-control-label { color: var(--text) !important; }
+  .am5stock-control-icon svg, .am5stock-control-icon svg path, .am5stock-control-icon svg line, .am5stock-control-icon svg polygon, .am5stock-control-icon svg circle, .am5stock-control-icon svg rect, .am5stock-control-icon svg polyline { stroke: var(--text) !important; }
+  .am5stock-control-list, .am5stock-control-list-container, .am5stock-control-dropdown, .am5stock-control-colors { background: var(--panel2) !important; color: var(--text) !important; border-color: var(--line) !important; }
+  .am5stock-list-item:hover, .am5stock-list-item-selected { background: #2a3146 !important; }
+  .am5stock-list-info, .am5stock-list-heading, .am5stock-list-sub-label { color: var(--muted) !important; }
+  .am5stock-control-input, .am5stock-control-list input { background: var(--bg) !important; color: var(--text) !important; border-color: var(--line) !important; }
+  .am5stock-control { background: var(--panel) !important; }
+  .am5stock-control-icon-color { border-color: var(--line) !important; }
+</style>
+</head>
+<body>
+<header>
+  <div class="row">
+    <h1 id="title">Domino Trade Viewer</h1>
+    <span class="sub" id="meta"></span>
+    <span class="sub" style="margin-left:auto">amCharts 5 prototype &middot; reads the same rows as the reference page</span>
+  </div>
+  <div class="row">
+    <span class="lab">Coin</span>
+    <input id="coinBox" type="text" list="coinList" placeholder="BTC" autocomplete="off">
+    <datalist id="coinList"></datalist>
+    <span class="lab">or day</span>
+    <input id="dateBox" type="date">
+    <span class="seg" id="chartTf">
+      <button data-v="1H">1H</button><button data-v="1D" class="on">1D</button>
+      <button data-v="1W">1W</button><button data-v="1M">1M</button>
+    </span>
+    <span class="lab">Unit</span>
+    <span class="seg multi" id="fTf"><button data-v="D" class="on">D</button><button data-v="W" class="on">W</button><button data-v="M" class="on">M</button></span>
+    <span class="lab">Kind</span>
+    <span class="seg multi" id="fKind"><button data-v="reversal" class="on">Rev</button><button data-v="continuation" class="on">Cont</button><button data-v="inside" class="on">Inside</button><button data-v="outside" class="on">Outside</button></span>
+    <span class="lab">Side</span>
+    <span class="seg multi" id="fDir"><button data-v="up" class="on">Long</button><button data-v="down" class="on">Short</button></span>
+    <span class="seg multi" id="fLiq"><button data-v="liquid">Liquid only</button></span>
+    <span class="seg multi" id="fT1"><button data-v="t1">Has T1</button></span>
+    <span class="lab">Book</span>
+    <select id="book">
+      <option value="C">C: exit only</option>
+      <option value="A">A: all out at T1</option>
+      <option value="B">B: hold through T2</option>
+      <option value="D">D: one R or the exit</option>
+      <option value="D5">D5: one R or the exit, 5-bar window</option>
+      <option value="ref">Chance book (setup-bar stop, 5 bars)</option>
+    </select>
+    <span class="lab">Size $</span><input id="size" type="number" value="1000" min="1" step="100">
+    <span class="lab">Show</span>
+    <span class="seg multi" id="fShow"><button data-v="sys" class="on" title="the rows' levels, targets, touch markers and exits: read-only, drawn from the data">System levels</button><button data-v="man" class="on" title="your own drawings from the toolbar: editable, saved per coin in this browser">My drawings</button></span>
+  </div>
+  <div class="row">
+    <span id="summary"></span>
+  </div>
+  <div class="row"><div id="trade"></div></div>
+</header>
+<main>
+  <div id="toolbar"></div>
+  <div id="chart">
+    <div id="legend"></div>
+    <div class="empty" id="empty">Loading...</div>
+  </div>
+</main>
+<footer>
+  <div class="row" style="margin-bottom:6px">
+    <span class="sub" id="cardsTitle"></span>
+    <span class="sub" style="margin-left:auto"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> previous / next trade &middot; <kbd>Esc</kbd> clear &middot; drawings: toolbar, saved per coin (autosave on)</span>
+  </div>
+  <div id="cards"></div>
+</footer>
+<script src="vendor/amcharts5/index.js"></script>
+<script src="vendor/amcharts5/xy.js"></script>
+<script src="vendor/amcharts5/stock.js"></script>
+<script src="vendor/amcharts5/themes/Dark.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
