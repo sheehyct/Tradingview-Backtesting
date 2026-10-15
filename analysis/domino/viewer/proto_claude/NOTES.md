@@ -1,125 +1,151 @@
-# proto_claude: the trade viewer on amCharts 5 Stock Chart
+# proto_claude: the trade viewer on amCharts 5, round two (the design-off)
 
-Built 2026-10-14 (TVB-40 seed: "charting upgrade for the viewer"), one shot, go-for-it mode.
-This is the builder's own receipt. `analysis/domino/MANAGE_RECEIPT.md` is untouched.
+Round one (2026-10-14, commit e79f8d3) proved the amCharts drawing toolbar with the library's own
+save / restore on the same rows as the reference viewer. Round two (2026-10-15) is the UI / UX
+overhaul the owner asked both builders for: comparison easy to see, the trade in plain trader
+language, analytics instead of an endless card strip, two charts side by side, a professional
+page. This is the builder's own receipt; `analysis/domino/MANAGE_RECEIPT.md` is untouched.
 
 Run it beside the reference page (same server, same data folder):
 
     uv run python -m http.server 8766 --directory analysis/domino/viewer --bind 127.0.0.1
     http://127.0.0.1:8766/proto_claude/index.html#coin=BTC&date=2026-03-25&tf=D&dir=up&view=1D&book=C
 
-The library is vendored in `proto_claude/vendor/amcharts5/` (gitignored; one line in `.gitignore`),
-fetched from `https://cdn.amcharts.com/lib/5/{index,xy,stock}.js` and `themes/Dark.js`, amCharts 5.21.1,
-free tier, logo kept (bottom-left of the chart). If the folder is missing the page says so and stops.
+The library is vendored in `proto_claude/vendor/amcharts5/` (gitignored, one line in `.gitignore`),
+fetched from `https://cdn.amcharts.com/lib/5/{index,xy,stock}.js` and `themes/Dark.js`, amCharts
+5.21.1, free tier, logo kept. If the folder is missing the main pane says so and stops.
 
-## The founding rule holds
+## The founding rule still holds
 
-The page reads `../data/<coin>.json` and `../data/index.json` / `dates.json` exactly as `index.html`
-does. `settle()`, `tradeSpan()`, `stackLevels()`, `setupDays()` and the calendar bucketing (Monday
-00:00 UTC weeks, calendar months) are copied verbatim from the reference `app.js`; no trade logic
-is re-run. The chart engine is the only replacement. Data grouping on the date axis is OFF
-(`groupData: false`), so a zoomed-out daily chart still shows the census's daily bars, never a
-library-made weekly candle; 1W and 1M are the page's own calendar buckets, as before.
+The page reads `../data/<coin>.json`, `../data/index.json` and `../data/dates.json` exactly as
+`index.html` does. `settle()`, `tradeSpan()`, `stackLevels()`, `setupDays()` and the calendar
+bucketing (Monday 00:00 UTC weeks, calendar months) are the reference's logic, now in `core.js`
+with the calendar passed in instead of read from a global; no trade logic is re-run. The chart
+is a GaplessDateAxis with data grouping OFF, so a zoomed-out daily chart never shows a
+library-made weekly candle. Every number in the plain-words story, the book ladder, the Compare
+tab and the calendar is arithmetic on the recorded rows (`stats.js`, `story.js`).
+
+## The page, in one tour
+
+- **Top bar**: coin, or a day across all coins; three tabs (Trade, Compare books, Playbook);
+  Single / Dual charts; the two visibility toggles (System levels, My drawings).
+- **Left rail**: the book and the equal size (they drive everything on the page), the filters
+  (unit, side, setup, liquid, has T1), a **month calendar** with census weeks (Monday first),
+  each day's equal-size dollars and trade count, a week-total column, a year strip to jump
+  months, and a **This coin / All coins** scope (all coins = `dates.json`, book C, the day's
+  trades across the universe); under it a **sortable trade table** (newest, oldest, best, worst,
+  longest held) with the W / M closed-bar chips on every row.
+- **Centre (Trade)**: a **facts strip** (side, setup and stack, entry, the book's exit, days
+  held, result in percent and dollars, best / worst travel, the week's side at entry, the
+  closed-bar chips), then the chart pane(s) with the amCharts toolbar: Draw, the save control,
+  settings. **Dual** adds a second pane (Context, defaults to 1W) with its own timeframe, toolbar
+  and drawing slot.
+- **Right side**: **In plain words**, the trade narrated from the row (the setup and why its
+  magnitude is what it is, the plan at entry with every touch day, what the selected book did
+  and the exact exit-day test, the other clocks, travel); **Every book on this trade**, a ladder
+  of all six books' fills on the row (click one to make it the page's book); **Context at
+  entry** chips with their meanings on hover.
+- **Compare books**: six KPI cards (average, green share, median, total, max drawdown, at
+  target, median days, average win / loss, best / worst) on the trades shown; overlaid equity
+  curves by entry date at equal size; a one-percent distribution of the page's book against the
+  chance book; a by-setup table of every book's average with **D5 minus the chance book** (the
+  stop swap, the owner's H2) as the last column. Click a card to switch the book everywhere.
+- **Playbook**: what the trade is, how it leaves (the daily clock and the other clocks), the
+  targets, the six books in a table, where the receipt says they stand, how to read the chart
+  and the chips, what the page never does.
+
+Address keys: the reference's `#coin=&date=&tf=&dir=&view=&book=` plus `layout=dual&view2=1W`,
+`tab=compare|playbook`, `day=YYYY-MM-DD` (the all-coins day), `cal=all`; the read-only
+`&show=sys|man|none` and the proof flags `&seed=1`, `&then=1W` stay.
 
 ## What this page does that index.html does not
 
-1. **A real drawing toolbar** (amCharts `DrawingControl`): trend / horizontal / vertical lines,
-   rays, channels, Fibonacci, rectangles, labels, measure, and the rest of the stock-chart set,
-   with the library's own edit / move / delete handling. The reference page has only the magnet
-   ray.
-2. **Save / restore is the library's own** (`DataSaveControl`, the disk icon in the toolbar: Save,
-   Restore, Clear, Auto-save). The page keys the storage per coin (`am5-stock-domino-<coin>-drawings`
-   in browser storage) and saves on every `drawingsupdated` event, so drawings survive a reload and
-   a timeframe change without the owner pressing anything. The toolbar's own buttons still work on
-   top of that.
-3. **Two visibility layers**: "System levels" (the row's level, ladder targets, one R, setup-bar
-   stop, measured move, the same-day triggers with the gap band, every marker) and "My drawings"
-   (the toolbar's), each a toggle in the header. System levels are axis ranges, not drawings, so
-   the drawing tools cannot select, move or delete them: read-only by construction. The address
-   can preset them (`&show=sys`, `&show=man`, `&show=none`).
-4. **The week's and month's bar type at entry as chips** on every card and on the trade line
-   ("closed bar at entry: W 2U  M 2D"). Definition: the last CLOSED week (month) before the entry
-   day, typed as a STRAT bar against the complete week (month) before it, ruling R10 operators
-   (strict breaks; an equal high or low never breaks, so it is a 1). The bar the entry sits in is
-   still forming and is never typed (closed bars only). Inside bars (the owner's hazard) are amber
-   with a border so they stand out in the card strip. A "?" means the data starts too late for two
-   complete bars. Hover a chip for the dates and the two highs and lows it compared. Checked by an
-   independent recomputation in Python on the four BTC entries 03-22 / 03-23 / 03-25 / 03-27: all
-   four agree with the page (03-22 sits after an inside week, Mar 9 to 15; the other three after a
-   2U week; every one after a 2D month, February against January).
-5. **The gap band**: on a stacked row the space between the lowest and highest same-day trigger is
-   shaded with the gap percent and the census band in its label, beside the dashed trigger lines.
-6. A crosshair with axis read-outs on both axes (the library's cursor), and the amCharts settings
-   control (log / percent scale, fills) for free.
+1. The trade in trader language, generated from the row and checked against the row: the BTC
+   03-25 story reads the inside break as a with-trend break with no magnitude of its own (the
+   row's `anchor = ladder`), T1 as the first unbroken weekly level, the stop as a yardstick, the
+   exit-day test with the day's open and the week's open, under-water and hourly clocks, travel
+   in R. The 03-27 story reads the weekly reversal, the same-day daily trigger with the gap, a
+   Monday exit as one test, the week's own clock beside the daily clock.
+2. Every book on one trade in one ladder, and every trade on one book in one table: the two
+   comparisons the owner asked for, one click apart.
+3. The Compare tab. Cross-checked against an independent Python recomputation on BTC (all
+   filters on, 1,000 per trade): every figure on the six cards (filled count, green share,
+   average, median, total, max drawdown, at-target share, median days) and the by-setup rows
+   agree; the only difference found (one book's drawdown by a few dollars) came from the order
+   of same-day trades and is pinned to the file's order now.
+4. The calendar: a month of entry days with dollars and counts, week totals, a year strip, and
+   the all-coins scope that opens the day across the universe (03-25: 186 trades shown).
+5. Dual charts: a weekly or monthly context pane beside the daily (or hourly) main pane, each
+   with its own toolbar and its own drawing slot, both drawing the same row.
+6. The chart's text now stacks instead of colliding: left-edge title tags lift off each other
+   when their levels are within a tag's height, markers on the same or a neighbouring bar step
+   outward, and a gap band thinner than its label keeps the fill and drops the words.
+7. From round one, still here: the amCharts drawing toolbar with the library's save / restore,
+   keyed per coin (the main pane keeps round one's slot, so drawings made then are still there),
+   System levels as read-only axis ranges, the W / M closed-bar chips (R10 operators).
 
-## What it lost against index.html
+## What it lost, or still lacks
 
-- **The magnet ray tool** (R key, click near open / high / low / close). The toolbar's horizontal
-  line snaps to the bar under the cursor (`snapToData`) but it is not the one-key magnet the owner
-  used on the first pass. Rays saved by the reference page (`domino-viewer-rays:<coin>`) are not
-  read here.
-- **Marker text placement is cruder**: LWC stacks marker labels for you; here each marker is a
-  shape bullet plus a label bullet at fixed offsets, so two markers on neighbouring bars can
-  overlap ("in" and "out" on a two-day trade; the 03-27 short's T1 / out / under-water trio).
-- **Line title tags are a shim**: the title sits in an axis-range label shifted to the plot's left
-  edge by the plot width (re-shifted on resize and each frame). When two levels are within a few
-  pixels the tags overlap (03-27: entry, daily trigger, exit and T1 anchor all inside 2.5%).
-- The y axis does not auto-fit as tightly as LWC on the 1W / 1M views: with the 2025 highs in the
-  window the trade compresses into a band near the bottom. Same data, different axis heuristics.
-- No bar-magnifier / intrabar fills (neither page has them; noted so nobody expects them).
-- Page weight: ~1.1 MB of library against 160 KB for lightweight-charts; first paint is slower.
-- Animations are off (Dark theme only, no Animated theme), so zooms jump rather than glide.
+- The magnet ray (R key) is still not ported; the toolbar's horizontal line snaps to the bar
+  under the cursor but is not the one-key magnet. Rays saved by the reference page are not read.
+- Dual panes do not share drawings or a crosshair: each pane is its own chart with its own
+  slot (`am5-stock-domino-<coin>-drawings` and `...-<coin>-b-drawings` in browser storage).
+- The all-coins scope is book C only and ignores the liquid / has-T1 filters: `dates.json`
+  carries one return per trade. A per-book universe compare needs a server-side aggregate.
+- The Compare tab is per coin (or per day across coins), never the whole universe; the
+  receipt's tables remain the universe view.
+- The weekly and monthly panes still fit the y axis loosely when the 2025 highs are in view.
+- The old trade cards are gone; the table shows date, side, unit, setup, chips and the book's
+  result, and the rest moved to the facts strip and the story.
+- Page weight ~1.1 MB of library against 160 KB; animations off.
 
-## The proof (headless Edge, `shots/`)
+## The proof (headless Edge, `shots/`, 1600x1000)
 
-Drawings for the proof were made through the same `DrawingControl.addLine()` call the pointer
-makes (the page's `&seed=1` address flag puts a Horizontal Line at the row's setup-bar stop and a
-Vertical Line on the entry day, then calls the save control). `&then=1W` / `&then=1M` switches the
-timeframe inside the same session after the restore, through the same code as the 1W / 1M button.
-Neither flag is written back into the address bar. Captured with a DevTools-protocol script
-(viewport fixed to 1600x1000 before navigation, six to seven seconds of real time to settle); the
-`--screenshot --virtual-time-budget` route left the chart pane half-resized in some captures
-and is not trustworthy for this page.
+Drawings for the proof are made through the same `DrawingControl.addLine()` call the pointer
+makes (`&seed=1` puts a Horizontal Line at the row's setup-bar stop and a Vertical Line on the
+entry day, then calls the save control); `&then=1W` / `&then=1M` switches the main pane's
+timeframe in-session after the restore. Captured with a DevTools-protocol script (viewport set
+before navigation, a real-time settle), because `--screenshot --virtual-time-budget` captures
+the pane mid-resize.
 
-BTC 2026-03-25, daily inside break long (-6.99% on the daily clock):
+BTC 2026-03-25, daily inside break long (-6.99% on book C):
 
-- `btc_0325_1D_drawn.png`  : the two drawings made in-session, system levels, the trade coloured
-- `btc_0325_1D_reload.png` : fresh page load, no flag: both drawings restored from storage
-- `btc_0325_1W_switch.png` : loaded on 1D, switched to 1W in-session: both drawings still on the chart
-- `btc_0325_1H_reload.png` : fresh load on 1H: both drawings on the hourly bars, hourly markers
+- `btc_0325_1D_drawn.png`, `btc_0325_1D_reload.png`, `btc_0325_1W_switch.png`, `btc_0325_1H_reload.png`
 
 BTC 2026-03-27, weekly reversal short (+0.81%):
 
-- `btc_0327_1D_drawn.png`  : drawings made in-session; the D+W stack with the gap band
-- `btc_0327_1D_reload.png` : fresh load: both restored
-- `btc_0327_1M_switch.png` : loaded on 1D, switched to 1M in-session: both still there
-- `btc_0327_1W_reload.png` : fresh load on 1W: both there
-- `btc_0327_1D_show_man_only.png` : System levels off, drawings on
-- `btc_0327_1D_show_sys_only.png` : drawings off, System levels on
+- `btc_0327_1D_drawn.png`, `btc_0327_1D_reload.png`, `btc_0327_1M_switch.png`
+- `btc_0327_dual_1D_1W.png`: the dual layout on a fresh load, the main pane's drawings restored
+- `btc_0327_1D_show_man_only.png`, `btc_0327_1D_show_sys_only.png`: each toggle hides its own layer
 
-Not proven here: a drawing made by an actual mouse drag (the trend line's two-point flow), and
-the drawings' behaviour on a coin switch (the page parks the current coin's set, re-keys the save
-control and restores the new coin's; the code path ran on every load above, but only for BTC).
+The rest of the page:
 
-Python side: no Python added; `uv run ruff check .` clean; `uv run pytest tests/ -q` 372 passed,
-2 skipped (2026-10-14).
+- `compare_btc_book_C.png`: the Compare tab on BTC, book C selected
+- `playbook.png`: the Playbook tab
+- `day_2026-03-25_all_coins.png`: the day across all coins, the all-coins calendar, BTC's row selected
+
+Not proven: a drawing made by a real mouse drag (the trend line's two-point flow); drawings
+across a coin switch (the slot swap runs on every load, but only BTC was loaded); the Context
+pane's own drawing slot surviving a reload (it is the same control and the same code path as
+the main pane, with a different storage key, and was not seeded).
+
+Python side: no Python added or changed; `uv run ruff check .` clean; `uv run pytest tests/ -q`
+372 passed, 2 skipped (2026-10-15).
 
 ## The three things I would do next
 
-1. **Port the magnet ray** as a toolbar-native tool: a one-click horizontal line that snaps to the
-   nearest open / high / low / close of the bar under the cursor, saved through the same
-   `DataSaveControl` slot, so one storage holds both the owner's rays and the library's drawings.
-2. **Collision-aware tags and markers**: stack the left-edge title tags when levels are within a
-   tag's height, and let marker labels alternate sides when bars neighbour, so the two-day trades
-   read without hovering.
-3. **A second data source behind the same page**: the seed says the dedicated workspace waits until
-   the viewer serves a second source. The drawing / save layer is now source-agnostic; the next
-   step is an executor-ledger or Parallax paper row adapter that produces the same row fields,
-   which would test whether "the page reads rows and never computes them" survives a second author.
+1. **A universe Compare**: a small build step that writes per-book, per-setup aggregates for
+   all 292 coins (the receipt's tables as JSON), so the Compare tab can switch between this
+   coin, this day and everything, with the same cards and curves.
+2. **The magnet ray as a toolbar tool** saved in the same slot as the library's drawings, and
+   a shared drawing slot across the two panes (serialize on change, unserialize in the other).
+3. **A trade journal layer**: a note and a one-tap verdict per row, saved beside the drawings,
+   surfaced on the calendar and the table, so the owner's pass over hundreds of trades leaves
+   a record the next session can read.
 
 ## The one decision for the owner
 
-Whether the library's own drawing + save layer (what this page proves) is worth giving up
-lightweight-charts' tighter marker and label layout. If yes, the next session makes this page the
-viewer and ports the magnet ray; if no, the amCharts toolbar is still the shortest route to
-"drawings that survive", and the reference page stays as is.
+Which page becomes the viewer. If this one, the magnet ray and the universe Compare are the
+next two sessions and the reference page retires; if the reference page stays, the parts worth
+porting back are the story, the ladder and the calendar, which are plain DOM and do not depend
+on amCharts.
