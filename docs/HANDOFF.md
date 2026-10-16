@@ -5,6 +5,35 @@
 
 ---
 
+## Maintenance 2026-10-16, later (not a TVB session): safety guard now protects the project folder from rm -rf (COMPLETE)
+
+**Date:** 2026-10-16
+**Status:** COMPLETE on branch fix/guard-project-root-2026-10-16; fixes the Codex P1 review
+finding on PR #1 (discussion r4299614399). Hook config unchanged; no research code touched.
+
+- **Finding:** in a cloud session `cd .. && rm -rf Tradingview-Backtesting` passed the guard.
+  Verified on Linux before the fix: also passing were `rm -rf .`, `./`, `*`,
+  `"$CLAUDE_PROJECT_DIR"` and sibling repos by name. Cause: PROJECT_ROOTS only lists the older
+  projects, and the root-path rule only catches `/`, `~` and `C:` targets. The gap existed on
+  the workstation too. Nothing was deleted.
+- **Changed:** `.claude/hooks/safety_guard.py` replaced by the updated spine guard (byte-identical
+  again; SHA-256 B5488A79...). New `check_rm_project_targets` (universal scope) blocks rm -rf
+  whose target is `.`, `./`, `..`, `*`, `./*`, `../*`, `.*`, an unexpanded `$CLAUDE_PROJECT_DIR` /
+  `$PWD` / `$(pwd)`, or whose last path component is the session's own project folder (basename
+  of CLAUDE_PROJECT_DIR, so the cloud clone name `Tradingview-Backtesting` is covered) or one of
+  strat_trading_bot, tradingview-backtesting, hip3-scanner, hip3-mobile, hl_paper_trader,
+  market-data-core. Whole-target matching, so `build/`, `.venv` and `dist/*` stay allowed.
+- **Verified:** the spine test_safety_guard.py gained 20 cases; 72/77 pass on Windows and Linux.
+  The 5 failures predate this change (guardian YAML writes, docker compose prod, SSH/SCP to the
+  VPS: those tests expect rules the guard no longer has) and were left alone.
+- **Residual:** rm with split flags (`rm -r -f`, `--recursive --force`) is still not recognized
+  as rm -rf by the existing trigger regex.
+- **Workstation:** this repo's local hooks call the spine guard directly, and the spine guard was
+  updated (old copy at `C:\Strat_Trading_Bot\.claude\hooks\safety_guard.py.bak-20261016`), so
+  local sessions are covered already; cloud sessions once this merges.
+
+---
+
 ## Maintenance 2026-10-16 (not a TVB session): Claude Code hooks for cloud sessions (COMPLETE)
 
 **Date:** 2026-10-16

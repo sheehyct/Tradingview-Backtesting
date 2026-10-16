@@ -12,6 +12,7 @@ Fail-open on any error.
 import json
 import os
 import re
+import shlex
 import sys
 
 # ---------------------------------------------------------------------------
@@ -57,6 +58,25 @@ PROJECT_ROOTS = [
     "atlas-story",
 ]
 
+# Added 2026-10-16. Unlike PROJECT_ROOTS (matched anywhere in the command), these
+# are matched only as the final path component of an rm -rf target, so cleaning a
+# sibling such as hip3-scanner-wt/<name> stays possible. The session's own project
+# folder (basename of CLAUDE_PROJECT_DIR) is added at runtime, which also covers a
+# cloud clone named differently from the local folder (Tradingview-Backtesting).
+PROTECTED_TARGET_NAMES = {
+    "strat_trading_bot",
+    "tradingview-backtesting",
+    "hip3-scanner",
+    "hip3-mobile",
+    "hl_paper_trader",
+    "market-data-core",
+}
+# rm -rf targets that mean "the current directory" or "everything in it".
+CWD_TARGETS = {".", "..", "*", "./*", "../*", ".*"}
+# Unexpanded variables that point at the project directory.
+PROJECT_DIR_VARS = ("$claude_project_dir", "${claude_project_dir}", "$pwd", "${pwd}", "$(pwd)", "`pwd`")
+SHELL_SEPARATORS = {";", "&&", "||", "|", "&", ";;"}
+
 
 def block(reason: str) -> None:
     """Print block message and exit with code 2."""
@@ -97,6 +117,46 @@ def check_universal_file_write(file_path: str) -> None:
         block(f"Writing to environment file is not allowed: {basename}")
 
 
+def rm_targets(command: str) -> list:
+    """Return the non-flag arguments of every `rm` invocation in a shell command."""
+    try:
+        lexer = shlex.shlex(command, posix=True, punctuation_chars=";&|")
+        lexer.whitespace_split = True
+        tokens = list(lexer)
+    except ValueError:
+        tokens = command.split()
+    targets = []
+    i = 0
+    while i < len(tokens):
+        if os.path.basename(tokens[i]) == "rm":
+            j = i + 1
+            while j < len(tokens) and tokens[j] not in SHELL_SEPARATORS:
+                if not tokens[j].startswith("-"):
+                    targets.append(tokens[j])
+                j += 1
+            i = j
+        else:
+            i += 1
+    return targets
+
+
+def check_rm_project_targets(command: str) -> None:
+    """Block rm -rf aimed at the current directory, everything in it, or a project folder."""
+    project_dir = os.environ.get("CLAUDE_PROJECT_DIR", "").replace("\\", "/").rstrip("/")
+    names = set(PROTECTED_TARGET_NAMES)
+    if project_dir:
+        names.add(os.path.basename(project_dir).lower())
+    for raw in rm_targets(command):
+        target = raw.replace("\\", "/").lower()
+        stripped = target.rstrip("/") or target
+        if target in CWD_TARGETS or stripped in CWD_TARGETS:
+            block(f"rm -rf targeting the current directory or everything in it: {raw}")
+        if any(var in target for var in PROJECT_DIR_VARS):
+            block(f"rm -rf targeting the project directory: {raw}")
+        if os.path.basename(stripped) in names:
+            block(f"rm -rf targeting project directory: {raw}")
+
+
 def check_universal_bash(command: str) -> None:
     """Check universal bash command rules."""
     cmd_lower = command.lower()
@@ -109,6 +169,7 @@ def check_universal_bash(command: str) -> None:
         for root in PROJECT_ROOTS:
             if root.lower() in cmd_lower:
                 block(f"rm -rf targeting project directory: {root}")
+        check_rm_project_targets(command)
 
     # Force push
     if RE_FORCE_PUSH.search(command):
