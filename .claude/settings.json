@@ -11,5 +11,58 @@
     "additionalDirectories": [
       "C:\\Strat_Trading_Bot\\tradingview-mcp-jackson"
     ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ \"$CLAUDE_CODE_REMOTE\" = \"true\" ]; then cat \"$CLAUDE_PROJECT_DIR/.claude/cloud-context.md\"; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Write|Edit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ \"$CLAUDE_CODE_REMOTE\" = \"true\" ]; then python3.12 \"$CLAUDE_PROJECT_DIR/.claude/hooks/safety_guard.py\" --scope trading; fi",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "if [ \"$CLAUDE_CODE_REMOTE\" = \"true\" ]; then python3.12 \"$CLAUDE_PROJECT_DIR/.claude/hooks/safety_guard.py\" --scope global; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ \"$CLAUDE_CODE_REMOTE\" = \"true\" ]; then python3.12 \"$CLAUDE_PROJECT_DIR/.claude/hooks/post_edit_lint.py\"; fi",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ \"$CLAUDE_CODE_REMOTE\" = \"true\" ]; then bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/stop_test_gate_cloud.sh\"; fi",
+            "timeout": 300
+          }
+        ]
+      }
+    ]
   }
 }

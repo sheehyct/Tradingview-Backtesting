@@ -5,6 +5,64 @@
 
 ---
 
+## Maintenance 2026-10-16 (not a TVB session): Claude Code hooks for cloud sessions (COMPLETE)
+
+**Date:** 2026-10-16
+**Status:** COMPLETE on branch chore/cloud-hooks-2026-10-16 (owner-approved). Takes
+effect for cloud sessions once merged to main, since cloud sessions clone main. No
+research, analysis, Pine or test code changed; TVB numbering is untouched.
+
+### Why
+
+The owner wants the non-backtest TVB work (Python analysis, tests, docs, reviews)
+to be able to run as Claude Code CLOUD sessions (claude.ai/code, phone Code tab,
+`claude --cloud`), with backtests staying on the workstation. Locally this
+workspace's hooks live in the UNTRACKED `.claude/settings.local.json` with `C:/`
+paths, which cloud sessions never read, so a cloud clone ran with no safety
+guard, no lint and no test gate.
+
+### What changed
+
+- `.claude/settings.json`: hooks added that run ONLY when `CLAUDE_CODE_REMOTE=true`
+  (cloud): SessionStart prints `.claude/cloud-context.md`; PreToolUse safety
+  guard, trading and global scopes (two separate entries, each needs its own
+  stdin); PostToolUse ruff lint; Stop test gate. Existing keys (MCP servers,
+  the ui_evaluate deny rule, additionalDirectories) are unchanged.
+- NEW `.claude/hooks/safety_guard.py` and `.claude/hooks/post_edit_lint.py`:
+  byte-identical copies of the spine's scripts in `C:\Strat_Trading_Bot\.claude\hooks\`
+  as of 2026-10-16. If the spine's copies change, copy them here again.
+- NEW `.claude/hooks/stop_test_gate_cloud.sh`: the tvb branch of the spine's
+  stop_test_gate.sh (`uv run pytest tests/ -q`, exit 2 on failure,
+  SKIP_TEST_GATE=1 bypass) without its directory-name detection, because a cloud
+  clone is named `Tradingview-Backtesting` and the spine script's lowercase
+  case-match would skip it silently. Skips with a message if uv is missing.
+- NEW `.claude/cloud-context.md`: the spine's safety rules and communication
+  standards, this repo's session-start order, the PUBLIC-repo warning, and what
+  a cloud session cannot do (no TradingView Desktop or tradingview MCP: no
+  strategy() runs, chart reads or Pine compile checks; no .env or keys; no live
+  accounts).
+
+### Workstation behavior: unchanged
+
+Every new hook is a no-op when `CLAUDE_CODE_REMOTE` is unset. The workstation
+still gets the guard, lint and test gate from the untracked
+`.claude/settings.local.json` (pointing at `C:\Strat_Trading_Bot\.claude\hooks\`),
+exactly as before. If those local hooks are ever moved into settings.json, delete
+them from settings.local.json in the same step or they will run twice.
+
+### Verified (2026-10-16)
+
+- Workstation, Git Bash: 5/5 harness checks, every new hook silent and exit 0.
+- Linux (`sh`): guard blocks prod Tradier and `rm -rf /` and allows pytest; lint
+  silent without ruff; test gate exits 2 on a failing run, 0 on a passing run,
+  0 with SKIP_TEST_GATE=1, and skips with a message without uv; SessionStart
+  prints the context (10/10 across runs).
+- The real suite on Linux (Ubuntu 24.04, fresh clone of main da7f4c2,
+  `uv run pytest tests/ -q`): 372 passed, 2 skipped in 9.2 s, so the cloud gate
+  does not trap sessions on a Windows-only test.
+
+---
+
 ## Session TVB-39: the trade viewer (every row on its own candles, locally) and the lead's five candidates run as prereg amendment A2 (COMPLETE)
 
 **Date:** 2026-10-12
