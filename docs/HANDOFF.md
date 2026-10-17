@@ -5,6 +5,51 @@
 
 ---
 
+## Session TVB-40: the charting upgrade: the amCharts trade viewer, built as a two-builder design-off and promoted (COMPLETE)
+
+**Date:** 2026-10-14 to 2026-10-17
+**Status:** COMPLETE on the owner's call of 2026-10-17 ("I say move forward with this ...
+pushing this out first would be the ideal scenario just to be able to trade review quicker,
+though I would include the universe for comparison"). Two builders prototyped the same thing in
+parallel, each in its own folder (CLAUDE `proto_claude/`, CODEX `proto_codex/`); the owner
+reviewed both and chose CLAUDE's ("night and day"). `analysis/domino/viewer/` is now that page;
+the TVB-39 lightweight-charts page is retired (in git history to da7f4c2). The page's receipt is
+`analysis/domino/viewer/NOTES.md`; the viewer section of `MANAGE_RECEIPT.md` points to it.
+`proto_codex/` is untracked and untouched (the owner may still take ideas from it).
+
+### What was accomplished
+
+- **Round one (e79f8d3, 2026-10-14)**: the reference rows on amCharts 5 Stock Chart (data
+  grouping off), the library's drawing toolbar with its own save / restore per coin, System
+  levels as read-only axis ranges, the week's and month's closed-bar STRAT type as chips (R10
+  operators, checked in Python), drawings proven across reload and timeframe switches.
+- **Round two (da7f4c2, 2026-10-15), the design-off**: a calendar (census weeks, equal-size
+  dollars per entry day, week totals, year strip) and a sortable trade table in place of the
+  card strip; a facts strip; the trade narrated in trader language from the row (setup and
+  magnitude source, the plan with every touch day, what the book did and the exit-day test, the
+  other clocks, travel); a six-book ladder per trade; a Compare tab (KPI cards, overlaid equity,
+  distribution against the chance book, by-setup with D5 minus the chance book); a Playbook tab;
+  dual chart panes; stacked tags and markers. Compare figures cross-checked against Python on BTC.
+- **Promotion (this session, 2026-10-17)**: the page moved to `viewer/`; `trade_viewer build`
+  vendors amCharts 5 (the CDN needs a browser-like agent) and writes `data/universe.json`
+  (every coin's rows, columnar, 15 MB) so the Compare tab and the all-coins calendar have a
+  universe scope with every book and every filter; the universe figures agree with the engine's
+  CSV in pandas to the printed precision (returns stored to three decimals); the magnet ray is
+  back as a magnet mode that drops the library's own Horizontal Line at the nearest open / high /
+  low / close (saved, moved and erased with the other drawings; proven exact on BTC 03-25);
+  `test_domino_viewer` reads the calendar functions from `core.js`. Ruff clean, 372 passed, 2
+  skipped.
+
+### Open / next
+
+- From the receipt (NOTES.md): a journal layer (note + verdict per row on the calendar and the
+  table); one drawing slot across the two panes with the old rays imported; an hourly archive
+  beyond the venue's ~208 days.
+- From TVB-39, unchanged: the with-trend inside break's T1 STOP-and-ASK; the TVB-39 Codex audit
+  is returned (docs/reviews/tvb39-codex-audit.md) and awaits the critical synthesis.
+
+---
+
 ## Maintenance 2026-10-16, later (not a TVB session): safety guard now protects the project folder from rm -rf (COMPLETE)
 
 **Date:** 2026-10-16
@@ -89,6 +134,9 @@ them from settings.local.json in the same step or they will run twice.
 - The real suite on Linux (Ubuntu 24.04, fresh clone of main da7f4c2,
   `uv run pytest tests/ -q`): 372 passed, 2 skipped in 9.2 s, so the cloud gate
   does not trap sessions on a Windows-only test.
+
+---
+
 
 ---
 

@@ -95,20 +95,24 @@ window.DV = window.DV || {};
     }
     return map;
   }
-  function calendarAll(dates, filt, size) {
-    // the all-coins calendar from dates.json: [coin, direction, tf, kind, ret_C, status] per trade, book C only
-    const map = new Map();
-    for (const date in dates) {
-      for (const r of dates[date]) {
-        if (!filt.tf.has(r[2]) || !filt.kind.has(r[3]) || !filt.dir.has(r[1])) continue;
-        let e = map.get(date);
-        if (!e) { e = { n: 0, sum: 0, usd: 0, filled: 0, items: [] }; map.set(date, e); }
-        e.n++;
-        if (r[4] != null) { e.sum += r[4]; e.usd += r[4] / 100 * size; e.filled++; }
-      }
+  function fromUniverse(u) {
+    // data/universe.json (trade_viewer build): one columnar table of every coin's rows, decoded into the same row
+    // shape the per-coin files use for the fields the Compare tab and the calendar read (nothing else is there)
+    const c = u.cols, K = u.codes, epoch = dateMs(u.epoch) / 1000, out = new Array(u.n);
+    const int = (v) => v == null || v < 0 ? null : v;
+    const flag = (v) => v == null || v < 0 ? null : v === 1;
+    for (let i = 0; i < u.n; i++) {
+      out[i] = {
+        _i: i, coin: u.coins[c.coin[i]], date: C.iso(epoch + c.date[i] * C.DAY),
+        tf: K.tf[c.tf[i]], kind: K.kind[c.kind[i]], direction: K.dir[c.dir[i]], status: K.status[c.status[i]], out5: K.out5[c.out5[i]],
+        cls: K.cls[c.cls[i]], flag: K.flag[c.flag[i]], liquid: c.liquid[i] === 1, t1: c.t1[i] === 1 ? 1 : null, exit_k: int(c.exit_k[i]),
+        ret_C: c.ret_C[i], ret_A: c.ret_A[i], ret_B: c.ret_B[i], ret_D: c.ret_D[i], ret_D5: c.ret_D5[i], ret5: c.ret5[i],
+        hit_A: flag(c.hit_A[i]), hit_B: flag(c.hit_B[i]), hit_D: flag(c.hit_D[i]), hit_D5: flag(c.hit_D5[i]),
+        days_A: int(c.days_A[i]), days_B: int(c.days_B[i]), days_D: int(c.days_D[i]), days_D5: int(c.days_D5[i]), days_ref: int(c.days_ref[i]),
+      };
     }
-    return map;
+    return out;
   }
 
-  DV.stats = { bookStats, allBooks, bySetup, histogram, calendarDays, calendarAll, hitOf, daysOf };
+  DV.stats = { bookStats, allBooks, bySetup, histogram, calendarDays, fromUniverse, hitOf, daysOf };
 })(window.DV);

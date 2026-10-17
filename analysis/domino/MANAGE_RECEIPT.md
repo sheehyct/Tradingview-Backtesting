@@ -399,6 +399,16 @@ cross beside its price removes it, Delete removes the last, Clear empties the co
 bug fixed: the A2 markers had been spliced between the exit arrow's `if` and its `else`, so a
 "data ends" square printed on every exited trade.
 
+Promoted 2026-10-17 (TVB-40): the page above is retired (in git history to da7f4c2) and
+`viewer/` is the amCharts 5 page built in the two-builder design-off, on the owner's call after
+reviewing both builds. Same rows, same drawn levels and markers, same address form; what is new
+is a calendar and sortable table in place of the card strip, the trade narrated in trader
+language from the row with every book's fill in a ladder, a Compare tab across the six books
+(this coin, this day, or the universe from `data/universe.json`, cross-checked against the CSV
+in pandas), a Playbook tab, dual chart panes, the library's drawing toolbar with per-coin save /
+restore, and the magnet ray as a drawing in that slot. Receipt, proofs and the open items:
+`analysis/domino/viewer/NOTES.md`.
+
 ## Provenance
 
 288 coins, 179,498 units (D 153,516, W 21,520, M 4,462): product 2's 179,913 less 415 daily

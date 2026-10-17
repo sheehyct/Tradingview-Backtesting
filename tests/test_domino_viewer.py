@@ -59,8 +59,8 @@ def test_csv_cell_parsing_treats_nan_and_blank_as_missing():
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="node not installed")
 def test_page_calendar_buckets_match_the_census():
-    """weekStart / monthStart in app.js give the census's keys for every day of two years."""
-    src = (VIEWER / "app.js").read_text(encoding="utf-8")
+    """weekStart / monthStart in core.js give the census's keys for every day of two years."""
+    src = (VIEWER / "core.js").read_text(encoding="utf-8")
     fns = {}
     for name in ("weekStart", "monthStart"):
         m = re.search(rf"function {name}\(t\) \{{.*?\}}\s*$", src, re.M)

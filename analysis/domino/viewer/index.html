@@ -6,126 +6,286 @@
 <title>Domino Trade Viewer</title>
 <style>
   :root {
-    --bg: #0f1117; --panel: #161a23; --panel2: #1c2130; --line: #262c3a; --text: #e6e8ee;
-    --muted: #8a90a2; --dim: #5b6172; --green: #22c55e; --red: #ef4444; --blue: #3b82f6;
-    --amber: #f59e0b; --violet: #a78bfa; --gray: #6b7280;
+    --bg: #0b0e14; --panel: #11151d; --panel2: #171c26; --panel3: #1e2431; --line: #232a37; --text: #e7e9ee;
+    --muted: #8b93a7; --dim: #5d6578; --green: #22c55e; --red: #ef4444; --blue: #3b82f6; --amber: #f59e0b; --violet: #a78bfa;
+    --top: 50px;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
-    font: 14px/1.4 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    font: 13px/1.45 Inter, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
   body { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-  header { padding: 10px 16px 8px; border-bottom: 1px solid var(--line); background: var(--panel); }
-  .row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
-  .row + .row { margin-top: 8px; }
-  h1 { font-size: 22px; margin: 0 12px 0 0; font-weight: 600; letter-spacing: 0.2px; }
-  .sub { color: var(--muted); font-size: 13px; }
+  b { font-weight: 600; }
+  a { color: #93c5fd; }
+  .num, .fv, .pl, .kbig, td.num { font-variant-numeric: tabular-nums; }
+  .pos { color: var(--green); } .neg { color: var(--red); } .flat { color: var(--muted); }
+  .dim { color: var(--dim); } .fine { color: var(--dim); font-size: 11px; margin-top: 6px; }
+  .lab { color: var(--muted); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.5px; }
   select, input[type=date], input[type=number], input[type=text] {
-    background: var(--panel2); color: var(--text); border: 1px solid var(--line); border-radius: 6px;
-    padding: 5px 8px; font: inherit; }
-  input[type=number] { width: 80px; }
-  input[type=text] { width: 110px; }
-  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
-  .seg button { background: transparent; color: var(--muted); border: 0; padding: 5px 11px;
-    font: inherit; cursor: pointer; border-right: 1px solid var(--line); }
+    background: var(--panel2); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; font: inherit; }
+  input[type=number] { width: 78px; }
+  input[type=text] { width: 96px; }
+  select.small { font-size: 11px; padding: 2px 4px; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; background: var(--panel2); }
+  .seg button { background: transparent; color: var(--muted); border: 0; padding: 4px 9px; font: inherit; font-size: 12px; cursor: pointer; border-right: 1px solid var(--line); }
   .seg button:last-child { border-right: 0; }
-  .seg button.on { background: var(--panel2); color: var(--text); font-weight: 600; }
+  .seg button.on { background: var(--panel3); color: var(--text); font-weight: 600; }
   .seg button:disabled { color: var(--dim); cursor: default; }
-  .lab { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px; }
-  .chip { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+  .seg.small button { padding: 2px 7px; font-size: 11px; }
+  kbd { background: var(--panel2); border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; font-size: 11px; }
+  .chip { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 600; white-space: nowrap; }
   .chip.long { background: rgba(34,197,94,.18); color: var(--green); }
   .chip.short { background: rgba(239,68,68,.18); color: var(--red); }
   .chip.tf { background: rgba(59,130,246,.18); color: #93c5fd; }
   .chip.kind { background: rgba(167,139,250,.18); color: var(--violet); }
   .chip.flag { background: rgba(245,158,11,.18); color: var(--amber); }
-  #summary { font-size: 13px; color: var(--muted); }
-  #summary b { color: var(--text); font-weight: 600; }
-  #trade { font-size: 13px; line-height: 1.6; }
-  #trade .k { color: var(--muted); }
-  main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-  #chart { flex: 1; min-height: 0; position: relative; }
-  #chart .empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-    color: var(--dim); font-size: 15px; }
-  #legend { position: absolute; left: 12px; top: 8px; z-index: 5; font-size: 12px; color: var(--muted);
-    background: rgba(15,17,23,.75); padding: 4px 8px; border-radius: 6px; pointer-events: none; }
-  #legend span { display: inline-block; margin-right: 10px; }
+  .chip.ok { background: rgba(34,197,94,.14); color: var(--green); }
+  .chip.warn { background: rgba(239,68,68,.14); color: var(--red); }
+  .chip.dim { background: rgba(107,114,128,.18); color: var(--muted); }
+  /* the week's / month's bar type at entry (last CLOSED bar of that timeframe, STRAT type vs the bar before it) */
+  .chip.bt { font-family: Consolas, "Courier New", monospace; font-size: 11px; padding: 1px 6px; border: 1px solid transparent; }
+  .chip.bt.t1 { background: rgba(245,158,11,.22); color: var(--amber); border-color: rgba(245,158,11,.5); }
+  .chip.bt.t2u { background: rgba(34,197,94,.16); color: var(--green); }
+  .chip.bt.t2d { background: rgba(239,68,68,.16); color: var(--red); }
+  .chip.bt.t3 { background: rgba(167,139,250,.18); color: var(--violet); }
+  .chip.bt.tq { background: rgba(107,114,128,.18); color: var(--muted); }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 0; }
+
+  /* ---- top bar */
+  header { height: var(--top); flex: 0 0 var(--top); display: flex; align-items: center; gap: 10px; padding: 0 14px; border-bottom: 1px solid var(--line); background: var(--panel); }
+  .brand { display: flex; align-items: baseline; gap: 8px; margin-right: 10px; }
+  .brand .mark { display: inline-block; width: 24px; height: 24px; border-radius: 6px; background: var(--blue); color: #fff; font-weight: 700; text-align: center; line-height: 24px; font-size: 13px; vertical-align: middle; }
+  .brand .name { font-size: 16px; font-weight: 700; letter-spacing: 0.2px; }
+  .brand .sub { color: var(--muted); font-size: 12px; }
+  .field { display: inline-flex; align-items: center; gap: 6px; }
+  .tabs { display: inline-flex; gap: 2px; margin-left: 8px; background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 2px; }
+  .tabs button { background: transparent; border: 0; color: var(--muted); font: inherit; font-weight: 600; padding: 4px 12px; border-radius: 6px; cursor: pointer; }
+  .tabs button.on { background: var(--blue); color: #fff; }
+  .spacer { flex: 1; }
+  #meta { color: var(--dim); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px; }
+
+  /* ---- the three columns */
+  main { flex: 1; min-height: 0; display: grid; grid-template-columns: 322px minmax(0, 1fr) 348px; }
+  body.tab-compare main, body.tab-playbook main { grid-template-columns: 322px minmax(0, 1fr); }
+  body.tab-compare #side, body.tab-playbook #side { display: none; }
+  #rail, #side { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+  #rail { border-right: 1px solid var(--line); }
+  #side { border-left: 1px solid var(--line); overflow-y: auto; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; margin: 8px 8px 0; }
+  .card.grow { flex: 1; min-height: 0; display: flex; flex-direction: column; margin-bottom: 8px; }
+  .card h3 { margin: 0 0 7px; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .card h3 .right { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 500; }
+  .frow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 6px; }
+  .frow .lab { min-width: 36px; }
+  #book { flex: 1; min-width: 0; }
+
+  /* ---- calendar */
+  .calNav { display: flex; align-items: center; justify-content: space-between; margin: 2px 0 4px; }
+  .calNav button { background: var(--panel2); border: 1px solid var(--line); color: var(--text); border-radius: 6px; width: 24px; height: 22px; cursor: pointer; font-size: 14px; line-height: 18px; }
+  .calNav span { font-weight: 600; font-size: 12.5px; }
+  #yearStrip { display: grid; grid-template-columns: repeat(12, 1fr); gap: 2px; margin: 0 0 5px; }
+  .ym { height: 18px; border-radius: 4px; font-size: 9.5px; text-align: center; line-height: 18px; cursor: pointer; background: var(--panel2); color: var(--muted); }
+  .ym.on { outline: 1px solid var(--blue); color: var(--text); }
+  #cal { display: grid; grid-template-columns: repeat(7, 1fr) 1.2fr; gap: 2px; }
+  .cd { height: 36px; border-radius: 5px; background: var(--panel2); position: relative; cursor: pointer; overflow: hidden; }
+  .cd:hover { outline: 1px solid var(--line); }
+  .cd .dn { position: absolute; top: 2px; left: 4px; color: var(--dim); font-size: 9.5px; }
+  .cd .dv { position: absolute; bottom: 2px; right: 4px; font-weight: 600; font-size: 10.5px; }
+  .cd .dc { position: absolute; top: 2px; right: 4px; color: var(--muted); font-size: 9px; }
+  .cd.out { opacity: 0.32; }
+  .cd.sel { outline: 2px solid var(--blue); }
+  .cd.wk { background: transparent; border: 1px dashed var(--line); cursor: default; }
+  .cd.wk .dn { color: var(--dim); }
+  .cd.hd { height: 14px; background: transparent; color: var(--dim); text-align: center; font-size: 9.5px; cursor: default; line-height: 14px; }
+  .calFoot { color: var(--muted); font-size: 11px; margin-top: 5px; display: flex; flex-direction: column; gap: 1px; }
+
+  /* ---- trade table */
+  .tableWrap { overflow: auto; flex: 1; min-height: 0; margin: 0 -11px -9px; }
+  #trades { width: 100%; border-collapse: collapse; font-size: 11px; }
+  #trades th { position: sticky; top: 0; background: var(--panel); text-align: left; font-weight: 600; color: var(--dim); font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.4px; padding: 3px 5px; z-index: 1; }
+  #trades th.num { text-align: right; }
+  #trades td { padding: 3px 5px; border-top: 1px solid var(--line); white-space: nowrap; }
+  #trades .chip.bt { font-size: 10px; padding: 0 4px; }
+  #trades tr { cursor: pointer; }
+  #trades tr:hover td { background: rgba(59,130,246,.08); }
+  #trades tr.sel td { background: rgba(59,130,246,.2); }
+  #trades td.num { text-align: right; }
+  #trades .coinCol { display: none; }
+  #trades.withCoin .coinCol { display: table-cell; }
+
+  /* ---- centre */
+  #center { display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; }
+  .view { display: none; flex: 1; min-height: 0; flex-direction: column; }
+  .view.on { display: flex; }
+  #view-compare.on, #view-playbook.on { display: block; overflow-y: auto; }
+  #strip { display: flex; flex-wrap: wrap; gap: 4px 20px; align-items: center; padding: 7px 14px; margin: 8px 8px 0; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; min-height: 48px; }
+  .fact .fl { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--dim); }
+  .fact .fv { font-size: 13px; font-weight: 600; white-space: nowrap; }
+  .fact .fv .sm { font-size: 11px; font-weight: 500; color: var(--muted); }
+  #panes { flex: 1; display: flex; min-height: 0; gap: 8px; padding: 8px; }
+  .pane { flex: 1; min-width: 0; display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .pane[hidden] { display: none; }
+  .paneBar { display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-bottom: 1px solid var(--line); min-height: 40px; }
+  .paneName { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); font-weight: 600; }
+  .paneTools { flex: 1; min-width: 0; }
+  .paneBar .magnet { background: var(--panel2); border: 1px solid var(--line); color: var(--muted); border-radius: 7px; padding: 4px 9px; font: inherit; font-size: 12px; cursor: pointer; }
+  .paneBar .magnet.on { background: #1e3a8a; color: #fff; border-color: var(--blue); }
+  .paneChart { flex: 1; min-height: 0; position: relative; }
+  .paneChart.magnet { cursor: crosshair; }
+  .cmpBar { display: flex; align-items: center; gap: 10px; margin: 8px 8px 0; font-size: 12px; color: var(--muted); }
+  .paneChart .empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--dim); font-size: 14px; }
+  .paneNote { position: absolute; left: 10px; top: 6px; z-index: 5; font-size: 11px; color: var(--amber); pointer-events: none; }
+  #legend { padding: 4px 14px 8px; font-size: 11px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 12px; }
   #legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
-  footer { border-top: 1px solid var(--line); background: var(--panel); padding: 8px 12px; }
-  #cards { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; scroll-behavior: smooth; }
-  .card { flex: 0 0 230px; background: var(--panel2); border: 2px solid transparent; border-radius: 12px;
-    padding: 10px 12px; cursor: pointer; user-select: none; }
-  .card:hover { border-color: var(--line); }
-  .card.sel { border-color: var(--blue); }
-  .card .top { display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
-  .card .when { color: var(--muted); font-size: 12px; margin-top: 4px; }
-  .card .what { color: var(--muted); font-size: 12px; }
-  .card .pl { font-size: 18px; font-weight: 700; margin-top: 6px; letter-spacing: 0.3px; }
-  .pos { color: var(--green); } .neg { color: var(--red); } .flat { color: var(--muted); }
-  .card .st { font-size: 11px; color: var(--dim); }
-  kbd { background: var(--panel2); border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; font-size: 11px; }
-  a { color: #93c5fd; }
-  #chart.ray { cursor: crosshair; }
-  #rays .ray { font-size: 12px; color: #93c5fd; margin-right: 8px; }
-  #rays a { cursor: pointer; color: var(--muted); text-decoration: none; }
-  #rays a:hover { color: var(--red); }
+  #legend .hint { margin-left: auto; color: var(--dim); }
+
+  /* ---- side: story, ladder, context */
+  #story p { margin: 0 0 8px; font-size: 12.5px; line-height: 1.5; }
+  #story p.fine { margin-top: 4px; }
+  table.ladder { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+  table.ladder th { text-align: left; color: var(--dim); font-weight: 600; font-size: 9.5px; text-transform: uppercase; padding: 2px 4px; }
+  table.ladder td { padding: 3px 4px; border-top: 1px solid var(--line); white-space: nowrap; }
+  table.ladder tr { cursor: pointer; }
+  table.ladder tr.sel td { background: rgba(59,130,246,.18); }
+  table.ladder tr:hover td { background: rgba(59,130,246,.08); }
+  .ctx { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 4px 0; border-top: 1px solid var(--line); font-size: 11.5px; }
+  .ctx:first-child { border-top: 0; }
+  .ctx .cl { color: var(--muted); }
+  .ctx .cv { text-align: right; }
+
+  /* ---- compare */
+  #kpis { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin: 8px; }
+  .kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; cursor: pointer; min-width: 0; }
+  .kpi:hover { border-color: var(--dim); }
+  .kpi.sel { border-color: var(--blue); box-shadow: 0 0 0 1px var(--blue) inset; }
+  .kpi .kh { font-weight: 600; font-size: 12px; display: flex; align-items: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .kpi .kbig { font-size: 21px; font-weight: 700; margin-top: 2px; letter-spacing: 0.2px; }
+  .kpi .ksub { font-size: 10.5px; color: var(--muted); }
+  .kgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 8px; margin-top: 7px; font-size: 11.5px; }
+  .kgrid i { font-style: normal; color: var(--dim); display: block; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.3px; }
+  .cmpRow { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 8px; margin: 0 8px; }
+  .cmpRow .card, #view-compare > .card { margin: 0 0 8px; }
+  #view-compare > .card { margin: 0 8px 8px; }
+  #eq { height: 300px; } #hist { height: 300px; }
+  table.setup { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+  table.setup th { text-align: right; color: var(--dim); font-weight: 600; font-size: 9.5px; text-transform: uppercase; padding: 3px 6px; }
+  table.setup th:first-child, table.setup td:first-child { text-align: left; }
+  table.setup td { padding: 3px 6px; border-top: 1px solid var(--line); text-align: right; white-space: nowrap; }
+  table.setup tr.head td { font-weight: 600; }
+  #cmpNote { color: var(--muted); font-size: 11.5px; margin: 0 8px 8px; }
+
+  /* ---- playbook */
+  #playbook { max-width: 880px; margin: 8px auto 24px; padding: 14px 26px 20px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+  #playbook h1 { font-size: 20px; margin: 6px 0 4px; }
+  #playbook h2 { font-size: 14px; margin: 18px 0 6px; color: #c7cbd6; }
+  #playbook p, #playbook li { font-size: 13px; line-height: 1.55; }
+  #playbook p.lead { color: var(--muted); }
+  #playbook ul { padding-left: 18px; }
+  table.pb { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  table.pb th { text-align: left; color: var(--dim); font-weight: 600; font-size: 10px; text-transform: uppercase; padding: 4px 6px; }
+  table.pb td { padding: 5px 6px; border-top: 1px solid var(--line); vertical-align: top; line-height: 1.45; }
+
+  /* amCharts stock toolbar, re-skinned to the viewer's dark panel (the library injects its own light CSS) */
+  .am5stock-control-button { background: var(--panel2) !important; color: var(--text) !important; border-color: var(--line) !important; }
+  .am5stock-control-button:hover, .am5stock-control-button.am5stock-control-button-active { background: #2a3146 !important; border-color: var(--blue) !important; }
+  .am5stock-control-label { color: var(--text) !important; }
+  .am5stock-control-icon svg, .am5stock-control-icon svg path, .am5stock-control-icon svg line, .am5stock-control-icon svg polygon, .am5stock-control-icon svg circle, .am5stock-control-icon svg rect, .am5stock-control-icon svg polyline { stroke: var(--text) !important; }
+  .am5stock-control-list, .am5stock-control-list-container, .am5stock-control-dropdown, .am5stock-control-colors { background: var(--panel2) !important; color: var(--text) !important; border-color: var(--line) !important; }
+  .am5stock-list-item:hover, .am5stock-list-item-selected { background: #2a3146 !important; }
+  .am5stock-list-info, .am5stock-list-heading, .am5stock-list-sub-label { color: var(--muted) !important; }
+  .am5stock-control-input, .am5stock-control-list input { background: var(--bg) !important; color: var(--text) !important; border-color: var(--line) !important; }
+  .am5stock-control { background: transparent !important; }
+  .am5stock-control-icon-color { border-color: var(--line) !important; }
+  @media (max-width: 1380px) {
+    main { grid-template-columns: 300px minmax(0, 1fr) 300px; }
+    #kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
 </style>
 </head>
-<body>
+<body class="tab-trade">
 <header>
-  <div class="row">
-    <h1 id="title">Domino Trade Viewer</h1>
-    <span class="sub" id="meta"></span>
-  </div>
-  <div class="row">
-    <span class="lab">Coin</span>
-    <input id="coinBox" type="text" list="coinList" placeholder="BTC" autocomplete="off">
-    <datalist id="coinList"></datalist>
-    <span class="lab">or day</span>
-    <input id="dateBox" type="date">
-    <span class="seg" id="chartTf">
-      <button data-v="1H">1H</button><button data-v="1D" class="on">1D</button>
-      <button data-v="1W">1W</button><button data-v="1M">1M</button>
-    </span>
-    <span class="lab">Unit</span>
-    <span class="seg multi" id="fTf"><button data-v="D" class="on">D</button><button data-v="W" class="on">W</button><button data-v="M" class="on">M</button></span>
-    <span class="lab">Kind</span>
-    <span class="seg multi" id="fKind"><button data-v="reversal" class="on">Rev</button><button data-v="continuation" class="on">Cont</button><button data-v="inside" class="on">Inside</button><button data-v="outside" class="on">Outside</button></span>
-    <span class="lab">Side</span>
-    <span class="seg multi" id="fDir"><button data-v="up" class="on">Long</button><button data-v="down" class="on">Short</button></span>
-    <span class="seg multi" id="fLiq"><button data-v="liquid">Liquid only</button></span>
-    <span class="seg multi" id="fT1"><button data-v="t1">Has T1</button></span>
-    <span class="lab">Book</span>
-    <select id="book">
-      <option value="C">C: exit only</option>
-      <option value="A">A: all out at T1</option>
-      <option value="B">B: hold through T2</option>
-      <option value="D">D: one R or the exit</option>
-      <option value="D5">D5: one R or the exit, 5-bar window</option>
-      <option value="ref">Chance book (setup-bar stop, 5 bars)</option>
-    </select>
-    <span class="lab">Size $</span><input id="size" type="number" value="1000" min="1" step="100">
-    <span class="lab">Ray</span>
-    <span class="seg"><button id="rayMode" title="R: click the chart to drop a magnet line on the nearest open / high / low / close of the bar under the cursor; click a line to move it; Alt+click removes it; Delete removes the last">Draw</button><button id="rayClear" title="remove every ray on this coin">Clear</button></span>
-    <span id="rays"></span>
-  </div>
-  <div class="row">
-    <span id="summary"></span>
-  </div>
-  <div class="row"><div id="trade"></div></div>
+  <div class="brand"><span class="mark">D</span><span class="name">Domino</span><span class="sub">trade viewer</span></div>
+  <div class="field"><span class="lab">Coin</span><input id="coinBox" type="text" list="coinList" placeholder="BTC" autocomplete="off"><datalist id="coinList"></datalist></div>
+  <div class="field"><span class="lab">or day</span><input id="dateBox" type="date"></div>
+  <nav class="tabs" id="tabs"><button data-v="trade" class="on">Trade</button><button data-v="compare">Compare books</button><button data-v="playbook">Playbook</button></nav>
+  <div class="spacer"></div>
+  <span class="lab">Charts</span>
+  <span class="seg" id="layout"><button data-v="single" class="on">Single</button><button data-v="dual">Dual</button></span>
+  <span class="lab">Show</span>
+  <span class="seg multi" id="fShow"><button data-v="sys" class="on" title="the rows' levels, targets, touch markers and exits: read-only, drawn from the data">System levels</button><button data-v="man" class="on" title="your own drawings from the toolbar: editable, saved per coin and pane in this browser">My drawings</button></span>
+  <span id="meta"></span>
 </header>
 <main>
-  <div id="chart">
-    <div id="legend"></div>
-    <div class="empty" id="empty">Loading...</div>
-  </div>
+  <aside id="rail">
+    <section class="card">
+      <h3>Book and filters</h3>
+      <div class="frow">
+        <select id="book">
+          <option value="C">C: exit only</option>
+          <option value="A">A: all out at T1</option>
+          <option value="B">B: hold through T2</option>
+          <option value="D">D: one R or the exit</option>
+          <option value="D5">D5: one R or the exit, 5-bar window</option>
+          <option value="ref">Chance book (setup-bar stop, 5 bars)</option>
+        </select>
+        <span class="lab">Size $</span><input id="size" type="number" value="1000" min="1" step="100">
+      </div>
+      <div class="frow"><span class="lab">Unit</span><span class="seg multi small" id="fTf"><button data-v="D" class="on">Daily</button><button data-v="W" class="on">Weekly</button><button data-v="M" class="on">Monthly</button></span>
+        <span class="seg multi small" id="fDir"><button data-v="up" class="on">Long</button><button data-v="down" class="on">Short</button></span></div>
+      <div class="frow"><span class="lab">Setup</span><span class="seg multi small" id="fKind"><button data-v="reversal" class="on">Rev</button><button data-v="continuation" class="on">Cont</button><button data-v="inside" class="on">Inside</button><button data-v="outside" class="on">Outside</button></span>
+        <span class="seg multi small" id="fLiq"><button data-v="liquid">Liquid</button></span><span class="seg multi small" id="fT1"><button data-v="t1">Has T1</button></span></div>
+    </section>
+    <section class="card" id="calCard">
+      <h3>Calendar <span class="seg small right" id="calScope"><button data-v="coin" class="on">This coin</button><button data-v="all">All coins</button></span></h3>
+      <div class="calNav"><button id="calPrev" title="previous month">&lsaquo;</button><span id="calTitle"></span><button id="calNext" title="next month">&rsaquo;</button></div>
+      <div id="yearStrip"></div>
+      <div id="cal"></div>
+      <div class="calFoot"><span id="calFoot"></span><span id="calFoot2"></span></div>
+    </section>
+    <section class="card grow" id="tableCard">
+      <h3><span id="tableTitle">Trades</span><select id="sort" class="small right"><option value="date-desc">newest first</option><option value="date-asc">oldest first</option><option value="ret-desc">best first</option><option value="ret-asc">worst first</option><option value="days-desc">longest held</option></select></h3>
+      <div class="tableWrap"><table id="trades"><thead><tr><th>Date</th><th class="coinCol">Coin</th><th>Trade</th><th>W / M</th><th class="num">Result</th></tr></thead><tbody id="tbody"></tbody></table></div>
+    </section>
+  </aside>
+  <section id="center">
+    <div id="view-trade" class="view on">
+      <div id="strip"></div>
+      <div id="panes">
+        <div class="pane" id="pane-a">
+          <div class="paneBar"><span class="paneName">Main</span><span class="seg small" data-pane="a"><button data-v="1H">1H</button><button data-v="1D" class="on">1D</button><button data-v="1W">1W</button><button data-v="1M">1M</button></span><button class="magnet" title="magnet ray (R): click near a bar's open / high / low / close to drop a line exactly there; it is a drawing like any other (saved, movable, erasable from the toolbar)">Magnet</button><div class="paneTools"></div></div>
+          <div class="paneChart"><div class="paneNote"></div><div class="empty">Loading...</div></div>
+        </div>
+        <div class="pane" id="pane-b" hidden>
+          <div class="paneBar"><span class="paneName">Context</span><span class="seg small" data-pane="b"><button data-v="1H">1H</button><button data-v="1D">1D</button><button data-v="1W" class="on">1W</button><button data-v="1M">1M</button></span><button class="magnet" title="magnet ray (R): click near a bar's open / high / low / close to drop a line exactly there">Magnet</button><div class="paneTools"></div></div>
+          <div class="paneChart"><div class="paneNote"></div></div>
+        </div>
+      </div>
+      <div id="legend"></div>
+    </div>
+    <div id="view-compare" class="view">
+      <div class="cmpBar"><span class="lab">Scope</span><span class="seg small" id="cmpScope"><button data-v="shown" class="on">This coin / day</button><button data-v="universe">Universe, every coin</button></span><span id="cmpScopeNote"></span></div>
+      <div id="kpis"></div>
+      <div class="cmpRow">
+        <div class="card"><h3>Equity by entry date, equal size <span class="right" id="eqNote"></span></h3><div id="eq"></div></div>
+        <div class="card"><h3>Where the trades land <span class="right" id="histNote"></span></h3><div id="hist"></div></div>
+      </div>
+      <div class="card"><h3>By setup: average percent per trade, every book <span class="right">last column: D5 minus the chance book on the same rows (the stop swap)</span></h3><div id="bySetup"></div></div>
+      <div id="cmpNote"></div>
+    </div>
+    <div id="view-playbook" class="view"><article id="playbook"></article></div>
+  </section>
+  <aside id="side">
+    <section class="card"><h3>In plain words</h3><div id="story"></div></section>
+    <section class="card"><h3>Every book on this trade</h3><div id="ladder"></div></section>
+    <section class="card" style="margin-bottom:8px"><h3>Context at entry</h3><div id="context"></div></section>
+  </aside>
 </main>
-<footer>
-  <div class="row" style="margin-bottom:6px">
-    <span class="sub" id="cardsTitle"></span>
-    <span class="sub" style="margin-left:auto"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> previous / next trade &middot; <kbd>Esc</kbd> clear &middot; <kbd>R</kbd> ray tool</span>
-  </div>
-  <div id="cards"></div>
-</footer>
-<script src="vendor/lightweight-charts.standalone.production.js"></script>
+<script src="vendor/amcharts5/index.js"></script>
+<script src="vendor/amcharts5/xy.js"></script>
+<script src="vendor/amcharts5/stock.js"></script>
+<script src="vendor/amcharts5/themes/Dark.js"></script>
+<script src="core.js"></script>
+<script src="story.js"></script>
+<script src="stats.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
