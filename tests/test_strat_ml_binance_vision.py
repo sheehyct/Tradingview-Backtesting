@@ -179,3 +179,42 @@ def test_build_parquet_flags_zombie_tail(tmp_path, monkeypatch):
     m = bv.build_parquet("DEADUSDT", "klines", log=lambda *_: None)
     assert m["rows"] == 3 and m["zero_volume_hours"] == 2 and m["trailing_dead_hours"] == 2
     assert m["last_traded"] == "2020-01-01T00:00:00+00:00"
+
+
+def test_summarize_reads_manifests(tmp_path, monkeypatch):
+    import json
+
+    monkeypatch.setattr(bv, "PARQUET", tmp_path / "parquet")
+    monkeypatch.setattr(bv, "SUMMARY_PATH", tmp_path / "summary.json")
+    (tmp_path / "parquet" / "klines").mkdir(parents=True)
+    (tmp_path / "parquet" / "fundingRate").mkdir(parents=True)
+
+    def man(sym, last_traded, dead):
+        return json.dumps(
+            {
+                "symbol": sym,
+                "rows": 10,
+                "first": "2020-01-01T00:00:00+00:00",
+                "last": "2026-10-16T23:00:00+00:00",
+                "last_traded": last_traded,
+                "missing_hours": 0,
+                "trailing_dead_hours": dead,
+                "zero_volume_hours": dead,
+            }
+        )
+
+    (tmp_path / "parquet/klines/LIVEUSDT.manifest.json").write_text(
+        man("LIVEUSDT", "2026-10-16T23:00:00+00:00", 0)
+    )
+    (tmp_path / "parquet/klines/DEADUSDT.manifest.json").write_text(
+        man("DEADUSDT", "2022-11-15T04:00:00+00:00", 13443)
+    )
+    (tmp_path / "parquet/fundingRate/LIVEUSDT.manifest.json").write_text(
+        json.dumps({"symbol": "LIVEUSDT", "rows": 3, "first": "a", "last": "b"})
+    )
+    doc = bv.summarize(log=lambda *_: None)
+    assert doc["symbols"] == 2 and doc["delisted_by_volume"] == 1
+    assert doc["rows"]["DEADUSDT"]["delisted_by_volume"] is True
+    assert doc["rows"]["LIVEUSDT"]["delisted_by_volume"] is False
+    assert doc["rows"]["LIVEUSDT"]["funding_rows"] == 3
+    assert json.loads((tmp_path / "summary.json").read_text())["symbols"] == 2

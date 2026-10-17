@@ -531,6 +531,64 @@ def build_universe(
     return df
 
 
+SUMMARY_PATH = HERE / "universe_summary.json"  # committable (outside the gitignored data/)
+
+
+def usdt_universe() -> list[str]:
+    """USDT perp folder names from the universe manifest (run `universe` first)."""
+    u = pd.read_parquet(DATA / "universe.parquet")
+    return sorted(u.loc[u["kind"] == "usdt_perp", "symbol"].tolist())
+
+
+def summarize(log=print) -> dict:
+    """Fold every klines / funding manifest into one small JSON that CAN be committed.
+
+    Per symbol: first / last bar, last traded bar (volume > 0), dead tail, missing hours,
+    funding coverage. delisted_by_volume = last traded bar older than 45 days before the
+    newest last-traded bar in the set (a dead contract stops printing volume for good; a
+    live one never stops for 45 days). Nothing here is a feature; it is the roster.
+    """
+    rows = {}
+    for mp in sorted(PARQUET.glob("klines/*.manifest.json")):
+        m = json.loads(mp.read_text())
+        rows[m["symbol"]] = {
+            "first_bar": m["first"],
+            "last_bar": m["last"],
+            "last_traded": m.get("last_traded"),
+            "bars": m["rows"],
+            "missing_hours": m.get("missing_hours"),
+            "trailing_dead_hours": m.get("trailing_dead_hours"),
+            "zero_volume_hours": m.get("zero_volume_hours"),
+        }
+    for mp in sorted(PARQUET.glob("fundingRate/*.manifest.json")):
+        m = json.loads(mp.read_text())
+        rows.setdefault(m["symbol"], {})
+        rows[m["symbol"]].update(
+            {"funding_first": m["first"], "funding_last": m["last"], "funding_rows": m["rows"]}
+        )
+    traded = [pd.Timestamp(r["last_traded"]) for r in rows.values() if r.get("last_traded")]
+    head = max(traded) if traded else None
+    for r in rows.values():
+        lt = r.get("last_traded")
+        r["delisted_by_volume"] = bool(
+            lt and head is not None and pd.Timestamp(lt) < head - pd.Timedelta(days=45)
+        )
+    doc = {
+        "built_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "market": MARKET,
+        "symbols": len(rows),
+        "delisted_by_volume": sum(r["delisted_by_volume"] for r in rows.values()),
+        "head_last_traded": head.isoformat() if head is not None else None,
+        "rows": rows,
+    }
+    SUMMARY_PATH.write_text(json.dumps(doc, indent=1, sort_keys=True), encoding="utf-8")
+    log(
+        f"  {doc['symbols']} symbols, {doc['delisted_by_volume']} delisted by volume"
+        f" -> {_display(SUMMARY_PATH)}"
+    )
+    return doc
+
+
 # ----------------------------------------------------------------------------- CLI
 
 
@@ -540,7 +598,8 @@ def main(argv: list[str] | None = None) -> None:
     )
     sub = ap.add_subparsers(dest="cmd", required=True)
     f = sub.add_parser("fetch", help="download raw files, then build parquet")
-    f.add_argument("--symbols", nargs="+", required=True)
+    f.add_argument("--symbols", nargs="*", default=[])
+    f.add_argument("--universe", action="store_true", help="every USDT perp in universe.parquet")
     f.add_argument(
         "--datasets", nargs="+", default=["klines", "fundingRate"], choices=list(PERIODS)
     )
@@ -558,16 +617,27 @@ def main(argv: list[str] | None = None) -> None:
         "universe", help="list every symbol folder with first/last month + delisted flag"
     )
     sub.add_parser("status", help="print the parquet manifests")
+    sub.add_parser("summarize", help="fold the manifests into universe_summary.json (committable)")
     a = ap.parse_args(argv)
 
     if a.cmd == "fetch":
         archive = Archive()
-        for sym in a.symbols:
+        symbols = list(a.symbols) + (usdt_universe() if a.universe else [])
+        if not symbols:
+            ap.error("fetch needs --symbols and/or --universe")
+        t0 = time.time()
+        for n, sym in enumerate(symbols, 1):
+            print(f"[{n}/{len(symbols)} {time.time() - t0:.0f}s] {sym}", flush=True)
             for ds in a.datasets:
-                fetch_symbol(archive, sym, ds, a.interval, a.since, a.until, a.workers)
-                if not a.no_build and (RAW / ds / sym).exists():
-                    build_parquet(sym, ds, base_url=archive.base_url)
+                try:
+                    fetch_symbol(archive, sym, ds, a.interval, a.since, a.until, a.workers)
+                    if not a.no_build and (RAW / ds / sym).exists():
+                        build_parquet(sym, ds, base_url=archive.base_url)
+                except Exception as e:  # one bad symbol must not end a multi-hour pull
+                    print(f"  ERROR {sym} {ds}: {e}", flush=True)
         print(f"served by: {archive.base_url}")
+    elif a.cmd == "summarize":
+        summarize()
     elif a.cmd == "build":
         for sym in a.symbols:
             for ds in a.datasets:
