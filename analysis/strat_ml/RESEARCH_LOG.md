@@ -5,7 +5,7 @@ sparked it, status. Newest at the top.
 
 | date | thread | spark | status |
 |---|---|---|---|
-| 2026-10-17 | Full-universe pull (every USDT perp, klines + funding) started in the cloud session; raw cache is per-container, the committable roster is `analysis/strat_ml/universe_summary.json` | owner go-ahead | RUNNING |
+| 2026-10-17 | Full-universe pull (every USDT perp, klines + funding) started in the cloud session; raw cache is per-container, the committable roster is `analysis/strat_ml/universe_summary.json` | owner go-ahead | DONE: 900 symbols, 57,319 files, 0 errors; 160 delisted by volume (not 31); roster committed; plan doc section 6 |
 | 2026-10-17 | Phase 1 data layer: Binance Vision downloader, raw zip cache, parquet build, universe manifest | spec v0.1 Phase 1 | built; test slice pulled (BTC, ETH, LINK, DOGE, SOL, AVAX, SRM delisted); see docs/experiments/strat_ml_phase1_data_plan.md |
 | 2026-10-17 | Zombie files: the archive keeps publishing flat zero-volume months for dead contracts (BTCST frozen 2024-02 .. 2026-06, FTT flat at 1.59, SRM last trade 2022-11-15 but files to 2024-05) | universe manifest showed only 31 delisted | delisting must be read from volume (manifest `last_traded`); Phase 2 trims the dead tail |
 | 2026-10-17 | Survivorship: the archive keeps delisted perps (SRM, LUNA, BTCST, ...) plus 17 SETTLED stubs | spec question "does the archive have delisted symbols" | answered yes; delisted = last month < archive head month |

@@ -33,11 +33,21 @@ TVB numbering untouched; the TVB-40 startup prompt still governs the main thread
   both in order. The live API is unreachable and never used.
 - **`uv add pyarrow`** touched pyproject/uv.lock: on the workstation reinstall VectorBT Pro
   from the cached wheel after the next `uv sync` (standing gotcha).
-- **OPEN for the owner:** which classifier Phase 2 imports (`analysis/domino/census.py:classify`
+- **Full-universe pull DONE (owner's go-ahead, same day):** 900 USDT perps, 57,319 files,
+  0 errors, ~2.5 h; 160 symbols delisted by volume (the listing-based flag said 31), 108 of
+  them with a year or more of real history; the committed roster is
+  `analysis/strat_ml/universe_summary.json`; plan doc section 6 has the counts. The raw /
+  parquet cache (1.9 GB) is per-container: a later cloud session re-pulls (~2.5 h, free), or
+  the workstation runs the two CLI commands once and keeps it.
+- **Owner rulings 2026-10-17:** Phase 2 imports `analysis/domino/census.py:classify` (strict
+  break) with its calendar bucketing, not the scanner's EXP-013 code; VectorBT Pro is RETIRED
+  (licence not renewed, nothing imports it; CLAUDE.md gotcha rewritten; the workstation session
+  should save this to private memory); no Railway for pulls (cloud container or workstation).
+- **Remaining OPEN:** spec open decisions 1-2 and 4 assumed at their defaults (`analysis/domino/census.py:classify`
   strict-break, prereg'd on perps, is the lead's suggestion; the pine-exact
   `analysis/paper/patterns.py` and the scanner's EXP-013 code in the other workspace are the
-  alternatives); spec open decisions 1-4 assumed at their defaults; whether to run the full
-  ~880-symbol pull (multi-hour, ~1.5 GB raw) now.
+  alternatives); metrics (open interest, taker ratios)
+  not pulled for the universe (~1.3 M daily files; pull for the trigger subset in Phase 2).
 
 ---
 

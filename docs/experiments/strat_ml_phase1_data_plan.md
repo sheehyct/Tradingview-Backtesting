@@ -169,3 +169,37 @@ deferred to the universe pull because it is ~2,000 small files per symbol.
   last real trade. The event build must use `last_traded`, never the last file.
 - Funding rows continue past the last trade for a dead contract (flat 0.0001 placeholder
   rate). Same trim applies.
+
+## 6. Full-universe pull (run 2026-10-17, cloud session, ~2 h 25 min, 8 workers)
+
+Every USDT perp folder in the archive (900), 1h klines + fundingRate, full history: 57,319
+archive files, zero checksum failures, zero errors; 16.2 M hourly bars, 2.74 M funding rows;
+raw cache 812 MB, parquet 1.1 GB. The raw cache dies with the cloud container; the roster
+that survives is `analysis/strat_ml/universe_summary.json` (committed, 373 KB).
+
+| what | count |
+|---|---|
+| USDT perps with klines | 900 |
+| delisted by VOLUME (last real trade > 45 days before the newest) | 160 (the listing-based flag said 31) |
+| of those with >= 1 year of real history | 108 |
+| live perps with >= 3 years of real history | 149 |
+| symbols with zero-volume hours anywhere | 488 (thin names print empty hours; a zero-volume bar is h = l = o = c = last close) |
+| symbols with a trailing dead tail | 159; longest BTCSTUSDT: last trade 2021-03-12, files to 2026-07 (1,966 days of flat bars) |
+| symbols with hour gaps (bars missing, never filled) | 60; worst TLMUSDT 708 h |
+
+Delisted by year of last trade: 2020: 1, 2021: 3, 2022: 14, 2023: 3, 2024: 30, 2025: 47,
+2026: 62. Listing cohort by year of first bar: 2020: 81, 2021: 59, 2022: 26, 2023: 99,
+2024: 131, 2025: 242, 2026: 262. Median real history: delisted 16 months, live 15 months.
+Two readings of that: most of the universe is young (half the names listed in 2025-2026), and
+the dead set is NOT a handful of famous blow-ups but ~18% of everything ever listed, with a
+delisting rate that has climbed every year. Survivorship bias on a live-only universe would
+be large, and it would be concentrated in the alts the spec wants to compare against the
+majors.
+
+Five symbols carry non-ASCII names on Binance itself (Chinese-named memes such as the folder
+spelled with CJK characters before USDT); they are kept as Binance spells them in the JSON
+roster (data, not prose) and should be referred to by index, not retyped.
+
+Phase 2 must (a) trim every symbol at `last_traded`, (b) treat an in-history zero-volume bar
+as "no trade" for the hourly ordering of stop vs target (it is a flat placeholder, not a
+print), and (c) read `symbol_age_days` from `first_bar`.
