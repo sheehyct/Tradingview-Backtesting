@@ -12,90 +12,99 @@
 
 - Status: REQUESTED
   <!-- REQUESTED | RETURNED (audit file written) | ADDRESSED | N/A -->
-- Session under review: TVB-39 (2026-10-12) -- the trade viewer (a local page + a build /
-  hourly / serve CLI that draws the management book's recorded rows on the cached candles and
-  claims to re-run no trade logic) and prereg amendment A2 (the lead's five candidates, each
-  one change on the same trades: the week's side as a split, the hourly exit clock, book E =
-  half at T1, fees at two taker fills, the under-water reading of "against"). The same
-  evening the owner's first pass on the viewer produced three viewer additions and one viewer
-  bug fix (7f3fc88) and surfaced an OPEN code-versus-skill question (the with-trend inside
-  break's T1); that question is the owner's to rule, not the reviewer's, but the reviewer may
-  say which reading the prereg text and the skill text actually support.
-- Requested: 2026-10-12
-- Write the audit to: `docs/reviews/tvb39-codex-audit.md` (copy `docs/reviews/_TEMPLATE.md`)
+- Session under review: TVB-40 (2026-10-14 to 2026-10-17) -- the charting upgrade: the trade
+  viewer rebuilt on amCharts 5 as a two-builder design-off (CLAUDE `proto_claude/`, CODEX
+  `proto_codex/`; the owner chose CLAUDE's) and promoted to `analysis/domino/viewer/`. The
+  page keeps the viewer's founding rule (it reads the recorded rows and re-runs no trade
+  logic) and adds: a calendar + sortable table rail, a facts strip, the trade narrated in
+  trader language from the row, a six-book ladder per trade, a Compare tab (KPI cards,
+  overlaid equity, distribution, by-setup with D5 minus the chance book) with a universe scope
+  from a new columnar table, a Playbook tab, dual chart panes, the library's drawing toolbar
+  with per-coin save / restore, and the magnet ray as a saved drawing. The build script
+  vendors amCharts and writes the universe table. The TVB-39 page is retired.
+- Requested: 2026-10-17
+- Write the audit to: `docs/reviews/tvb40-codex-audit.md` (copy `docs/reviews/_TEMPLATE.md`)
+- Note: the TVB-39 audit (`docs/reviews/tvb39-codex-audit.md`, RETURNED 2026-10-14,
+  NEEDS-CHANGES) has NOT been synthesized yet; it is TVB-41's first item. Its viewer findings
+  F4-F7 are inherited by the promoted page (same row logic in `core.js`), so this request does
+  not ask for them to be found again: cite them and look for what is NEW.
 
 ## Commits to review
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `4dc5f6b..30391fb` (4dc5f6b is the pre-session sha; the range holds dbeaffe viewer, f505f9d A2 prereg, 340c86e A2 build, ed08ae5 serve flags, 7f3fc88 viewer second pass, 30391fb close-out; the sha-pin commit after it is docs only). Verify with `git diff --name-status 4dc5f6b..30391fb`. |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `9f6c5c8..2c7fe1c` (9f6c5c8 is the pre-session sha; the range holds e79f8d3 round one, da7f4c2 round two, 2c7fe1c the promotion. It ALSO contains the two maintenance pull requests merged 2026-10-16, 45f83fc / 2dde483 / 706cb3d / 46de307, cloud hooks and the safety guard, which have their own HANDOFF entries and are not viewer work. The session-end docs commit after 2c7fe1c is docs only.) Verify with `git diff --name-status 9f6c5c8..2c7fe1c`. |
 
-No sibling-repo commits. The candle cache (daily and hourly), the unit rows
-(`manage_trades.csv.gz`), the viewer's data folder and vendored chart library, the page output
-and the run logs are gitignored; the run is reproducible offline with
-`uv run python -m analysis.domino.manage --as-of 2026-10-10` (about 10 minutes with the hourly
-cache; needs the cached `*_1d_20261010.json` and `*_1h_20261010.json` files, which the owner's
-machine has), then `uv run python -m analysis.domino.trade_viewer build --as-of 2026-10-10`.
+No sibling-repo commits. The candle cache, the unit rows (`manage_trades.csv.gz`), the
+viewer's data folder (`viewer/data/`, including `universe.json`) and the vendored library
+(`viewer/vendor/amcharts5/`) are gitignored; the data is reproducible offline with
+`uv run python -m analysis.domino.trade_viewer build --as-of 2026-10-10` (needs the cached
+`*_1d_20261010.json` and `*_1h_20261010.json` files, which the owner's machine has; the build
+fetches amCharts 5 from cdn.amcharts.com with a browser-like agent). `proto_codex/` is
+untracked and out of scope.
 
 ## What to read first
 
-1. `docs/experiments/tvb37_management_book_prereg.md`, "Amendment A2" -- the five definitions
-   (A2.1-A2.5), the readings R1-R5 and the vectors v16-v19, written BEFORE the code (f505f9d
-   precedes 340c86e); one labelled in-flight correction (the hourly ordering difference is on
-   the exit day).
-2. `analysis/domino/manage.py` -- `walk()` (unchanged except `exit_u` recorded on the same
-   pass), `settle(clock="under")`, `hours_by_day`, `walk_hourly`, `hourly_fill`,
-   `coin_manage_rows(meta, daily, hourly)`, `candidates()`, `table_candidates()`.
-3. `analysis/domino/census.py` -- `HOUR`, `fetch_hourly`, `cached_hourly`, `normalize_hourly`.
-4. `tests/test_domino_manage_a2.py` (7 vectors) and `tests/test_domino_viewer.py` (calendar
-   bucketing through node against `census.week_start` / `month_start`).
-5. `analysis/domino/trade_viewer.py` and `analysis/domino/viewer/app.js` -- `settle()`,
-   `tradeSpan()`, `stackLevels()`, `draw()`, the ray tool; `index.html` for the controls.
-6. `analysis/domino/MANAGE_RECEIPT.md` (viewer section with the first-pass additions; A2
-   section) and `results/manage_tables.md` ("Amendment A2" tables), `manage.json`
-   (`candidates`, `taker_pct`, `candidate_label`).
-7. `docs/HANDOFF.md` TVB-39 entry, "The owner's first pass on the viewer" -- the two walked
-   trades and the open question.
+1. `analysis/domino/viewer/NOTES.md` -- the page's receipt: the tour, the address keys, the
+   verification record (universe figures against the engine's CSV in pandas, BTC against
+   Python, the drawing and magnet proofs in `viewer/shots/`), what is not proven, what it lacks.
+2. `analysis/domino/viewer/core.js` -- `settle`, `tradeSpan`, `stackLevels`, `setupDays`
+   (the TVB-39 row logic with the calendar passed in), `aggregate` / `makeCalendar`, `barType`
+   / `htfType` (the week's and month's closed-bar STRAT type, R10 operators).
+3. `analysis/domino/viewer/stats.js` -- `bookStats` (equity by entry date, max drawdown, target
+   and days semantics per book), `bySetup` (D5 minus the chance book paired), `histogram`,
+   `calendarDays`, `fromUniverse` (decoding the columnar table).
+4. `analysis/domino/viewer/story.js` -- `narrate` (setup words, target words, the clocks, the
+   per-book paragraphs), `ladder`, `context`, `playbook` (the receipt's numbers in prose).
+5. `analysis/domino/viewer/app.js` -- `drawPane` (candle roles, system levels as axis ranges,
+   markers and their slots, the zoom), `shiftTitles`, `magnetDrop`, `proofStep` (`&seed`,
+   `&then`, `&ray`), `renderCalendar`, `renderCompare`, `syncHash` / `fromHash`.
+6. `analysis/domino/trade_viewer.py` -- `ensure_vendor`, `universe_table` (code books, -1
+   sentinels, three-decimal rounding, day numbers from 2020-01-01), `build`.
+7. `tests/test_domino_viewer.py` (the calendar test now reads `core.js`) and
+   `analysis/domino/MANAGE_RECEIPT.md` (viewer section, the promotion paragraph).
+8. `docs/reviews/tvb39-codex-audit.md` F4-F7 (inherited viewer findings; do not re-find them).
 
 ## Focus areas
 
-- **`walk_hourly` cap and censor logic.** Entry hour = the first hour of the entry day
-  reaching L (strict); exit = the first hour (entry hour included) closing against its own
-  open AND the day's open (strict, both); the week is NOT tested; cap = the last hour (23:00)
-  of day 20, OPEN marked at that close; CENSORED if the hours end first. Check the hour
-  indexing (`hours_by_day`), the day-open the hour is tested against (the daily bar's open,
-  not the hour's), and what happens on an entry day whose hours are partial.
-- **The ordering claim.** The prereg says a target on the trade's side cannot be touched
-  before the entry hour, so the hourly-versus-daily ordering difference is only on the EXIT
-  day (the daily bar fills any touch that day; the hourly clock fills only up to the exit
-  hour). Is that true for every target source, including the measured move and one R?
-- **`exit_u` on the shared walk.** Under water = first daily close through L (strict) AND the
-  week against; recorded on the same pass as the headline exit WITHOUT changing it. The
-  headline tables are claimed byte-identical (179,498 units, same numbers). Verify.
-- **Book E and the fees.** E = (A + C) / 2 when A hit T1 else C; fees = two taker fills at the
-  dex's rate (main 0.0432%, xyz 0.0125% per fill), net = gross minus round trip. Arithmetic on
-  recorded columns only.
-- **The week's side.** `w_support` = price above / below the week's open at entry (colour),
-  not the week's bar type. Confirm the split and the reach denominators.
-- **The viewer's claim of re-running no logic.** `settle()` derives the fill from the row's
-  recorded return (level moved by the return): is that always the engine's own fill price,
-  including OPEN marks, shorts beyond -100%, and the reference book's five-bar mark?
-  `stackLevels()` computes the previous complete bar's extreme per stack timeframe; the
-  session checked it equals every row's `level` on its own timeframe (no mismatch on 179,498
-  rows), but the OTHER timeframes' levels are drawn without a row to check against: is "first
-  break of the current higher-timeframe bar" needed for them to be the census's levels?
-- **The "data ends" marker fix.** The A2 markers had split the exit arrow's `if` / `else`;
-  confirm no other marker is misbound and that the headline clock square appears only when
-  the book box left on a different day.
-- **The open question (opinion only).** Prereg definition: a with-trend inside break has no
-  magnitude of its own and takes the first weekly / monthly rung. Skill R14 / R18: unfilled
-  structure containing the trigger is a real structural magnitude. Which does the prereg text
-  say, and does the skill's 2-1-2 continuation row ("reversal-exit" paradigm) point at the
-  mother bar's far side? State the texts; do not rule.
-- **Hygiene.** ruff clean; tests 372 passed, 2 skipped; no secrets; no private link in the
-  repo; the `.gitignore` additions (`viewer/vendor/`); `serve --host` binds only on request.
+- **The founding rule.** `core.js` claims the TVB-39 row logic unchanged apart from the
+  calendar argument: diff `settle` / `tradeSpan` / `stackLevels` / `setupDays` against
+  `git show da7f4c2^:analysis/domino/viewer/app.js` (the retired page). Does any path in
+  `drawPane`, `strip`, `story.js` or `stats.js` compute a trade outcome instead of reading it?
+- **`stats.js` against `manage.py`.** The drawdown runs by entry date with same-day rows in
+  the file's order; "at target" uses `hit_X` for A / B / D / D5 and `out5 == one_r` for the
+  chance book; median days uses `exit_k` (or `days`) for C and `days_X` otherwise; the
+  histogram's end bins collect everything beyond. Is any of that a different reading of the
+  columns than the engine's own tables?
+- **`story.js` claims.** Every sentence is meant to be a column read back: the exit-day test
+  (close against the day's open AND the week's open; a Monday is one test), the A / B / D /
+  D5 branches on `hit_X` and `days_X`, the chance book on `out5` / `stop_k` / `one_r_k`,
+  under water on `exit_k_u`, the hourly clock on `entry_h` / `exit_h`, the own-bar clock on
+  `days_own` / `ret_C_own`, the setup words on `kind` / `anchor` / `t1_src`. Find a row where
+  the words and the row disagree.
+- **The closed-bar chips.** The last COMPLETE week / month before the entry day typed against
+  the complete bar before it, strict breaks, equality never breaks; `?` when fewer than two
+  complete bars. Check `aggregate`'s `complete` flag at the data's edges.
+- **The universe table.** `universe_table` and `fromUniverse` round-trip: codes, `-1` for a
+  missing int, `null` for a missing return, `exit_k` falling back to `days`, three-decimal
+  rounding; is any field the page reads from it absent or mis-decoded? Does the universe
+  Compare apply the same filters as the coin view (`liquid`, `t1`)?
+- **The magnet ray.** `magnetDrop`: pixel to axis position through `toAxisPosition(px /
+  axisLength())` (the renderer has no `coordinateToPosition` in 5.21.x), nearest bar by time,
+  nearest of O / H / L / C by pixel, the library's Horizontal Line at that price with the
+  control's stroke settings restored afterwards. The proof flag `&ray=high` snapped exactly on
+  BTC 03-25; find a timeframe or zoom where it does not.
+- **Drawing persistence.** `swapDrawings` clears, re-keys the save control per coin and pane,
+  restores, and holds autosave off for 500 ms; `drawingsupdated` saves otherwise. Any path
+  that clears a slot or saves an empty set over a full one (a coin switch, a dual-pane open,
+  a tab switch)?
+- **Hygiene.** ruff clean; tests 372 passed, 2 skipped; no secrets; vendor and data
+  gitignored; no private link; `proto_codex/` untracked; the CDN user-agent string; the
+  `.gitignore` edits.
 
 ## What is NOT in scope
 
-The TVB-38 management-book engine as audited and folded (`tvb38-codex-audit.md`, A1); the
-TVB-37 chance / book engines (audited twice); the TVB-31..35 executor findings (private repo).
+The TVB-39 audit's findings F1-F8 themselves (their synthesis is TVB-41's first item); the
+TVB-38 management-book engine as audited and folded (`tvb38-codex-audit.md`, A1); the TVB-37
+chance / book engines (audited twice); the TVB-31..35 executor findings (private repo); the
+`.claude/` hooks merged 2026-10-16 (reviewed on their own pull requests).

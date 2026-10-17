@@ -40,13 +40,77 @@ the TVB-39 lightweight-charts page is retired (in git history to da7f4c2). The p
   `test_domino_viewer` reads the calendar functions from `core.js`. Ruff clean, 372 passed, 2
   skipped.
 
-### Open / next
+### Context for next session
 
-- From the receipt (NOTES.md): a journal layer (note + verdict per row on the calendar and the
-  table); one drawing slot across the two panes with the old rays imported; an hourly archive
-  beyond the venue's ~208 days.
-- From TVB-39, unchanged: the with-trend inside break's T1 STOP-and-ASK; the TVB-39 Codex audit
-  is returned (docs/reviews/tvb39-codex-audit.md) and awaits the critical synthesis.
+- The viewer is `analysis/domino/viewer/`: `uv run python -m analysis.domino.trade_viewer serve`
+  (port 8765, opens the browser); from the laptop, `serve --no-open` on the desktop and
+  `ssh -L 8765:127.0.0.1:8765 <desktop>` then `http://127.0.0.1:8765/`; on a machine without
+  `viewer/data/`, `build --as-of 2026-10-10` first (and `hourly --as-of 2026-10-10 all` for the
+  1H view, ~9 min). `build` also vendors amCharts and writes the universe table.
+- The page reads rows and never computes them; `core.js` holds the TVB-39 row logic as it was,
+  so the TVB-39 audit's viewer findings (F4 the reconstructed fill price as an exact touch
+  threshold with a first-candle fallback, F5 the reference stop exit drawn at the end of the
+  day, F6 the silent book-C fallback when the selected book has no result, F7 the stack class
+  label) carry over to this page until they are adjudicated.
+- Drawings live in browser storage per coin and pane (`am5-stock-domino-<coin>-drawings`,
+  `...-<coin>-b-drawings`); the retired page's rays (`domino-viewer-rays:<coin>`) are not read.
+- `proto_codex/` is untracked and untouched; `User_Notes.md` stays untracked.
+- HANDOFF.md is over the 1,500-line limit at close (1,556 lines); archiving waits for the
+  owner's word.
+
+### Files created/modified
+
+- `analysis/domino/viewer/`: `index.html`, `app.js`, `core.js`, `story.js`, `stats.js` (the
+  page), `NOTES.md` (its receipt), `shots/` (17 PNGs); the TVB-39 `index.html` / `app.js` removed
+- `analysis/domino/trade_viewer.py` (amCharts vendor fetch with a browser-like agent,
+  `universe_table`, docstring)
+- `tests/test_domino_viewer.py` (reads the calendar functions from `core.js`)
+- `analysis/domino/MANAGE_RECEIPT.md` (viewer section: the promotion paragraph)
+- `.gitignore` (the proto_claude vendor line removed; `proto_codex/vendor/` ignored)
+- `docs/HANDOFF.md`, `docs/reviews/REVIEW_REQUEST.md`, `.session_startup_prompt.md`
+- `docs/reviews/tvb39-codex-audit.md` committed as returned (captured 2026-10-14; the
+  synthesis is the next session's first item)
+
+### Open
+
+- [ ] TVB-39 Codex audit synthesis: F1 HIGH (the hourly entry accepts equality and can exit
+      before the trade exists), F2-F8 MEDIUM; agree / dispute / act in HANDOFF, fold, rerun
+      `manage` if the engine changes, then `trade_viewer build`
+- [ ] The with-trend inside break's T1 STOP-and-ASK (the owner rules; amendment A3 before code)
+- [ ] Viewer: a journal layer (a note and a one-tap verdict per row, on the calendar and the table)
+- [ ] Viewer: one drawing slot across both panes; the retired page's rays imported once
+- [ ] Viewer: an hourly archive beyond the venue's ~208 days
+- [ ] HANDOFF.md archive (over the limit; the owner's word)
+- [ ] `proto_codex/` disposition (delete, or keep for ideas; the owner's call)
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb40-codex-audit.md.
+> See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: `9f6c5c8..2c7fe1c` on `main` (9f6c5c8 is the pre-session sha, so the
+  range holds e79f8d3 round one, da7f4c2 round two and 2c7fe1c the promotion; it also contains
+  the two maintenance pull requests merged 2026-10-16 (45f83fc, 2dde483, 706cb3d, 46de307:
+  cloud hooks and the safety guard, with their own HANDOFF entries), which are not viewer
+  work; the session-end docs commit after 2c7fe1c is docs only). Sanity-check:
+  `git diff --name-status 9f6c5c8..2c7fe1c` lists every file the session touched.
+- Scope / what changed: a new viewer page on amCharts 5 (five files, a receipt, proof shots),
+  the build script's vendor fetch and universe table, one test path, the receipt's viewer
+  paragraph. No engine, prereg or results change.
+- Focus areas (scrutinize these): the founding rule (`core.js` `settle` / `tradeSpan` /
+  `stackLevels` / `setupDays` against the TVB-39 `app.js` and the row semantics, including the
+  TVB-39 audit's F5-F7, which this page inherits); `stats.js` arithmetic (drawdown order,
+  target and days semantics per book, histogram bins) against `manage.py`; `story.js` claims
+  per book against the row columns (`hit_X`, `days_X`, `out5`, `exit_k_u`, the exit-day test,
+  the Monday one-test case) and the closed-bar chip definition (R10, closed bars only);
+  `universe_table` (code books, -1 sentinels, three-decimal rounding, day numbers) and its
+  decoding in `fromUniverse`; the magnet's coordinate math (`toAxisPosition` over
+  `axisLength`) and the proof flag; the Playbook's receipt numbers; hygiene (vendor and data
+  gitignored, the CDN agent string, no private link in the repo, `proto_codex/` untracked).
+- Reviewed by: pending
+- Findings: {blank until docs/reviews/tvb40-codex-audit.md exists}
 
 ---
 
@@ -318,7 +382,7 @@ out". The owner's first pass is BEGUN, not finished.
 > below) and write a verbatim assessment to docs/reviews/tvb39-codex-audit.md.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: REQUESTED
+- Review status: RETURNED (docs/reviews/tvb39-codex-audit.md, captured 2026-10-14; critical synthesis pending)
 - Commits to review: `4dc5f6b..30391fb` on `main` (4dc5f6b is the pre-session sha; the range
   is dbeaffe, f505f9d, 340c86e, ed08ae5, 7f3fc88, 30391fb close-out; the sha-pin commit after
   it is docs only). Sanity-check: `git diff --name-status 4dc5f6b..30391fb` lists every file
@@ -339,7 +403,7 @@ out". The owner's first pass is BEGUN, not finished.
   `stackLevels()` (previous complete bar's extreme per stack timeframe; checked equal to every
   row's `level` for its own timeframe) and the claim of re-running no trade logic; the "data
   ends" marker fix.
-- Reviewed by: pending
+- Reviewed by: Codex, local source review + offline replay, 2026-10-14
 - Findings: {blank until docs/reviews/tvb39-codex-audit.md exists}
 
 ### Open
