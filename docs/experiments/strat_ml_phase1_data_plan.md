@@ -149,3 +149,23 @@ deferred to the universe pull because it is ~2,000 small files per symbol.
    once the slice is accepted.
 4. `uv add pyarrow` touched `pyproject.toml` and `uv.lock`. On the workstation the next
    `uv sync` will strip VectorBT Pro (known gotcha): reinstall from the cached wheel.
+
+## 5. Test slice result (run 2026-10-17, cloud session, served by the bucket endpoint)
+
+| symbol | 1h bars | first bar | last bar | missing hours | last traded (volume > 0) | dead tail (hours) | funding rows |
+|---|---|---|---|---|---|---|---|
+| BTCUSDT | 59,544 | 2020-01-01 | 2026-10-16 | 0 | live | 0 | 7,395 |
+| ETHUSDT | 59,544 | 2020-01-01 | 2026-10-16 | 0 | live | 0 | 7,395 |
+| LINKUSDT | 59,152 | 2020-01-17 | 2026-10-16 | 0 | live | 0 | 7,346 |
+| DOGEUSDT | 54,951 | 2020-07-10 | 2026-10-16 | 0 | live | 0 | 6,821 |
+| SOLUSDT | 53,249 | 2020-09-14 | 2026-10-16 | 120 (72 h ending 2022-03-01, 48 h ending 2022-04-03; archive gaps, not filled) | live | 0 | 6,700 |
+| AVAXUSDT | 53,153 | 2020-09-23 | 2026-10-16 | 0 | live | 0 | 6,598 |
+| SRMUSDT (delisted) | 32,670 | 2020-09-05 | 2024-05-28 | 0 | 2022-11-15 04:00 UTC | 13,443 (560 days of flat 0.287 bars) | 4,241 (runs to 2024-07-19, i.e. past the last trade) |
+
+- 1,070 archive files (and their CHECKSUM sidecars) fetched, zero checksum failures, zero
+  errors; raw cache 17.9 MB, parquet 28.8 MB. Metrics smoke test: BTCUSDT 2026-10-10 ..
+  2026-10-16, 2,016 five-minute rows, no duplicates.
+- SRMUSDT is the survivorship lesson in one row: its archive files run 18 months past its
+  last real trade. The event build must use `last_traded`, never the last file.
+- Funding rows continue past the last trade for a dead contract (flat 0.0001 placeholder
+  rate). Same trim applies.

@@ -5,6 +5,42 @@
 
 ---
 
+## Side thread 2026-10-17 (not a TVB session): STRAT ML research vessel, Phase 1 data layer (COMPLETE)
+
+**Date:** 2026-10-17 (cloud session, branch ccr-84c65430-bqc01u)
+**Status:** COMPLETE for Phase 1 of the owner's `STRAT_ML_RESEARCH_SPEC.md` v0.1: data
+acquisition only. Exploratory research, nothing deployed. No event detection, no bar
+classification written (the owner's rule: reuse the existing classifier when Phase 2 starts).
+TVB numbering untouched; the TVB-40 startup prompt still governs the main thread.
+
+- **Plan and findings:** `docs/experiments/strat_ml_phase1_data_plan.md` (read this first).
+- **Code:** `analysis/strat_ml/binance_vision.py` (S3 listing, checksum-verified raw zip cache,
+  parquet build, point-in-time universe manifest; CLI `fetch` / `build` / `universe` / `status`),
+  13 offline tests in `tests/test_strat_ml_binance_vision.py`, thread log
+  `analysis/strat_ml/RESEARCH_LOG.md`. Cache under `analysis/strat_ml/data/` (gitignored).
+- **Archive facts (USDT-M, futures/um):** delisted perps ARE in the archive (SRM, LUNA, BTCST,
+  17 SETTLED stubs excluded); klines monthly from 2020-01 (daily from 2019-12-31; Sep-Dec 2019
+  absent), fundingRate monthly only from 2020-01, metrics daily only (5-minute rows) from
+  2021-12-01 for most names, BTCUSDT backfilled to 2020-09-01 with every row doubled.
+- **Finding that changes Phase 2:** Binance keeps publishing flat zero-volume files for dead
+  contracts (SRMUSDT: last real trade 2022-11-15, files to 2024-05; BTCSTUSDT frozen at one
+  price 2024-02 .. 2026-06). Delisting is read from volume (`last_traded` in each klines
+  manifest), never from file presence; the listing-based universe flag (31 of 900) is a floor.
+- **Test slice pulled:** BTC, ETH, LINK, DOGE, SOL, AVAX, SRM (delisted), 1h klines + funding,
+  full history, 1,070 files, zero errors; table in the plan doc section 5.
+- **Cloud-session gotcha:** `data.binance.vision` is refused by the egress proxy; the bucket
+  endpoint `s3-ap-northeast-1.amazonaws.com/data.binance.vision` works and the module tries
+  both in order. The live API is unreachable and never used.
+- **`uv add pyarrow`** touched pyproject/uv.lock: on the workstation reinstall VectorBT Pro
+  from the cached wheel after the next `uv sync` (standing gotcha).
+- **OPEN for the owner:** which classifier Phase 2 imports (`analysis/domino/census.py:classify`
+  strict-break, prereg'd on perps, is the lead's suggestion; the pine-exact
+  `analysis/paper/patterns.py` and the scanner's EXP-013 code in the other workspace are the
+  alternatives); spec open decisions 1-4 assumed at their defaults; whether to run the full
+  ~880-symbol pull (multi-hour, ~1.5 GB raw) now.
+
+---
+
 ## Maintenance 2026-10-16, later (not a TVB session): safety guard now protects the project folder from rm -rf (COMPLETE)
 
 **Date:** 2026-10-16
