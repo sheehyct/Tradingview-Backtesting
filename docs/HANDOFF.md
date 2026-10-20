@@ -110,6 +110,12 @@ cloud container, no Railway)
   vessel, on a 7-month, 76-name, cross-correlated sample: a lead, not a finding. Design doc
   section 13 lists the declared next tests (paired bars-vs-hours, the daily-candle window back
   to listing, a monthly refetch).
+- **PR #3 close-out (2026-10-20):** main (TVB-40) merged into the branch, the HANDOFF conflict
+  resolved by keeping both entry sets; Codex's four PR findings (partial-download build, hourly
+  gaps inside the outcome window, winsorization bounds leaking test labels, a denominator
+  mismatch) fixed in 884e2cf, every receipt rebuilt (numbers within rounding), threads answered
+  and resolved; `page.py` now assembles the phone page from the receipts. The PR reads clean
+  and waits only on the owner's merge.
 - **STOP-and-ASK for the owner before more code:** exclude stablecoin perps from the
   universe (USDC, FDUSD, BUSD, TUSD, USDP, DAI, USD1)? pull 15-minute klines for the universe (same
   file count as 1h, 4x rows, ~2.5 h) to settle the first-excursion question? Make the blue-sky cell a declared arm in
