@@ -132,3 +132,55 @@ higher-timeframe bars. The trigger hour's own range is never used for context.
 re-runnable from the parquet cache in minutes) and `analysis/strat_ml/events_summary.json`
 (committed: row counts per pattern x asset class x direction, drops, build time). Rules kept:
 no ticker as a feature (the ML phases get `asset_class`, `liq_tier`, `symbol_age_days`).
+
+## 8. First run read-out (2026-10-20; hypotheses, not conclusions)
+
+Build: 565,687 rows, 556,844 with a 10-bar outcome; target-first 53%, stop-first 44%, timeout
+10%; 1.2% ambiguous ties. Report: `analysis/strat_ml/reports/strat_ml_report_2026-10-20.html`
+(numbers in `report_numbers_2026-10-20.json`); `analysis/strat_ml/report.py` builds it.
+
+- **A leak was caught by its own strength.** `opposite_also_triggered` (the day also broke the
+  other side) ranked second in the first LightGBM fit. It is known at the END of the day, not
+  at the trigger hour. It stays in the data as the spec's overlap flag and is excluded from
+  every model (`LEAKS` in report.py). Lesson for later phases: a feature that is too good on
+  a time split is a look-ahead until proven otherwise.
+- **Geometry, not edge, drives "target before stop".** Reward-to-risk under 0.5R: 81-84%
+  target-first in every family; over 3R: 8-15%. Mean R barely moves across those buckets
+  (within +-0.2R). A model allowed to see the target distance scores AUC 0.81 on 2025-26;
+  the same label without geometry still scores 0.72 because pattern and family proxy the
+  target source (bar-0 wick targets are near, ladder targets are far). So the honest money
+  question is the R regression on context only.
+- **Context ranks the losers, not the winners.** Model A (context -> R, trained 2020-24):
+  R-squared 0.17 in-sample, -0.01 on 2025-26 (the level shifted down), but the RANKING
+  survives: the bottom decile of its predictions made -0.25R mean / 33% win on unseen data,
+  the top decile +0.03R / 51%. Rank correlation is small (0.07). Reading: the chart context
+  identifies breaks to skip far better than breaks to take; nothing in the top decile beats
+  zero materially before costs. Top SHAP features: BTC 30-day realized-vol percentile (by
+  far), the week-so-far bar type, direction, day of week, pattern, the coin's own ATR
+  percentile, the week/month colour score, BTC's week colour.
+- **The blue-sky break is the biggest single cell.** Rows with NO structural level beyond the
+  entry (`t1_source = no_rung`: price already past last week's AND last month's extreme in
+  the break direction; mostly 2-2 continuations): 59,130 rows, 30% win, -0.11R mean, median
+  -1R, and worsening every year since 2023 (-0.21R in 2026). The stop is the mechanism: the
+  setup-bar stop is hit 61% of the time against 50% for ladder rows, while the UNMANAGED
+  close-to-close view of the same rows is slightly positive with a long right tail. In the
+  skill's words this is exhaustion risk (clearing one timeframe's magnitude with no larger
+  magnitude beyond); in TVB-37's words the setup-bar stop is again the suspect. Majors show
+  the opposite sign on 393 rows (+0.40R): a question, not a verdict.
+- **Majors vs alts (the spec's axis):** at the pattern level the two classes look alike
+  within their bands; majors are 0.6% of rows (two coins), so most major cells are grey.
+  The test period is 99.6% alts by construction (the universe doubled in 2025-26).
+- **Year to year the aggregate is flat** (53-56% win, mean R within +-0.05 of zero every
+  year); the regime shows up inside the model (BTC realized vol is the top feature), not in
+  the headline rate.
+- **Clustering** separates one bucket cleanly and it is the no-target bucket above (39k rows,
+  23% win); the other five buckets differ by a few points of win rate only.
+- **The three-question tree** splits first on BTC's 30-day realized-vol percentile, then on
+  the week/month colour score and the week-so-far bar type; its best pre-2025 leaf (+0.28R)
+  did not hold in 2025-26 (-0.06R). Rules are prompts for charts, not trade plans.
+
+Open for the owner (next session, STOP-and-ASK items): whether to re-label with the skill's
+bar-0 stop for inside breaks (`stop_alt_r` is in the rows, rebuild is minutes); whether the
+blue-sky cell deserves its own declared arm in the domino book (a wider stop or a no-stop
+clock on those rows); whether to pull metrics (open interest, taker ratio) for the alts the
+trigger table actually uses.

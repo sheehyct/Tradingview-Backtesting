@@ -5,6 +5,40 @@
 
 ---
 
+## Side thread 2026-10-20 (not a TVB session): STRAT ML research vessel, Phases 2-5 run to the end (COMPLETE)
+
+**Date:** 2026-10-20 (cloud session, branch ccr-84c65430-bqc01u; owner's word: run it to the end,
+cloud container, no Railway)
+**Status:** COMPLETE for the spec's v0.1 pipeline. Everything is exploratory; nothing is promoted.
+
+- **Read first:** `docs/experiments/strat_ml_phase2_events_design.md` (definitions declared before
+  the build; section 8 = the first read-out) and the report
+  `analysis/strat_ml/reports/strat_ml_report_2026-10-20.html` (self-contained, phone-readable,
+  plain-words explainer on every section; also published as a claude.ai page for the owner).
+- **Built:** `analysis/strat_ml/events.py` (one row per coin, day, direction; the census
+  strict-break classifier and calendar reused; TVB-37 R and magnitude ladder; point-in-time
+  week / month / 4H context; hourly-resolved outcomes at 1 / 3 / 5 / 10 daily bars, stop-first
+  on ties), `analysis/strat_ml/report.py` (baseline tables with counts and Wilson bands, k-means,
+  LightGBM + SHAP on a 2025-01-01 time split, depth-3 tree, HTML), 9 hand-vector tests.
+  565,687 rows in 77 s; the report in 72 s. Cache (events.parquet) is per-container; the
+  roster and the summary JSONs are committed.
+- **Findings (hypotheses):** (1) a look-ahead feature was caught by ranking too high and is now
+  excluded; (2) target-before-stop is mostly target distance, so the money question is modelled
+  on context only; (3) context ranks the losers (bottom decile -0.25R on 2025-26) far better
+  than the winners (top decile +0.03R); BTC's realized-vol percentile is the top feature;
+  (4) the blue-sky break (no week / month level beyond the entry; 59k rows) loses -0.11R with
+  the setup-bar stop hit 61% of the time, while its unmanaged view is slightly positive: a
+  stop-placement question, the TVB-37 suspect again; (5) majors and alts look alike per pattern
+  within their bands, but majors are two coins and the test period is 99.6% alts.
+- **STOP-and-ASK for the owner before more code:** re-label with the skill's bar-0 stop for
+  inside breaks (column exists, rebuild is minutes)? Make the blue-sky cell a declared arm in
+  the domino book (wider stop / no-stop clock)? Pull metrics (OI, taker ratio) for the alts the
+  trigger table uses? The with-trend inside break's T1 ruling is still open (ladder used).
+- **Dependencies:** lightgbm, shap, scikit-learn added to pyproject (uv sync is safe; VectorBT
+  Pro retired 2026-10-17).
+
+---
+
 ## Side thread 2026-10-17 (not a TVB session): STRAT ML research vessel, Phase 1 data layer (COMPLETE)
 
 **Date:** 2026-10-17 (cloud session, branch ccr-84c65430-bqc01u)
