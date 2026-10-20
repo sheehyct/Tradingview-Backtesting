@@ -130,6 +130,9 @@ def main(argv: list[str] | None = None) -> None:
     # whole-book effect: all rows (inside rows swapped, others identical)
     full_a = pd.read_parquet(events_path("setup"))
     full_b = pd.read_parquet(events_path("bar0"))
+    # Codex PR #3 P2: the same denominator for every column (rows with a 10-bar result)
+    full_a = full_a[full_a["r_managed_10"].notna()].copy()
+    full_b = full_b[full_b["r_managed_10"].notna()].copy()
     for f in (full_a, full_b):
         f["ret_pct"] = f["r_managed_10"] * f["r"] / f["level"] * 100
     book = pd.DataFrame(

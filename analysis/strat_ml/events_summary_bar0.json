@@ -1,10 +1,10 @@
 {
- "built_at": "2026-10-20T10:02:45+00:00",
- "seconds": 93,
+ "built_at": "2026-10-20T14:40:39+00:00",
+ "seconds": 164,
  "symbols": 900,
  "rows": 565687,
  "rows_with_target": 503862,
- "rows_censored": 8843,
+ "rows_censored": 9595,
  "rows_ambiguous": 5249,
  "first_day": "2020-01-03",
  "last_day": "2026-10-16",

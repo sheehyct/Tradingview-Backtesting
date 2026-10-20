@@ -558,6 +558,9 @@ def symbol_events(
                 e = end_idx[hz]
                 want_end = (day_of_hour[k0] + hz) * DAY + 23 * HOUR
                 cens = t[e] < want_end if e >= 0 else True
+                # Codex PR #3 P2: an hourly gap INSIDE the window hides prices the walk never saw
+                if not cens and (e - k + 1) != (t[e] - t[k]) // HOUR + 1:
+                    cens = True
                 w = e - k
                 if cens or w < 0:
                     out[f"mfe_r_{hz}"] = out[f"mae_r_{hz}"] = out[f"r_close_{hz}"] = np.nan
@@ -703,9 +706,10 @@ def symbol_events(
                 "first_touch": first_touch,
                 "touch_hours": touch_at,
                 "ambiguous": bool(ambiguous),
-                "censored": bool(t[e10] < (day_of_hour[k0] + 10) * DAY + 23 * HOUR)
-                if e10 >= 0
-                else True,
+                "censored": bool(np.isnan(out.get("r_managed_10", np.nan))),
+                "window_gap_hours": int((t[e10] - t[k]) // HOUR + 1 - (e10 - k + 1))
+                if e10 >= k
+                else 0,
                 **out,
             }
             rows.append(row)

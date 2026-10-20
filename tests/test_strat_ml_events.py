@@ -324,3 +324,27 @@ def test_session_aggregate_marks_finished_weeks_complete():
     rth = ev.session_aggregate(daily, "W", "rth")
     assert not cal[0]["complete"]  # the census rule: Saturday and Sunday are missing
     assert rth[0]["complete"] and not rth[1]["complete"]
+
+
+def test_hourly_gap_inside_the_window_censors_the_horizon():
+    bars = [
+        (10.0, 12.0, 9.0, 11.0),
+        (11.0, 14.0, 10.0, 13.0),
+        (13.0, 13.5, 9.5, 11.0),
+        (11.0, 13.8, 11.0, 13.0),  # trigger day (day 3)
+        (13.0, 14.5, 12.5, 14.0),
+    ] + [(14.0, 14.2, 13.8, 14.0)] * 12
+    hf = hours(bars)
+    full, _ = ev.symbol_events("TESTUSDT", hf)
+    e_full = full[(full["direction"] == "long") & (full["day"] == 19003 * DAY)].iloc[0]
+    assert not e_full["censored"] and e_full["window_gap_hours"] == 0
+    # remove six hours in the middle of day 6: horizons 3, 5, 10 lose prices, horizon 1 does not
+    gap = hf[~((hf["t"] // DAY == 19006) & ((hf["t"] // HOUR) % 24).between(10, 15))]
+    cut, _ = ev.symbol_events("TESTUSDT", gap)
+    e = cut[(cut["direction"] == "long") & (cut["day"] == 19003 * DAY)].iloc[0]
+    assert (
+        not np.isnan(e["r_managed_1"])
+        and np.isnan(e["r_managed_3"])
+        and np.isnan(e["r_managed_10"])
+    )
+    assert e["censored"] and e["window_gap_hours"] == 6

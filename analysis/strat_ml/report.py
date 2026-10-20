@@ -165,7 +165,9 @@ def load_events(path: Path = EVENTS_PATH) -> pd.DataFrame:
     ev = pd.read_parquet(path)
     ev = ev[ev["r_managed_10"].notna()].copy()  # drop censored rows (no 10-bar outcome)
     ev["r10"] = ev["r_managed_10"]
-    lo, hi = ev["r10"].quantile([0.005, 0.995])
+    # Codex PR #3 P2: bounds from the pre-split rows only, applied to both periods
+    train = ev["day_ts"] < pd.Timestamp(SPLIT_DATE, tz="UTC")
+    lo, hi = ev.loc[train, "r10"].quantile([0.005, 0.995])
     ev["r10_w"] = ev["r10"].clip(lo, hi)  # winsorized for means
     ev["win"] = ev["r10"] > 0
     ev["tgt"] = ev["first_touch"] == "target"

@@ -1,13 +1,13 @@
 # Equity perps two ways (2026-10-20)
 
-Hyperliquid xyz dex, hourly bars 2026-03-29 to 2026-10-09 (the venue serves ~208 days). Calendar build: 14,596 rows on 112 perps; regular-session build: 10,685 rows on 113. Control: Binance crypto alts in the same window, 111,306 rows. Same stop (setup bar), same target ladder, same 10-day walk over all hours. 'NY regular session' = the STRAT daily bar is the weekday 9:00-15:59 New York hours only (the 9:00 hourly bar holds the 9:30 open: an approximation), triggers scanned inside the session, weeks and months by the local calendar.
+Hyperliquid xyz dex, hourly bars 2026-03-29 to 2026-10-09 (the venue serves ~208 days). Calendar build: 14,596 rows on 112 perps; regular-session build: 10,685 rows on 113. Control: Binance crypto alts in the same window, 111,299 rows. Same stop (setup bar), same target ladder, same 10-day walk over all hours. 'NY regular session' = the STRAT daily bar is the weekday 9:00-15:59 New York hours only (the 9:00 hourly bar holds the 9:30 open: an approximation), triggers scanned inside the session, weeks and months by the local calendar.
 
 ## 1. By what the perp tracks (calendar build) against crypto alts in the same months
 
 | session class | n | coins | win pct | tgt first pct | stop first pct | mean r | median r | mean ret pct | mean r no stop | mfe med | mae med | rungs mean | stop atr med |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | commodity_fx | 1,989 | 11 | 48.3% | 42.2% | 49.1% | -0.107 | -0.450 | -0.1% | +0.193 | 1.72 | 1.84 | 2.55 | 0.78 |
-| crypto_alt | 111,306 | 771 | 52.9% | 47.0% | 44.4% | -0.059 | +0.042 | -0.5% | +0.066 | 1.58 | 1.66 | 2.83 | 0.74 |
+| crypto_alt | 111,299 | 771 | 52.9% | 47.0% | 44.4% | -0.059 | +0.042 | -0.5% | +0.066 | 1.58 | 1.66 | 2.83 | 0.74 |
 | non_us_listed | 1,681 | 15 | 46.5% | 39.4% | 50.9% | -0.062 | -1.000 | -0.4% | +0.298 | 1.72 | 1.75 | 2.44 | 0.73 |
 | unknown | 1,001 | 11 | 45.3% | 38.0% | 52.0% | -0.133 | -1.000 | -0.5% | +0.201 | 1.76 | 1.87 | 2.45 | 0.68 |
 | us_listed | 9,925 | 75 | 46.8% | 40.2% | 50.8% | -0.096 | -1.000 | -0.3% | +0.250 | 1.93 | 1.99 | 2.48 | 0.78 |
@@ -18,7 +18,7 @@ Hyperliquid xyz dex, hourly bars 2026-03-29 to 2026-10-09 (the venue serves ~208
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | 24/7 calendar day | 9,925 | 75 | 46.8% | 40.2% | 50.8% | -0.096 | -1.000 | -0.3% | +0.250 | 1.93 | 1.99 | 2.48 | 0.78 |
 | NY regular session | 7,246 | 76 | 55.6% | 47.6% | 42.6% | +0.117 | +0.097 | 0.3% | +0.337 | 1.92 | 1.63 | 2.31 | 0.72 |
-| crypto alts, same window | 111,306 | 771 | 52.9% | 47.0% | 44.4% | -0.059 | +0.042 | -0.5% | +0.066 | 1.58 | 1.66 | 2.83 | 0.74 |
+| crypto alts, same window | 111,299 | 771 | 52.9% | 47.0% | 44.4% | -0.059 | +0.042 | -0.5% | +0.066 | 1.58 | 1.66 | 2.83 | 0.74 |
 
 ### by family
 

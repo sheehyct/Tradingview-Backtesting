@@ -630,7 +630,14 @@ def main(argv: list[str] | None = None) -> None:
             print(f"[{n}/{len(symbols)} {time.time() - t0:.0f}s] {sym}", flush=True)
             for ds in a.datasets:
                 try:
-                    fetch_symbol(archive, sym, ds, a.interval, a.since, a.until, a.workers)
+                    res = fetch_symbol(archive, sym, ds, a.interval, a.since, a.until, a.workers)
+                    if res.get("errors"):
+                        # Codex PR #3 P1: never build a manifest on a partial download
+                        print(
+                            f"  {sym} {ds}: {len(res['errors'])} download errors, parquet NOT built",
+                            flush=True,
+                        )
+                        continue
                     if not a.no_build and (RAW / ds / sym).exists():
                         build_parquet(sym, ds, base_url=archive.base_url)
                 except Exception as e:  # one bad symbol must not end a multi-hour pull
