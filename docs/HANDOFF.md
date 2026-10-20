@@ -101,6 +101,15 @@ cloud container, no Railway)
   (z about 2), the bottom coins are real (z -4 to -7); the best coins are the trending ones
   (continuation share r +0.23), not the pattern-diverse ones. USDCUSDT is a stablecoin perp in
   the universe: exclude stables on the next build. Design doc section 12.
+- **Equity perps two ways (owner: "the one thing we did not test"):** the xyz dex's 115 perps
+  fetched through the census's own fetcher (`hl_fetch.py`, ~208 days of hourly bars, roster
+  `xyz_summary.json`), the builder given `--session calendar|rth` and `--roster`. US-listed
+  perps on the UTC day: -0.096R (the worst cell in the vessel; 2,177 of 9,925 breaks in the
+  20:00 NY roll hour). The NY regular session as the STRAT bar: +0.117R, 56% win, every
+  family flips sign, +0.3% of price per trade before fees. The first positive cell in the
+  vessel, on a 7-month, 76-name, cross-correlated sample: a lead, not a finding. Design doc
+  section 13 lists the declared next tests (paired bars-vs-hours, the daily-candle window back
+  to listing, a monthly refetch).
 - **STOP-and-ASK for the owner before more code:** exclude stablecoin perps from the
   universe (USDC, FDUSD, BUSD, TUSD, USDP, DAI, USD1)? pull 15-minute klines for the universe (same
   file count as 1h, 4x rows, ~2.5 h) to settle the first-excursion question? Make the blue-sky cell a declared arm in

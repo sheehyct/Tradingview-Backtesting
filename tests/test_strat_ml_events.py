@@ -267,3 +267,60 @@ def test_pivot_outcomes_in_the_row():
     assert e["pivot_reached_10"] == 1 and e["h_rung1"] == 24 and np.isnan(e["h_rung2"])
     assert e["pivot_first_touch"] == "target"
     assert e["r_managed_pivot_10"] == pytest.approx(0.5 / 4.0)
+
+
+def test_session_labels_and_bars():
+    # 2026-07-01 (EDT, UTC-4) is a Wednesday: local 09:00 = 13:00 UTC
+    base = int(pd.Timestamp("2026-07-01", tz="UTC").timestamp() * 1000)
+    t = np.array([base + k * HOUR for k in range(48)])
+    hour, local_day, label = ev.session_labels(t)
+    assert hour[13] == 9 and label[13] == "rth" and label[19] == "rth" and label[20] == "extended"
+    assert label[12] == "extended" and label[3] == "overnight" and label[8] == "extended"
+    assert local_day[13] == int(pd.Timestamp("2026-07-01").timestamp() * 1000)
+    assert local_day[3] == int(
+        pd.Timestamp("2026-06-30").timestamp() * 1000
+    )  # 03:00 UTC is still June 30 in NY
+    hf = pd.DataFrame({"t": t, "o": 1.0, "h": 2.0, "l": 0.5, "c": 1.5, "v": 1.0, "qv": 1.0})
+    d, hidx = ev.session_bars(hf, label == "rth", local_day)
+    assert len(d) == 2 and list(d["hours"]) == [7, 7] and d["h0"].iloc[0] == 13
+    assert hidx[0] == list(range(13, 20)) and hidx[1] == list(range(37, 44))
+
+
+def test_rth_mode_scans_only_the_session():
+    # calendar mode: a break at 03:00 local (overnight) is a trigger; rth mode: it is not
+    base = int(pd.Timestamp("2026-07-06", tz="UTC").timestamp() * 1000)  # a Monday
+    rows = []
+    for day in range(6):
+        for k in range(24):
+            hi, lo = 10.5, 9.5  # a flat range day after day: every bar an inside / equal bar
+            if day == 3 and k == 7:  # 07:00 UTC = 03:00 NY on day 3: a spike above every prior high
+                hi = 12.0
+            if day == 4 and k == 15:  # day 4, 11:00 NY: an in-session spike
+                hi = 13.0
+            rows.append((base + (day * 24 + k) * HOUR, 10.0, hi, lo, 10.0, 1.0, 1.0))
+    hf = pd.DataFrame(rows, columns=["t", "o", "h", "l", "c", "v", "qv"])
+    cal, _ = ev.symbol_events("TESTUSDT", hf)
+    rth, _ = ev.symbol_events("TESTUSDT", hf, session="rth")
+    cal_days = set(cal[cal["direction"] == "long"]["trigger_session"])
+    assert "overnight" in cal_days
+    assert (rth["trigger_session"] == "rth").all() and (rth["session_mode"] == "rth").all()
+
+
+def test_session_aggregate_marks_finished_weeks_complete():
+    # five weekday session bars (Mon-Fri 2026-07-06..10) then Monday 07-13: the first week is over
+    days = [
+        pd.Timestamp(d).timestamp() * 1000
+        for d in (
+            "2026-07-06",
+            "2026-07-07",
+            "2026-07-08",
+            "2026-07-09",
+            "2026-07-10",
+            "2026-07-13",
+        )
+    ]
+    daily = [{"t": int(x), "o": 1, "h": 2, "l": 0.5, "c": 1, "v": 1} for x in days]
+    cal = ev.session_aggregate(daily, "W", "calendar")
+    rth = ev.session_aggregate(daily, "W", "rth")
+    assert not cal[0]["complete"]  # the census rule: Saturday and Sunday are missing
+    assert rth[0]["complete"] and not rth[1]["complete"]

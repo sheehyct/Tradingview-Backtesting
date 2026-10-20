@@ -96,6 +96,80 @@ def daily_from_hourly(hf: pd.DataFrame) -> pd.DataFrame:
     return d
 
 
+SESSION_TZ = "America/New_York"
+
+
+def session_labels(
+    t: np.ndarray, tz: str = SESSION_TZ
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Per hourly bar: New York local hour, local calendar day (as a pseudo-UTC midnight in ms,
+    so the census calendar helpers bucket weeks and months by the local date) and the session
+    label: 'rth' = weekday, local hour 9..15 (the 9:00 bar holds the 9:30 open at hourly
+    resolution: an approximation, stated), 'extended' = weekday 4..8 or 16..19, else 'overnight'
+    (weekends included)."""
+    loc = pd.to_datetime(t, unit="ms", utc=True).tz_convert(tz)
+    hour = loc.hour.to_numpy()
+    wd = loc.weekday.to_numpy()
+    local_day = (
+        pd.to_datetime(loc.strftime("%Y-%m-%d")).to_numpy().astype("datetime64[ms]").astype("int64")
+    )
+    weekday = wd < 5
+    label = np.where(
+        weekday & (hour >= 9) & (hour <= 15),
+        "rth",
+        np.where(
+            weekday & (((hour >= 4) & (hour <= 8)) | ((hour >= 16) & (hour <= 19))),
+            "extended",
+            "overnight",
+        ),
+    )
+    return hour, local_day, label
+
+
+def session_bars(
+    hf: pd.DataFrame, in_session: np.ndarray, local_day: np.ndarray
+) -> tuple[pd.DataFrame, list]:
+    """Regular-hours daily bars: one bar per LOCAL day from the in-session hours only. Returns the
+    frame (same columns as daily_from_hourly) and, per bar, the hourly indices it is made of."""
+    idx = np.flatnonzero(in_session)
+    if len(idx) == 0:
+        return pd.DataFrame(
+            columns=["t", "o", "h", "l", "c", "v", "qv", "hours", "first_t", "h0"]
+        ), []
+    sub = hf.iloc[idx].copy()
+    sub["_ld"] = local_day[idx]
+    sub["_ix"] = idx
+    g = sub.groupby("_ld", sort=True)
+    d = pd.DataFrame(
+        {
+            "t": g["_ld"].first().to_numpy(),
+            "o": g["o"].first().to_numpy(),
+            "h": g["h"].max().to_numpy(),
+            "l": g["l"].min().to_numpy(),
+            "c": g["c"].last().to_numpy(),
+            "v": g["v"].sum().to_numpy(),
+            "qv": g["qv"].sum().to_numpy(),
+            "hours": g.size().to_numpy(),
+            "first_t": g["t"].first().to_numpy(),
+            "h0": g["_ix"].first().to_numpy(),
+        }
+    )
+    hidx = [list(map(int, v)) for v in g["_ix"].apply(list)]
+    return d, hidx
+
+
+def session_aggregate(daily: list[dict], tf: str, session: str = "calendar") -> list[dict]:
+    """The census's calendar buckets; in rth mode a bucket is complete when it is OVER (its end is
+    at or before the day after the last session bar), because session days skip weekends and
+    holidays and the census's every-calendar-day rule would leave every week incomplete."""
+    buckets = aggregate(daily, tf)
+    if session == "rth" and daily:
+        last_end = daily[-1]["t"] + DAY
+        for b in buckets:
+            b["complete"] = b["end"] <= last_end
+    return buckets
+
+
 def types_of(h: np.ndarray, l: np.ndarray) -> list[str | None]:  # noqa: E741
     """Strict-break types via the census classifier (literal reuse); first bar None."""
     out: list[str | None] = [None]
@@ -273,8 +347,16 @@ def symbol_events(
     btc_ctx: pd.DataFrame | None = None,
     funding: pd.DataFrame | None = None,
     stop_mode: str = "setup",
+    session: str = "calendar",
+    asset_class: str | None = None,
 ) -> tuple[pd.DataFrame, dict]:
     """All trigger rows of one symbol. Pure function of the frames passed in (testable).
+
+    session: "calendar" = the 00:00 UTC day (24/7 perps, every row so far); "rth" = the STRAT
+    daily bar is the New York regular session (weekday local hours 9..15) built from those hours
+    only, keyed by the local date, triggers scanned inside the session only; the outcome walk
+    still runs over every hour (a held position lives 24/7). Weeks and months follow the local
+    calendar in rth mode. The trigger hour's session label rides every row in both modes.
 
     stop_mode: "setup" = the far side of the setup bar for every pattern (TVB-37 R);
     "bar0" = for an inside break (setup bar Type 1) the far side of bar 0, the first non-inside
@@ -283,8 +365,15 @@ def symbol_events(
     """
     if stop_mode not in ("setup", "bar0"):
         raise ValueError(stop_mode)
+    if session not in ("calendar", "rth"):
+        raise ValueError(session)
     drops: dict[str, int] = {"no_setup_type": 0, "zero_range": 0, "no_levels": 0}
-    d = daily_from_hourly(hf)
+    local_hour, local_day, sess_label = session_labels(hf["t"].to_numpy())
+    if session == "rth":
+        d, day_hidx = session_bars(hf, sess_label == "rth", local_day)
+    else:
+        d = daily_from_hourly(hf)
+        day_hidx = None
     if len(d) < 4:
         return pd.DataFrame(), drops
     daily = [
@@ -295,7 +384,7 @@ def symbol_events(
     atr = wilder_atr(d)
     atr_pct = rolling_pct(pd.Series(atr))
     vol20 = d["v"].shift(1).rolling(20, min_periods=10).mean().to_numpy()
-    buckets = {tf: aggregate(daily, tf) for tf in ("W", "M", "Q")}
+    buckets = {tf: session_aggregate(daily, tf, session) for tf in ("W", "M", "Q")}
     ctx = _context(daily, buckets)
     first_day = d["t"].iloc[0]
 
@@ -343,14 +432,19 @@ def symbol_events(
             drops["zero_range"] += 1
             continue
         k0 = int(d["h0"].iloc[i])
-        k1 = int(d["h0"].iloc[i + 1]) if i + 1 < len(d) else n
-        hh, ll = h[k0:k1], l[k0:k1]
+        if day_hidx is None:
+            k1 = int(d["h0"].iloc[i + 1]) if i + 1 < len(d) else n
+            hidx = np.arange(k0, k1)
+        else:
+            hidx = np.asarray(day_hidx[i])
+        hh, ll = h[hidx], l[hidx]
         brk = {"up": np.flatnonzero(hh > setup["h"]), "down": np.flatnonzero(ll < setup["l"])}
         both = len(brk["up"]) > 0 and len(brk["down"]) > 0
         for direction, idx in brk.items():
             if len(idx) == 0:
                 continue
-            k = k0 + int(idx[0])
+            pos = int(idx[0])  # position inside the day's (session) hours
+            k = int(hidx[pos])
             level = setup["h"] if direction == "up" else setup["l"]
             setup_stop = near_side(setup, direction)
             if setup["h"] - setup["l"] <= 0:
@@ -376,8 +470,8 @@ def symbol_events(
                     part[tf] = {}
                     continue
                 run_h, run_l = cx["run_h"], cx["run_l"]
-                if k > k0:
-                    dh, dl = hh[: k - k0].max(), ll[: k - k0].min()
+                if pos > 0:
+                    dh, dl = hh[:pos].max(), ll[:pos].min()
                     run_h = dh if run_h is None else max(run_h, dh)
                     run_l = dl if run_l is None else min(run_l, dl)
                 prev = cx["prev"]
@@ -385,7 +479,7 @@ def symbol_events(
                 if run_h is not None and prev is not None:
                     ptype = classify({"h": run_h, "l": run_l}, prev)
                 color = 0
-                if k > k0 or cx["run_h"] is not None:
+                if pos > 0 or cx["run_h"] is not None:
                     pc = c[k - 1]
                     color = 1 if pc > cx["open"] else -1 if pc < cx["open"] else 0
                 part[tf] = {
@@ -542,7 +636,10 @@ def symbol_events(
             pw, pm = part.get("W", {}), part.get("M", {})
             row = {
                 "symbol": symbol,
-                "asset_class": "major" if symbol in MAJORS else "alt",
+                "asset_class": asset_class or ("major" if symbol in MAJORS else "alt"),
+                "session_mode": session,
+                "trigger_session": str(sess_label[k]),
+                "local_hour": int(local_hour[k]),
                 "trigger_tf": "1D",
                 "direction": "long" if direction == "up" else "short",
                 "pattern": name,
@@ -550,7 +647,7 @@ def symbol_events(
                 "sequence": f"{t2 or '?'}-{t1}-{'2U' if direction == 'up' else '2D'}",
                 "trigger_time": int(t[k]),
                 "day": int(d["t"].iloc[i]),
-                "hours_since_daily_open": int((t[k] - d["t"].iloc[i]) // HOUR),
+                "hours_since_daily_open": pos,
                 "day_of_week": int(
                     datetime.fromtimestamp(d["t"].iloc[i] / 1000, tz=timezone.utc).weekday()
                 ),
@@ -731,8 +828,8 @@ def liquidity_ranks(daily_qv: dict[str, pd.Series]) -> pd.DataFrame:
 # ----------------------------------------------------------------------------- driver
 
 
-def _roster() -> dict:
-    return json.loads(SUMMARY_PATH.read_text())["rows"]
+def _roster(path: Path = SUMMARY_PATH) -> dict:
+    return json.loads(path.read_text())["rows"]
 
 
 def _daily_qv(symbol: str, last_traded: str | None) -> tuple[str, pd.Series]:
@@ -744,10 +841,18 @@ def _daily_qv(symbol: str, last_traded: str | None) -> tuple[str, pd.Series]:
 _G: dict = {}
 
 
-def _init(btc: pd.DataFrame, ranks: pd.DataFrame, stop_mode: str = "setup") -> None:
+def _init(
+    btc: pd.DataFrame,
+    ranks: pd.DataFrame,
+    stop_mode: str = "setup",
+    session: str = "calendar",
+    classes: dict | None = None,
+) -> None:
     _G["btc"] = btc
     _G["ranks"] = ranks
     _G["stop_mode"] = stop_mode
+    _G["session"] = session
+    _G["classes"] = classes or {}
 
 
 def _one(args) -> tuple[str, pd.DataFrame, dict, float]:
@@ -757,23 +862,48 @@ def _one(args) -> tuple[str, pd.DataFrame, dict, float]:
     ranks = _G.get("ranks")
     liq = ranks[symbol].dropna() if ranks is not None and symbol in ranks else None
     df, drops = symbol_events(
-        symbol, hf, liq, _G.get("btc"), funding_frame(symbol), _G.get("stop_mode", "setup")
+        symbol,
+        hf,
+        liq,
+        _G.get("btc"),
+        funding_frame(symbol),
+        _G.get("stop_mode", "setup"),
+        _G.get("session", "calendar"),
+        _G.get("classes", {}).get(symbol),
     )
     return symbol, df, drops, time.time() - t0
 
 
-def events_path(stop_mode: str) -> Path:
-    return EVENTS_PATH if stop_mode == "setup" else DATA / f"events_{stop_mode}.parquet"
+def build_tag(stop_mode: str = "setup", session: str = "calendar", roster_tag: str = "") -> str:
+    parts = [
+        roster_tag,
+        session if session != "calendar" else "",
+        stop_mode if stop_mode != "setup" else "",
+    ]
+    return "_".join(x for x in parts if x)
 
 
-def summary_path(stop_mode: str) -> Path:
-    return EVENTS_SUMMARY if stop_mode == "setup" else HERE / f"events_summary_{stop_mode}.json"
+def events_path(stop_mode: str, session: str = "calendar", roster_tag: str = "") -> Path:
+    tag = build_tag(stop_mode, session, roster_tag)
+    return EVENTS_PATH if not tag else DATA / f"events_{tag}.parquet"
+
+
+def summary_path(stop_mode: str, session: str = "calendar", roster_tag: str = "") -> Path:
+    tag = build_tag(stop_mode, session, roster_tag)
+    return EVENTS_SUMMARY if not tag else HERE / f"events_summary_{tag}.json"
 
 
 def build(
-    symbols: list[str] | None = None, workers: int = 4, log=print, stop_mode: str = "setup"
+    symbols: list[str] | None = None,
+    workers: int = 4,
+    log=print,
+    stop_mode: str = "setup",
+    session: str = "calendar",
+    roster_path: Path = SUMMARY_PATH,
+    roster_tag: str = "",
 ) -> pd.DataFrame:
-    roster = _roster()
+    roster = _roster(roster_path)
+    classes = {s: ("equity_perp" if s.startswith("XYZ_") else None) for s in roster}
     syms = sorted(symbols or roster.keys())
     t0 = time.time()
     log(f"pass 1: daily quote volume for the liquidity rank ({len(roster)} symbols)")
@@ -785,11 +915,12 @@ def build(
             qv[sym] = s
     ranks = liquidity_ranks(qv)
     log(f"  ranks: {ranks.shape[0]} days x {ranks.shape[1]} symbols, {time.time() - t0:.0f}s")
-    btc = btc_context(hourly_frame("BTCUSDT", roster["BTCUSDT"]["last_traded"]))
+    btc_last = (roster.get("BTCUSDT") or _roster(SUMMARY_PATH)["BTCUSDT"])["last_traded"]
+    btc = btc_context(hourly_frame("BTCUSDT", btc_last))
     log(f"  BTC context: {len(btc)} hours")
     frames, drops, slow = [], {}, []
     with ProcessPoolExecutor(
-        max_workers=workers, initializer=_init, initargs=(btc, ranks, stop_mode)
+        max_workers=workers, initializer=_init, initargs=(btc, ranks, stop_mode, session, classes)
     ) as ex:
         futs = [ex.submit(_one, (s, roster[s]["last_traded"])) for s in syms]
         for n, f in enumerate(as_completed(futs), 1):
@@ -805,10 +936,15 @@ def build(
     ev = pd.concat([f for f in frames if len(f)], ignore_index=True)
     ev["trigger_ts"] = pd.to_datetime(ev["trigger_time"], unit="ms", utc=True)
     ev["day_ts"] = pd.to_datetime(ev["day"], unit="ms", utc=True)
-    out = events_path(stop_mode)
+    if "session_class" not in ev.columns:
+        extra = {s: r.get("session_class") for s, r in roster.items()}
+        ev["session_class"] = ev["symbol"].map(extra)
+    out = events_path(stop_mode, session, roster_tag)
     out.parent.mkdir(parents=True, exist_ok=True)
     ev.to_parquet(out, index=False)
-    write_summary(ev, drops, time.time() - t0, len(syms), summary_path(stop_mode))
+    write_summary(
+        ev, drops, time.time() - t0, len(syms), summary_path(stop_mode, session, roster_tag)
+    )
     log(f"  {len(ev)} rows -> {out}; drops {drops}; slowest {sorted(slow)[-3:]}")
     return ev
 
@@ -845,10 +981,20 @@ def main(argv: list[str] | None = None) -> None:
     b.add_argument("--symbols", nargs="*", default=None)
     b.add_argument("--workers", type=int, default=4)
     b.add_argument("--stop-mode", default="setup", choices=["setup", "bar0"])
+    b.add_argument("--session", default="calendar", choices=["calendar", "rth"])
+    b.add_argument("--roster", default=None, help="roster json (default: the Binance universe)")
+    b.add_argument("--roster-tag", default="", help="file tag for a non-default roster, e.g. xyz")
     sub.add_parser("summary")
     a = ap.parse_args(argv)
     if a.cmd == "build":
-        build(a.symbols, a.workers, stop_mode=a.stop_mode)
+        build(
+            a.symbols,
+            a.workers,
+            stop_mode=a.stop_mode,
+            session=a.session,
+            roster_path=Path(a.roster) if a.roster else SUMMARY_PATH,
+            roster_tag=a.roster_tag,
+        )
     else:
         print(json.dumps(json.loads(EVENTS_SUMMARY.read_text()), indent=1)[:4000])
 

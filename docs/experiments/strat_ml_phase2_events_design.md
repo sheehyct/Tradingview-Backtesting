@@ -294,3 +294,46 @@ columns `pivot_*`, `h_rung1..3`, `r_managed_pivot_10`); reader `pivot_ladder.py`
   trended (more 2-2 continuations), not the ones that printed the most varied patterns. The
   owner's suspicion ("or were we just trading momentum really") reads as yes. The most
   pattern-diverse coins (USDC, FOOTBALL, GPS, PAXG) are mostly the losers.
+
+## 13. Equity perps two ways (2026-10-20, owner: "the one thing we did not test")
+
+Hyperliquid xyz dex (HIP-3), 115 perps (77 US-listed stocks / ETFs / index perps, 16 non-US,
+11 commodity and FX, 11 unclassified), hourly candles via the census's own fetcher
+(`hl_fetch.py`; the venue serves ~208 days, so the window is 2026-03-29 to 2026-10-09).
+Two builds of the same table (`events.py --session calendar|rth`): the 24/7 UTC day (every row
+so far), and the New York regular session as the STRAT daily bar (weekday local hours 9..15 only,
+triggers scanned inside the session, weeks and months by the local calendar; the 9:00 hourly bar
+holds the 9:30 open, an approximation). Same stop, same ladder, same 10-day walk over ALL hours
+(a held position lives 24/7). Control: Binance crypto alts in the same months. Reader
+`equity_perps.py`; tables `reports/equity_perps_2026-10-20.md`.
+
+| US-listed perps | rows | win % | target first % | stop first % | mean R | median R | mean ret % of price | mean R no stop |
+|---|---|---|---|---|---|---|---|---|
+| 24/7 calendar day | 9,925 | 46.8 | 40.2 | 50.8 | -0.096 | -1.000 | -0.3 | +0.250 |
+| NY regular session as the bar | 7,246 | 55.6 | 47.6 | 42.6 | +0.117 | +0.097 | +0.3 | +0.337 |
+| crypto alts, same window | 111,306 | 52.9 | 47.0 | 44.4 | -0.059 | +0.042 | -0.5 | +0.066 |
+
+- **On the UTC day the equity perps are the worst cell in the vessel** (-0.10R, 47% win, worse
+  than crypto alts in the same months). 2,177 of the 9,925 US-listed breaks happen in the 20:00
+  New York hour, the UTC day roll, in the thin after-hours when the underlying is closed and the
+  oracle frozen: the "day" opens and the first basis wobble breaks "yesterday's" high or low.
+- **On the session day the sign flips in every family:** continuation -0.15 -> +0.08, inside
+  -0.11 -> +0.16, outside -0.04 -> +0.26, reversal -0.05 -> +0.12; longs +0.19, shorts about
+  flat. Overall +0.12R, 56% win, 0.3% of price per trade before fees; the unmanaged view
+  improves too (+0.25 -> +0.34). This is the first positive-expectancy cell the vessel has
+  produced, and the only place so far where a bar definition changed the money.
+- **Read it with the sample in view.** Seven months, 76 names, 7,246 rows that are strongly
+  correlated across names on the same days (US equities move together), so the effective sample
+  is far smaller than the row count suggests; the two builds are different trade populations
+  (different setup bars), not a paired test; no fees; one regime (2026-03 to 2026-10).
+- **Mechanism, as a hypothesis:** the charter says the equity / RTH orthodoxy must not be
+  imported blindly for 24/7 perps. For an equity perp the underlying DOES close, so the session
+  is the real bar and the UTC day is the artefact; the same reasoning, the opposite conclusion,
+  for the opposite instrument. Commodity, FX and non-US names on the UTC calendar read like the
+  US names (-0.06 to -0.11R); their own sessions are not built here.
+- Next, declared before any run: (a) the owner's TVB-36 ruling was "no session calendar first,
+  then look at what a calendar would have done"; this is that look, and it says the calendar
+  matters for equity perps; (b) a paired version (same session-day setup bars, triggers allowed
+  24/7 vs session-only) to separate "better bars" from "better hours"; (c) the venue's daily
+  candles go back to each listing (Nov 2025), so a daily-resolution version can double the
+  window at the cost of the hourly ordering; (d) refetch monthly, the hourly window rolls.

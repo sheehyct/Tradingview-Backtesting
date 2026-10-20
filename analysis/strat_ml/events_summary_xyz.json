@@ -1,0 +1,46 @@
+{
+ "built_at": "2026-10-20T12:11:51+00:00",
+ "seconds": 7,
+ "symbols": 115,
+ "rows": 15844,
+ "rows_with_target": 13120,
+ "rows_censored": 1248,
+ "rows_ambiguous": 978,
+ "first_day": "2026-03-29",
+ "last_day": "2026-10-20",
+ "drops": {
+  "no_setup_type": 0,
+  "zero_range": 1,
+  "no_levels": 0
+ },
+ "counts": {
+  "1-1-2 stacked inside | equity_perp | long": 384,
+  "1-1-2 stacked inside | equity_perp | short": 318,
+  "1-2-2 rev strat | equity_perp | long": 437,
+  "1-2-2 rev strat | equity_perp | short": 688,
+  "2-1-2 continuation | equity_perp | long": 646,
+  "2-1-2 continuation | equity_perp | short": 450,
+  "2-1-2 reversal | equity_perp | long": 664,
+  "2-1-2 reversal | equity_perp | short": 568,
+  "2-2 continuation | equity_perp | long": 2948,
+  "2-2 continuation | equity_perp | short": 2579,
+  "2-2 reversal | equity_perp | long": 1245,
+  "2-2 reversal | equity_perp | short": 1281,
+  "3-1-2 continuation | equity_perp | long": 97,
+  "3-1-2 continuation | equity_perp | short": 97,
+  "3-1-2 reversal | equity_perp | long": 138,
+  "3-1-2 reversal | equity_perp | short": 133,
+  "3-2 outside break | equity_perp | long": 1238,
+  "3-2 outside break | equity_perp | short": 1238,
+  "3-2-2 reversal | equity_perp | long": 320,
+  "3-2-2 reversal | equity_perp | short": 327,
+  "x-1-2 (no bar before) | equity_perp | long": 22,
+  "x-1-2 (no bar before) | equity_perp | short": 26
+ },
+ "first_touch": {
+  "stop": 7881,
+  "target": 6241,
+  "timeout": 1722
+ },
+ "stop_mode": "setup"
+}
