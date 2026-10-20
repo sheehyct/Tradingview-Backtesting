@@ -162,6 +162,16 @@ def near_side(bar: dict, direction: str) -> float:
     return bar["l"] if direction == "up" else bar["h"]
 
 
+def bar0_index(dtypes: list, i: int) -> int:
+    """Bar 0 of an inside break on day i (setup bar i-1 is Type 1): walk back from i-2 past any
+    further inside bars; the first non-inside bar's range contains the whole coil (skill 3.2).
+    Falls back to i-2 when the walk runs out of classified bars."""
+    j = i - 2
+    while j - 1 >= 0 and dtypes[j] == "1":
+        j -= 1
+    return j
+
+
 def beyond(price: float, level: float, direction: str) -> bool:
     return price > level if direction == "up" else price < level
 
@@ -211,8 +221,17 @@ def symbol_events(
     liq_rank: pd.Series | None = None,
     btc_ctx: pd.DataFrame | None = None,
     funding: pd.DataFrame | None = None,
+    stop_mode: str = "setup",
 ) -> tuple[pd.DataFrame, dict]:
-    """All trigger rows of one symbol. Pure function of the frames passed in (testable)."""
+    """All trigger rows of one symbol. Pure function of the frames passed in (testable).
+
+    stop_mode: "setup" = the far side of the setup bar for every pattern (TVB-37 R);
+    "bar0" = for an inside break (setup bar Type 1) the far side of bar 0, the first non-inside
+    bar walking back from the bar before the setup bar (skill 5.2 structural stop, production
+    ruling: bar 0, NOT the inside bar); every other pattern unchanged.
+    """
+    if stop_mode not in ("setup", "bar0"):
+        raise ValueError(stop_mode)
     drops: dict[str, int] = {"no_setup_type": 0, "zero_range": 0, "no_levels": 0}
     d = daily_from_hourly(hf)
     if len(d) < 4:
@@ -282,7 +301,16 @@ def symbol_events(
                 continue
             k = k0 + int(idx[0])
             level = setup["h"] if direction == "up" else setup["l"]
-            stop = near_side(setup, direction)
+            setup_stop = near_side(setup, direction)
+            if setup["h"] - setup["l"] <= 0:
+                drops["zero_range"] += 1
+                continue
+            j0 = bar0_index(dtypes, i) if t1 == "1" else None
+            bar0_stop = near_side(daily[j0], direction) if j0 is not None else setup_stop
+            if stop_mode == "bar0" and t1 == "1":
+                stop, alt_stop, stop_src = bar0_stop, setup_stop, "bar0"
+            else:
+                stop, alt_stop, stop_src = setup_stop, bar0_stop, "setup_bar"
             r = abs(level - stop)
             if r <= 0:
                 drops["zero_range"] += 1
@@ -323,10 +351,6 @@ def symbol_events(
                     wm[tf] = (lvl, partial)
             rungs = ladder_rungs(direction, level, wm)
             t1_price, t1_src = magnitude(name, family, direction, level, bar2, rungs)
-            if bar2 is not None:
-                alt_stop = near_side(bar2, direction) if t1 == "1" else stop
-            else:
-                alt_stop = stop
             # alignment scores (skill 4.3 and the colour-only version)
             aligned = []
             biased = []
@@ -428,6 +452,9 @@ def symbol_events(
                 "stop": stop,
                 "r": r,
                 "stop_alt_r": abs(level - alt_stop) / r,
+                "stop_mode": stop_mode,
+                "stop_src": stop_src,
+                "stop_bar_offset": (i - 1 - j0) if j0 is not None else 0,
                 "t1": t1_price,
                 "t1_source": t1_src,
                 "has_target": t1_price is not None,
@@ -609,9 +636,10 @@ def _daily_qv(symbol: str, last_traded: str | None) -> tuple[str, pd.Series]:
 _G: dict = {}
 
 
-def _init(btc: pd.DataFrame, ranks: pd.DataFrame) -> None:
+def _init(btc: pd.DataFrame, ranks: pd.DataFrame, stop_mode: str = "setup") -> None:
     _G["btc"] = btc
     _G["ranks"] = ranks
+    _G["stop_mode"] = stop_mode
 
 
 def _one(args) -> tuple[str, pd.DataFrame, dict, float]:
@@ -620,11 +648,23 @@ def _one(args) -> tuple[str, pd.DataFrame, dict, float]:
     hf = hourly_frame(symbol, last_traded)
     ranks = _G.get("ranks")
     liq = ranks[symbol].dropna() if ranks is not None and symbol in ranks else None
-    df, drops = symbol_events(symbol, hf, liq, _G.get("btc"), funding_frame(symbol))
+    df, drops = symbol_events(
+        symbol, hf, liq, _G.get("btc"), funding_frame(symbol), _G.get("stop_mode", "setup")
+    )
     return symbol, df, drops, time.time() - t0
 
 
-def build(symbols: list[str] | None = None, workers: int = 4, log=print) -> pd.DataFrame:
+def events_path(stop_mode: str) -> Path:
+    return EVENTS_PATH if stop_mode == "setup" else DATA / f"events_{stop_mode}.parquet"
+
+
+def summary_path(stop_mode: str) -> Path:
+    return EVENTS_SUMMARY if stop_mode == "setup" else HERE / f"events_summary_{stop_mode}.json"
+
+
+def build(
+    symbols: list[str] | None = None, workers: int = 4, log=print, stop_mode: str = "setup"
+) -> pd.DataFrame:
     roster = _roster()
     syms = sorted(symbols or roster.keys())
     t0 = time.time()
@@ -640,7 +680,9 @@ def build(symbols: list[str] | None = None, workers: int = 4, log=print) -> pd.D
     btc = btc_context(hourly_frame("BTCUSDT", roster["BTCUSDT"]["last_traded"]))
     log(f"  BTC context: {len(btc)} hours")
     frames, drops, slow = [], {}, []
-    with ProcessPoolExecutor(max_workers=workers, initializer=_init, initargs=(btc, ranks)) as ex:
+    with ProcessPoolExecutor(
+        max_workers=workers, initializer=_init, initargs=(btc, ranks, stop_mode)
+    ) as ex:
         futs = [ex.submit(_one, (s, roster[s]["last_traded"])) for s in syms]
         for n, f in enumerate(as_completed(futs), 1):
             sym, df, dr, secs = f.result()
@@ -655,14 +697,17 @@ def build(symbols: list[str] | None = None, workers: int = 4, log=print) -> pd.D
     ev = pd.concat([f for f in frames if len(f)], ignore_index=True)
     ev["trigger_ts"] = pd.to_datetime(ev["trigger_time"], unit="ms", utc=True)
     ev["day_ts"] = pd.to_datetime(ev["day"], unit="ms", utc=True)
-    EVENTS_PATH.parent.mkdir(parents=True, exist_ok=True)
-    ev.to_parquet(EVENTS_PATH, index=False)
-    write_summary(ev, drops, time.time() - t0, len(syms))
-    log(f"  {len(ev)} rows -> {EVENTS_PATH}; drops {drops}; slowest {sorted(slow)[-3:]}")
+    out = events_path(stop_mode)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    ev.to_parquet(out, index=False)
+    write_summary(ev, drops, time.time() - t0, len(syms), summary_path(stop_mode))
+    log(f"  {len(ev)} rows -> {out}; drops {drops}; slowest {sorted(slow)[-3:]}")
     return ev
 
 
-def write_summary(ev: pd.DataFrame, drops: dict, secs: float, n_symbols: int) -> dict:
+def write_summary(
+    ev: pd.DataFrame, drops: dict, secs: float, n_symbols: int, path: Path = EVENTS_SUMMARY
+) -> dict:
     by = ev.groupby(["pattern", "asset_class", "direction"]).size()
     doc = {
         "built_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -678,7 +723,8 @@ def write_summary(ev: pd.DataFrame, drops: dict, secs: float, n_symbols: int) ->
         "counts": {" | ".join(k): int(v) for k, v in by.items()},
         "first_touch": {k: int(v) for k, v in ev["first_touch"].value_counts().items()},
     }
-    EVENTS_SUMMARY.write_text(json.dumps(doc, indent=1), encoding="utf-8")
+    doc["stop_mode"] = str(ev["stop_mode"].iloc[0]) if "stop_mode" in ev else "setup"
+    path.write_text(json.dumps(doc, indent=1), encoding="utf-8")
     return doc
 
 
@@ -690,10 +736,11 @@ def main(argv: list[str] | None = None) -> None:
     b = sub.add_parser("build")
     b.add_argument("--symbols", nargs="*", default=None)
     b.add_argument("--workers", type=int, default=4)
+    b.add_argument("--stop-mode", default="setup", choices=["setup", "bar0"])
     sub.add_parser("summary")
     a = ap.parse_args(argv)
     if a.cmd == "build":
-        build(a.symbols, a.workers)
+        build(a.symbols, a.workers, stop_mode=a.stop_mode)
     else:
         print(json.dumps(json.loads(EVENTS_SUMMARY.read_text()), indent=1)[:4000])
 

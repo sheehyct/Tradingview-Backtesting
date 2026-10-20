@@ -30,8 +30,12 @@ cloud container, no Railway)
   the setup-bar stop hit 61% of the time, while its unmanaged view is slightly positive: a
   stop-placement question, the TVB-37 suspect again; (5) majors and alts look alike per pattern
   within their bands, but majors are two coins and the test period is 99.6% alts.
-- **STOP-and-ASK for the owner before more code:** re-label with the skill's bar-0 stop for
-  inside breaks (column exists, rebuild is minutes)? Make the blue-sky cell a declared arm in
+- **Stop head-to-head DONE (owner's ask, same day):** `events build --stop-mode bar0` + 
+  `compare_stops.py`. On the same 119,926 inside-break rows the bar-0 stop (0.84 ATR median)
+  lifts the win rate from 54% to 62% and cuts stop-outs from 45% to 35%, and the mean return
+  per trade is -0.2% of price under BOTH stops; whole book -0.3% under both. The stop shapes
+  the loss, it does not remove it. Design doc section 9; `reports/stop_compare_2026-10-20.md`.
+- **STOP-and-ASK for the owner before more code:** Make the blue-sky cell a declared arm in
   the domino book (wider stop / no-stop clock)? Pull metrics (OI, taker ratio) for the alts the
   trigger table uses? The with-trend inside break's T1 ruling is still open (ladder used).
 - **Dependencies:** lightgbm, shap, scikit-learn added to pyproject (uv sync is safe; VectorBT

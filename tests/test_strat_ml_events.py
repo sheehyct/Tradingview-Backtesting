@@ -177,3 +177,36 @@ def test_zero_volume_hours_do_not_touch():
     # with volume the target prints at +24 h (day 4, hour 10); the flat day 5 opens exactly at
     # the target (equality fills), so the first countable touch is +38 h
     assert e["first_touch"] == "target" and e["touch_hours"] == 38
+
+
+def test_bar0_stop_for_inside_breaks():
+    # day1 is bar 0 (2U, low 10.0); day2 inside (h 13.5 < 14, l 12 > 10); day3 breaks 13.5 up
+    bars = [
+        (10.0, 12.0, 9.0, 11.0),
+        (11.0, 14.0, 10.0, 13.0),
+        (13.0, 13.5, 12.0, 12.5),
+        (12.5, 13.6, 12.4, 13.0),
+        (13.0, 13.2, 12.8, 13.0),
+    ] + [(13.0, 13.2, 12.8, 13.0)] * 11
+    hf = hours(bars)
+    a, _ = ev.symbol_events("TESTUSDT", hf)
+    b, _ = ev.symbol_events("TESTUSDT", hf, stop_mode="bar0")
+    ea = a[(a["direction"] == "long") & (a["day"] == 19003 * DAY)].iloc[0]
+    eb = b[(b["direction"] == "long") & (b["day"] == 19003 * DAY)].iloc[0]
+    assert ea["pattern"] == eb["pattern"] == "2-1-2 continuation"
+    assert ea["stop"] == 12.0 and ea["r"] == 1.5 and ea["stop_src"] == "setup_bar"
+    assert eb["stop"] == 10.0 and eb["r"] == 3.5 and eb["stop_src"] == "bar0"
+    assert eb["stop_bar_offset"] == 1 and ea["stop_bar_offset"] == 1
+    # each file carries the other stop as a ratio
+    assert ea["stop_alt_r"] == pytest.approx(3.5 / 1.5)
+    assert eb["stop_alt_r"] == pytest.approx(1.5 / 3.5)
+    # the setup-bar stop (12.0) is touched on day 4 (low 12.4? no) -> day 3 low 12.4 > 12 ... not hit
+    assert ea["first_touch"] == "timeout" and eb["first_touch"] == "timeout"
+    assert ea["mae_r_1"] == pytest.approx(eb["mae_r_1"] * 3.5 / 1.5)
+
+
+def test_bar0_walks_back_through_stacked_inside_bars():
+    types = [None, "2U", "1", "1", "1"]  # day1 = bar 0, days 2-4 inside, break on day 5
+    assert ev.bar0_index(types, 5) == 1
+    assert ev.bar0_index([None, "2D", "2U", "1"], 4) == 2
+    assert ev.bar0_index([None, "1", "1"], 3) == 0  # runs out: falls back to the first bar

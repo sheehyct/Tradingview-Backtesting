@@ -161,8 +161,8 @@ def wilson(k: int, n: int, z: float = 1.96) -> tuple[float, float]:
     return centre - half, centre + half
 
 
-def load_events() -> pd.DataFrame:
-    ev = pd.read_parquet(EVENTS_PATH)
+def load_events(path: Path = EVENTS_PATH) -> pd.DataFrame:
+    ev = pd.read_parquet(path)
     ev = ev[ev["r_managed_10"].notna()].copy()  # drop censored rows (no 10-bar outcome)
     ev["r10"] = ev["r_managed_10"]
     lo, hi = ev["r10"].quantile([0.005, 0.995])
@@ -714,9 +714,9 @@ pre{background:var(--box);padding:10px;border-radius:6px;overflow-x:auto;font-si
 """
 
 
-def build_report(log=print) -> Path:
+def build_report(log=print, events: Path = EVENTS_PATH, tag: str = "") -> Path:
     t0 = time.time()
-    ev = load_events()
+    ev = load_events(events)
     log(f"events loaded: {len(ev):,} rows with a 10-bar outcome")
     base = baseline(ev)
     log("baseline done")
@@ -725,7 +725,7 @@ def build_report(log=print) -> Path:
     ml = lgbm_phase(ev, log)
     tree_text, tree_tab = shallow_tree(ev)
     log("tree done")
-    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d") + (f"_{tag}" if tag else "")
     REPORTS.mkdir(parents=True, exist_ok=True)
     ov = base["overall"].iloc[0]
     n_sym = ev["symbol"].nunique()
@@ -919,8 +919,10 @@ def build_report(log=print) -> Path:
 
 def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.parse_args(argv)
-    build_report()
+    ap.add_argument("--events", default=str(EVENTS_PATH))
+    ap.add_argument("--tag", default="")
+    a = ap.parse_args(argv)
+    build_report(events=Path(a.events), tag=a.tag)
 
 
 if __name__ == "__main__":

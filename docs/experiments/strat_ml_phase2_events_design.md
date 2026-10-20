@@ -184,3 +184,25 @@ bar-0 stop for inside breaks (`stop_alt_r` is in the rows, rebuild is minutes); 
 blue-sky cell deserves its own declared arm in the domino book (a wider stop or a no-stop
 clock on those rows); whether to pull metrics (open interest, taker ratio) for the alts the
 trigger table actually uses.
+
+## 9. Stop placement head-to-head (2026-10-20, owner's ask): setup-bar stop vs the skill's bar-0 stop
+
+Built as a second event file (`events build --stop-mode bar0`; inside breaks take bar 0's far
+side, bar 0 = the first non-inside bar walking back past any stacked inside bars; every other
+pattern unchanged). Same 119,926 inside-break rows. Full tables:
+`analysis/strat_ml/reports/stop_compare_2026-10-20.md`; the bar-0 report:
+`strat_ml_report_2026-10-20_bar0.html`.
+
+| inside breaks | win % | stop first % | target first % | mean ret % of price | mean ret (ATR) | median stop (ATR) |
+|---|---|---|---|---|---|---|
+| setup-bar stop | 54.3 | 44.9 | 50.1 | -0.2 | -0.013 | 0.57 |
+| bar-0 stop | 61.7 | 35.0 | 55.2 | -0.2 | -0.010 | 0.84 |
+
+Reading: the wider stop (0.84 ATR vs 0.57) turns ten points of stop-outs into timeouts and
+target touches and lifts the win rate by seven points, and the money per trade does not
+move: -0.2% of price under both, in ATRs -0.013 vs -0.010. Same shape in every pattern,
+direction, class and year. The whole book: -0.3% mean return per trade under both stops.
+So the stop decides HOW the book loses (many small stop-outs vs fewer, larger ones), not
+WHETHER it loses; the earlier phrase "stop placement is the mechanism" refers to the shape of
+the blue-sky cell, not to a lever that fixes expectancy. Model A on the bar-0 file behaves the
+same as on the setup file (R-squared 0.18 in-sample, -0.01 out-of-sample).

@@ -5,6 +5,7 @@ sparked it, status. Newest at the top.
 
 | date | thread | spark | status |
 |---|---|---|---|
+| 2026-10-20 | Stop head-to-head on inside breaks: bar-0 stop (0.84 ATR) vs setup-bar stop (0.57 ATR) on the same 119,926 rows | owner's ask | win rate +7 pts, stop-outs -10 pts, money per trade unchanged (-0.2% of price both); the stop shapes the loss, it does not remove it |
 | 2026-10-20 | Phase 2 event table (565,687 rows) + phases 3-5 report: baseline, k-means, LightGBM/SHAP on a 2025 time split, depth-3 tree, phone HTML | owner: run to the end | DONE; read-out in the phase 2 design doc section 8 |
 | 2026-10-20 | Leak caught: `opposite_also_triggered` ranked second in the first fit; it is end-of-day knowledge | AUC 0.85 looked too good | excluded from every model; kept as the spec's overlap flag |
 | 2026-10-20 | Geometry dominates target-first: <0.5R targets 81-84% hit, >3R 8-15%, mean R flat | first SHAP read | models split: money question on context only (model A), geometry shown on purpose (model B) |
