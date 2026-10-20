@@ -41,6 +41,33 @@ cloud container, no Railway)
   carries the loss; the first-excursion split (+0.085R vs -0.23R) is the lead but the trigger
   hour's own low is an artefact that needs 15-minute bars. `tfc_score` = 1 is the blue-sky
   set by construction. Design doc section 10.
+- **The lead's read of the whole book, 2026-10-20 (owner asked "what would you change, what
+  would you test next"; advice, not rulings; grounded in the event table):**
+  (1) The setup-bar stop (median 0.74 ATR) sits inside the daily noise: the median trade is
+  0.9R against by day 3 and 1.6R by day 10. With no stop at all the book marks +0.09R (alts) /
+  +0.23R (majors) at 10 bars against -0.03R managed, median still negative: the same shape
+  TVB-38 found on Hyperliquid (+0.5..0.9 per trade from the stop swap). Widening to bar 0
+  does not change the expectancy; removing the price stop does, and buys a tail.
+  (2) The blue-sky break (no week / month level beyond the entry) is the worst cell WITH the
+  stop (-0.10..-0.17R, stopped 59-74%) and the best cell WITHOUT it (+0.09R continuation,
+  +0.30R inside break, unmanaged). The stop is chopping out the trend trades.
+  (3) The owner's hazard (lower-timeframe entries inside higher-timeframe inside bars) does
+  NOT show in the aggregate: month-inside / week-inside is the flattest cell (0.00R, n 103k);
+  the bad cells are extension (month 2U with week 2U -0.09R, week 3 -0.14R). A confirmation-
+  bias check the owner asked for in their preferences.
+  (4) BTC's 30-day realized-vol percentile is the strongest regime feature: top decile -0.09R
+  managed / -0.10R unmanaged, bottom decile +0.24R unmanaged.
+  (5) Longs and shorts flip sign by year (2021 longs +0.09R, 2022 shorts +0.11R, 2025 longs
+  -0.13R): the year's trend, not the pattern.
+  What the lead would test next, in order, each a declared arm, never a pick: (a) replicate
+  the TVB-37/38 chance book and management book rule-for-rule on the Binance table (different
+  venue, 2020-2026, dead coins in) to see whether the stop-swap lift and the stacked
+  continuation survive out of venue; (b) a pre-committed skip-list arm (skip blue-sky breaks,
+  skip BTC top-vol-decile days) against the control, in the ablation shape; (c) the no-stop
+  book with a declared tail rule (the hourly clock or an ATR-scaled disaster stop at 2-3 ATR)
+  since the tail is the price of (1); (d) 15-minute bars to settle the first-excursion split.
+  Not worth more time: exit clocks (the hourly, under-water and time-stop variants all move
+  the book by a few hundredths of an R).
 - **STOP-and-ASK for the owner before more code:** pull 15-minute klines for the universe (same
   file count as 1h, 4x rows, ~2.5 h) to settle the first-excursion question? Make the blue-sky cell a declared arm in
   the domino book (wider stop / no-stop clock)? Pull metrics (OI, taker ratio) for the alts the
