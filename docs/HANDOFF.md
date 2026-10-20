@@ -68,6 +68,27 @@ cloud container, no Railway)
   since the tail is the price of (1); (d) 15-minute bars to settle the first-excursion split.
   Not worth more time: exit clocks (the hourly, under-water and time-stop variants all move
   the book by a few hundredths of an R).
+- **The original Pine (TheStrat Magnitude + Targets, the owner's live indicator) read against the
+  table, 2026-10-20 (owner's ask; thoughts, not rulings):** its "star" (high-conviction) setups
+  cut from the daily rows: Shot-Gun 2-2-2 (42k rows: 71% win, target-first 70%, mean -0.00R,
+  median reward-to-risk 0.38), 1-2-2 rev strat (32k: 72% win, -0.03R, R:R 0.31), 1-3-2 (15k:
+  48% win, -0.05R), 3-2 Boom on a hammer / shooter proxy (2.2k: 52%, -0.07R), 1-3 one-bar rev
+  strat (18.7k; the setup-bar stop is ALREADY inside the day's range for a 1-3, so its -0.14R is
+  a stop artefact; rerun on the bar-0 file). Star vs the rest: 64% win vs 52%, the same money
+  (-0.04R vs -0.03R managed, +0.09R both unmanaged); unmanaged, the stars beat the rest in
+  2020-22 and lost to it in 2023-25. Reading: the high-conviction patterns win MORE OFTEN
+  because their targets are the reversal anchor (closer), not because they pay more per unit
+  of risk; win rate is what a discretionary trader feels.
+  Parts of the Pine that the daily research line never carried, each testable on the table:
+  (1) the pivot ladder beyond T1 (prior highs / lows not yet taken out, nearest first, 250 bars
+  back): the management book holds week / month levels only ("no daily pivots" ruling) and
+  59,130 rows have NO target at all; (2) the Potential-3 / invalidation status (the other side
+  of the setup bar breaks AFTER entry): the table carries both triggers' hours, so "exit at the
+  hour the other side breaks" is a declared exit arm against the stop, cheap to run; (3) the
+  2-1-2 momentum filter (inside bar in the upper / lower half of the prior 2's range) as a
+  flag; (4) the chop counter (reversals since the last target hit) as a symbol-level regime
+  feature. The BF harvest exit belongs to the TFC indicator, not this Pine, and cannot be read
+  from the table without the BF line logic.
 - **STOP-and-ASK for the owner before more code:** pull 15-minute klines for the universe (same
   file count as 1h, 4x rows, ~2.5 h) to settle the first-excursion question? Make the blue-sky cell a declared arm in
   the domino book (wider stop / no-stop clock)? Pull metrics (OI, taker ratio) for the alts the

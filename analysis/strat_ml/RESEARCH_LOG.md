@@ -5,6 +5,7 @@ sparked it, status. Newest at the top.
 
 | date | thread | spark | status |
 |---|---|---|---|
+| 2026-10-20 | The owner's live Pine (Magnitude + Targets) star setups cut from the table: 64% win vs 52%, same money per R; 1-3 reads as a setup-bar-stop artefact | owner shared the original script | four Pine parts never carried into the daily line listed in HANDOFF (pivot ladder, potential-3 exit, momo filter, chop counter) |
 | 2026-10-20 | Excursion clock: time to +x R / x R against, fixed-hour marks, time-stop rule vs hold | owner: can "it turned against me" become a rule | rule saves ~0.02R per laggard; the mark already carries the loss; first-excursion split is the lead but needs 15m bars (trigger-hour artefact) |
 | 2026-10-20 | tfc_score = 1 is the blue-sky set by construction (both levels already broken, no rung); colour-only bias goes the expected way | context slice surprise | two continuity readings with opposite signs: colour helps a little, extension through both levels hurts |
 | 2026-10-20 | Stop head-to-head on inside breaks: bar-0 stop (0.84 ATR) vs setup-bar stop (0.57 ATR) on the same 119,926 rows | owner's ask | win rate +7 pts, stop-outs -10 pts, money per trade unchanged (-0.2% of price both); the stop shapes the loss, it does not remove it |
