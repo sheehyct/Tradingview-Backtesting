@@ -122,6 +122,16 @@ def test_one_reversal_event_end_to_end():
     assert e["mfe_r_1"] == pytest.approx((14.5 - 13.5) / 4.0)
     assert e["mae_r_1"] == pytest.approx((13.5 - 11.0) / 4.0)
     assert not e["censored"]
+    # the excursion clock: +0.25R (1.0 pts) first at day 4 hour 10 = 24 bars after entry.
+    # Against: the trigger hour's own low (11.87 = 0.41R) counts at hour 0 (pessimistic, the
+    # low may precede the break); 0.5R came at day 3 hour 14 (low 11.0 = 0.625R), 4 bars in
+    assert e["h_fav_025"] == 24 and e["h_adv_025"] == 0 and e["h_adv_05"] == 4
+    assert np.isnan(e["h_adv_1"]) and e["first_excursion"] == "adv"
+    assert e["mfe_r_24h"] == pytest.approx((13.8 - 13.5) / 4.0)  # day 4 hour 10 is bar 24, outside
+    assert e["mfe_r_48h"] == pytest.approx((14.5 - 13.5) / 4.0)
+    assert e["mae_r_24h"] == pytest.approx((13.5 - 11.0) / 4.0)
+    close_day4_h9 = 13.0 + 1.0 * 9 / 23
+    assert e["r_close_24h"] == pytest.approx((close_day4_h9 - 13.5) / 4.0)
     # the short side of the same trigger day never fired (day3 low 11.0 is not below day2 low 10.5)
     assert (
         not (df["direction"] == "short").any()

@@ -429,6 +429,27 @@ def symbol_events(
                     out[f"r_managed_{hz}"] = abs(t1_price - level) / r
                 else:
                     out[f"r_managed_{hz}"] = out[f"r_close_{hz}"]
+            # the excursion clock (owner's question 2026-10-20): hourly bars from entry to the
+            # first touch of +x R in favour / x R against, which 0.25R came first, and the
+            # excursions and the mark at fixed clock hours (NaN when the window is shorter)
+            for x, tag in ((0.25, "025"), (0.5, "05"), (1.0, "1")):
+                fi = np.flatnonzero(fav >= x * r)
+                ai = np.flatnonzero(adv >= x * r)
+                out[f"h_fav_{tag}"] = float(fi[0]) if len(fi) else np.nan
+                out[f"h_adv_{tag}"] = float(ai[0]) if len(ai) else np.nan
+            f25, a25 = out["h_fav_025"], out["h_adv_025"]
+            if np.isnan(f25) and np.isnan(a25):
+                out["first_excursion"] = "none"
+            elif np.isnan(a25) or (not np.isnan(f25) and f25 < a25):
+                out["first_excursion"] = "fav"
+            else:
+                out["first_excursion"] = "adv"  # tie inside one hour -> against (pessimistic)
+            n_win = len(fav)
+            for ch in (6, 12, 24, 48, 72):
+                ok = ch <= n_win and t[k + ch - 1] - t[k] == (ch - 1) * HOUR
+                out[f"mfe_r_{ch}h"] = cum_fav[ch - 1] / r if ok else np.nan
+                out[f"mae_r_{ch}h"] = cum_adv[ch - 1] / r if ok else np.nan
+                out[f"r_close_{ch}h"] = (c[k + ch - 1] - level) * sign / r if ok else np.nan
             a = atr[i - 1]
             third, strict = shape_flags(setup, direction)
             pw, pm = part.get("W", {}), part.get("M", {})

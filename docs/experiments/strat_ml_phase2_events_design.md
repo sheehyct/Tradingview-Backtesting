@@ -206,3 +206,43 @@ So the stop decides HOW the book loses (many small stop-outs vs fewer, larger on
 WHETHER it loses; the earlier phrase "stop placement is the mechanism" refers to the shape of
 the blue-sky cell, not to a lever that fixes expectancy. Model A on the bar-0 file behaves the
 same as on the setup file (R-squared 0.18 in-sample, -0.01 out-of-sample).
+
+## 10. The excursion clock (2026-10-20, owner's question: does the setup show a favourable move SOON, and can "it turned against me" become a rule?)
+
+Declared grid, read as a spread: favourable thresholds 0.25R / 0.5R / 1R; clocks 6 / 12 / 24 /
+48 / 72 hours after the trigger hour. New columns in the event table: `h_fav_x`, `h_adv_x`
+(hourly bars from entry to the first touch of +x R / x R against, within the 10-bar window),
+`first_excursion` (which 0.25R came first; tie = against), `mfe_r_Hh`, `mae_r_Hh`,
+`r_close_Hh` (excursions and the mark at fixed clock hours). Reader:
+`analysis/strat_ml/excursion.py`; tables: `reports/excursion_2026-10-20.md`.
+
+- **How soon the move shows.** Half of all triggers show +0.25R within 6 hours and 71% within
+  24; +0.5R: 24% within 6 hours, 49% within 24, 82% within the 10 bars; +1R: 23% within 24
+  hours, 65% within 10 bars. The adverse side is a mirror image at 0.5R and 1R (50% / 19%
+  within 24 hours). Inside breaks move soonest (57% show +0.5R within 24 h), outside breaks
+  slowest (40%). "Eventually" is real: a third of the +1R touches arrive after day 3.
+- **The trigger hour's own low is an artefact, and it is large.** Counting the trigger
+  bar's full range (pessimistic, the low may precede the break), 68% of trades go 0.25R
+  against before 0.25R in favour. Ignoring the trigger hour's adverse print, 70% go in favour
+  FIRST (+0.085R mean, 60% win) and 27% against first (-0.23R, 45% win). Which number is
+  true needs sub-hourly bars; the archive has 15-minute klines (same file count, 4x rows).
+- **The time-stop rule does almost nothing.** "At hour H, if +x R has not shown and the trade
+  is open, exit at that close": the book moves from -0.032R to between -0.017R (0.5R at 6 h)
+  and -0.033R (0.25R at 24 h). The split is dramatic (trades that showed +0.5R within 6 hours
+  average +0.31R; those that did not and are still open average -0.15R), but the exit mark
+  of the laggards (-0.12R) is already most of their eventual loss. By the time the trade has
+  "not moved", the price already says so; the rule saves about 0.02R per laggard.
+- **The continuity surprise is the blue-sky cell.** `tfc_score` = 1 (week AND month already
+  Type 2 in the trade's direction) has the worst mean R in every family (-0.08 to -0.11), and
+  it is the no-rung set by construction: both prior levels are already broken, nothing
+  structural sits beyond the entry (no_rung share 100% for continuation and outside breaks).
+  The colour-only `bias_score` goes the expected way in every family (reversal: +0.009R at 1.0
+  vs -0.033R at 0). Two readings of continuity, two opposite signs: colour agreement helps a
+  little, "already extended through both levels" hurts. Both match the skill (continuity vs
+  exhaustion risk).
+- Majors (4,429 rows) hold +0.026R across the grid; alts -0.032R. Too few majors to split.
+
+For the owner's rule-making: the data supports "a trade that has not shown +0.5R inside its
+first day is a laggard" as a description, not as an exit rule; the money the rule saves is
+small because the mark has already moved. The first-excursion split (+0.085R vs -0.23R) is
+the stronger lead, and it needs 15-minute bars to be believed.

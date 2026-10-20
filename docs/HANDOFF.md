@@ -35,7 +35,14 @@ cloud container, no Railway)
   lifts the win rate from 54% to 62% and cuts stop-outs from 45% to 35%, and the mean return
   per trade is -0.2% of price under BOTH stops; whole book -0.3% under both. The stop shapes
   the loss, it does not remove it. Design doc section 9; `reports/stop_compare_2026-10-20.md`.
-- **STOP-and-ASK for the owner before more code:** Make the blue-sky cell a declared arm in
+- **Excursion clock DONE (owner's question, same day):** new columns (`h_fav_x`, `h_adv_x`,
+  `first_excursion`, `mfe/mae/r_close_{6,12,24,48,72}h`) and `excursion.py`. Half of triggers
+  show +0.25R within 6 h; a time-stop rule saves ~0.02R per laggard because the mark already
+  carries the loss; the first-excursion split (+0.085R vs -0.23R) is the lead but the trigger
+  hour's own low is an artefact that needs 15-minute bars. `tfc_score` = 1 is the blue-sky
+  set by construction. Design doc section 10.
+- **STOP-and-ASK for the owner before more code:** pull 15-minute klines for the universe (same
+  file count as 1h, 4x rows, ~2.5 h) to settle the first-excursion question? Make the blue-sky cell a declared arm in
   the domino book (wider stop / no-stop clock)? Pull metrics (OI, taker ratio) for the alts the
   trigger table uses? The with-trend inside break's T1 ruling is still open (ladder used).
 - **Dependencies:** lightgbm, shap, scikit-learn added to pyproject (uv sync is safe; VectorBT

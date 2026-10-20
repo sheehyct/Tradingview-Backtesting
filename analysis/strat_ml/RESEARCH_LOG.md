@@ -5,6 +5,8 @@ sparked it, status. Newest at the top.
 
 | date | thread | spark | status |
 |---|---|---|---|
+| 2026-10-20 | Excursion clock: time to +x R / x R against, fixed-hour marks, time-stop rule vs hold | owner: can "it turned against me" become a rule | rule saves ~0.02R per laggard; the mark already carries the loss; first-excursion split is the lead but needs 15m bars (trigger-hour artefact) |
+| 2026-10-20 | tfc_score = 1 is the blue-sky set by construction (both levels already broken, no rung); colour-only bias goes the expected way | context slice surprise | two continuity readings with opposite signs: colour helps a little, extension through both levels hurts |
 | 2026-10-20 | Stop head-to-head on inside breaks: bar-0 stop (0.84 ATR) vs setup-bar stop (0.57 ATR) on the same 119,926 rows | owner's ask | win rate +7 pts, stop-outs -10 pts, money per trade unchanged (-0.2% of price both); the stop shapes the loss, it does not remove it |
 | 2026-10-20 | Phase 2 event table (565,687 rows) + phases 3-5 report: baseline, k-means, LightGBM/SHAP on a 2025 time split, depth-3 tree, phone HTML | owner: run to the end | DONE; read-out in the phase 2 design doc section 8 |
 | 2026-10-20 | Leak caught: `opposite_also_triggered` ranked second in the first fit; it is end-of-day knowledge | AUC 0.85 looked too good | excluded from every model; kept as the spec's overlap flag |
