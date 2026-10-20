@@ -220,3 +220,50 @@ def test_bar0_walks_back_through_stacked_inside_bars():
     assert ev.bar0_index(types, 5) == 1
     assert ev.bar0_index([None, "2D", "2U", "1"], 4) == 2
     assert ev.bar0_index([None, "1", "1"], 3) == 0  # runs out: falls back to the first bar
+
+
+def test_pivot_ladder_follows_the_pine():
+    # daily bars (o, h, l, c); day 6 breaks day 5's high (long). Day 5 = 2D setup, day 4 = 2U bar 0.
+    bars = [
+        (10, 20, 9, 11),  # 0: an old high at 20 (a far rung)
+        (11, 15, 10, 14),  # 1
+        (14, 17, 13, 16),  # 2: high 17
+        (16, 16.5, 12, 13),  # 3
+        (13, 18, 12.5, 17),  # 4: 2U, bar 0 -> anchor = 18
+        (17, 17.5, 14, 15),  # 5: 2D setup (h 17.5 < 18, l 14 < 12.5? no: 14 > 12.5 -> inside!)
+    ]
+    # fix day 5 so it is a real 2D: low below day 4's low
+    bars[5] = (17, 17.5, 12, 15)
+    daily = [
+        {"t": k * DAY, "o": o, "h": h, "l": l, "c": c, "v": 1}
+        for k, (o, h, l, c) in enumerate(bars)
+    ]
+    rungs, src = ev.pivot_ladder(daily, 6, "up", "2D", "2U")
+    # anchor 18 (bar 0), then prior highs above 18 walking back: 20 (day 0); 17 / 17.5 are below
+    assert rungs == [18, 20] and src == "bar0_wick"
+    # with-trend inside break: reclaim = bar 0's far wick even though the trend is with the break
+    daily2 = [
+        {"t": k * DAY, "o": 10, "h": h, "l": l, "c": 10, "v": 1}
+        for k, (h, l) in enumerate([(30, 5), (12, 8), (14, 9), (13, 10)])
+    ]
+    rungs2, src2 = ev.pivot_ladder(daily2, 4, "up", "1", "2U")
+    assert rungs2 == [14, 30] and src2 == "reclaim_bar0"
+    # bare continuation: no anchor, ladder from the trigger
+    rungs3, src3 = ev.pivot_ladder(daily2, 3, "up", "2U", "2U")
+    assert src3 == "trigger" and rungs3 == [30]
+
+
+def test_pivot_outcomes_in_the_row():
+    bars = [
+        (10.0, 12.0, 9.0, 11.0),
+        (11.0, 14.0, 10.0, 13.0),  # bar 0, anchor 14
+        (13.0, 13.5, 9.5, 11.0),  # 2D setup
+        (11.0, 13.8, 11.0, 13.0),  # trigger day
+        (13.0, 14.5, 12.5, 14.0),  # rung 1 (14) reached at hour 10 of day 4 = +24 h
+    ] + [(14.0, 14.2, 13.8, 14.0)] * 12
+    df, _ = ev.symbol_events("TESTUSDT", hours(bars))
+    e = df[(df["direction"] == "long") & (df["day"] == 19003 * DAY)].iloc[0]
+    assert e["pivot_src"] == "bar0_wick" and e["pivot_t1"] == 14.0 and e["pivot_rungs"] == 1
+    assert e["pivot_reached_10"] == 1 and e["h_rung1"] == 24 and np.isnan(e["h_rung2"])
+    assert e["pivot_first_touch"] == "target"
+    assert e["r_managed_pivot_10"] == pytest.approx(0.5 / 4.0)

@@ -193,6 +193,57 @@ def ladder_rungs(direction: str, level: float, wm: dict) -> list[tuple[float, st
     return rungs
 
 
+PIVOT_LOOKBACK = 250  # the Pine / paper-engine history cap
+PIVOT_LEVELS = 6  # extTargets 5 + Target 1
+
+
+def pivot_ladder(
+    daily: list[dict], i: int, direction: str, t1: str, t2: str | None
+) -> tuple[list[float], str]:
+    """The owner's Pine ladder (TheStrat Magnitude + Targets; analysis/paper/patterns.py port) on
+    daily bars for the break on day i: anchors first, then prior highs (lows) NOT yet taken out,
+    nearest first, strict breaks, capped at PIVOT_LEVELS and PIVOT_LOOKBACK bars.
+
+    Anchor rules as the Pine writes them (setup bar = i-1, bar 0 = i-2, i-3 where named):
+      2-2 reversal / 3-2-2 / shot-gun: anchor = bar 0's far wick; 1-2-2: anchor = the inside bar
+      (i-2) far wick, anchor2 = i-3's far wick when the setup bar traded through i-3's near side;
+      X-1-2 (every inside break, with or against): anchor = i-2's far wick (the reclaim level);
+      1-3-2: anchor = i-3's far wick; bare 3-2 and the 2-2 continuation: no anchor, the ladder
+      starts at the trigger. Returns (levels nearest first, anchor_source).
+    """
+    setup = daily[i - 1]
+    level = far_side(setup, direction)
+    bar2 = daily[i - 2] if i >= 2 else None
+    bar3 = daily[i - 3] if i >= 3 else None
+    against = "2D" if direction == "up" else "2U"
+    ladder: list[float] = []
+    src = "trigger"
+    if bar2 is not None and t1 == against:
+        ladder.append(far_side(bar2, direction))
+        src = "bar0_wick"
+        if t2 == "1" and bar3 is not None:
+            crossed = setup["l"] < bar3["l"] if direction == "up" else setup["h"] > bar3["h"]
+            if crossed:
+                ladder.append(far_side(bar3, direction))
+                src = "inside_then_bar0"
+    elif bar2 is not None and t1 == "1":
+        ladder.append(far_side(bar2, direction))
+        src = "reclaim_bar0"
+    elif t1 == "3" and t2 == "1" and bar3 is not None:
+        ladder.append(far_side(bar3, direction))
+        src = "bar_before_outside"
+    ladder = [x for x in ladder if beyond(x, level, direction)]
+    run = ladder[-1] if ladder else level
+    for j in range(i - 1, max(-1, i - 1 - PIVOT_LOOKBACK), -1):
+        if len(ladder) >= PIVOT_LEVELS:
+            break
+        v = far_side(daily[j], direction)
+        if beyond(v, run, direction):
+            ladder.append(v)
+            run = v
+    return ladder, src
+
+
 def magnitude(
     name: str, family: str, direction: str, level: float, bar2: dict | None, rungs: list
 ) -> tuple[float | None, str | None]:
@@ -450,6 +501,42 @@ def symbol_events(
                 out[f"mfe_r_{ch}h"] = cum_fav[ch - 1] / r if ok else np.nan
                 out[f"mae_r_{ch}h"] = cum_adv[ch - 1] / r if ok else np.nan
                 out[f"r_close_{ch}h"] = (c[k + ch - 1] - level) * sign / r if ok else np.nan
+            # the Pine pivot ladder (owner, 2026-10-20: "this is where drift is happening"):
+            # rungs reached within the 10-bar window under the TVB-22 census's REACH convention
+            # (favourable extreme at or past the rung), hours to the first three rungs, and the
+            # managed result when the Pine's T1 replaces the TVB-37 T1 (same stop, same walk)
+            rungs, rung_src = pivot_ladder(daily, i, direction, t1, t2)
+            hrs = []
+            for lvl_ in rungs:
+                hit = np.flatnonzero((win_h >= lvl_) if direction == "up" else (win_l <= lvl_))
+                hrs.append(float(hit[0]) if len(hit) else np.nan)
+            reached = 0
+            for hv in hrs:
+                if np.isnan(hv):
+                    break
+                reached += 1
+            out["pivot_rungs"] = len(rungs)
+            out["pivot_src"] = rung_src
+            out["pivot_t1"] = rungs[0] if rungs else np.nan
+            out["pivot_t1_dist_r"] = abs(rungs[0] - level) / r if rungs else np.nan
+            out["pivot_t3_dist_r"] = abs(rungs[2] - level) / r if len(rungs) >= 3 else np.nan
+            out["pivot_reached_10"] = reached
+            for q in range(3):
+                out[f"h_rung{q + 1}"] = hrs[q] if q < len(hrs) else np.nan
+            if rungs:
+                p_idx = int(hrs[0]) if not np.isnan(hrs[0]) else None
+                if s_idx is not None and (p_idx is None or s_idx <= p_idx):
+                    out["pivot_first_touch"] = "stop"
+                    out["r_managed_pivot_10"] = -1.0
+                elif p_idx is not None:
+                    out["pivot_first_touch"] = "target"
+                    out["r_managed_pivot_10"] = out["pivot_t1_dist_r"]
+                else:
+                    out["pivot_first_touch"] = "timeout"
+                    out["r_managed_pivot_10"] = out.get("r_close_10", np.nan)
+            else:
+                out["pivot_first_touch"] = "none"
+                out["r_managed_pivot_10"] = np.nan
             a = atr[i - 1]
             third, strict = shape_flags(setup, direction)
             pw, pm = part.get("W", {}), part.get("M", {})

@@ -246,3 +246,51 @@ For the owner's rule-making: the data supports "a trade that has not shown +0.5R
 first day is a laggard" as a description, not as an exit rule; the money the rule saves is
 small because the mark has already moved. The first-excursion split (+0.085R vs -0.23R) is
 the stronger lead, and it needs 15-minute bars to be believed.
+
+## 11. The pivot ladder (2026-10-20, owner: "this is where the drift is")
+
+The owner's live Pine (TheStrat Magnitude + Targets) projects T1 = the reclaim level (the anchor
+bar's wick) and T2.. = the prior highs / lows NOT yet taken out, nearest first, up to 250 bars
+back. The daily research line (TVB-37/38) kept only the week's and month's levels ("no daily
+pivots" ruling) and the Pine never trades the bare 2-2 continuation at all (40% of the rows
+here). The Pine ladder is now ported to the daily rows in `events.py` (`pivot_ladder`, the
+paper engine's Pine-exact construction; reach convention from the TVB-22 ladder census;
+columns `pivot_*`, `h_rung1..3`, `r_managed_pivot_10`); reader `pivot_ladder.py`; tables
+`reports/pivot_ladder_2026-10-20.md`.
+
+- **How far price climbs.** Six rungs exist on 97% of rows. Within 10 daily bars the
+  favourable extreme reaches rung 1 on 81%, rung 2 on 64%, rung 3 on 50%, rung 4 on 38%;
+  mean 2.8 rungs. Median hours to rung 1 / 2 / 3: 6 / 27 / 50. Inside breaks climb fastest
+  (rung 1 at a median 4 hours), reversals slowest (11 hours; their rung 1 is the anchor,
+  further away at 0.44R). Stable year to year (2.7 to 3.0 rungs).
+- **The 60,715 rows the TVB-37 ladder left without a target** get a rung from the Pine on
+  45,713, and 60% of those reach it within 10 bars (median R:R 0.33).
+- **The Pine's T1 against the TVB-37 T1, same rows, same stop, same walk.** Identical for
+  every reversal (100% the same level). For the continuation, the with-trend inside break and
+  the outside break the Pine's T1 is the nearest untaken daily extreme (R:R 0.32 vs 1.44),
+  touched 72% vs 40%, and the managed mean R improves by +0.01 to +0.07 (1-1-2 stacked inside
+  +0.066, 2-1-2 continuation +0.047, 2-2 continuation +0.014) while staying at or below zero
+  (-0.004 to -0.016). The owner's open A3 question (mother bar's far side as T1 for the
+  with-trend inside break): on these rows it lifts the inside family from -0.030 to -0.009R
+  and the hit rate from 55% to 71%. Reading: the ladder gives every break a near target and
+  makes the book flatter and more frequent; it does not make it positive per R.
+
+## 12. The overfit and underfit ticker census (2026-10-20, owner's ask; labelled, never a promotion)
+
+`ticker_census.py`; `reports/ticker_census_2026-10-20.md`. 384 coins with 500+ rows.
+
+- **The yardstick.** A coin with 1,000 rows and no edge shows a mean R anywhere within about
+  +-0.07 by chance. The top of the table (GUN +0.107, SONIC +0.105, CETUS +0.100, all ~500
+  rows, z 1.8 to 2.1; SOLUSDT +0.066 on 2,008 rows, z 2.6, the most credible) sits at the
+  edge of that noise. The overfit end is barely distinguishable from luck.
+- **The underfit end is real.** USDCUSDT -0.233R (z -7.3) is a stablecoin perp: a universe
+  hygiene miss, its "yesterday's high" is noise with a tiny R; exclude stables from the next
+  build (`STABLES` in ticker_census.py). Behind it a genuine tail: SFP -0.117 (z -5.1), AGLD
+  -0.128 (z -4.3), BAN -0.159 (z -4.2), TST, HEI (z -4). A losing coin is far more reliably
+  identifiable than a winning one, which is the same asymmetry the model showed (it ranks
+  losers, not winners) and the same one the stop comparison showed.
+- **Diversity vs momentum.** Across coins, mean R vs the effective number of patterns r =
+  -0.21 and vs the continuation share r = +0.23: the coins that did best were the ones that
+  trended (more 2-2 continuations), not the ones that printed the most varied patterns. The
+  owner's suspicion ("or were we just trading momentum really") reads as yes. The most
+  pattern-diverse coins (USDC, FOOTBALL, GPS, PAXG) are mostly the losers.

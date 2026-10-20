@@ -89,7 +89,20 @@ cloud container, no Railway)
   flag; (4) the chop counter (reversals since the last target hit) as a symbol-level regime
   feature. The BF harvest exit belongs to the TFC indicator, not this Pine, and cannot be read
   from the table without the BF line logic.
-- **STOP-and-ASK for the owner before more code:** pull 15-minute klines for the universe (same
+- **PR #3 opened on the owner's word** (https://github.com/sheehyct/Tradingview-Backtesting/pull/3):
+  the whole vessel, branch ccr-84c65430-bqc01u into main.
+- **Pivot ladder ported (owner: "this is where the drift is"):** the Pine's ladder on the daily
+  rows (`events.py:pivot_ladder`, `pivot_ladder.py`). Rung 1 reached 81%, rung 2 64%, rung 3 50%
+  within 10 bars, mean 2.8 rungs; the Pine's T1 gives 45,713 of the 60,715 no-target rows a
+  target and lifts the continuation / inside cells by +0.01..+0.07R, all still at or under
+  zero. The A3 question (mother bar as T1 for the with-trend inside break) has its number:
+  inside family -0.030 -> -0.009R, hit rate 55% -> 71%. Design doc section 11.
+- **Ticker census (owner's ask, labelled overfit):** the top coins sit at the edge of noise
+  (z about 2), the bottom coins are real (z -4 to -7); the best coins are the trending ones
+  (continuation share r +0.23), not the pattern-diverse ones. USDCUSDT is a stablecoin perp in
+  the universe: exclude stables on the next build. Design doc section 12.
+- **STOP-and-ASK for the owner before more code:** exclude stablecoin perps from the
+  universe (USDC, FDUSD, BUSD, TUSD, USDP, DAI, USD1)? pull 15-minute klines for the universe (same
   file count as 1h, 4x rows, ~2.5 h) to settle the first-excursion question? Make the blue-sky cell a declared arm in
   the domino book (wider stop / no-stop clock)? Pull metrics (OI, taker ratio) for the alts the
   trigger table uses? The with-trend inside break's T1 ruling is still open (ladder used).
