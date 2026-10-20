@@ -166,6 +166,115 @@ TVB numbering untouched; the TVB-40 startup prompt still governs the main thread
 
 ---
 
+## Session TVB-40: the charting upgrade: the amCharts trade viewer, built as a two-builder design-off and promoted (COMPLETE)
+
+**Date:** 2026-10-14 to 2026-10-17
+**Status:** COMPLETE on the owner's call of 2026-10-17 ("I say move forward with this ...
+pushing this out first would be the ideal scenario just to be able to trade review quicker,
+though I would include the universe for comparison"). Two builders prototyped the same thing in
+parallel, each in its own folder (CLAUDE `proto_claude/`, CODEX `proto_codex/`); the owner
+reviewed both and chose CLAUDE's ("night and day"). `analysis/domino/viewer/` is now that page;
+the TVB-39 lightweight-charts page is retired (in git history to da7f4c2). The page's receipt is
+`analysis/domino/viewer/NOTES.md`; the viewer section of `MANAGE_RECEIPT.md` points to it.
+`proto_codex/` is untracked and untouched (the owner may still take ideas from it).
+
+### What was accomplished
+
+- **Round one (e79f8d3, 2026-10-14)**: the reference rows on amCharts 5 Stock Chart (data
+  grouping off), the library's drawing toolbar with its own save / restore per coin, System
+  levels as read-only axis ranges, the week's and month's closed-bar STRAT type as chips (R10
+  operators, checked in Python), drawings proven across reload and timeframe switches.
+- **Round two (da7f4c2, 2026-10-15), the design-off**: a calendar (census weeks, equal-size
+  dollars per entry day, week totals, year strip) and a sortable trade table in place of the
+  card strip; a facts strip; the trade narrated in trader language from the row (setup and
+  magnitude source, the plan with every touch day, what the book did and the exit-day test, the
+  other clocks, travel); a six-book ladder per trade; a Compare tab (KPI cards, overlaid equity,
+  distribution against the chance book, by-setup with D5 minus the chance book); a Playbook tab;
+  dual chart panes; stacked tags and markers. Compare figures cross-checked against Python on BTC.
+- **Promotion (this session, 2026-10-17)**: the page moved to `viewer/`; `trade_viewer build`
+  vendors amCharts 5 (the CDN needs a browser-like agent) and writes `data/universe.json`
+  (every coin's rows, columnar, 15 MB) so the Compare tab and the all-coins calendar have a
+  universe scope with every book and every filter; the universe figures agree with the engine's
+  CSV in pandas to the printed precision (returns stored to three decimals); the magnet ray is
+  back as a magnet mode that drops the library's own Horizontal Line at the nearest open / high /
+  low / close (saved, moved and erased with the other drawings; proven exact on BTC 03-25);
+  `test_domino_viewer` reads the calendar functions from `core.js`. Ruff clean, 372 passed, 2
+  skipped.
+
+### Context for next session
+
+- The viewer is `analysis/domino/viewer/`: `uv run python -m analysis.domino.trade_viewer serve`
+  (port 8765, opens the browser); from the laptop, `serve --no-open` on the desktop and
+  `ssh -L 8765:127.0.0.1:8765 <desktop>` then `http://127.0.0.1:8765/`; on a machine without
+  `viewer/data/`, `build --as-of 2026-10-10` first (and `hourly --as-of 2026-10-10 all` for the
+  1H view, ~9 min). `build` also vendors amCharts and writes the universe table.
+- The page reads rows and never computes them; `core.js` holds the TVB-39 row logic as it was,
+  so the TVB-39 audit's viewer findings (F4 the reconstructed fill price as an exact touch
+  threshold with a first-candle fallback, F5 the reference stop exit drawn at the end of the
+  day, F6 the silent book-C fallback when the selected book has no result, F7 the stack class
+  label) carry over to this page until they are adjudicated.
+- Drawings live in browser storage per coin and pane (`am5-stock-domino-<coin>-drawings`,
+  `...-<coin>-b-drawings`); the retired page's rays (`domino-viewer-rays:<coin>`) are not read.
+- `proto_codex/` is untracked and untouched; `User_Notes.md` stays untracked.
+- HANDOFF.md is over the 1,500-line limit at close (1,556 lines); archiving waits for the
+  owner's word.
+
+### Files created/modified
+
+- `analysis/domino/viewer/`: `index.html`, `app.js`, `core.js`, `story.js`, `stats.js` (the
+  page), `NOTES.md` (its receipt), `shots/` (17 PNGs); the TVB-39 `index.html` / `app.js` removed
+- `analysis/domino/trade_viewer.py` (amCharts vendor fetch with a browser-like agent,
+  `universe_table`, docstring)
+- `tests/test_domino_viewer.py` (reads the calendar functions from `core.js`)
+- `analysis/domino/MANAGE_RECEIPT.md` (viewer section: the promotion paragraph)
+- `.gitignore` (the proto_claude vendor line removed; `proto_codex/vendor/` ignored)
+- `docs/HANDOFF.md`, `docs/reviews/REVIEW_REQUEST.md`, `.session_startup_prompt.md`
+- `docs/reviews/tvb39-codex-audit.md` committed as returned (captured 2026-10-14; the
+  synthesis is the next session's first item)
+
+### Open
+
+- [ ] TVB-39 Codex audit synthesis: F1 HIGH (the hourly entry accepts equality and can exit
+      before the trade exists), F2-F8 MEDIUM; agree / dispute / act in HANDOFF, fold, rerun
+      `manage` if the engine changes, then `trade_viewer build`
+- [ ] The with-trend inside break's T1 STOP-and-ASK (the owner rules; amendment A3 before code)
+- [ ] Viewer: a journal layer (a note and a one-tap verdict per row, on the calendar and the table)
+- [ ] Viewer: one drawing slot across both panes; the retired page's rays imported once
+- [ ] Viewer: an hourly archive beyond the venue's ~208 days
+- [ ] HANDOFF.md archive (over the limit; the owner's word)
+- [ ] `proto_codex/` disposition (delete, or keep for ideas; the owner's call)
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb40-codex-audit.md.
+> See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: `9f6c5c8..2c7fe1c` on `main` (9f6c5c8 is the pre-session sha, so the
+  range holds e79f8d3 round one, da7f4c2 round two and 2c7fe1c the promotion; it also contains
+  the two maintenance pull requests merged 2026-10-16 (45f83fc, 2dde483, 706cb3d, 46de307:
+  cloud hooks and the safety guard, with their own HANDOFF entries), which are not viewer
+  work; the session-end docs commit after 2c7fe1c is docs only). Sanity-check:
+  `git diff --name-status 9f6c5c8..2c7fe1c` lists every file the session touched.
+- Scope / what changed: a new viewer page on amCharts 5 (five files, a receipt, proof shots),
+  the build script's vendor fetch and universe table, one test path, the receipt's viewer
+  paragraph. No engine, prereg or results change.
+- Focus areas (scrutinize these): the founding rule (`core.js` `settle` / `tradeSpan` /
+  `stackLevels` / `setupDays` against the TVB-39 `app.js` and the row semantics, including the
+  TVB-39 audit's F5-F7, which this page inherits); `stats.js` arithmetic (drawdown order,
+  target and days semantics per book, histogram bins) against `manage.py`; `story.js` claims
+  per book against the row columns (`hit_X`, `days_X`, `out5`, `exit_k_u`, the exit-day test,
+  the Monday one-test case) and the closed-bar chip definition (R10, closed bars only);
+  `universe_table` (code books, -1 sentinels, three-decimal rounding, day numbers) and its
+  decoding in `fromUniverse`; the magnet's coordinate math (`toAxisPosition` over
+  `axisLength`) and the proof flag; the Playbook's receipt numbers; hygiene (vendor and data
+  gitignored, the CDN agent string, no private link in the repo, `proto_codex/` untracked).
+- Reviewed by: pending
+- Findings: {blank until docs/reviews/tvb40-codex-audit.md exists}
+
+---
+
 ## Maintenance 2026-10-16, later (not a TVB session): safety guard now protects the project folder from rm -rf (COMPLETE)
 
 **Date:** 2026-10-16
@@ -250,6 +359,9 @@ them from settings.local.json in the same step or they will run twice.
 - The real suite on Linux (Ubuntu 24.04, fresh clone of main da7f4c2,
   `uv run pytest tests/ -q`): 372 passed, 2 skipped in 9.2 s, so the cloud gate
   does not trap sessions on a Windows-only test.
+
+---
+
 
 ---
 
@@ -431,7 +543,7 @@ out". The owner's first pass is BEGUN, not finished.
 > below) and write a verbatim assessment to docs/reviews/tvb39-codex-audit.md.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: REQUESTED
+- Review status: RETURNED (docs/reviews/tvb39-codex-audit.md, captured 2026-10-14; critical synthesis pending)
 - Commits to review: `4dc5f6b..30391fb` on `main` (4dc5f6b is the pre-session sha; the range
   is dbeaffe, f505f9d, 340c86e, ed08ae5, 7f3fc88, 30391fb close-out; the sha-pin commit after
   it is docs only). Sanity-check: `git diff --name-status 4dc5f6b..30391fb` lists every file
@@ -452,7 +564,7 @@ out". The owner's first pass is BEGUN, not finished.
   `stackLevels()` (previous complete bar's extreme per stack timeframe; checked equal to every
   row's `level` for its own timeframe) and the claim of re-running no trade logic; the "data
   ends" marker fix.
-- Reviewed by: pending
+- Reviewed by: Codex, local source review + offline replay, 2026-10-14
 - Findings: {blank until docs/reviews/tvb39-codex-audit.md exists}
 
 ### Open

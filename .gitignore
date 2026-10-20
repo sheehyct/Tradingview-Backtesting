@@ -114,4 +114,4 @@ analysis/domino/results/manage_run.log
 
 # TVB-39 trade viewer: vendored chart library (re-fetched by `trade_viewer build`) and its data
 analysis/domino/viewer/vendor/
-analysis/domino/viewer/proto_claude/vendor/
+analysis/domino/viewer/proto_codex/vendor/

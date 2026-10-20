@@ -11,11 +11,16 @@ day, the targets, the touch days and the exit day are read off the row as the en
 
 `build` writes one compact JSON per coin into `viewer/data/` (gitignored, regenerable): the
 closed daily bars exactly as the census normalised them, any cached hourly bars, and that
-coin's trade rows. `hourly` fetches the venue's 1h candles (at most the most recent 5000, about
-208 days) into the same cache the census uses, stamped with the as-of day, so a later `build`
-picks them up. `serve` hosts `viewer/` on localhost (the page fetches JSON, which file:// forbids)
-and opens the browser. Weekly and monthly candles are aggregated in the page from the daily
-bars with the census's calendar rules (Monday 00:00 UTC weeks, calendar months).
+coin's trade rows; plus `index.json`, `dates.json` (every entry day's trades across coins) and
+`universe.json`, one columnar table of every coin's rows (the fields the page's Compare tab and
+calendar read) for the page's universe scope. `hourly` fetches the venue's 1h candles (at most
+the most recent 5000, about 208 days) into the same cache the census uses, stamped with the
+as-of day, so a later `build` picks them up. `serve` hosts `viewer/` on localhost (the page
+fetches JSON, which file:// forbids) and opens the browser. Weekly and monthly candles are
+aggregated in the page from the daily bars with the census's calendar rules (Monday 00:00 UTC
+weeks, calendar months). The chart library (amCharts 5, free tier, logo kept) is vendored into
+`viewer/vendor/amcharts5/` on the first `build` or `serve`. The page is the TVB-40 amCharts
+viewer (core.js / story.js / stats.js / app.js; `viewer/NOTES.md` is its receipt).
 """
 
 from __future__ import annotations
@@ -51,10 +56,27 @@ VIEWER = HERE / "viewer"
 DATA = VIEWER / "data"
 VENDOR = VIEWER / "vendor"
 TRADES = RESULTS / "manage_trades.csv.gz"
-LWC_URL = (
-    "https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"
-)
-LWC_FILE = VENDOR / "lightweight-charts.standalone.production.js"
+# amCharts 5 (free tier, logo kept): the CDN serves the current 5.x at these paths (5.21.1 when
+# the viewer was built, 5.21.2 when promoted); the four files the page loads, vendored once so
+# the page works offline
+AM5_BASE = "https://cdn.amcharts.com/lib/5/"
+AM5_FILES = ("index.js", "xy.js", "stock.js", "themes/Dark.js")
+AM5_DIR = VENDOR / "amcharts5"
+
+# the universe table's code books (small ints in the JSON; the page maps them back)
+UNI_EPOCH = datetime(2020, 1, 1, tzinfo=timezone.utc)
+UNI_CODES = {
+    "tf": ("D", "W", "M"),
+    "kind": ("reversal", "continuation", "inside", "outside"),
+    "dir": ("up", "down"),
+    "status": ("exit", "open", "censored"),
+    "out5": ("stop", "one_r", "neither", "censored"),
+    "cls": ("plain", "exact_shared", "exact_plain", "near", "within1", "spread"),
+    "flag": ("none", "third", "strict"),
+}
+UNI_RETS = ("ret_C", "ret_A", "ret_B", "ret_D", "ret_D5", "ret5")
+UNI_HITS = ("hit_A", "hit_B", "hit_D", "hit_D5")
+UNI_DAYS = ("days_A", "days_B", "days_D", "days_D5", "days_ref")
 
 # the trade-row columns the page draws or filters on (everything else stays in the CSV)
 NUMERIC = (
@@ -179,13 +201,64 @@ def compact(bars: list[dict]) -> list[list[float]]:
 
 
 def ensure_vendor() -> None:
-    """The chart library, vendored once so the page works offline (Apache-2.0, TradingView)."""
-    if LWC_FILE.exists():
-        return
-    VENDOR.mkdir(parents=True, exist_ok=True)
-    print(f"fetching {LWC_URL}")
-    with urllib.request.urlopen(LWC_URL, timeout=60) as resp:  # noqa: S310 (fixed https URL)
-        LWC_FILE.write_bytes(resp.read())
+    """The chart library, vendored once so the page works offline (amCharts 5, free tier)."""
+    for name in AM5_FILES:
+        dest = AM5_DIR / name
+        if dest.exists():
+            continue
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        url = AM5_BASE + name
+        print(f"fetching {url}")
+        # the CDN answers 403 to urllib's default agent string; any browser-like agent is served
+        req = urllib.request.Request(
+            url, headers={"User-Agent": "Mozilla/5.0 (trade_viewer build)"}
+        )
+        with urllib.request.urlopen(req, timeout=60) as resp:  # noqa: S310 (fixed https URL)
+            dest.write_bytes(resp.read())
+
+
+def universe_table(trades: dict[str, list[dict]], coins: list[str]) -> dict:
+    """Every coin's rows as one columnar table for the page's universe scope: only the fields
+    the Compare tab and the calendar read (returns to three decimals, categories and flags as
+    small ints, -1 for a missing int), so 180k rows parse in a moment in the browser."""
+
+    def code(key: str, v) -> int:
+        table = UNI_CODES[key]
+        return table.index(v) if v in table else -1
+
+    cols: dict[str, list] = defaultdict(list)
+    for ci, coin in enumerate(coins):
+        for r in trades.get(coin, []):
+            d = datetime.strptime(r["date"], "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            cols["coin"].append(ci)
+            cols["date"].append((d - UNI_EPOCH).days)
+            cols["tf"].append(code("tf", r["tf"]))
+            cols["kind"].append(code("kind", r["kind"]))
+            cols["dir"].append(code("dir", r["direction"]))
+            cols["status"].append(code("status", r["status"]))
+            cols["out5"].append(code("out5", r["out5"]))
+            cols["cls"].append(code("cls", r["cls"]))
+            cols["flag"].append(code("flag", r["flag"]))
+            cols["liquid"].append(1 if r["liquid"] else 0)
+            cols["t1"].append(1 if r["t1"] is not None else 0)
+            k = r["exit_k"] if r["exit_k"] is not None else r["days"]
+            cols["exit_k"].append(-1 if k is None else int(k))
+            for key in UNI_RETS:
+                v = r[key]
+                cols[key].append(None if v is None else round(v, 3))
+            for key in UNI_HITS:
+                v = r[key]
+                cols[key].append(-1 if v is None else int(v))
+            for key in UNI_DAYS:
+                v = r[key]
+                cols[key].append(-1 if v is None else int(v))
+    return {
+        "epoch": UNI_EPOCH.strftime("%Y-%m-%d"),
+        "coins": coins,
+        "codes": UNI_CODES,
+        "n": len(cols["coin"]),
+        "cols": dict(cols),
+    }
 
 
 def build(as_of_ms: int) -> None:
@@ -239,10 +312,13 @@ def build(as_of_ms: int) -> None:
         )
     with open(DATA / "dates.json", "w") as fh:
         json.dump(dates, fh, separators=(",", ":"))
+    uni = universe_table(trades, [c["coin"] for c in index])
+    with open(DATA / "universe.json", "w") as fh:
+        json.dump(uni, fh, separators=(",", ":"))
     n_h = sum(1 for c in index if c["hourly"])
     print(
         f"viewer built: {len(index)} coins, {sum(c['n'] for c in index)} trades, "
-        f"{n_h} coins with hourly bars -> {DATA}"
+        f"{n_h} coins with hourly bars, universe table of {uni['n']} rows -> {DATA}"
     )
 
 
