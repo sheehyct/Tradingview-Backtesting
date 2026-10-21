@@ -16,8 +16,9 @@ here; where it and this file overlap, the charter wins.
 - **`pine_new` / `pine_open` do not rebind the editor tab.** A later `pine_save` overwrites
   whatever script the user last had open (BF-1 was destroyed this way 2026-07-10). Create via the
   Make-a-copy UI flow; before saving verify a NEW script id and unchanged modified-stamps.
-- **`uv sync` strips VectorBT Pro.** It lives in `.venv` but deliberately NOT in `pyproject.toml`
-  (licensed). README's `uv sync` removes it; reinstall from the cached wheel.
+- **VectorBT Pro is RETIRED (owner, 2026-10-17): the licence is not renewed and no code imports
+  it.** `uv sync` is safe; do not reinstall it. If a task ever needs vectorbt, the free
+  `vectorbt` is a fresh install decision for the owner, not a default.
 - **`strategy.closedtrades.profit()` is GROSS of commission.** State gross-vs-net in every fee /
   PF / parity claim; Pine, the companion, and the Python twin have disagreed here.
 - **`request.security` lookahead.** The trap is *un-offset* `lookahead_on`. The approved

@@ -5,6 +5,173 @@
 
 ---
 
+## Side thread 2026-10-20 (not a TVB session): STRAT ML research vessel, Phases 2-5 run to the end (COMPLETE)
+
+**Date:** 2026-10-20 (cloud session, branch ccr-84c65430-bqc01u; owner's word: run it to the end,
+cloud container, no Railway)
+**Status:** COMPLETE for the spec's v0.1 pipeline. Everything is exploratory; nothing is promoted.
+
+- **Read first:** `docs/experiments/strat_ml_phase2_events_design.md` (definitions declared before
+  the build; section 8 = the first read-out) and the report
+  `analysis/strat_ml/reports/strat_ml_report_2026-10-20.html` (self-contained, phone-readable,
+  plain-words explainer on every section; also published as a claude.ai page for the owner).
+- **Built:** `analysis/strat_ml/events.py` (one row per coin, day, direction; the census
+  strict-break classifier and calendar reused; TVB-37 R and magnitude ladder; point-in-time
+  week / month / 4H context; hourly-resolved outcomes at 1 / 3 / 5 / 10 daily bars, stop-first
+  on ties), `analysis/strat_ml/report.py` (baseline tables with counts and Wilson bands, k-means,
+  LightGBM + SHAP on a 2025-01-01 time split, depth-3 tree, HTML), 9 hand-vector tests.
+  565,687 rows in 77 s; the report in 72 s. Cache (events.parquet) is per-container; the
+  roster and the summary JSONs are committed.
+- **Findings (hypotheses):** (1) a look-ahead feature was caught by ranking too high and is now
+  excluded; (2) target-before-stop is mostly target distance, so the money question is modelled
+  on context only; (3) context ranks the losers (bottom decile -0.25R on 2025-26) far better
+  than the winners (top decile +0.03R); BTC's realized-vol percentile is the top feature;
+  (4) the blue-sky break (no week / month level beyond the entry; 59k rows) loses -0.11R with
+  the setup-bar stop hit 61% of the time, while its unmanaged view is slightly positive: a
+  stop-placement question, the TVB-37 suspect again; (5) majors and alts look alike per pattern
+  within their bands, but majors are two coins and the test period is 99.6% alts.
+- **Stop head-to-head DONE (owner's ask, same day):** `events build --stop-mode bar0` + 
+  `compare_stops.py`. On the same 119,926 inside-break rows the bar-0 stop (0.84 ATR median)
+  lifts the win rate from 54% to 62% and cuts stop-outs from 45% to 35%, and the mean return
+  per trade is -0.2% of price under BOTH stops; whole book -0.3% under both. The stop shapes
+  the loss, it does not remove it. Design doc section 9; `reports/stop_compare_2026-10-20.md`.
+- **Excursion clock DONE (owner's question, same day):** new columns (`h_fav_x`, `h_adv_x`,
+  `first_excursion`, `mfe/mae/r_close_{6,12,24,48,72}h`) and `excursion.py`. Half of triggers
+  show +0.25R within 6 h; a time-stop rule saves ~0.02R per laggard because the mark already
+  carries the loss; the first-excursion split (+0.085R vs -0.23R) is the lead but the trigger
+  hour's own low is an artefact that needs 15-minute bars. `tfc_score` = 1 is the blue-sky
+  set by construction. Design doc section 10.
+- **The lead's read of the whole book, 2026-10-20 (owner asked "what would you change, what
+  would you test next"; advice, not rulings; grounded in the event table):**
+  (1) The setup-bar stop (median 0.74 ATR) sits inside the daily noise: the median trade is
+  0.9R against by day 3 and 1.6R by day 10. With no stop at all the book marks +0.09R (alts) /
+  +0.23R (majors) at 10 bars against -0.03R managed, median still negative: the same shape
+  TVB-38 found on Hyperliquid (+0.5..0.9 per trade from the stop swap). Widening to bar 0
+  does not change the expectancy; removing the price stop does, and buys a tail.
+  (2) The blue-sky break (no week / month level beyond the entry) is the worst cell WITH the
+  stop (-0.10..-0.17R, stopped 59-74%) and the best cell WITHOUT it (+0.09R continuation,
+  +0.30R inside break, unmanaged). The stop is chopping out the trend trades.
+  (3) The owner's hazard (lower-timeframe entries inside higher-timeframe inside bars) does
+  NOT show in the aggregate: month-inside / week-inside is the flattest cell (0.00R, n 103k);
+  the bad cells are extension (month 2U with week 2U -0.09R, week 3 -0.14R). A confirmation-
+  bias check the owner asked for in their preferences.
+  (4) BTC's 30-day realized-vol percentile is the strongest regime feature: top decile -0.09R
+  managed / -0.10R unmanaged, bottom decile +0.24R unmanaged.
+  (5) Longs and shorts flip sign by year (2021 longs +0.09R, 2022 shorts +0.11R, 2025 longs
+  -0.13R): the year's trend, not the pattern.
+  What the lead would test next, in order, each a declared arm, never a pick: (a) replicate
+  the TVB-37/38 chance book and management book rule-for-rule on the Binance table (different
+  venue, 2020-2026, dead coins in) to see whether the stop-swap lift and the stacked
+  continuation survive out of venue; (b) a pre-committed skip-list arm (skip blue-sky breaks,
+  skip BTC top-vol-decile days) against the control, in the ablation shape; (c) the no-stop
+  book with a declared tail rule (the hourly clock or an ATR-scaled disaster stop at 2-3 ATR)
+  since the tail is the price of (1); (d) 15-minute bars to settle the first-excursion split.
+  Not worth more time: exit clocks (the hourly, under-water and time-stop variants all move
+  the book by a few hundredths of an R).
+- **The original Pine (TheStrat Magnitude + Targets, the owner's live indicator) read against the
+  table, 2026-10-20 (owner's ask; thoughts, not rulings):** its "star" (high-conviction) setups
+  cut from the daily rows: Shot-Gun 2-2-2 (42k rows: 71% win, target-first 70%, mean -0.00R,
+  median reward-to-risk 0.38), 1-2-2 rev strat (32k: 72% win, -0.03R, R:R 0.31), 1-3-2 (15k:
+  48% win, -0.05R), 3-2 Boom on a hammer / shooter proxy (2.2k: 52%, -0.07R), 1-3 one-bar rev
+  strat (18.7k; the setup-bar stop is ALREADY inside the day's range for a 1-3, so its -0.14R is
+  a stop artefact; rerun on the bar-0 file). Star vs the rest: 64% win vs 52%, the same money
+  (-0.04R vs -0.03R managed, +0.09R both unmanaged); unmanaged, the stars beat the rest in
+  2020-22 and lost to it in 2023-25. Reading: the high-conviction patterns win MORE OFTEN
+  because their targets are the reversal anchor (closer), not because they pay more per unit
+  of risk; win rate is what a discretionary trader feels.
+  Parts of the Pine that the daily research line never carried, each testable on the table:
+  (1) the pivot ladder beyond T1 (prior highs / lows not yet taken out, nearest first, 250 bars
+  back): the management book holds week / month levels only ("no daily pivots" ruling) and
+  59,130 rows have NO target at all; (2) the Potential-3 / invalidation status (the other side
+  of the setup bar breaks AFTER entry): the table carries both triggers' hours, so "exit at the
+  hour the other side breaks" is a declared exit arm against the stop, cheap to run; (3) the
+  2-1-2 momentum filter (inside bar in the upper / lower half of the prior 2's range) as a
+  flag; (4) the chop counter (reversals since the last target hit) as a symbol-level regime
+  feature. The BF harvest exit belongs to the TFC indicator, not this Pine, and cannot be read
+  from the table without the BF line logic.
+- **PR #3 opened on the owner's word** (https://github.com/sheehyct/Tradingview-Backtesting/pull/3):
+  the whole vessel, branch ccr-84c65430-bqc01u into main.
+- **Pivot ladder ported (owner: "this is where the drift is"):** the Pine's ladder on the daily
+  rows (`events.py:pivot_ladder`, `pivot_ladder.py`). Rung 1 reached 81%, rung 2 64%, rung 3 50%
+  within 10 bars, mean 2.8 rungs; the Pine's T1 gives 45,713 of the 60,715 no-target rows a
+  target and lifts the continuation / inside cells by +0.01..+0.07R, all still at or under
+  zero. The A3 question (mother bar as T1 for the with-trend inside break) has its number:
+  inside family -0.030 -> -0.009R, hit rate 55% -> 71%. Design doc section 11.
+- **Ticker census (owner's ask, labelled overfit):** the top coins sit at the edge of noise
+  (z about 2), the bottom coins are real (z -4 to -7); the best coins are the trending ones
+  (continuation share r +0.23), not the pattern-diverse ones. USDCUSDT is a stablecoin perp in
+  the universe: exclude stables on the next build. Design doc section 12.
+- **Equity perps two ways (owner: "the one thing we did not test"):** the xyz dex's 115 perps
+  fetched through the census's own fetcher (`hl_fetch.py`, ~208 days of hourly bars, roster
+  `xyz_summary.json`), the builder given `--session calendar|rth` and `--roster`. US-listed
+  perps on the UTC day: -0.096R (the worst cell in the vessel; 2,177 of 9,925 breaks in the
+  20:00 NY roll hour). The NY regular session as the STRAT bar: +0.117R, 56% win, every
+  family flips sign, +0.3% of price per trade before fees. The first positive cell in the
+  vessel, on a 7-month, 76-name, cross-correlated sample: a lead, not a finding. Design doc
+  section 13 lists the declared next tests (paired bars-vs-hours, the daily-candle window back
+  to listing, a monthly refetch).
+- **PR #3 close-out (2026-10-20):** main (TVB-40) merged into the branch, the HANDOFF conflict
+  resolved by keeping both entry sets; Codex's four PR findings (partial-download build, hourly
+  gaps inside the outcome window, winsorization bounds leaking test labels, a denominator
+  mismatch) fixed in 884e2cf, every receipt rebuilt (numbers within rounding), threads answered
+  and resolved; `page.py` now assembles the phone page from the receipts. The PR reads clean
+  and waits only on the owner's merge.
+- **STOP-and-ASK for the owner before more code:** exclude stablecoin perps from the
+  universe (USDC, FDUSD, BUSD, TUSD, USDP, DAI, USD1)? pull 15-minute klines for the universe (same
+  file count as 1h, 4x rows, ~2.5 h) to settle the first-excursion question? Make the blue-sky cell a declared arm in
+  the domino book (wider stop / no-stop clock)? Pull metrics (OI, taker ratio) for the alts the
+  trigger table uses? The with-trend inside break's T1 ruling is still open (ladder used).
+- **Dependencies:** lightgbm, shap, scikit-learn added to pyproject (uv sync is safe; VectorBT
+  Pro retired 2026-10-17).
+
+---
+
+## Side thread 2026-10-17 (not a TVB session): STRAT ML research vessel, Phase 1 data layer (COMPLETE)
+
+**Date:** 2026-10-17 (cloud session, branch ccr-84c65430-bqc01u)
+**Status:** COMPLETE for Phase 1 of the owner's `STRAT_ML_RESEARCH_SPEC.md` v0.1: data
+acquisition only. Exploratory research, nothing deployed. No event detection, no bar
+classification written (the owner's rule: reuse the existing classifier when Phase 2 starts).
+TVB numbering untouched; the TVB-40 startup prompt still governs the main thread.
+
+- **Plan and findings:** `docs/experiments/strat_ml_phase1_data_plan.md` (read this first).
+- **Code:** `analysis/strat_ml/binance_vision.py` (S3 listing, checksum-verified raw zip cache,
+  parquet build, point-in-time universe manifest; CLI `fetch` / `build` / `universe` / `status`),
+  13 offline tests in `tests/test_strat_ml_binance_vision.py`, thread log
+  `analysis/strat_ml/RESEARCH_LOG.md`. Cache under `analysis/strat_ml/data/` (gitignored).
+- **Archive facts (USDT-M, futures/um):** delisted perps ARE in the archive (SRM, LUNA, BTCST,
+  17 SETTLED stubs excluded); klines monthly from 2020-01 (daily from 2019-12-31; Sep-Dec 2019
+  absent), fundingRate monthly only from 2020-01, metrics daily only (5-minute rows) from
+  2021-12-01 for most names, BTCUSDT backfilled to 2020-09-01 with every row doubled.
+- **Finding that changes Phase 2:** Binance keeps publishing flat zero-volume files for dead
+  contracts (SRMUSDT: last real trade 2022-11-15, files to 2024-05; BTCSTUSDT frozen at one
+  price 2024-02 .. 2026-06). Delisting is read from volume (`last_traded` in each klines
+  manifest), never from file presence; the listing-based universe flag (31 of 900) is a floor.
+- **Test slice pulled:** BTC, ETH, LINK, DOGE, SOL, AVAX, SRM (delisted), 1h klines + funding,
+  full history, 1,070 files, zero errors; table in the plan doc section 5.
+- **Cloud-session gotcha:** `data.binance.vision` is refused by the egress proxy; the bucket
+  endpoint `s3-ap-northeast-1.amazonaws.com/data.binance.vision` works and the module tries
+  both in order. The live API is unreachable and never used.
+- **`uv add pyarrow`** touched pyproject/uv.lock: on the workstation reinstall VectorBT Pro
+  from the cached wheel after the next `uv sync` (standing gotcha).
+- **Full-universe pull DONE (owner's go-ahead, same day):** 900 USDT perps, 57,319 files,
+  0 errors, ~2.5 h; 160 symbols delisted by volume (the listing-based flag said 31), 108 of
+  them with a year or more of real history; the committed roster is
+  `analysis/strat_ml/universe_summary.json`; plan doc section 6 has the counts. The raw /
+  parquet cache (1.9 GB) is per-container: a later cloud session re-pulls (~2.5 h, free), or
+  the workstation runs the two CLI commands once and keeps it.
+- **Owner rulings 2026-10-17:** Phase 2 imports `analysis/domino/census.py:classify` (strict
+  break) with its calendar bucketing, not the scanner's EXP-013 code; VectorBT Pro is RETIRED
+  (licence not renewed, nothing imports it; CLAUDE.md gotcha rewritten; the workstation session
+  should save this to private memory); no Railway for pulls (cloud container or workstation).
+- **Remaining OPEN:** spec open decisions 1-2 and 4 assumed at their defaults (`analysis/domino/census.py:classify`
+  strict-break, prereg'd on perps, is the lead's suggestion; the pine-exact
+  `analysis/paper/patterns.py` and the scanner's EXP-013 code in the other workspace are the
+  alternatives); metrics (open interest, taker ratios)
+  not pulled for the universe (~1.3 M daily files; pull for the trigger subset in Phase 2).
+
+---
+
 ## Session TVB-40: the charting upgrade: the amCharts trade viewer, built as a two-builder design-off and promoted (COMPLETE)
 
 **Date:** 2026-10-14 to 2026-10-17

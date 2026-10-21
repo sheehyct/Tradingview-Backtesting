@@ -1,0 +1,1048 @@
+{
+ "built_at": "2026-10-20T12:11:33+00:00",
+ "by_class": {
+  "commodity_fx": 11,
+  "non_us_listed": 16,
+  "unknown": 11,
+  "us_listed": 77
+ },
+ "rows": {
+  "XYZ_AAOI": {
+   "bars": 1509,
+   "first_bar": "2026-08-18T16:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:AAOI",
+   "zero_volume_hours": 10
+  },
+  "XYZ_AAPL": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:AAPL",
+   "zero_volume_hours": 1
+  },
+  "XYZ_AMAT": {
+   "bars": 2711,
+   "first_bar": "2026-06-29T14:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:AMAT",
+   "zero_volume_hours": 34
+  },
+  "XYZ_AMD": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:AMD",
+   "zero_volume_hours": 6
+  },
+  "XYZ_AMZN": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:AMZN",
+   "zero_volume_hours": 1
+  },
+  "XYZ_ARM": {
+   "bars": 3645,
+   "first_bar": "2026-05-21T16:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:ARM",
+   "zero_volume_hours": 15
+  },
+  "XYZ_ASML": {
+   "bars": 3455,
+   "first_bar": "2026-05-29T14:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:ASML",
+   "zero_volume_hours": 53
+  },
+  "XYZ_AVGO": {
+   "bars": 3335,
+   "first_bar": "2026-06-03T14:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:AVGO",
+   "zero_volume_hours": 8
+  },
+  "XYZ_BABA": {
+   "bars": 5000,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T11:00:00+00:00",
+   "last_traded": "2026-10-20T11:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:BABA",
+   "zero_volume_hours": 61
+  },
+  "XYZ_BB": {
+   "bars": 3523,
+   "first_bar": "2026-05-26T18:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:BB",
+   "zero_volume_hours": 26
+  },
+  "XYZ_BE": {
+   "bars": 2877,
+   "first_bar": "2026-06-22T16:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:BE",
+   "zero_volume_hours": 9
+  },
+  "XYZ_BIRD": {
+   "bars": 4485,
+   "first_bar": "2026-04-16T16:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "unknown",
+   "venue_coin": "xyz:BIRD",
+   "zero_volume_hours": 504
+  },
+  "XYZ_BMNR": {
+   "bars": 1098,
+   "first_bar": "2026-09-04T19:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:BMNR",
+   "zero_volume_hours": 36
+  },
+  "XYZ_BOT": {
+   "bars": 2778,
+   "first_bar": "2026-06-26T19:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "unknown",
+   "venue_coin": "xyz:BOT",
+   "zero_volume_hours": 17
+  },
+  "XYZ_BRENTOIL": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "commodity_fx",
+   "venue_coin": "xyz:BRENTOIL",
+   "zero_volume_hours": 0
+  },
+  "XYZ_BX": {
+   "bars": 4049,
+   "first_bar": "2026-05-04T20:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:BX",
+   "zero_volume_hours": 675
+  },
+  "XYZ_CAMBRICON": {
+   "bars": 126,
+   "first_bar": "2026-10-15T06:00:00+00:00",
+   "last_bar": "2026-10-20T11:00:00+00:00",
+   "last_traded": "2026-10-20T11:00:00+00:00",
+   "session_class": "non_us_listed",
+   "venue_coin": "xyz:CAMBRICON",
+   "zero_volume_hours": 60
+  },
+  "XYZ_CBRS": {
+   "bars": 4140,
+   "first_bar": "2026-05-01T01:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "unknown",
+   "venue_coin": "xyz:CBRS",
+   "zero_volume_hours": 0
+  },
+  "XYZ_CL": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "commodity_fx",
+   "venue_coin": "xyz:CL",
+   "zero_volume_hours": 0
+  },
+  "XYZ_COIN": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:COIN",
+   "zero_volume_hours": 0
+  },
+  "XYZ_COPPER": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "commodity_fx",
+   "venue_coin": "xyz:COPPER",
+   "zero_volume_hours": 2
+  },
+  "XYZ_COST": {
+   "bars": 5000,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T11:00:00+00:00",
+   "last_traded": "2026-10-20T11:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:COST",
+   "zero_volume_hours": 1039
+  },
+  "XYZ_CRCL": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:CRCL",
+   "zero_volume_hours": 0
+  },
+  "XYZ_CRWD": {
+   "bars": 1502,
+   "first_bar": "2026-08-18T22:00:00+00:00",
+   "last_bar": "2026-10-20T11:00:00+00:00",
+   "last_traded": "2026-10-20T11:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:CRWD",
+   "zero_volume_hours": 71
+  },
+  "XYZ_CRWV": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:CRWV",
+   "zero_volume_hours": 72
+  },
+  "XYZ_CVX": {
+   "bars": 784,
+   "first_bar": "2026-09-17T18:00:00+00:00",
+   "last_bar": "2026-10-20T09:00:00+00:00",
+   "last_traded": "2026-10-20T09:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:CVX",
+   "zero_volume_hours": 317
+  },
+  "XYZ_CXMT": {
+   "bars": 2340,
+   "first_bar": "2026-07-15T01:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "non_us_listed",
+   "venue_coin": "xyz:CXMT",
+   "zero_volume_hours": 0
+  },
+  "XYZ_DELL": {
+   "bars": 3379,
+   "first_bar": "2026-06-01T18:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:DELL",
+   "zero_volume_hours": 49
+  },
+  "XYZ_DKNG": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:DKNG",
+   "zero_volume_hours": 1342
+  },
+  "XYZ_DRAM": {
+   "bars": 4053,
+   "first_bar": "2026-05-04T16:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "unknown",
+   "venue_coin": "xyz:DRAM",
+   "zero_volume_hours": 1
+  },
+  "XYZ_EBAY": {
+   "bars": 4029,
+   "first_bar": "2026-05-05T15:00:00+00:00",
+   "last_bar": "2026-10-20T11:00:00+00:00",
+   "last_traded": "2026-10-20T11:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:EBAY",
+   "zero_volume_hours": 853
+  },
+  "XYZ_EUR": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "commodity_fx",
+   "venue_coin": "xyz:EUR",
+   "zero_volume_hours": 87
+  },
+  "XYZ_EWJ": {
+   "bars": 5000,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T11:00:00+00:00",
+   "last_traded": "2026-10-20T11:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:EWJ",
+   "zero_volume_hours": 268
+  },
+  "XYZ_EWT": {
+   "bars": 3644,
+   "first_bar": "2026-05-21T17:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:EWT",
+   "zero_volume_hours": 426
+  },
+  "XYZ_EWY": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:EWY",
+   "zero_volume_hours": 2
+  },
+  "XYZ_EWZ": {
+   "bars": 4047,
+   "first_bar": "2026-05-04T22:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:EWZ",
+   "zero_volume_hours": 615
+  },
+  "XYZ_GBP": {
+   "bars": 3718,
+   "first_bar": "2026-05-18T15:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "commodity_fx",
+   "venue_coin": "xyz:GBP",
+   "zero_volume_hours": 1090
+  },
+  "XYZ_GEV": {
+   "bars": 1820,
+   "first_bar": "2026-08-05T17:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:GEV",
+   "zero_volume_hours": 343
+  },
+  "XYZ_GIGADEV": {
+   "bars": 2172,
+   "first_bar": "2026-07-22T01:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "non_us_listed",
+   "venue_coin": "xyz:GIGADEV",
+   "zero_volume_hours": 121
+  },
+  "XYZ_GLW": {
+   "bars": 331,
+   "first_bar": "2026-10-06T18:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:GLW",
+   "zero_volume_hours": 47
+  },
+  "XYZ_GME": {
+   "bars": 4069,
+   "first_bar": "2026-05-04T00:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:GME",
+   "zero_volume_hours": 171
+  },
+  "XYZ_GOLD": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "commodity_fx",
+   "venue_coin": "xyz:GOLD",
+   "zero_volume_hours": 0
+  },
+  "XYZ_GOOGL": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:GOOGL",
+   "zero_volume_hours": 0
+  },
+  "XYZ_HIMS": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:HIMS",
+   "zero_volume_hours": 260
+  },
+  "XYZ_HO": {
+   "bars": 468,
+   "first_bar": "2026-10-01T01:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "unknown",
+   "venue_coin": "xyz:HO",
+   "zero_volume_hours": 56
+  },
+  "XYZ_HOOD": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:HOOD",
+   "zero_volume_hours": 0
+  },
+  "XYZ_HYUNDAI": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "non_us_listed",
+   "venue_coin": "xyz:HYUNDAI",
+   "zero_volume_hours": 298
+  },
+  "XYZ_IBM": {
+   "bars": 3383,
+   "first_bar": "2026-06-01T14:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:IBM",
+   "zero_volume_hours": 80
+  },
+  "XYZ_INTC": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:INTC",
+   "zero_volume_hours": 0
+  },
+  "XYZ_IREN": {
+   "bars": 1511,
+   "first_bar": "2026-08-18T14:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:IREN",
+   "zero_volume_hours": 14
+  },
+  "XYZ_JP225": {
+   "bars": 4669,
+   "first_bar": "2026-04-09T00:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "non_us_listed",
+   "venue_coin": "xyz:JP225",
+   "zero_volume_hours": 196
+  },
+  "XYZ_JPY": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "commodity_fx",
+   "venue_coin": "xyz:JPY",
+   "zero_volume_hours": 52
+  },
+  "XYZ_KIOXIA": {
+   "bars": 2821,
+   "first_bar": "2026-06-25T00:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "non_us_listed",
+   "venue_coin": "xyz:KIOXIA",
+   "zero_volume_hours": 3
+  },
+  "XYZ_KORU": {
+   "bars": 1821,
+   "first_bar": "2026-08-05T16:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:KORU",
+   "zero_volume_hours": 0
+  },
+  "XYZ_KR200": {
+   "bars": 4667,
+   "first_bar": "2026-04-09T02:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "non_us_listed",
+   "venue_coin": "xyz:KR200",
+   "zero_volume_hours": 401
+  },
+  "XYZ_KSTR": {
+   "bars": 839,
+   "first_bar": "2026-09-15T13:00:00+00:00",
+   "last_bar": "2026-10-20T11:00:00+00:00",
+   "last_traded": "2026-10-20T11:00:00+00:00",
+   "session_class": "unknown",
+   "venue_coin": "xyz:KSTR",
+   "zero_volume_hours": 373
+  },
+  "XYZ_LITE": {
+   "bars": 4055,
+   "first_bar": "2026-05-04T14:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:LITE",
+   "zero_volume_hours": 10
+  },
+  "XYZ_LLY": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:LLY",
+   "zero_volume_hours": 468
+  },
+  "XYZ_LRCX": {
+   "bars": 333,
+   "first_bar": "2026-10-06T16:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:LRCX",
+   "zero_volume_hours": 173
+  },
+  "XYZ_LYTE": {
+   "bars": 1798,
+   "first_bar": "2026-08-06T15:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "unknown",
+   "venue_coin": "xyz:LYTE",
+   "zero_volume_hours": 181
+  },
+  "XYZ_MAGS": {
+   "bars": 1506,
+   "first_bar": "2026-08-18T18:00:00+00:00",
+   "last_bar": "2026-10-20T11:00:00+00:00",
+   "last_traded": "2026-10-20T11:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:MAGS",
+   "zero_volume_hours": 283
+  },
+  "XYZ_META": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:META",
+   "zero_volume_hours": 2
+  },
+  "XYZ_MINIMAX": {
+   "bars": 2989,
+   "first_bar": "2026-06-18T00:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "non_us_listed",
+   "venue_coin": "xyz:MINIMAX",
+   "zero_volume_hours": 33
+  },
+  "XYZ_MRNA": {
+   "bars": 1488,
+   "first_bar": "2026-08-19T13:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:MRNA",
+   "zero_volume_hours": 3
+  },
+  "XYZ_MRVL": {
+   "bars": 4052,
+   "first_bar": "2026-05-04T17:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:MRVL",
+   "zero_volume_hours": 14
+  },
+  "XYZ_MSFT": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:MSFT",
+   "zero_volume_hours": 0
+  },
+  "XYZ_MSTR": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:MSTR",
+   "zero_volume_hours": 0
+  },
+  "XYZ_MU": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:MU",
+   "zero_volume_hours": 1
+  },
+  "XYZ_NATGAS": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "commodity_fx",
+   "venue_coin": "xyz:NATGAS",
+   "zero_volume_hours": 3
+  },
+  "XYZ_NBIS": {
+   "bars": 3191,
+   "first_bar": "2026-06-09T14:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:NBIS",
+   "zero_volume_hours": 0
+  },
+  "XYZ_NCLD": {
+   "bars": 1796,
+   "first_bar": "2026-08-06T16:00:00+00:00",
+   "last_bar": "2026-10-20T11:00:00+00:00",
+   "last_traded": "2026-10-20T11:00:00+00:00",
+   "session_class": "unknown",
+   "venue_coin": "xyz:NCLD",
+   "zero_volume_hours": 204
+  },
+  "XYZ_NET": {
+   "bars": 1506,
+   "first_bar": "2026-08-18T19:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:NET",
+   "zero_volume_hours": 193
+  },
+  "XYZ_NFLX": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:NFLX",
+   "zero_volume_hours": 67
+  },
+  "XYZ_NOK": {
+   "bars": 3045,
+   "first_bar": "2026-06-15T16:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:NOK",
+   "zero_volume_hours": 113
+  },
+  "XYZ_NOW": {
+   "bars": 3310,
+   "first_bar": "2026-06-04T15:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:NOW",
+   "zero_volume_hours": 185
+  },
+  "XYZ_NVDA": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:NVDA",
+   "zero_volume_hours": 0
+  },
+  "XYZ_ORCL": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:ORCL",
+   "zero_volume_hours": 24
+  },
+  "XYZ_OURA": {
+   "bars": 640,
+   "first_bar": "2026-09-23T16:00:00+00:00",
+   "last_bar": "2026-10-20T07:00:00+00:00",
+   "last_traded": "2026-10-20T07:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:OURA",
+   "zero_volume_hours": 88
+  },
+  "XYZ_PALLADIUM": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "commodity_fx",
+   "venue_coin": "xyz:PALLADIUM",
+   "zero_volume_hours": 304
+  },
+  "XYZ_PLATINUM": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "commodity_fx",
+   "venue_coin": "xyz:PLATINUM",
+   "zero_volume_hours": 43
+  },
+  "XYZ_PLTR": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:PLTR",
+   "zero_volume_hours": 1
+  },
+  "XYZ_PURRDAT": {
+   "bars": 3810,
+   "first_bar": "2026-05-14T19:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "unknown",
+   "venue_coin": "xyz:PURRDAT",
+   "zero_volume_hours": 39
+  },
+  "XYZ_QCOM": {
+   "bars": 2878,
+   "first_bar": "2026-06-22T15:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:QCOM",
+   "zero_volume_hours": 26
+  },
+  "XYZ_QNT": {
+   "bars": 3475,
+   "first_bar": "2026-05-28T18:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:QNT",
+   "zero_volume_hours": 49
+  },
+  "XYZ_RDDT": {
+   "bars": 1507,
+   "first_bar": "2026-08-18T17:00:00+00:00",
+   "last_bar": "2026-10-20T11:00:00+00:00",
+   "last_traded": "2026-10-20T11:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:RDDT",
+   "zero_volume_hours": 122
+  },
+  "XYZ_RIVN": {
+   "bars": 5000,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T11:00:00+00:00",
+   "last_traded": "2026-10-20T11:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:RIVN",
+   "zero_volume_hours": 590
+  },
+  "XYZ_RKLB": {
+   "bars": 4049,
+   "first_bar": "2026-05-04T20:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:RKLB",
+   "zero_volume_hours": 11
+  },
+  "XYZ_SHAZ": {
+   "bars": 2540,
+   "first_bar": "2026-07-06T17:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "non_us_listed",
+   "venue_coin": "xyz:SHAZ",
+   "zero_volume_hours": 66
+  },
+  "XYZ_SHEIN": {
+   "bars": 1308,
+   "first_bar": "2026-08-27T01:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "non_us_listed",
+   "venue_coin": "xyz:SHEIN",
+   "zero_volume_hours": 47
+  },
+  "XYZ_SILVER": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "commodity_fx",
+   "venue_coin": "xyz:SILVER",
+   "zero_volume_hours": 0
+  },
+  "XYZ_SKHX": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "non_us_listed",
+   "venue_coin": "xyz:SKHX",
+   "zero_volume_hours": 17
+  },
+  "XYZ_SKHY": {
+   "bars": 2472,
+   "first_bar": "2026-07-09T13:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "non_us_listed",
+   "venue_coin": "xyz:SKHY",
+   "zero_volume_hours": 0
+  },
+  "XYZ_SMH": {
+   "bars": 3042,
+   "first_bar": "2026-06-15T19:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:SMH",
+   "zero_volume_hours": 86
+  },
+  "XYZ_SMSN": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "non_us_listed",
+   "venue_coin": "xyz:SMSN",
+   "zero_volume_hours": 78
+  },
+  "XYZ_SNDK": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:SNDK",
+   "zero_volume_hours": 1
+  },
+  "XYZ_SNXX": {
+   "bars": 838,
+   "first_bar": "2026-09-15T15:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "unknown",
+   "venue_coin": "xyz:SNXX",
+   "zero_volume_hours": 77
+  },
+  "XYZ_SOFTBANK": {
+   "bars": 2796,
+   "first_bar": "2026-06-26T00:00:00+00:00",
+   "last_bar": "2026-10-20T11:00:00+00:00",
+   "last_traded": "2026-10-20T11:00:00+00:00",
+   "session_class": "non_us_listed",
+   "venue_coin": "xyz:SOFTBANK",
+   "zero_volume_hours": 274
+  },
+  "XYZ_SOXL": {
+   "bars": 1796,
+   "first_bar": "2026-08-06T17:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:SOXL",
+   "zero_volume_hours": 0
+  },
+  "XYZ_SP500": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:SP500",
+   "zero_volume_hours": 0
+  },
+  "XYZ_SPCX": {
+   "bars": 3735,
+   "first_bar": "2026-05-17T22:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "unknown",
+   "venue_coin": "xyz:SPCX",
+   "zero_volume_hours": 0
+  },
+  "XYZ_STRC": {
+   "bars": 2871,
+   "first_bar": "2026-06-22T22:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:STRC",
+   "zero_volume_hours": 102
+  },
+  "XYZ_TLT": {
+   "bars": 786,
+   "first_bar": "2026-09-17T19:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:TLT",
+   "zero_volume_hours": 85
+  },
+  "XYZ_TSLA": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:TSLA",
+   "zero_volume_hours": 0
+  },
+  "XYZ_TSM": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:TSM",
+   "zero_volume_hours": 41
+  },
+  "XYZ_TWST": {
+   "bars": 329,
+   "first_bar": "2026-10-06T19:00:00+00:00",
+   "last_bar": "2026-10-20T11:00:00+00:00",
+   "last_traded": "2026-10-20T11:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:TWST",
+   "zero_volume_hours": 131
+  },
+  "XYZ_UMC": {
+   "bars": 333,
+   "first_bar": "2026-10-06T14:00:00+00:00",
+   "last_bar": "2026-10-20T10:00:00+00:00",
+   "last_traded": "2026-10-20T10:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:UMC",
+   "zero_volume_hours": 161
+  },
+  "XYZ_UNITREE": {
+   "bars": 1823,
+   "first_bar": "2026-08-05T14:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "non_us_listed",
+   "venue_coin": "xyz:UNITREE",
+   "zero_volume_hours": 1
+  },
+  "XYZ_URNM": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:URNM",
+   "zero_volume_hours": 433
+  },
+  "XYZ_USAR": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:USAR",
+   "zero_volume_hours": 203
+  },
+  "XYZ_WDC": {
+   "bars": 3188,
+   "first_bar": "2026-06-09T17:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:WDC",
+   "zero_volume_hours": 26
+  },
+  "XYZ_XBI": {
+   "bars": 1294,
+   "first_bar": "2026-08-27T14:00:00+00:00",
+   "last_bar": "2026-10-20T11:00:00+00:00",
+   "last_traded": "2026-10-20T11:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:XBI",
+   "zero_volume_hours": 282
+  },
+  "XYZ_XLE": {
+   "bars": 4054,
+   "first_bar": "2026-05-04T14:00:00+00:00",
+   "last_bar": "2026-10-20T11:00:00+00:00",
+   "last_traded": "2026-10-20T11:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:XLE",
+   "zero_volume_hours": 273
+  },
+  "XYZ_XYZ100": {
+   "bars": 5001,
+   "first_bar": "2026-03-26T04:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:XYZ100",
+   "zero_volume_hours": 0
+  },
+  "XYZ_ZHIPU": {
+   "bars": 2891,
+   "first_bar": "2026-06-22T02:00:00+00:00",
+   "last_bar": "2026-10-20T12:00:00+00:00",
+   "last_traded": "2026-10-20T12:00:00+00:00",
+   "session_class": "non_us_listed",
+   "venue_coin": "xyz:ZHIPU",
+   "zero_volume_hours": 6
+  },
+  "XYZ_ZM": {
+   "bars": 4024,
+   "first_bar": "2026-05-05T20:00:00+00:00",
+   "last_bar": "2026-10-20T11:00:00+00:00",
+   "last_traded": "2026-10-20T11:00:00+00:00",
+   "session_class": "us_listed",
+   "venue_coin": "xyz:ZM",
+   "zero_volume_hours": 555
+  }
+ },
+ "symbols": 115,
+ "venue": "hyperliquid xyz dex (HIP-3)"
+}
