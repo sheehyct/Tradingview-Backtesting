@@ -2,17 +2,7 @@
 
 Oct 21, 2026 · @Christopher Sheehy
 
-## Purpose and how to use this
-
-This brief is the complete instruction set for phase 3 of the STRAT trigger research. It exists so the Claude Code cloud session that runs it needs no context from any chat: everything decided is written here.
-
-**Opening prompt for the Claude Code session** (paste exactly this, nothing else):
-
-```markdown
-Read docs/experiments/strat_ml_phase3_brief.md in full before doing anything. It is the spec. Execute it in the order it gives, stop at the gate it names, and follow its reporting rules for every table. Do not re-derive anything it lists as already known.
-```
-
-Save this document as `docs/experiments/strat_ml_phase3_brief.md` in the repo (export to Markdown from the doc menu) so the session reads it from disk rather than from a paste.
+## Purpose
 
 **The question phase 3 answers.** Phase 1 showed a mechanical daily STRAT book on Binance perps is flat before fees (mean R −0.032, 556,092 triggers). The hit rate of every reversal pattern sits on the fair-game line for its stop and target geometry, so the exits are measuring geometry, not drift. Phase 3 tests one hypothesis: *there is forward drift after a STRAT trigger, and the phase-1 exits threw it away.* If the drift is zero, the alt-coin line of research closes and the work moves to the HIP-3 equity perps.
 
