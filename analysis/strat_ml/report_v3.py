@@ -696,13 +696,21 @@ def verdict_line(
     def say(c):
         return f"{c[0]} {fmt_num(c[1])}, z {c[2]:+.1f}, n {c[3]:,}"
 
+    def rest():
+        if not flat:
+            return "."
+        if len(flat) <= 4:
+            return f" (inconclusive for {', '.join(c[0] for c in flat)})."
+        return f" (the other {len(flat)} cells with 300+ rows are inside their own noise)."
+
     if sup and not con:
-        return f"Verdict: supports -- {hypothesis}, because {'; '.join(say(c) for c in sup)}" + (
-            f" (inconclusive for {', '.join(c[0] for c in flat)})." if flat else "."
+        return (
+            f"Verdict: supports -- {hypothesis}, because {'; '.join(say(c) for c in sup)}" + rest()
         )
     if con and not sup:
-        return f"Verdict: contradicts -- {hypothesis}, because {'; '.join(say(c) for c in con)}" + (
-            f" (inconclusive for {', '.join(c[0] for c in flat)})." if flat else "."
+        return (
+            f"Verdict: contradicts -- {hypothesis}, because {'; '.join(say(c) for c in con)}"
+            + rest()
         )
     if sup and con:
         return (
@@ -941,6 +949,7 @@ def chart_drift(ev: pd.DataFrame):
                 means.append(cs["mean"])
                 los.append(cs["mean"] - 1.96 * cs["se"])
                 his.append(cs["mean"] + 1.96 * cs["se"])
+            n_lab = int(gg[f"net_atr_w_{HORIZONS[0]}"].notna().sum())
             ax.plot(
                 HORIZONS,
                 means,
@@ -948,7 +957,7 @@ def chart_drift(ev: pd.DataFrame):
                 linewidth=2,
                 marker="o",
                 markersize=4,
-                label=f"{period} (n {len(gg):,})",
+                label=f"{period} (n {n_lab:,})",
             )
             ax.fill_between(HORIZONS, los, his, color=col, alpha=0.15, linewidth=0)
         ax.axhline(0, color=p1.MUTED, linewidth=1)
@@ -1208,7 +1217,8 @@ def build(
         "Units: 'mean ret (ATR)' is the move in the break's direction in units of the coin's normal daily range, so coins that move at different speeds compare; 'mean ret (% of price)' is the same in percent of price; "
         "'mean R no stop' is the same divided by the row's stop distance, clipped at -5R and +10R exactly as phase 1's 'mean R no stop' column was, so the two reports line up. "
         "The % and ATR units are winsorized at the 2020-24 0.5th and 99.5th percentiles, chosen on the train period only. 'z (clustered)' is the mean divided by its standard error with every trigger on the same day "
-        "treated as one observation (the brief: without clustering z inflates several-fold). 'cost (R)' is the mean total cost of that hold in R. 'win %' is the share of rows above zero net of costs, with its 95% band."
+        "treated as one observation (the brief: without clustering z inflates several-fold). 'cost (R)' is the mean total cost of that hold in R. 'win %' is the share of rows above zero net of costs, with its 95% band. "
+        "Where the R column and the ATR column disagree in sign, the R column is the distorted one: its clip is one-sided (-5R, +10R) and a row with a tiny setup bar turns an ordinary move into many R; the gate is read in ATR."
     )
     cells = [
         (str(r["family"]), r["mean_atr"], r["z"], int(r["n"]))

@@ -5,6 +5,61 @@
 
 ---
 
+## Side thread 2026-10-22 (not a TVB session): STRAT ML research vessel, Phase 3 to the test-1 gate (STOPPED AT THE GATE, as the brief orders)
+
+**Date:** 2026-10-22 (cloud session, branch claude/jolly-babbage-vlk7yz; the owner's brief
+`docs/experiments/strat_ml_phase3_brief.md` is the spec: fixes, then test 1, then stop and report
+the gate before tests 2-5)
+**Status:** Test 1 run, gate FAILED on the alt-coin table. Tests 2-5 NOT run (the brief forbids
+running them on alts "anyway"); the HIP-3 session branch (brief section 11) is the next run and
+needs the owner's word.
+
+- **Read first:** `docs/experiments/strat_ml_phase3_results.md` (the gate line and every verdict,
+  verbatim) and the page `analysis/strat_ml/reports/STRAT Trigger Research v3.md` (or .html,
+  self-contained, phone-readable; glossary first, a What-this-means above and a verdict below
+  every table, every R after costs, every z clustered by trigger date).
+- **Built:** `analysis/strat_ml/report_v3.py` (extends `report.py`, which is untouched: the
+  phase-1 table is read through the phase-1 loader; the table helper refuses to render without
+  its two texts; cost model as a config block; the gate as the first line of the page),
+  `analysis/strat_ml/m15_check.py` (15-minute klines pulled into their own raw folder for a
+  block-random 20,000-row sample), `tests/test_strat_ml_report_v3.py` (11 hand vectors: glossary
+  verbatim vs the brief, clustered z, cost arithmetic and funding marks, the 15-minute walk, the
+  gate rule). Data bootstrap per the brief's appendix reproduced phase 1's rows exactly
+  (565,687 built, 9,595 censored, 556,092 with a 10-bar outcome; HIP-3 15,844 / 11,324).
+- **Section-5 fixes:** 3f re-rendered (model A refit on integer-coded categoricals; top pair =
+  direction x BTC 30-day realized-vol percentile); stablecoin drop caught only USDCUSDT (1,153
+  rows, -0.233R; log `analysis/strat_ml/stablecoins_dropped.json`), the headline moves by
+  +0.0004R; the v3 page is numbered in page order with the caveats last (the phase-1 outputs stay
+  as published, per the brief).
+- **Cost model:** mean cost 0.176% of price per phase-1 trade (53% of the -0.331% loss, the
+  brief's "about half" holds); 0.02-0.04R per trade by tier; the two tier x family cells that
+  were positive before fees are under zero after them; whole book -0.031R -> -0.054R after costs.
+- **15-minute check (reported, not fixed):** against-first 67.8% on the hourly clock, 55.7% on
+  15-minute bars with the trigger bar counted, 47.5% with its own adverse print ignored (phase 1
+  guessed 27%). The hourly artefact is real but smaller than estimated; sections 7b-7c of phase
+  1 read with the 15-minute version. The fav-first / adv-first split in mean R survives
+  (+0.18R vs -0.23R after costs) and is partly mechanical (adverse first = nearer the stop).
+- **Test 1, the gate: FAILED.** Held N bars with no stop and no target, costs paid, on 2025-26:
+  continuation -0.085 ATR (-0.78% of price) at 5 bars, z -2.3 (significantly AGAINST the break,
+  -0.158 ATR at 10 bars, z -3.2); inside -0.046 ATR, z -1.8; outside -0.035 ATR, z -1.0;
+  reversal +0.010 ATR, z +0.3 (flat). Whole book -0.045 ATR at 5 bars, z -2.1. On 2020-24 the
+  same cells were flat (whole book -0.001 ATR at 5 bars); the continuation drift was +0.03 ATR
+  there and -0.085 on test, the regime story the brief named. No BTC-vol tercile, year or
+  liquidity tier cell clears the bar either. Reading in trader terms: after a daily break on an
+  alt, price does not keep going; in 2025-26 it leans back the other way, and no stop, target or
+  trail can harvest a drift that is not there.
+- **The R-unit trap, stated on the page:** "mean R no stop" at 10 bars reads +0.05R after costs
+  (+0.09R before, phase 1's number) while the same rows are -0.38% of price and -0.03 ATR: the
+  R clip is one-sided and tiny setup bars turn ordinary moves into many R. The gate is read in
+  ATR, as the brief's worked example does.
+- **Not available here:** an underlying-stock feed for the HIP-3 control (brief run 2) is not
+  wired into the environment; the HIP-3 snapshot has no funding series (charged 0, flagged).
+- **Next (the brief's order):** section 11, the HIP-3 session branch (test 1 on the session
+  build clustered by date, leave-one-ticker-out, the gap rule, the fair-line sweep at n >= 300),
+  on the owner's word; the alt-coin line closes unless the owner re-opens it.
+
+---
+
 ## Side thread 2026-10-20 (not a TVB session): STRAT ML research vessel, Phases 2-5 run to the end (COMPLETE)
 
 **Date:** 2026-10-20 (cloud session, branch ccr-84c65430-bqc01u; owner's word: run it to the end,
