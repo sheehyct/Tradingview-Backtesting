@@ -116,6 +116,10 @@ cloud container, no Railway)
   mismatch) fixed in 884e2cf, every receipt rebuilt (numbers within rounding), threads answered
   and resolved; `page.py` now assembles the phone page from the receipts. The PR reads clean
   and waits only on the owner's merge.
+- **Phase 3 is briefed (owner, 2026-10-21):** `docs/experiments/strat_ml_phase3_brief.md` is the
+  complete spec for the next cloud session (opening prompt inside it); its appendix carries the
+  environment bootstrap (the data re-pull, what the brief assumes that is not on disk: no
+  15-minute bars, the event table is built by events.py). Merge PR #3 before starting it.
 - **STOP-and-ASK for the owner before more code:** exclude stablecoin perps from the
   universe (USDC, FDUSD, BUSD, TUSD, USDP, DAI, USD1)? pull 15-minute klines for the universe (same
   file count as 1h, 4x rows, ~2.5 h) to settle the first-excursion question? Make the blue-sky cell a declared arm in
