@@ -120,6 +120,10 @@ cloud container, no Railway)
   complete spec for the next cloud session (opening prompt inside it); its appendix carries the
   environment bootstrap (the data re-pull, what the brief assumes that is not on disk: no
   15-minute bars, the event table is built by events.py). Merge PR #3 before starting it.
+  Data pinning (owner, 2026-10-22, option 1): the HIP-3 hourly bars are committed as a frozen
+  snapshot (`analysis/strat_ml/snapshots/xyz_2026-10-20/`, 22 MB, gitignore exception;
+  `hl_fetch --from-snapshot`), the Binance pull is pinned with `--until 2026-10-16`. A bucket
+  for the whole cache (option 2) is deferred until more cloud sessions are planned.
 - **STOP-and-ASK for the owner before more code:** exclude stablecoin perps from the
   universe (USDC, FDUSD, BUSD, TUSD, USDP, DAI, USD1)? pull 15-minute klines for the universe (same
   file count as 1h, 4x rows, ~2.5 h) to settle the first-excursion question? Make the blue-sky cell a declared arm in

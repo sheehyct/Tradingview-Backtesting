@@ -354,13 +354,19 @@ is re-runnable and skips what is already cached.
 ```
 uv sync                                                               # pyarrow, lightgbm, shap, scikit-learn, httpx are in pyproject
 uv run python -m analysis.strat_ml.binance_vision universe            # ~4 min: the archive listing -> data/universe.parquet
-uv run python -m analysis.strat_ml.binance_vision fetch --universe --workers 8   # ~2.5 h: 1h klines + funding, 900 USDT perps
-uv run python -m analysis.strat_ml.hl_fetch                           # ~2 min: the 115 HIP-3 perps' hourly bars (the venue's ~208-day window ROLLS: dates will differ from the brief's)
+uv run python -m analysis.strat_ml.binance_vision fetch --universe --workers 8 --until 2026-10-16   # ~2.5 h: 1h klines + funding, pinned to phase 1's last day
+uv run python -m analysis.strat_ml.hl_fetch --from-snapshot analysis/strat_ml/snapshots/xyz_2026-10-20   # seconds: the frozen HIP-3 snapshot (committed, 22 MB); do NOT refetch, the venue's window rolls
 uv run python -m analysis.strat_ml.events build --workers 4           # 77 s: the phase-1 event table (events.py builds it; report.py only reads it)
 uv run python -m analysis.strat_ml.events build --workers 4 --stop-mode bar0
 uv run python -m analysis.strat_ml.events build --roster analysis/strat_ml/xyz_summary.json --roster-tag xyz --workers 4
 uv run python -m analysis.strat_ml.events build --roster analysis/strat_ml/xyz_summary.json --roster-tag xyz --session rth --workers 4
 ```
+
+Pinning, so phase 3 reproduces phase 1's rows exactly: the Binance pull is capped at
+2026-10-16 (phase 1's last bar) with `--until`; the HIP-3 bars come from the committed snapshot
+(the venue only serves a rolling 208-day window, so a refetch would give different rows); the
+committed `universe_summary.json` (900 symbols) is the roster, do not re-run `summarize`. A
+symbol the archive lists after the cap simply has no rows (the build skips it and counts it).
 
 Corrections to "What already exists" the session should know rather than re-derive:
 
