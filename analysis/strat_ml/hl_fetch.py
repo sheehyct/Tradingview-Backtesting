@@ -15,6 +15,7 @@ from __future__ import annotations
 import json
 import sys
 import time
+from pathlib import Path
 from datetime import datetime, timezone
 
 import pandas as pd
@@ -147,7 +148,34 @@ def session_class(name: str) -> str:
     return "unknown"
 
 
+def restore_snapshot(snapshot: Path) -> int:
+    """Copy a frozen snapshot (parquet per coin + xyz_summary.json) into the cache and roster, so
+    a session reproduces the same equity-perp rows instead of re-fetching a rolled window."""
+    import shutil
+
+    (PARQUET / "klines").mkdir(parents=True, exist_ok=True)
+    n = 0
+    for f in sorted(snapshot.glob("XYZ_*.parquet")):
+        shutil.copy2(f, PARQUET / "klines" / f.name)
+        n += 1
+    shutil.copy2(snapshot / "xyz_summary.json", ROSTER_PATH)
+    print(f"restored {n} coins from {snapshot} -> {PARQUET / 'klines'}; roster {ROSTER_PATH}")
+    return n
+
+
 def main(argv: list[str] | None = None) -> None:
+    import argparse
+
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument(
+        "--from-snapshot",
+        default=None,
+        help="restore a frozen snapshot folder instead of fetching (e.g. analysis/strat_ml/snapshots/xyz_2026-10-20)",
+    )
+    a = ap.parse_args(argv)
+    if a.from_snapshot:
+        restore_snapshot(Path(a.from_snapshot))
+        return
     now_ms = int(time.time() * 1000)
     xyz = [u for u in census.universe() if u["dex"] == "xyz"]
     rows = {}

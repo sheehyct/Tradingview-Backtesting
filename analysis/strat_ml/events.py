@@ -862,7 +862,10 @@ def _init(
 def _one(args) -> tuple[str, pd.DataFrame, dict, float]:
     symbol, last_traded = args
     t0 = time.time()
-    hf = hourly_frame(symbol, last_traded)
+    try:
+        hf = hourly_frame(symbol, last_traded)
+    except FileNotFoundError:  # a roster symbol with nothing in the cache (pinned pulls)
+        return symbol, pd.DataFrame(), {"no_parquet": 1}, time.time() - t0
     ranks = _G.get("ranks")
     liq = ranks[symbol].dropna() if ranks is not None and symbol in ranks else None
     df, drops = symbol_events(
