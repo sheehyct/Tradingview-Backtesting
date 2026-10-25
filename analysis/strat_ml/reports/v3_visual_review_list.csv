@@ -1,0 +1,118 @@
+symbol,date,direction,pattern,trigger_hour_utc,week,month,tfc_score,entry_level,stop,target,t1_source,first_touch,touch_hours,managed_r_after_costs,net_atr_5,net_atr_10,why_this_day,trigger_utc
+BTCUSDT,2024-11-04,long,1-2-2 rev strat,3.0,inside,inside,0.0,69393.7,67446.6,69913.1,bar0_wick,stop,14.0,-1.057,3.3421,8.3036,election eve: shorts everywhere failed,2024-11-04 03:00
+BTCUSDT,2024-11-04,short,2-2 continuation,17.0,inside,inside,0.0,67446.6,69393.7,58900.0,ladder_M,stop,21.0,-1.0416,-4.3615,-9.3259,election eve: shorts everywhere failed,2024-11-04 17:00
+DOGEUSDT,2024-11-04,long,1-2-2 rev strat,16.0,inside,inside,0.0,0.1599,0.1422,0.1636,bar0_wick,target,8.0,0.2004,5.0623,17.4115,election eve: shorts everywhere failed,2024-11-04 16:00
+ETHUSDT,2024-11-04,short,2-2 continuation,16.0,inside,inside,0.0,2410.35,2496.21,2308.09,ladder_M,stop,33.0,-1.0282,-6.8011,-6.1004,election eve: shorts everywhere failed,2024-11-04 16:00
+SOLUSDT,2024-11-04,short,2-2 continuation,21.0,inside,inside,0.0,157.77,166.54,133.002,ladder_M,stop,17.0,-1.0233,-4.8297,-5.8693,election eve: shorts everywhere failed,2024-11-04 21:00
+XRPUSDT,2024-11-04,long,1-2-2 rev strat,10.0,inside,inside,0.0,0.5111,0.4914,0.5161,bar0_wick,target,22.0,0.2227,2.5154,13.9261,election eve: shorts everywhere failed,2024-11-04 10:00
+ZECUSDT,2024-11-04,long,3-2-2 reversal,14.0,inside,inside,0.0,37.82,35.54,38.73,bar0_wick,target,26.0,0.3742,3.0568,-0.4544,election eve: shorts everywhere failed,2024-11-04 14:00
+BTCUSDT,2024-11-05,long,3-2 outside break,14.0,against,inside,0.0,69495.3,66810.0,73660.0,ladder_W,target,13.0,1.5225,4.9615,9.815,election: longs ran,2024-11-05 14:00
+DOGEUSDT,2024-11-05,long,2-2 continuation,0.0,inside,inside,0.0,0.1602,0.1482,0.1797,ladder_W,target,24.0,1.5976,10.0762,18.9931,election: longs ran,2024-11-05 00:00
+SOLUSDT,2024-11-05,long,2-2 reversal,14.0,against,inside,0.0,164.953,155.03,166.54,bar0_wick,target,0.0,0.145,5.0788,5.9632,election: longs ran,2024-11-05 14:00
+XRPUSDT,2024-11-05,long,2-2 continuation,7.0,inside,inside,0.0,0.5146,0.4955,0.531,ladder_W,target,19.0,0.8236,3.874,20.0468,election: longs ran,2024-11-05 07:00
+ZECUSDT,2024-11-05,long,2-2 continuation,15.0,inside,inside,0.0,38.34,36.16,41.13,ladder_W,target,25.0,1.2522,2.6932,-0.0132,election: longs ran,2024-11-05 15:00
+BTCUSDT,2024-11-06,long,2-2 continuation,0.0,against,inside,0.0,70537.4,67454.2,73660.0,ladder_W,target,3.0,0.9922,8.0759,8.8518,election: longs ran,2024-11-06 00:00
+DOGEUSDT,2024-11-06,long,2-2 continuation,0.0,inside,inside,0.0,0.1794,0.1578,0.1797,ladder_W,target,0.0,0.0069,13.9209,14.895,election: longs ran,2024-11-06 00:00
+ETHUSDT,2024-11-06,long,2-1-2 reversal,0.0,against,inside,0.0,2479.6,2379.48,2491.0,bar0_wick,target,0.0,0.0916,8.2894,5.9753,election: longs ran,2024-11-06 00:00
+SOLUSDT,2024-11-06,long,2-2 continuation,0.0,against,inside,0.0,169.2,156.81,183.34,ladder_W,target,3.0,1.129,5.7803,5.0058,election: longs ran,2024-11-06 00:00
+XRPUSDT,2024-11-06,long,2-2 continuation,0.0,inside,inside,0.0,0.5188,0.5016,0.531,ladder_W,target,2.0,0.6791,5.4321,32.2984,election: longs ran,2024-11-06 00:00
+ZECUSDT,2024-11-06,long,2-2 continuation,0.0,inside,inside,0.0,38.91,36.56,41.13,ladder_W,target,16.0,0.922,2.4169,2.2392,election: longs ran,2024-11-06 00:00
+BTCUSDT,2025-01-30,long,2-2 continuation,3.0,against,outside,0.5,104755.0,101269.7,110000.0,ladder_W,stop,65.0,-1.0602,-1.7149,-2.0286,longs everywhere failed,2025-01-30 03:00
+DOGEUSDT,2025-01-30,long,2-1-2 continuation,13.0,against,inside,0.0,0.3347,0.3164,0.4016,ladder_W,stop,54.0,-1.0319,-2.3847,-2.8718,longs everywhere failed,2025-01-30 13:00
+ETHUSDT,2025-01-30,long,1-1-2 stacked inside,3.0,against,against,0.0,3180.93,3052.88,3455.76,ladder_W,stop,80.0,-1.0556,-2.4544,-3.0171,longs everywhere failed,2025-01-30 03:00
+SOLUSDT,2025-01-30,long,2-2 reversal,3.0,against,outside,0.5,238.59,222.45,243.77,bar0_wick,target,12.0,0.3062,-1.5652,-1.8588,longs everywhere failed,2025-01-30 03:00
+XRPUSDT,2025-01-30,long,2-2 reversal,15.0,against,with,0.5,3.1356,2.966,3.214,bar0_wick,stop,42.0,-1.034,-2.7414,-3.3394,longs everywhere failed,2025-01-30 15:00
+ZECUSDT,2025-01-30,long,1-2-2 rev strat,3.0,against,against,0.0,43.92,40.93,44.85,bar0_wick,target,6.0,0.2919,-2.8578,-2.8009,longs everywhere failed,2025-01-30 03:00
+BTCUSDT,2025-01-31,short,2-2 reversal,18.0,with,outside,0.0,103224.5,106450.0,101269.7,bar0_wick,target,26.0,0.5835,1.5773,1.3948,longs everywhere failed,2025-01-31 18:00
+DOGEUSDT,2025-01-31,long,2-2 continuation,15.0,against,inside,0.0,0.3387,0.3218,0.4016,ladder_W,stop,18.0,-1.032,-2.8488,-2.8798,longs everywhere failed,2025-01-31 15:00
+ETHUSDT,2025-01-31,long,2-2 continuation,11.0,against,against,0.0,3282.6,3089.0,3455.76,ladder_W,stop,40.0,-1.0304,-2.6809,-3.3688,longs everywhere failed,2025-01-31 11:00
+XRPUSDT,2025-01-31,short,2-2 reversal,18.0,with,against,0.0,3.0459,3.1536,2.966,bar0_wick,target,15.0,0.7176,3.0566,2.8623,longs everywhere failed,2025-01-31 18:00
+BTCUSDT,2025-02-01,short,2-2 continuation,9.0,with,inside,0.5,101509.0,106000.0,88909.0,ladder_M,timeout,,1.2837,1.1693,1.3703,tariff weekend: shorts ran,2025-02-01 09:00
+DOGEUSDT,2025-02-01,short,2-2 reversal,8.0,with,inside,0.5,0.3233,0.3418,0.3218,bar0_wick,target,1.0,0.0631,2.642,2.4652,tariff weekend: shorts ran,2025-02-01 08:00
+ETHUSDT,2025-02-01,short,2-2 reversal,19.0,with,inside,0.0,3212.31,3436.39,3089.0,bar0_wick,target,8.0,0.5385,2.7551,3.2079,tariff weekend: shorts ran,2025-02-01 19:00
+SOLUSDT,2025-02-01,short,2-1-2 reversal,9.0,with,inside,0.5,228.1,241.8,226.71,bar0_wick,target,1.0,0.0865,1.9107,1.476,tariff weekend: shorts ran,2025-02-01 09:00
+XRPUSDT,2025-02-01,short,2-2 continuation,9.0,with,inside,0.0,3.001,3.1329,2.0808,ladder_M,target,40.0,6.9614,3.1992,2.7859,tariff weekend: shorts ran,2025-02-01 09:00
+ZECUSDT,2025-02-01,short,2-1-2 reversal,9.0,with,inside,0.5,42.38,45.36,42.04,bar0_wick,target,1.0,0.097,3.0685,2.2938,tariff weekend: shorts ran,2025-02-01 09:00
+BTCUSDT,2025-02-02,short,2-2 continuation,3.0,with,inside,0.5,100215.0,102734.9,88909.0,ladder_M,timeout,,0.9467,0.9042,0.5838,tariff weekend: shorts ran,2025-02-02 03:00
+DOGEUSDT,2025-02-02,short,2-2 continuation,3.0,with,with,1.0,0.303,0.3322,,no_rung,timeout,,1.3221,1.9713,1.3542,tariff weekend: shorts ran,2025-02-02 03:00
+ETHUSDT,2025-02-02,short,2-2 continuation,3.0,with,inside,0.5,3100.67,3330.82,2900.0,ladder_M,target,16.0,0.8615,2.4687,1.8717,tariff weekend: shorts ran,2025-02-02 03:00
+SOLUSDT,2025-02-02,short,2-2 continuation,0.0,with,inside,0.5,212.58,234.02,167.71,ladder_M,timeout,,0.7045,1.0099,0.7536,tariff weekend: shorts ran,2025-02-02 00:00
+XRPUSDT,2025-02-02,short,2-2 continuation,3.0,with,inside,0.5,2.8267,3.0713,2.0808,ladder_M,target,22.0,3.0423,2.0085,1.6503,tariff weekend: shorts ran,2025-02-02 03:00
+ZECUSDT,2025-02-02,short,2-2 continuation,0.0,with,with,1.0,39.13,43.74,,no_rung,timeout,,1.413,2.1914,1.5842,tariff weekend: shorts ran,2025-02-02 00:00
+BTCUSDT,2025-05-04,short,2-2 continuation,1.0,against,against,0.0,95700.0,96868.4,85100.0,ladder_W,stop,70.0,-1.1039,-2.6814,-2.832,shorts everywhere failed,2025-05-04 01:00
+DOGEUSDT,2025-05-04,short,2-2 continuation,0.0,inside,inside,0.0,0.1751,0.1821,0.1549,ladder_W,stop,100.0,-1.0343,-2.9054,-5.5247,shorts everywhere failed,2025-05-04 00:00
+ETHUSDT,2025-05-04,long,1-2-2 rev strat,2.0,with,inside,0.5,1848.0,1807.75,1871.06,bar0_wick,stop,21.0,-1.0646,5.3506,8.2004,shorts everywhere failed,2025-05-04 02:00
+ETHUSDT,2025-05-04,short,2-2 continuation,23.0,against,inside,0.0,1807.75,1848.0,1535.0,ladder_W,stop,50.0,-1.0592,-5.844,-8.6943,shorts everywhere failed,2025-05-04 23:00
+SOLUSDT,2025-05-04,short,2-2 continuation,3.0,inside,inside,0.0,145.74,149.0,133.75,ladder_W,stop,69.0,-1.0766,-3.434,-3.8885,shorts everywhere failed,2025-05-04 03:00
+XRPUSDT,2025-05-04,short,2-2 continuation,13.0,against,inside,0.0,2.1744,2.2195,2.0582,ladder_W,stop,95.0,-1.0574,-1.5407,-3.368,shorts everywhere failed,2025-05-04 13:00
+ZECUSDT,2025-05-04,short,2-2 continuation,6.0,against,inside,0.0,35.11,36.81,30.72,ladder_W,stop,32.0,-1.0373,-2.5299,-2.5363,shorts everywhere failed,2025-05-04 06:00
+BTCUSDT,2025-05-05,short,2-2 continuation,1.0,inside,against,0.0,94116.4,96266.6,92700.0,ladder_W,stop,46.0,-1.0575,-3.9907,-3.558,shorts failed,2025-05-05 01:00
+DOGEUSDT,2025-05-05,short,2-2 continuation,1.0,inside,inside,0.0,0.1696,0.1773,0.1665,ladder_W,target,31.0,0.3781,-7.9357,-4.8511,shorts failed,2025-05-05 01:00
+ETHUSDT,2025-05-05,short,3-2 outside break,1.0,inside,inside,0.0,1801.71,1849.53,1730.6,ladder_W,stop,48.0,-1.0498,-8.7874,-8.3798,shorts failed,2025-05-05 01:00
+SOLUSDT,2025-05-05,short,2-2 continuation,1.0,inside,inside,0.0,143.55,147.79,140.25,ladder_W,stop,47.0,-1.0502,-4.4975,-3.329,shorts failed,2025-05-05 01:00
+XRPUSDT,2025-05-05,short,2-2 continuation,1.0,inside,inside,0.0,2.1486,2.2182,2.1216,ladder_W,target,12.0,0.363,-2.995,-2.1638,shorts failed,2025-05-05 01:00
+ZECUSDT,2025-05-05,long,2-2 reversal,2.0,inside,inside,0.0,36.2,34.3,36.81,bar0_wick,target,12.0,0.2963,2.7507,2.0421,shorts failed,2025-05-05 02:00
+BTCUSDT,2025-05-06,short,2-2 continuation,13.0,inside,against,0.0,93445.1,95165.1,92700.0,ladder_W,stop,9.0,-1.0756,-4.0731,-3.7897,shorts failed,2025-05-06 13:00
+BTCUSDT,2025-05-06,long,2-2 reversal,22.0,inside,with,0.5,95165.1,93445.1,96266.6,bar0_wick,target,1.0,0.5906,3.3158,3.0319,shorts failed,2025-05-06 22:00
+DOGEUSDT,2025-05-06,short,2-2 continuation,2.0,inside,inside,0.0,0.168,0.1746,0.1665,ladder_W,target,6.0,0.1995,-6.4062,-5.3137,shorts failed,2025-05-06 02:00
+ETHUSDT,2025-05-06,short,2-2 continuation,11.0,inside,inside,0.0,1780.02,1832.98,1730.6,ladder_W,stop,13.0,-1.0483,-8.5045,-8.7377,shorts failed,2025-05-06 11:00
+SOLUSDT,2025-05-06,short,2-2 continuation,11.0,inside,inside,0.0,142.42,147.67,140.25,ladder_W,stop,13.0,-1.0386,-4.1102,-3.3227,shorts failed,2025-05-06 11:00
+XRPUSDT,2025-05-06,short,2-2 continuation,2.0,with,inside,0.5,2.1052,2.1992,1.6129,ladder_M,stop,50.0,-1.0257,-2.4421,-2.5344,shorts failed,2025-05-06 02:00
+ZECUSDT,2025-05-06,short,2-2 reversal,9.0,inside,inside,0.0,35.38,37.29,34.3,bar0_wick,stop,13.0,-1.0367,-3.8165,-1.9067,shorts failed,2025-05-06 09:00
+ZECUSDT,2025-05-06,long,2-2 continuation,22.0,inside,inside,0.0,37.29,35.38,40.07,ladder_W,target,20.0,1.4327,3.0233,1.1124,shorts failed,2025-05-06 22:00
+BTCUSDT,2025-05-07,long,3-2 outside break,0.0,inside,with,0.5,96879.5,93327.0,97865.4,ladder_W,target,25.0,0.2517,2.0922,2.1907,longs ran,2025-05-07 00:00
+DOGEUSDT,2025-05-07,long,2-2 reversal,0.0,against,inside,0.0,0.1725,0.1642,0.1746,bar0_wick,target,25.0,0.2237,5.8876,4.2074,longs ran,2025-05-07 00:00
+ETHUSDT,2025-05-07,long,2-2 reversal,0.0,inside,inside,0.0,1820.3,1750.0,1832.98,bar0_wick,target,0.0,0.1571,7.8535,7.5967,longs ran,2025-05-07 00:00
+SOLUSDT,2025-05-07,long,2-2 reversal,0.0,inside,inside,0.0,147.17,141.3,147.67,bar0_wick,target,0.0,0.0626,3.6082,2.4739,longs ran,2025-05-07 00:00
+XRPUSDT,2025-05-07,long,2-2 reversal,0.0,against,inside,0.0,2.1588,2.0758,2.1992,bar0_wick,target,28.0,0.4583,3.5924,1.7542,longs ran,2025-05-07 00:00
+ZECUSDT,2025-05-07,long,3-2 outside break,0.0,inside,inside,0.0,38.46,34.58,40.07,ladder_W,target,18.0,0.4034,2.1765,0.6622,longs ran,2025-05-07 00:00
+BTCUSDT,2025-05-08,long,2-2 continuation,0.0,inside,with,0.5,97700.0,95718.5,97865.4,ladder_W,target,1.0,0.0391,2.3224,3.1758,longs ran,2025-05-08 00:00
+DOGEUSDT,2025-05-08,long,2-2 continuation,1.0,against,inside,0.0,0.1744,0.1688,0.1844,ladder_W,target,9.0,1.7822,6.908,6.087,longs ran,2025-05-08 01:00
+ETHUSDT,2025-05-08,long,2-2 continuation,3.0,inside,inside,0.0,1850.0,1786.0,1872.71,ladder_W,target,0.0,0.3288,9.8419,7.6524,longs ran,2025-05-08 03:00
+SOLUSDT,2025-05-08,long,2-2 continuation,1.0,inside,inside,0.0,149.47,144.59,153.88,ladder_W,target,8.0,0.8743,4.7068,3.241,longs ran,2025-05-08 01:00
+XRPUSDT,2025-05-08,long,2-2 continuation,2.0,against,inside,0.0,2.1707,2.1025,2.3622,ladder_W,target,30.0,2.7697,3.9456,2.4172,longs ran,2025-05-08 02:00
+ZECUSDT,2025-05-08,long,2-2 continuation,15.0,with,inside,0.5,41.16,37.17,42.53,ladder_M,target,17.0,0.3299,0.7905,0.0106,longs ran,2025-05-08 15:00
+BTCUSDT,2025-09-18,long,2-2 continuation,3.0,with,against,0.5,117266.4,114623.3,124545.6,ladder_M,stop,93.0,-1.0728,-2.248,-2.2104,longs everywhere failed,2025-09-18 03:00
+DOGEUSDT,2025-09-18,long,2-2 continuation,0.0,inside,with,0.5,0.2837,0.26,0.3068,ladder_W,stop,96.0,-1.0245,-2.7259,-2.7252,longs everywhere failed,2025-09-18 00:00
+ETHUSDT,2025-09-18,long,3-2 outside break,1.0,inside,inside,0.0,4615.26,4404.08,4768.0,ladder_W,stop,95.0,-1.0331,-2.4066,-2.5353,longs everywhere failed,2025-09-18 01:00
+SOLUSDT,2025-09-18,long,2-2 continuation,1.0,inside,with,0.5,246.55,231.53,249.55,ladder_W,target,15.0,0.1831,-2.9618,-3.1757,longs everywhere failed,2025-09-18 01:00
+XRPUSDT,2025-09-18,long,2-2 continuation,3.0,inside,against,0.0,3.1068,2.9803,3.1855,ladder_W,stop,42.0,-1.0426,-2.3623,-2.0404,longs everywhere failed,2025-09-18 03:00
+ZECUSDT,2025-09-18,short,2-1-2 reversal,16.0,inside,against,0.0,50.03,52.42,49.53,bar0_wick,target,11.0,0.1862,-1.6682,-3.5575,longs everywhere failed,2025-09-18 16:00
+BTCUSDT,2025-10-10,short,2-2 continuation,15.0,against,against,0.0,119572.8,123740.1,111501.0,ladder_W,target,6.0,1.9114,2.9106,2.9776,liquidation day: 2-2 continuation shorts hit the week's level in hours,2025-10-10 15:00
+DOGEUSDT,2025-10-10,short,2-2 continuation,15.0,against,inside,0.0,0.241,0.2559,0.2262,ladder_W,target,5.0,0.9763,2.7588,2.5224,liquidation day: 2-2 continuation shorts hit the week's level in hours,2025-10-10 15:00
+ETHUSDT,2025-10-10,short,2-2 continuation,15.0,against,inside,0.0,4262.55,4529.15,4080.0,ladder_W,target,0.0,0.6703,1.4242,1.4675,liquidation day: 2-2 continuation shorts hit the week's level in hours,2025-10-10 15:00
+SOLUSDT,2025-10-10,short,2-2 continuation,15.0,against,inside,0.0,216.17,229.61,204.17,ladder_W,target,4.0,0.8784,1.6319,1.9665,liquidation day: 2-2 continuation shorts hit the week's level in hours,2025-10-10 15:00
+XRPUSDT,2025-10-10,short,2-2 continuation,15.0,with,inside,0.5,2.77,2.8793,2.6704,ladder_M,target,4.0,0.8887,2.9578,2.2597,liquidation day: 2-2 continuation shorts hit the week's level in hours,2025-10-10 15:00
+ZECUSDT,2025-10-10,long,2-2 continuation,0.0,with,with,1.0,217.99,162.83,,no_rung,stop,21.0,-1.0078,0.4648,2.0529,liquidation day: 2-2 continuation shorts hit the week's level in hours,2025-10-10 00:00
+ZECUSDT,2025-10-10,short,2-2 reversal,21.0,against,against,0.0,162.83,217.99,126.12,bar0_wick,stop,0.0,-1.0047,-2.7589,-4.3474,liquidation day: 2-2 continuation shorts hit the week's level in hours,2025-10-10 21:00
+ZECUSDT,2025-10-11,long,3-2 outside break,8.0,with,with,1.0,280.26,147.34,,no_rung,timeout,,-0.1373,-2.3612,-0.5684,inside day,2025-10-11 08:00
+BTCUSDT,2025-10-12,long,2-1-2 reversal,15.0,outside,outside,0.0,113300.1,109501.0,122497.0,bar0_wick,stop,90.0,-1.0332,-1.6606,-1.3841,bounce longs (2-1-2 reversal) into a red week and month,2025-10-12 15:00
+DOGEUSDT,2025-10-12,long,2-1-2 reversal,15.0,outside,against,0.0,0.2003,0.1781,0.254,bar0_wick,stop,113.0,-1.012,-0.5948,-0.4026,bounce longs (2-1-2 reversal) into a red week and month,2025-10-12 15:00
+ETHUSDT,2025-10-12,long,2-1-2 reversal,14.0,outside,against,0.0,3874.28,3640.0,4392.0,bar0_wick,timeout,,-0.3368,-0.2058,-0.3185,bounce longs (2-1-2 reversal) into a red week and month,2025-10-12 14:00
+SOLUSDT,2025-10-12,long,2-1-2 reversal,15.0,outside,against,0.0,190.64,172.32,224.35,bar0_wick,timeout,,-0.5775,-0.5045,-0.6114,bounce longs (2-1-2 reversal) into a red week and month,2025-10-12 15:00
+XRPUSDT,2025-10-12,long,2-1-2 reversal,15.0,against,against,0.0,2.5046,2.2955,2.8358,bar0_wick,stop,101.0,-1.0161,-0.9431,-0.631,bounce longs (2-1-2 reversal) into a red week and month,2025-10-12 15:00
+BTCUSDT,2026-02-04,short,2-2 continuation,17.0,with,with,1.0,72889.2,79163.0,,no_rung,timeout,,0.4662,0.7444,0.8289,day before the -14% close,2026-02-04 17:00
+DOGEUSDT,2026-02-04,short,3-2-2 reversal,16.0,inside,inside,0.0,0.1022,0.1105,0.0994,bar0_wick,target,18.0,0.319,0.7377,-1.1108,day before the -14% close,2026-02-04 16:00
+ETHUSDT,2026-02-04,short,2-2 continuation,17.0,with,with,1.0,2103.4,2358.6,,no_rung,timeout,,0.0491,-0.024,0.0689,day before the -14% close,2026-02-04 17:00
+SOLUSDT,2026-02-04,short,2-1-2 continuation,5.0,inside,inside,0.0,96.6,105.06,95.5,ladder_W,target,6.0,0.1144,1.1947,1.0137,day before the -14% close,2026-02-04 05:00
+XRPUSDT,2026-02-04,short,2-2 continuation,16.0,inside,inside,0.0,1.5263,1.6344,1.501,ladder_W,target,6.0,0.2213,0.7894,0.1098,day before the -14% close,2026-02-04 16:00
+ZECUSDT,2026-02-04,short,2-2 continuation,15.0,with,with,1.0,266.03,296.0,,no_rung,stop,243.0,-0.9979,0.7164,-1.5917,day before the -14% close,2026-02-04 15:00
+BTCUSDT,2026-02-05,short,2-2 continuation,2.0,with,with,1.0,71838.0,76952.5,,no_rung,timeout,,0.561,0.7854,0.7877,BTC -14% close,2026-02-05 02:00
+DOGEUSDT,2026-02-05,short,2-2 continuation,5.0,inside,inside,0.0,0.1012,0.1095,0.0946,ladder_W,target,10.0,0.7872,1.023,-0.1965,BTC -14% close,2026-02-05 05:00
+ETHUSDT,2026-02-05,short,2-2 continuation,6.0,with,with,1.0,2073.68,2295.0,,no_rung,timeout,,0.4634,0.2585,0.556,BTC -14% close,2026-02-05 06:00
+SOLUSDT,2026-02-05,short,2-2 continuation,11.0,with,with,1.0,89.19,99.6,,no_rung,timeout,,0.2457,0.7214,0.3196,BTC -14% close,2026-02-05 11:00
+XRPUSDT,2026-02-05,short,2-2 continuation,0.0,with,with,1.0,1.4934,1.6116,,no_rung,stop,247.0,-1.0537,0.8222,0.1173,BTC -14% close,2026-02-05 00:00
+ZECUSDT,2026-02-05,short,2-2 continuation,0.0,with,with,1.0,251.37,283.1,,no_rung,stop,221.0,-0.9982,0.4945,-1.2974,BTC -14% close,2026-02-05 00:00
+BTCUSDT,2026-02-06,short,2-2 continuation,0.0,with,with,1.0,62233.3,73316.3,,no_rung,timeout,,-0.6115,-1.1911,-1.6238,day after,2026-02-06 00:00
+DOGEUSDT,2026-02-06,short,2-2 continuation,0.0,with,with,1.0,0.0867,0.1048,,no_rung,stop,208.0,-1.0086,-0.5186,-1.6405,day after,2026-02-06 00:00
+ETHUSDT,2026-02-06,short,2-2 continuation,0.0,with,with,1.0,1813.44,2173.0,,no_rung,timeout,,-0.5242,-0.6626,-0.9568,day after,2026-02-06 00:00
+SOLUSDT,2026-02-06,short,2-2 continuation,0.0,with,with,1.0,77.49,93.4,,no_rung,timeout,,-0.5891,-0.2522,-1.0938,day after,2026-02-06 00:00
+XRPUSDT,2026-02-06,short,2-2 continuation,0.0,with,with,1.0,1.137,1.5144,,no_rung,stop,15.0,-1.0052,-1.8467,-2.774,day after,2026-02-06 00:00
+XRPUSDT,2026-02-06,long,2-2 reversal,15.0,against,against,0.0,1.5144,1.137,1.6116,bar0_wick,target,208.0,0.2633,-1.1319,-0.2015,day after,2026-02-06 15:00
+ZECUSDT,2026-02-06,short,2-2 continuation,0.0,with,with,1.0,203.05,256.0,,no_rung,stop,184.0,-1.0014,-1.0119,-2.4651,day after,2026-02-06 00:00
+BTCUSDT,2026-09-17,long,2-1-2 reversal,1.0,against,with,0.0,76540.0,75025.0,78223.3,bar0_wick,target,31.0,1.0557,4.2001,3.4217,longs ran,2026-09-17 01:00
+DOGEUSDT,2026-09-17,long,2-2 reversal,0.0,against,inside,0.0,0.081,0.0783,0.0839,bar0_wick,target,27.0,1.043,4.2011,3.4037,longs ran,2026-09-17 00:00
+ETHUSDT,2026-09-17,long,2-1-2 reversal,1.0,against,with,0.0,2429.9,2365.0,2518.6,bar0_wick,target,32.0,1.3256,3.1499,2.4787,longs ran,2026-09-17 01:00
+SOLUSDT,2026-09-17,long,2-1-2 reversal,0.0,against,inside,0.0,98.91,96.02,102.83,bar0_wick,target,25.0,1.3188,4.0194,4.7298,longs ran,2026-09-17 00:00
+XRPUSDT,2026-09-17,long,2-2 reversal,14.0,outside,inside,0.0,1.3177,1.2457,1.459,bar0_wick,target,90.0,1.9327,2.9665,2.2922,longs ran,2026-09-17 14:00
+ZECUSDT,2026-09-17,long,2-2 continuation,3.0,outside,with,1.0,1388.0,1101.36,,no_rung,timeout,,0.683,2.0773,1.692,longs ran,2026-09-17 03:00
