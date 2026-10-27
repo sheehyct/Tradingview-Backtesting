@@ -1,0 +1,477 @@
+<title>Daily Break Review</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* layout: one column on the phone; chart first, the trade's story under it, the list last. */
+:root{
+  --bg:#f6f7f9; --fg:#14181f; --muted:#5b6472; --line:#d9dde4; --box:#ffffff; --box2:#eef1f5;
+  --accent:#1f5fbf; --accent-ink:#ffffff; --up:#1e9e6a; --down:#d6453d; --warn:#b7791f;
+  --font:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121519; --fg:#e8ebef; --muted:#9aa3b0; --line:#2b313a; --box:#1a1e24; --box2:#22272e;
+  --accent:#5b93e6; --accent-ink:#0b1220; --up:#2fbf84; --down:#ef6a62; --warn:#d9a441; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121519; --fg:#e8ebef; --muted:#9aa3b0; --line:#2b313a; --box:#1a1e24; --box2:#22272e;
+  --accent:#5b93e6; --accent-ink:#0b1220; --up:#2fbf84; --down:#ef6a62; --warn:#d9a441; color-scheme:dark}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 var(--font)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.app{max-width:820px;margin:0 auto;padding-block:8px 32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:10px}
+h1{font-size:1.15rem;margin:4px 0 0;font-weight:600;letter-spacing:.01em}
+.sub{color:var(--muted);font-size:.8rem;margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--box);color:var(--fg);border-radius:999px;padding:5px 11px;font:500 .85rem var(--font);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.chip:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.filters{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+select{border:1px solid var(--line);background:var(--box);color:var(--fg);border-radius:8px;padding:5px 8px;font:.85rem var(--font)}
+.stat{font:.8rem var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.card{background:var(--box);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+.chartbar{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.tfs{display:flex;gap:4px}
+.tf{border:1px solid var(--line);background:var(--box2);color:var(--fg);border-radius:6px;padding:4px 9px;font:500 .8rem var(--mono);cursor:pointer}
+.tf[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.tf:disabled{opacity:.4;cursor:not-allowed}
+#chart,#ctx{width:100%;height:280px;border-radius:6px;overflow:hidden;background:var(--box)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font:.75rem var(--mono);color:var(--muted);margin-top:6px}
+.legend i{display:inline-block;width:14px;height:0;border-top:2px solid;vertical-align:middle;margin-right:4px}
+.head{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}
+.head b{font-size:1.05rem}
+.result{font:600 1.05rem var(--mono);font-variant-numeric:tabular-nums}
+.pos{color:var(--up)}.neg{color:var(--down)}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin:8px 0 0;padding:0;list-style:none;font-size:.85rem}
+.facts li{min-width:0}.facts span{display:block;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.04em}
+.facts em{font-style:normal;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.story{margin:10px 0 0;font-size:.92rem;max-width:68ch}
+.anchor{margin:8px 0 0;padding:6px 10px;border-left:3px solid var(--warn);background:var(--box2);border-radius:0 6px 6px 0;font-size:.85rem}
+.same{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px;font-size:.8rem;color:var(--muted)}
+.nav{display:flex;gap:6px;justify-content:space-between;align-items:center}
+.btn{border:1px solid var(--line);background:var(--box2);color:var(--fg);border-radius:8px;padding:7px 12px;font:500 .85rem var(--font);cursor:pointer}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.verdicts{display:flex;gap:6px;flex-wrap:wrap}
+.verdicts .btn[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+textarea{width:100%;box-sizing:border-box;border:1px solid var(--line);background:var(--box2);color:var(--fg);border-radius:8px;padding:8px;font:.9rem var(--font);min-height:56px;resize:vertical;margin-top:6px}
+.list{display:flex;flex-direction:column;gap:0;max-height:60vh;overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--box)}
+.row{display:grid;grid-template-columns:86px 1fr auto;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--line);cursor:pointer;font-size:.85rem;background:none;border-left:0;border-right:0;border-top:0;color:var(--fg);text-align:left;width:100%}
+.row:last-child{border-bottom:0}
+.row[aria-current="true"]{background:var(--box2)}
+.row .d{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.row .r{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:600}
+.row .p{color:var(--muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag{display:inline-block;font:500 .7rem var(--mono);padding:1px 6px;border-radius:4px;background:var(--box2);margin-left:4px;color:var(--muted)}
+.tag.good{color:var(--up)}.tag.bad{color:var(--down)}.tag.skip{color:var(--warn)}
+.more{margin:0;padding:8px;text-align:center}
+.note{color:var(--muted);font-size:.78rem;margin:0}
+.err{color:var(--down);font-size:.85rem}
+.panehead{font:600 .8rem var(--font);color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.blind .hide-blind{display:none}
+.hint{font-size:.8rem;color:var(--muted);margin:4px 0 0}
+.score{font:.8rem var(--mono);color:var(--muted);margin:6px 0 0;font-variant-numeric:tabular-nums}
+@media (max-width:420px){#chart,#ctx{height:250px}.facts{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<div class="app">
+  <h1>Daily Break Review</h1>
+  <p class="sub">Every mechanical daily-break trade from the phase-3 table on six coins, drawn on the candles the table used. Entry at the broken level, stop at the setup bar's far side, phase-1 target. Times are UTC; the day rolls at 00:00 UTC. Nothing here is recomputed: the page draws the rows as recorded.</p>
+
+  <div class="chips" id="coins" role="group" aria-label="coin"></div>
+  <div class="filters">
+    <select id="period" aria-label="period"><option value="all">2020 to 2026</option><option value="2020-24">2020-24 (train)</option><option value="2025-26" selected>2025-26 (test)</option></select>
+    <select id="side" aria-label="side"><option value="all">longs and shorts</option><option value="long">longs</option><option value="short">shorts</option></select>
+    <select id="family" aria-label="family"><option value="all">every family</option><option value="continuation">continuation</option><option value="inside">inside break</option><option value="outside">outside break</option><option value="reversal">reversal</option></select>
+    <select id="outcome" aria-label="outcome"><option value="all">won and lost</option><option value="won">won (after costs)</option><option value="lost">lost</option><option value="stop">stopped out</option><option value="target">hit target</option></select>
+    <button class="chip" id="anchors" aria-pressed="false">anchor days only</button>
+    <button class="chip" id="unreviewed" aria-pressed="false">unreviewed only</button>
+    <button class="chip" id="blind" aria-pressed="true">blind: decide, then reveal</button>
+  </div>
+  <p class="stat" id="stat">loading</p>
+
+  <div class="card">
+    <div class="chartbar">
+      <div class="tfs" role="group" aria-label="trade timeframe"><span class="panehead" style="align-self:center;margin-right:4px">trade</span>
+        <button class="tf" data-tf="H" aria-pressed="false">1H</button>
+        <button class="tf" data-tf="D" aria-pressed="true">1D</button>
+      </div>
+      <div class="nav"><button class="btn" id="prev">prev</button><button class="btn primary" id="reveal">reveal</button><button class="btn" id="next">next</button></div>
+    </div>
+    <div id="chart"></div>
+    <div class="legend"><span><i style="border-color:var(--accent)"></i>entry</span><span><i style="border-color:var(--down);border-top-style:dashed"></i>stop</span><span><i style="border-color:var(--up);border-top-style:dashed"></i>target</span><span>markers: in / out</span></div>
+    <p class="hint" id="chartnote"></p>
+    <p class="err" id="charterr" hidden></p>
+  </div>
+
+  <div class="card">
+    <div class="chartbar">
+      <div class="tfs" role="group" aria-label="context timeframe"><span class="panehead" style="align-self:center;margin-right:4px">context</span>
+        <button class="tf ctx" data-ctx="W" aria-pressed="true">1W</button>
+        <button class="tf ctx" data-ctx="M" aria-pressed="false">1M</button>
+      </div>
+      <button class="chip" id="asof" aria-pressed="true">as of the trigger hour</button>
+    </div>
+    <div id="ctx"></div>
+    <div class="legend"><span><i style="border-color:var(--accent)"></i>entry</span><span><i style="border-color:var(--muted);border-top-style:dashed"></i>last bar's high / low</span><span><i style="border-color:var(--warn);border-top-style:dotted"></i>this bar's open</span></div>
+    <p class="hint" id="ctxnote"></p>
+  </div>
+
+  <div class="card" id="trade">
+    <div class="head"><b id="title">pick a trade</b><span class="result hide-blind" id="res"></span></div>
+    <ul class="facts" id="facts"></ul>
+    <p class="story hide-blind" id="story"></p>
+    <div class="anchor" id="anchornote" hidden></div>
+    <div class="same" id="same" hidden></div>
+  </div>
+
+  <div class="card">
+    <div class="verdicts" role="group" aria-label="before the reveal" id="prerow">
+      <span class="panehead" style="align-self:center">before the reveal:</span>
+      <button class="btn" data-p="take" aria-pressed="false">would take</button>
+      <button class="btn" data-p="skip" aria-pressed="false">would skip</button>
+    </div>
+    <div class="verdicts hide-blind" role="group" aria-label="your verdict" style="margin-top:8px">
+      <span class="panehead" style="align-self:center">after:</span>
+      <button class="btn" data-v="good" aria-pressed="false">good trade</button>
+      <button class="btn" data-v="bad" aria-pressed="false">bad trade</button>
+      <button class="btn" data-v="skip" aria-pressed="false">would skip</button>
+      <button class="btn" id="clearv">clear</button>
+    </div>
+    <textarea id="notebox" placeholder="what you see in the week and month that the row does not say"></textarea>
+    <p class="score" id="score"></p>
+    <div class="nav" style="margin-top:8px"><p class="note" id="revcount">no reviews yet</p><button class="btn primary" id="copy">copy my notes</button></div>
+    <p class="note">Verdicts and notes stay in this browser only. Copy them out and paste them to me when you want them read.</p>
+  </div>
+
+  <div class="list" id="list"></div>
+  <p class="note" id="footer"></p>
+</div>
+<script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+<script>
+(function(){
+"use strict";
+const $ = (s) => document.querySelector(s);
+const DAY = 86400, HOUR = 3600;
+const PLAIN = {
+  "2-2 continuation": "yesterday already broke the day before in this direction; today breaks yesterday the same way",
+  "2-2 reversal": "yesterday broke the other way; today breaks back through yesterday's far side",
+  "1-2-2 rev strat": "an inside day, then a trap day that broke it the other way, then today breaks back through the trap day",
+  "3-2-2 reversal": "an outside day, a day that broke it one way, and today breaks back the other way",
+  "2-1-2 continuation": "an inside day sitting inside a day that had already gone this way; today breaks the inside day",
+  "2-1-2 reversal": "an inside day sitting inside a day that went the other way; today breaks the inside day against it",
+  "3-1-2 continuation": "an inside day after an outside day that closed this way; today breaks the inside day",
+  "3-1-2 reversal": "an inside day after an outside day that closed the other way; today breaks the inside day against it",
+  "1-1-2 stacked inside": "two inside days in a row; today breaks the second one",
+  "3-2 outside break": "yesterday was an outside day; today breaks one side of it"
+};
+const SRC = {bar0_wick: "the anchor bar's wick (the reclaim level)", ladder_W: "last week's level", ladder_M: "last month's level", no_rung: "no level left beyond the entry (no target)", zero_magnitude: "no room to the anchor (no target)"};
+let index = null, coinData = {}, coin = null, tf = "D", ctxTf = "W", filtered = [], cur = -1, listShown = 150;
+let blind = true, revealed = false, asOf = true;
+let reviews = {};
+try { reviews = JSON.parse(localStorage.getItem("dbr-reviews") || "{}") || {}; } catch (e) { reviews = {}; }
+function saveReviews(){ try { localStorage.setItem("dbr-reviews", JSON.stringify(reviews)); } catch (e) {} }
+function remember(k, v){ try { localStorage.setItem("dbr-" + k, v); } catch (e) {} }
+function recall(k){ try { return localStorage.getItem("dbr-" + k); } catch (e) { return null; } }
+const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const fmtPx = (v) => v == null ? "" : (v >= 1000 ? v.toLocaleString(undefined, {maximumFractionDigits: 1}) : v >= 1 ? v.toFixed(3) : v.toPrecision(4));
+const fmtR = (v) => v == null ? "" : (v > 0 ? "+" : "") + v.toFixed(2) + "R";
+const dollars = (r) => (r >= 0 ? "made $" : "lost $") + Math.abs(Math.round(r * 100));
+function rowObj(c, arr){ const o = {}; c.fields.forEach((f, i) => o[f] = arr[i]); return o; }
+
+// ---------------- data
+async function loadIndex(){
+  const r = await fetch("data/index.json"); index = await r.json();
+  const chips = $("#coins");
+  index.coins.forEach(c => { const b = document.createElement("button"); b.className = "chip"; b.textContent = c.name; b.dataset.coin = c.coin; b.setAttribute("aria-pressed", "false"); b.onclick = () => selectCoin(c.coin); chips.appendChild(b); });
+  $("#footer").textContent = "Source: " + index.source + ". Built " + index.built + ". Hourly candles from 2024-10-01; before that the trigger day and the partial week and month are built from completed days only.";
+}
+async function loadCoin(c){
+  if (coinData[c]) return coinData[c];
+  $("#stat").textContent = "loading " + c.replace("USDT", "") + "...";
+  const meta = index.coins.find(x => x.coin === c);
+  const r = await fetch(meta.file); const d = await r.json();
+  d.rows = d.trades.map(a => rowObj(d, a));
+  d.weekly = aggregate(d.daily, "W"); d.monthly = aggregate(d.daily, "M");
+  coinData[c] = d; return d;
+}
+function bucketStart(t, kind){
+  const dt = new Date(t * 1000);
+  const day = Date.UTC(dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate()) / 1000;
+  if (kind === "D" || kind === "H") return day;
+  if (kind === "W") return day - ((dt.getUTCDay() + 6) % 7) * DAY;
+  return Date.UTC(dt.getUTCFullYear(), dt.getUTCMonth(), 1) / 1000;
+}
+function aggregate(daily, kind){
+  const out = []; let key = null, bar = null;
+  for (const b of daily){
+    const start = bucketStart(b[0], kind);
+    if (start !== key){ if (bar) out.push(bar); key = start; bar = [start, b[1], b[2], b[3], b[4]]; }
+    else { bar[2] = Math.max(bar[2], b[2]); bar[3] = Math.min(bar[3], b[3]); bar[4] = b[4]; }
+  }
+  if (bar) out.push(bar); return out;
+}
+function partialFrom(bars, from, to){
+  let o = null, h = -Infinity, l = Infinity, c = null;
+  for (const b of bars){ if (b[0] < from) continue; if (b[0] >= to) break; if (o === null) o = b[1]; h = Math.max(h, b[2]); l = Math.min(l, b[3]); c = b[4]; }
+  return o === null ? null : [from, o, h, l, c];
+}
+// bars of `kind` as they stood at `cutoff` (the trigger hour's open): completed buckets before the
+// cutoff's bucket, then the partial bucket from the hours before the cutoff (the table's own rule),
+// or from completed days before the trigger day when no hourly bars exist. cutoff null = everything.
+function seriesFor(kind, cutoff){
+  const d = coinData[coin];
+  const full = kind === "H" ? d.hourly : kind === "D" ? d.daily : kind === "W" ? d.weekly : d.monthly;
+  if (cutoff == null) return {bars: full, partial: null, approx: false};
+  if (kind === "H") return {bars: full.filter(b => b[0] < cutoff), partial: null, approx: false};
+  const start = bucketStart(cutoff, kind);
+  const done = full.filter(b => b[0] < start);
+  const hourlyOk = d.hourly.length && d.hourly[0][0] <= start;
+  let partial = null, approx = false;
+  if (hourlyOk) partial = partialFrom(d.hourly, start, cutoff);
+  else if (kind !== "D"){ partial = partialFrom(d.daily, start, bucketStart(cutoff, "D")); approx = true; }
+  else approx = true;
+  return {bars: partial ? done.concat([partial]) : done, partial: partial, prev: done.length ? done[done.length - 1] : null, approx: approx};
+}
+async function selectCoin(c){
+  coin = c; remember("coin", c);
+  document.querySelectorAll("#coins .chip").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.coin === c)));
+  await loadCoin(c); loadedKey = {}; applyFilters(true);
+}
+function applyFilters(keepFirst){
+  const d = coinData[coin]; if (!d) return;
+  const period = $("#period").value, side = $("#side").value, fam = $("#family").value, out = $("#outcome").value;
+  const anchorsOnly = $("#anchors").getAttribute("aria-pressed") === "true", unrev = $("#unreviewed").getAttribute("aria-pressed") === "true";
+  filtered = d.rows.filter(r => (period === "all" || r.period === period) && (side === "all" || r.dir === side) && (fam === "all" || r.family === fam)
+    && (out === "all" || (out === "won" && r.r_net > 0) || (out === "lost" && r.r_net <= 0) || (out === "stop" && r.touch === "stop") || (out === "target" && r.touch === "target"))
+    && (!anchorsOnly || r.note) && (!unrev || !reviews[r.id]));
+  filtered.sort((a, b) => b.trig - a.trig);
+  const n = filtered.length, w = filtered.filter(r => r.r_net > 0).length, m = n ? filtered.reduce((s, r) => s + r.r_net, 0) / n : 0;
+  $("#stat").textContent = n ? `${n} trades, ${(100 * w / n).toFixed(0)}% won, average ${fmtR(m)} after costs (${dollars(m)} per $100 risked)` : "no trades match";
+  listShown = 150; renderList();
+  const wanted = recall("trade");
+  let i = keepFirst ? filtered.findIndex(r => r.id === wanted) : -1;
+  if (i < 0) i = 0;
+  if (n) showTrade(i); else { cur = -1; $("#title").textContent = "no trades match"; $("#facts").innerHTML = ""; $("#story").textContent = ""; }
+}
+function renderList(){
+  const list = $("#list"); list.innerHTML = "";
+  filtered.slice(0, listShown).forEach((r, i) => {
+    const b = document.createElement("button"); b.className = "row"; b.setAttribute("aria-current", String(i === cur));
+    const v = reviews[r.id]; const tag = v && v.v ? `<span class="tag ${v.v}">${v.v}</span>` : v && v.p ? `<span class="tag">${v.p}</span>` : "";
+    const res = blind && !(v && (v.v || v.p)) ? "?" : fmtR(r.r_net);
+    b.innerHTML = `<span class="d">${r.date}</span><span class="p">${r.dir} ${r.pattern}${r.note ? ' <span class="tag">anchor</span>' : ""}${tag}</span><span class="r ${res === "?" ? "" : r.r_net > 0 ? "pos" : "neg"}">${res}</span>`;
+    b.onclick = () => { showTrade(i); window.scrollTo({top: 0, behavior: "smooth"}); };
+    list.appendChild(b);
+  });
+  if (filtered.length > listShown){ const m = document.createElement("button"); m.className = "btn more"; m.textContent = `show ${Math.min(150, filtered.length - listShown)} more of ${filtered.length}`; m.onclick = () => { listShown += 150; renderList(); }; list.appendChild(m); }
+}
+function htfWord(state, dir){
+  if (state === "with") return (dir === "long" ? "2-up" : "2-down") + ", already broken your way";
+  if (state === "against") return (dir === "long" ? "2-down" : "2-up") + ", broken against you";
+  if (state === "inside") return "inside, still coiled";
+  if (state === "outside") return "outside bar";
+  return "just opened, nothing yet";
+}
+const colourWord = (col) => col > 0 ? "green (above its open)" : col < 0 ? "red (below its open)" : "flat";
+
+// ---------------- the trade
+function showTrade(i){
+  cur = i; const r = filtered[i]; if (!r) return; remember("trade", r.id);
+  revealed = !blind || !!(reviews[r.id] && reviews[r.id].v);
+  document.querySelectorAll("#list .row").forEach((b, j) => b.setAttribute("aria-current", String(j === i)));
+  const name = coin.replace("USDT", "");
+  $("#title").textContent = `${r.dir === "long" ? "Long" : "Short"} ${name}, ${r.date}, ${r.pattern}`;
+  const res = $("#res"); res.textContent = fmtR(r.r_net) + " after costs"; res.className = "result hide-blind " + (r.r_net > 0 ? "pos" : "neg");
+  const stopPct = 100 * Math.abs(r.level - r.stop) / r.level;
+  const plan = [
+    ["entry", fmtPx(r.level) + " at " + String(r.hour).padStart(2, "0") + ":00 UTC"],
+    ["stop", fmtPx(r.stop) + " (" + stopPct.toFixed(2) + "% away = $100)"],
+    ["target", r.t1 == null ? "none: " + (SRC[r.t1_src] || r.t1_src) : fmtPx(r.t1) + " (" + r.rr.toFixed(2) + "R, " + (SRC[r.t1_src] || r.t1_src) + ")"],
+    ["week so far", htfWord(r.week, r.dir) + "; " + colourWord(r.wcol)],
+    ["month so far", htfWord(r.month, r.dir) + "; " + colourWord(r.mcol)],
+    ["continuity score", r.tfc.toFixed(1) + " (share of week and month pushing your way)"],
+    ["BTC vol regime", (r.vol || "unknown") + (r.tier ? ", liquidity tier " + r.tier : "")]
+  ];
+  const outcome = [
+    ["exit", r.touch === "stop" ? "stopped after " + r.touch_h + " h" : r.touch === "target" ? "target after " + r.touch_h + " h" : "marked at the 10-day close"],
+    ["best / worst on the way", fmtR(r.mfe) + " / " + fmtR(-r.mae)],
+    ["held with no exits", (r.atr5 == null ? "n/a" : (r.atr5 > 0 ? "+" : "") + r.atr5.toFixed(2) + " daily ranges at 5 days, " + (r.atr10 > 0 ? "+" : "") + r.atr10.toFixed(2) + " at 10")]
+  ];
+  $("#facts").innerHTML = plan.map(([k, v]) => `<li><span>${k}</span><em>${v}</em></li>`).join("") + outcome.map(([k, v]) => `<li class="hide-blind"><span>${k}</span><em>${v}</em></li>`).join("");
+  const costs = r.r_gross - r.r_net;
+  $("#story").textContent = `${PLAIN[r.pattern] ? PLAIN[r.pattern].charAt(0).toUpperCase() + PLAIN[r.pattern].slice(1) + ". " : ""}` +
+    `The trade ${r.r_net > 0 ? "made" : "lost"} ${Math.abs(Math.round(r.r_net * 100))} dollars per 100 risked after ${Math.round(costs * 100)} dollars of fees, slippage and funding` +
+    (r.touch === "stop" ? `; the stop was hit ${r.touch_h} hours after entry.` : r.touch === "target" ? `; the target was hit ${r.touch_h} hours after entry.` : `; neither stop nor target was touched inside 10 days, so it was marked at the close.`) +
+    (r.atr5 != null ? ` Had you held with no stop and no target it was ${r.atr5 > 0 ? "up" : "down"} ${Math.abs(r.atr5).toFixed(2)} of a normal day's range after 5 days.` : "");
+  const an = $("#anchornote"); if (r.note){ an.hidden = false; an.textContent = "Why this day is on the list: " + r.note; } else an.hidden = true;
+  const same = $("#same"); same.hidden = !r.note;
+  if (r.note){ same.innerHTML = "same day on: "; index.coins.filter(c => c.coin !== coin).forEach(c => { const b = document.createElement("button"); b.className = "chip"; b.textContent = c.name; b.onclick = async () => { await selectCoin(c.coin); const j = filtered.findIndex(x => x.date === r.date && x.dir === r.dir); if (j >= 0) showTrade(j); else { const k = filtered.findIndex(x => x.date === r.date); if (k >= 0) showTrade(k); } }; same.appendChild(b); }); }
+  renderVerdict(r); applyBlindClass(); drawBoth(r);
+}
+function applyBlindClass(){
+  document.body.classList.toggle("blind", blind && !revealed);
+  $("#reveal").hidden = !(blind && !revealed);
+  $("#prerow").hidden = !blind;
+}
+function reveal(){ revealed = true; applyBlindClass(); if (cur >= 0) drawBoth(filtered[cur]); }
+
+// ---------------- reviews
+function renderVerdict(r){
+  const v = reviews[r.id] || {};
+  document.querySelectorAll(".verdicts .btn[data-v]").forEach(b => b.setAttribute("aria-pressed", String(v.v === b.dataset.v)));
+  document.querySelectorAll("#prerow .btn[data-p]").forEach(b => b.setAttribute("aria-pressed", String(v.p === b.dataset.p)));
+  $("#notebox").value = v.n || "";
+  const all = Object.values(reviews);
+  const n = all.length; $("#revcount").textContent = n ? `${n} reviewed in this browser` : "no reviews yet";
+  const takes = all.filter(x => x.p === "take"), skips = all.filter(x => x.p === "skip");
+  const avg = (xs) => xs.length ? fmtR(xs.reduce((s, x) => s + x.r, 0) / xs.length) : "n/a";
+  const won = (xs) => xs.length ? Math.round(100 * xs.filter(x => x.r > 0).length / xs.length) + "% won" : "";
+  $("#score").textContent = (takes.length || skips.length) ? `Your blind calls so far: would take ${takes.length} (${avg(takes)}, ${won(takes)}); would skip ${skips.length} (${avg(skips)}, ${won(skips)}). If the takes beat the skips, your read on the week and month is adding something the rows do not have.` : "Blind calls are scored here once you have made a few: the average result of the trades you would take against the ones you would skip.";
+}
+function entry(r){ return {coin: coin.replace("USDT", ""), date: r.date, dir: r.dir, pattern: r.pattern, r: r.r_net, week: r.week, month: r.month}; }
+function setPre(p){
+  const r = filtered[cur]; if (!r) return;
+  const v = reviews[r.id] || entry(r);
+  if (v.p === p) delete v.p; else v.p = p;
+  v.t = Date.now(); reviews[r.id] = v; saveReviews(); renderVerdict(r); renderList();
+}
+function setVerdict(v){
+  const r = filtered[cur]; if (!r) return;
+  if (v === null){ delete reviews[r.id]; }
+  else { const e = reviews[r.id] || entry(r); e.v = v; e.n = $("#notebox").value; e.t = Date.now(); reviews[r.id] = e; }
+  saveReviews(); renderVerdict(r); renderList();
+}
+function saveNote(){
+  const r = filtered[cur]; if (!r) return;
+  const n = $("#notebox").value; if (!n && !reviews[r.id]) return;
+  const e = reviews[r.id] || entry(r); e.n = n; e.t = Date.now(); reviews[r.id] = e; saveReviews(); renderVerdict(r);
+}
+function notesText(){
+  const ids = Object.keys(reviews).sort((a, b) => (reviews[b].t || 0) - (reviews[a].t || 0));
+  if (!ids.length) return "no reviews yet";
+  return ids.map(id => { const v = reviews[id]; return `${v.coin} ${v.date} ${v.dir} ${v.pattern} | week ${v.week}, month ${v.month} | ${fmtR(v.r)} | blind: ${v.p || "-"} | after: ${v.v || "-"}${v.n ? " | " + v.n.replace(/\s+/g, " ") : ""}`; }).join("\n");
+}
+async function copyNotes(){
+  const t = notesText();
+  try { await navigator.clipboard.writeText(t); $("#copy").textContent = "copied"; }
+  catch (e) { const ta = document.createElement("textarea"); ta.value = t; ta.style.position = "fixed"; ta.style.left = "-9999px"; document.body.appendChild(ta); ta.select(); try { document.execCommand("copy"); $("#copy").textContent = "copied"; } catch (e2) { $("#notebox").value = t; $("#copy").textContent = "shown in the note box"; } document.body.removeChild(ta); }
+  setTimeout(() => $("#copy").textContent = "copy my notes", 1800);
+}
+
+// ---------------- charts (two panes)
+const panes = {};
+let loadedKey = {};
+function chartOpts(timeVisible){
+  return {layout: {background: {type: "solid", color: css("--box")}, textColor: css("--muted"), fontFamily: css("--mono")},
+    grid: {vertLines: {color: css("--line")}, horzLines: {color: css("--line")}},
+    rightPriceScale: {borderColor: css("--line")}, timeScale: {borderColor: css("--line"), timeVisible: timeVisible, secondsVisible: false},
+    crosshair: {mode: 0}, handleScroll: true, handleScale: true};
+}
+function candleColors(){ return {upColor: css("--up"), downColor: css("--down"), borderUpColor: css("--up"), borderDownColor: css("--down"), wickUpColor: css("--up"), wickDownColor: css("--down")}; }
+function ensurePane(id){
+  if (!window.LightweightCharts){ $("#charterr").hidden = false; $("#charterr").textContent = "The chart library did not load in this browser. The trade facts below still work; reload once to retry."; return null; }
+  if (panes[id]) return panes[id];
+  const el = $("#" + id);
+  const chart = LightweightCharts.createChart(el, Object.assign({width: el.clientWidth, height: el.clientHeight}, chartOpts(false)));
+  const series = chart.addCandlestickSeries(Object.assign({priceLineVisible: false, lastValueVisible: false}, candleColors()));
+  new ResizeObserver(() => chart.applyOptions({width: el.clientWidth, height: el.clientHeight})).observe(el);
+  const p = {chart: chart, series: series, lines: []};
+  panes[id] = p; return p;
+}
+(function themeWatch(){
+  const re = () => Object.values(panes).forEach(p => { p.chart.applyOptions(chartOpts(p.timeVisible)); p.series.applyOptions(candleColors()); });
+  const mq = window.matchMedia("(prefers-color-scheme: dark)"); mq.addEventListener ? mq.addEventListener("change", re) : mq.addListener(re);
+  new MutationObserver(re).observe(document.documentElement, {attributes: true, attributeFilter: ["data-theme"]});
+})();
+function setBars(p, id, key, bars, timeVisible){
+  if (loadedKey[id] !== key){ p.series.setData(bars.map(b => ({time: b[0], open: b[1], high: b[2], low: b[3], close: b[4]}))); p.timeVisible = timeVisible; p.chart.applyOptions(chartOpts(timeVisible)); loadedKey[id] = key; }
+}
+function clearLines(p){ p.lines.forEach(l => p.series.removePriceLine(l)); p.lines = []; }
+function line(p, price, color, style, width, title){ p.lines.push(p.series.createPriceLine({price: price, color: color, lineWidth: width, lineStyle: style, axisLabelVisible: true, title: title})); }
+const snapTo = (bars, t) => { let best = bars.length ? bars[0][0] : t; for (const b of bars){ if (b[0] <= t) best = b[0]; else break; } return best; };
+function drawBoth(r){ drawTrade(r); drawContext(r); }
+function drawTrade(r){
+  const p = ensurePane("chart"); if (!p) return;
+  const d = coinData[coin];
+  const hourlyOk = d.hourly.length && r.trig >= d.hourly[0][0];
+  if (tf === "H" && !hourlyOk) tf = "D";
+  document.querySelectorAll(".tf[data-tf]").forEach(b => { b.disabled = b.dataset.tf === "H" && !hourlyOk; b.setAttribute("aria-pressed", String(b.dataset.tf === tf)); });
+  const cutoff = (blind && !revealed) ? r.trig : null;
+  const s = seriesFor(tf, cutoff);
+  const bars = s.bars; if (!bars.length) return;
+  setBars(p, "chart", coin + tf + (cutoff || "full"), bars, tf === "H");
+  clearLines(p);
+  line(p, r.level, css("--accent"), 0, 2, "entry");
+  line(p, r.stop, css("--down"), 2, 1, "stop");
+  if (r.t1 != null) line(p, r.t1, css("--up"), 2, 1, "target");
+  const markers = [];
+  if (!cutoff){
+    const tIn = snapTo(bars, r.trig), tOut = snapTo(bars, r.exit_t);
+    markers.push({time: tIn, position: r.dir === "long" ? "belowBar" : "aboveBar", color: css("--accent"), shape: r.dir === "long" ? "arrowUp" : "arrowDown", text: "in"});
+    if (tOut !== tIn) markers.push({time: tOut, position: r.dir === "long" ? "aboveBar" : "belowBar", color: r.r_net > 0 ? css("--up") : css("--down"), shape: "circle", text: "out " + fmtR(r.r_net)});
+    else markers[0].text = "in/out " + fmtR(r.r_net);
+  }
+  p.series.setMarkers(markers.sort((a, b) => a.time - b.time));
+  const anchor = snapTo(bars, r.trig);
+  const before = tf === "H" ? 60 * HOUR : 45 * DAY;
+  const after = cutoff ? (tf === "H" ? 6 * HOUR : 3 * DAY) : (tf === "H" ? Math.max(36 * HOUR, r.exit_t - r.trig + 24 * HOUR) : 18 * DAY);
+  p.chart.timeScale().setVisibleRange({from: anchor - before, to: anchor + after});
+  $("#chartnote").textContent = cutoff ? (tf === "D" ? (s.approx ? "Shown through yesterday's close: no hourly bars this far back, so the trigger day's own hours are not drawn." : "The last candle is the trigger day as it stood at the trigger hour.") : "Hours up to the trigger hour; the break has not happened yet on this screen.") : (tf === "D" ? "Daily candles with the outcome drawn." : "Hourly candles with the outcome drawn.");
+}
+function drawContext(r){
+  const p = ensurePane("ctx"); if (!p) return;
+  document.querySelectorAll(".tf.ctx").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.ctx === ctxTf)));
+  const useAsOf = asOf || (blind && !revealed);
+  $("#asof").setAttribute("aria-pressed", String(useAsOf)); $("#asof").disabled = blind && !revealed;
+  $("#asof").textContent = useAsOf ? "as of the trigger hour" : "as the bars closed";
+  const cutoff = useAsOf ? r.trig : null;
+  const s = seriesFor(ctxTf, cutoff);
+  const bars = s.bars; if (!bars.length) return;
+  setBars(p, "ctx", coin + ctxTf + (cutoff || "full"), bars, false);
+  clearLines(p);
+  line(p, r.level, css("--accent"), 0, 2, "entry");
+  const full = seriesFor(ctxTf, null).bars;
+  const start = bucketStart(r.trig, ctxTf);
+  const prev = full.filter(b => b[0] < start).slice(-1)[0];
+  const curBar = full.find(b => b[0] === start);
+  if (prev){ line(p, prev[2], css("--muted"), 2, 1, "last " + (ctxTf === "W" ? "wk" : "mo") + " high"); line(p, prev[3], css("--muted"), 2, 1, "last " + (ctxTf === "W" ? "wk" : "mo") + " low"); }
+  if (curBar) line(p, curBar[1], css("--warn"), 1, 1, (ctxTf === "W" ? "week" : "month") + " open");
+  p.series.setMarkers([]);
+  const n = ctxTf === "W" ? 30 : 24, unit = ctxTf === "W" ? 7 * DAY : 31 * DAY;
+  p.chart.timeScale().setVisibleRange({from: start - n * unit, to: start + (cutoff ? 2 : 6) * unit});
+  const word = ctxTf === "W" ? "week" : "month";
+  const st = ctxTf === "W" ? r.week : r.month, col = ctxTf === "W" ? r.wcol : r.mcol;
+  $("#ctxnote").textContent = (cutoff ? `The last candle is the ${word} as it stood at the trigger hour${s.approx ? " (built from completed days only; no hourly bars this far back)" : ""}: ` : `The ${word} as it finally closed; switch to 'as of the trigger hour' to see what was knowable at entry. At entry it was: `) + htfWord(st, r.dir) + "; " + colourWord(col) + ". Dashed lines are last " + word + "'s high and low, the levels a break of this " + word + " would have to take out.";
+}
+
+// ---------------- wiring
+document.querySelectorAll(".tf[data-tf]").forEach(b => b.onclick = () => { tf = b.dataset.tf; remember("tf", tf); if (cur >= 0) drawTrade(filtered[cur]); });
+document.querySelectorAll(".tf.ctx").forEach(b => b.onclick = () => { ctxTf = b.dataset.ctx; remember("ctx", ctxTf); if (cur >= 0) drawContext(filtered[cur]); });
+$("#asof").onclick = () => { asOf = !asOf; remember("asof", asOf ? "on" : "off"); if (cur >= 0) drawContext(filtered[cur]); };
+$("#blind").onclick = () => { blind = !blind; $("#blind").setAttribute("aria-pressed", String(blind)); remember("blind", blind ? "on" : "off"); if (cur >= 0) showTrade(cur); renderList(); };
+$("#reveal").onclick = reveal;
+$("#prev").onclick = () => { if (cur > 0) showTrade(cur - 1); };
+$("#next").onclick = () => { if (cur < filtered.length - 1) showTrade(cur + 1); };
+["#period", "#side", "#family", "#outcome"].forEach(s => $(s).onchange = () => applyFilters(false));
+["#anchors", "#unreviewed"].forEach(s => $(s).onclick = () => { const b = $(s); b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed") !== "true")); applyFilters(false); });
+document.querySelectorAll("#prerow .btn[data-p]").forEach(b => b.onclick = () => setPre(b.dataset.p));
+document.querySelectorAll(".verdicts .btn[data-v]").forEach(b => b.onclick = () => setVerdict(b.getAttribute("aria-pressed") === "true" ? null : b.dataset.v));
+$("#clearv").onclick = () => setVerdict(null);
+$("#notebox").addEventListener("change", saveNote);
+$("#notebox").addEventListener("blur", saveNote);
+$("#copy").onclick = copyNotes;
+async function boot(){
+  try {
+    await loadIndex();
+    tf = recall("tf") === "H" ? "H" : "D"; ctxTf = recall("ctx") === "M" ? "M" : "W";
+    blind = recall("blind") !== "off"; $("#blind").setAttribute("aria-pressed", String(blind));
+    asOf = recall("asof") !== "off";
+    const c = recall("coin"); const first = index.coins.some(x => x.coin === c) ? c : index.coins[0].coin;
+    if (!recall("trade")){ $("#anchors").setAttribute("aria-pressed", "true"); }
+    await selectCoin(first);
+  } catch (e) { $("#stat").textContent = "could not load the data files: " + e.message; }
+}
+if (window.LightweightCharts) boot();
+else { const s = document.createElement("script"); s.src = "https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"; s.onload = boot; s.onerror = boot; document.head.appendChild(s); }
+})();
+</script>

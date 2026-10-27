@@ -58,6 +58,66 @@ needs the owner's word.
   build clustered by date, leave-one-ticker-out, the gap rule, the fair-line sweep at n >= 300),
   on the owner's word; the alt-coin line closes unless the owner re-opens it.
 
+- **Addendum 2026-10-24 to 10-27 (same thread, after the gate; exploratory cuts, no arms, nothing
+  promoted):** (1) Test-1 drift cut by the continuity columns already on every row, train beside
+  test: every higher-timeframe context cell FLIPS SIGN between 2020-24 and 2025-26. "Week or
+  month inside but coloured our way" was the best cell on train (+0.13 ATR at 10 bars, z +3.2;
+  the only managed cell at or above zero) and the worst on test (-0.11, z -2.9); full
+  continuity (week and month both already 2 our way) +0.19 train / -0.14 test, managed book
+  39% win in both periods (7 in 10 have no target left); the week-only domino break (the daily
+  break also takes last week's extreme) is flat on train and one of the worst cells on test
+  (-0.34 ATR at 5 days, z -2.4), but that is the day's geometry, not the week's trade. Reading:
+  on alts, higher-timeframe context is a regime read, not a filter; what is stable across
+  regimes is the WIN RATE by structure (week-with / month-against 41% both periods, both-coiled
+  59-61% both), what flips is the drift. The skill's Tier C (week and month 2 against) reads
+  -0.10 ATR on test, mildly negative on train. (2) Regime anchor days found by averaging the
+  net 5-bar drift across all coins per trigger day: the market-wide days come in PAIRS, a day
+  when every break failed followed within 48 h by a day when every break the other way ran
+  (2024-11-04 -> 11-05/06; 2025-01-30/31 -> 02-01/02; 2025-05-04/06 -> 05-07/08). On the
+  2025-10-10 liquidation day the mechanical book was short with the owner (502 shorts, 91% won,
+  +0.73R after costs); the trap was 10-12, the bounce longs above the inside day with week and
+  month both 2-down (Tier C), 7 of 9 stopped 4-5 days later. (3) The owner's visual review list:
+  `analysis/strat_ml/reports/v3_visual_review_list.md` (and .csv, force-added past the *.csv
+  rule): BTC, ETH, SOL, XRP, DOGE, ZEC on 20 anchor dates, entry / stop / target / outcome.
+  (4) **A phone review page** (private claude.ai artifact, link NOT in the repo; source
+  `analysis/strat_ml/phone_review/page.html`, data pack `build_pack.py` -> the gitignored
+  `analysis/strat_ml/data/phone_review/`): every trade of those six coins on candles, two
+  stacked panes (trade 1H/1D above, week or month context below) with the context bar drawn AS
+  OF THE TRIGGER HOUR (partial bar from the hours before the trigger, the table's own rule),
+  last bar's high / low and the period's open as lines, a blind mode (both panes stop at the
+  trigger hour; "would take / would skip" recorded before the reveal; the score line averages
+  the takes against the skips) and a verdict + note per trade kept in the browser, exported as
+  text. Chart library: lightweight-charts 4.2.0 from a CDN (the owner's TVB-40 preference was
+  amCharts for the desktop; the phone page is a format test, owner's word 2026-10-26). The
+  owner's first read: the hard part on a phone is the multi-timeframe context; v2 is the answer
+  to that. (5) `/adhd` skill added at `.claude/skills/adhd/SKILL.md` (owner's draft, verbatim).
+  (6) The owner's market-data MCP server (underlying-stock bars for the HIP-3 names) is wired
+  into cloud sessions now: daily bars for any US ticker, 200 bars (back to 2026-01-08 on
+  2026-10-24, a ROLLING window), 60-minute bars 09:30-anchored but only ~24 trading days deep.
+  So the brief's HIP-3 run 2 (the underlying control) is possible at DAILY resolution, and the
+  bars should be pulled and frozen as a snapshot before late December, when the HIP-3 window's
+  start falls off. (7) Two commits on this branch (9155973, f354eff) carry an AI attribution
+  trailer against the spine's "no AI attribution" rule (the harness asked for it); later commits
+  omit it; history not rewritten.
+- **Owner's direction at close (2026-10-27):** move the research off alts (one market, two
+  regimes, every context effect flipped between them) to an instrument class with many regimes
+  (index futures or their ETFs, session bars, 15+ years) with the continuity arms declared as an
+  ablation ladder BEFORE running; a $100 live data run on Hyperliquid (crypto 24/7 plus equity
+  perps) is planned; the lead's ranking and the bar-definition warning for equity perps (UTC day
+  -0.10R vs NY session +0.12R, section 13) are in the session transcript and summarised below.
+
+### Open
+
+- [ ] Merge `claude/jolly-babbage-vlk7yz` into main (PR on the owner's word) so the PC pull
+      brings phase 3, the review list, the phone page source and the /adhd skill.
+- [ ] HIP-3 session branch (brief section 11), on the owner's word; run 2 at daily resolution via
+      the market-data server, bars frozen as a snapshot first.
+- [ ] Design session for the next instrument set (index / ETF, session bars, multi-regime) and
+      the continuity ablation ladder; prereg before code.
+- [ ] The owner's blind calls from the phone page, pasted back, scored against the rows.
+- [ ] XAUUSDT / XAGUSDT (Binance gold and silver perps) sit in the "alt" universe; a hygiene
+      note like the stablecoin one, not applied.
+
 ---
 
 ## Side thread 2026-10-20 (not a TVB session): STRAT ML research vessel, Phases 2-5 run to the end (COMPLETE)
