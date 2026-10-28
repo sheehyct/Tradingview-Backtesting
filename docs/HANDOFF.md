@@ -5,6 +5,121 @@
 
 ---
 
+## Side thread 2026-10-22 (not a TVB session): STRAT ML research vessel, Phase 3 to the test-1 gate (STOPPED AT THE GATE, as the brief orders)
+
+**Date:** 2026-10-22 (cloud session, branch claude/jolly-babbage-vlk7yz; the owner's brief
+`docs/experiments/strat_ml_phase3_brief.md` is the spec: fixes, then test 1, then stop and report
+the gate before tests 2-5)
+**Status:** Test 1 run, gate FAILED on the alt-coin table. Tests 2-5 NOT run (the brief forbids
+running them on alts "anyway"); the HIP-3 session branch (brief section 11) is the next run and
+needs the owner's word.
+
+- **Read first:** `docs/experiments/strat_ml_phase3_results.md` (the gate line and every verdict,
+  verbatim) and the page `analysis/strat_ml/reports/STRAT Trigger Research v3.md` (or .html,
+  self-contained, phone-readable; glossary first, a What-this-means above and a verdict below
+  every table, every R after costs, every z clustered by trigger date).
+- **Built:** `analysis/strat_ml/report_v3.py` (extends `report.py`, which is untouched: the
+  phase-1 table is read through the phase-1 loader; the table helper refuses to render without
+  its two texts; cost model as a config block; the gate as the first line of the page),
+  `analysis/strat_ml/m15_check.py` (15-minute klines pulled into their own raw folder for a
+  block-random 20,000-row sample), `tests/test_strat_ml_report_v3.py` (11 hand vectors: glossary
+  verbatim vs the brief, clustered z, cost arithmetic and funding marks, the 15-minute walk, the
+  gate rule). Data bootstrap per the brief's appendix reproduced phase 1's rows exactly
+  (565,687 built, 9,595 censored, 556,092 with a 10-bar outcome; HIP-3 15,844 / 11,324).
+- **Section-5 fixes:** 3f re-rendered (model A refit on integer-coded categoricals; top pair =
+  direction x BTC 30-day realized-vol percentile); stablecoin drop caught only USDCUSDT (1,153
+  rows, -0.233R; log `analysis/strat_ml/stablecoins_dropped.json`), the headline moves by
+  +0.0004R; the v3 page is numbered in page order with the caveats last (the phase-1 outputs stay
+  as published, per the brief).
+- **Cost model:** mean cost 0.176% of price per phase-1 trade (53% of the -0.331% loss, the
+  brief's "about half" holds); 0.02-0.04R per trade by tier; the two tier x family cells that
+  were positive before fees are under zero after them; whole book -0.031R -> -0.054R after costs.
+- **15-minute check (reported, not fixed):** against-first 67.8% on the hourly clock, 55.7% on
+  15-minute bars with the trigger bar counted, 47.5% with its own adverse print ignored (phase 1
+  guessed 27%). The hourly artefact is real but smaller than estimated; sections 7b-7c of phase
+  1 read with the 15-minute version. The fav-first / adv-first split in mean R survives
+  (+0.18R vs -0.23R after costs) and is partly mechanical (adverse first = nearer the stop).
+- **Test 1, the gate: FAILED.** Held N bars with no stop and no target, costs paid, on 2025-26:
+  continuation -0.085 ATR (-0.78% of price) at 5 bars, z -2.3 (significantly AGAINST the break,
+  -0.158 ATR at 10 bars, z -3.2); inside -0.046 ATR, z -1.8; outside -0.035 ATR, z -1.0;
+  reversal +0.010 ATR, z +0.3 (flat). Whole book -0.045 ATR at 5 bars, z -2.1. On 2020-24 the
+  same cells were flat (whole book -0.001 ATR at 5 bars); the continuation drift was +0.03 ATR
+  there and -0.085 on test, the regime story the brief named. No BTC-vol tercile, year or
+  liquidity tier cell clears the bar either. Reading in trader terms: after a daily break on an
+  alt, price does not keep going; in 2025-26 it leans back the other way, and no stop, target or
+  trail can harvest a drift that is not there.
+- **The R-unit trap, stated on the page:** "mean R no stop" at 10 bars reads +0.05R after costs
+  (+0.09R before, phase 1's number) while the same rows are -0.38% of price and -0.03 ATR: the
+  R clip is one-sided and tiny setup bars turn ordinary moves into many R. The gate is read in
+  ATR, as the brief's worked example does.
+- **Not available here:** an underlying-stock feed for the HIP-3 control (brief run 2) is not
+  wired into the environment; the HIP-3 snapshot has no funding series (charged 0, flagged).
+- **Next (the brief's order):** section 11, the HIP-3 session branch (test 1 on the session
+  build clustered by date, leave-one-ticker-out, the gap rule, the fair-line sweep at n >= 300),
+  on the owner's word; the alt-coin line closes unless the owner re-opens it.
+
+- **Addendum 2026-10-24 to 10-27 (same thread, after the gate; exploratory cuts, no arms, nothing
+  promoted):** (1) Test-1 drift cut by the continuity columns already on every row, train beside
+  test: every higher-timeframe context cell FLIPS SIGN between 2020-24 and 2025-26. "Week or
+  month inside but coloured our way" was the best cell on train (+0.13 ATR at 10 bars, z +3.2;
+  the only managed cell at or above zero) and the worst on test (-0.11, z -2.9); full
+  continuity (week and month both already 2 our way) +0.19 train / -0.14 test, managed book
+  39% win in both periods (7 in 10 have no target left); the week-only domino break (the daily
+  break also takes last week's extreme) is flat on train and one of the worst cells on test
+  (-0.34 ATR at 5 days, z -2.4), but that is the day's geometry, not the week's trade. Reading:
+  on alts, higher-timeframe context is a regime read, not a filter; what is stable across
+  regimes is the WIN RATE by structure (week-with / month-against 41% both periods, both-coiled
+  59-61% both), what flips is the drift. The skill's Tier C (week and month 2 against) reads
+  -0.10 ATR on test, mildly negative on train. (2) Regime anchor days found by averaging the
+  net 5-bar drift across all coins per trigger day: the market-wide days come in PAIRS, a day
+  when every break failed followed within 48 h by a day when every break the other way ran
+  (2024-11-04 -> 11-05/06; 2025-01-30/31 -> 02-01/02; 2025-05-04/06 -> 05-07/08). On the
+  2025-10-10 liquidation day the mechanical book was short with the owner (502 shorts, 91% won,
+  +0.73R after costs); the trap was 10-12, the bounce longs above the inside day with week and
+  month both 2-down (Tier C), 7 of 9 stopped 4-5 days later. (3) The owner's visual review list:
+  `analysis/strat_ml/reports/v3_visual_review_list.md` (and .csv, force-added past the *.csv
+  rule): BTC, ETH, SOL, XRP, DOGE, ZEC on 20 anchor dates, entry / stop / target / outcome.
+  (4) **A phone review page** (private claude.ai artifact, link NOT in the repo; source
+  `analysis/strat_ml/phone_review/page.html`, data pack `build_pack.py` -> the gitignored
+  `analysis/strat_ml/data/phone_review/`): every trade of those six coins on candles, two
+  stacked panes (trade 1H/1D above, week or month context below) with the context bar drawn AS
+  OF THE TRIGGER HOUR (partial bar from the hours before the trigger, the table's own rule),
+  last bar's high / low and the period's open as lines, a blind mode (both panes stop at the
+  trigger hour; "would take / would skip" recorded before the reveal; the score line averages
+  the takes against the skips) and a verdict + note per trade kept in the browser, exported as
+  text. Chart library: lightweight-charts 4.2.0 from a CDN (the owner's TVB-40 preference was
+  amCharts for the desktop; the phone page is a format test, owner's word 2026-10-26). The
+  owner's first read: the hard part on a phone is the multi-timeframe context; v2 is the answer
+  to that. (5) `/adhd` skill added at `.claude/skills/adhd/SKILL.md` (owner's draft, verbatim).
+  (6) The owner's market-data MCP server (underlying-stock bars for the HIP-3 names) is wired
+  into cloud sessions now: daily bars for any US ticker, 200 bars (back to 2026-01-08 on
+  2026-10-24, a ROLLING window), 60-minute bars 09:30-anchored but only ~24 trading days deep.
+  So the brief's HIP-3 run 2 (the underlying control) is possible at DAILY resolution, and the
+  bars should be pulled and frozen as a snapshot before late December, when the HIP-3 window's
+  start falls off. (7) Two commits on this branch (9155973, f354eff) carry an AI attribution
+  trailer against the spine's "no AI attribution" rule (the harness asked for it); later commits
+  omit it; history not rewritten.
+- **Owner's direction at close (2026-10-27):** move the research off alts (one market, two
+  regimes, every context effect flipped between them) to an instrument class with many regimes
+  (index futures or their ETFs, session bars, 15+ years) with the continuity arms declared as an
+  ablation ladder BEFORE running; a $100 live data run on Hyperliquid (crypto 24/7 plus equity
+  perps) is planned; the lead's ranking and the bar-definition warning for equity perps (UTC day
+  -0.10R vs NY session +0.12R, section 13) are in the session transcript and summarised below.
+
+### Open
+
+- [ ] Merge `claude/jolly-babbage-vlk7yz` into main (PR on the owner's word) so the PC pull
+      brings phase 3, the review list, the phone page source and the /adhd skill.
+- [ ] HIP-3 session branch (brief section 11), on the owner's word; run 2 at daily resolution via
+      the market-data server, bars frozen as a snapshot first.
+- [ ] Design session for the next instrument set (index / ETF, session bars, multi-regime) and
+      the continuity ablation ladder; prereg before code.
+- [ ] The owner's blind calls from the phone page, pasted back, scored against the rows.
+- [ ] XAUUSDT / XAGUSDT (Binance gold and silver perps) sit in the "alt" universe; a hygiene
+      note like the stablecoin one, not applied.
+
+---
+
 ## Side thread 2026-10-20 (not a TVB session): STRAT ML research vessel, Phases 2-5 run to the end (COMPLETE)
 
 **Date:** 2026-10-20 (cloud session, branch ccr-84c65430-bqc01u; owner's word: run it to the end,

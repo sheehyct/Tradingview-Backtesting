@@ -1,0 +1,15 @@
+{
+ "built_at": "2026-10-22T03:12:59+00:00",
+ "rule": "base in ['USDC', 'BUSD', 'TUSD', 'FDUSD', 'USDP', 'DAI', 'USDD'] or hourly close within +-0.01 of 1.00 for >= 90% of its history",
+ "symbols_checked": 899,
+ "dropped": [
+  {
+   "symbol": "USDCUSDT",
+   "reason": "base name + price band",
+   "share_near_1": 0.9994,
+   "rows": 1153,
+   "mean_r_phase1": -0.2327,
+   "win_pct": 42.6713
+  }
+ ]
+}
