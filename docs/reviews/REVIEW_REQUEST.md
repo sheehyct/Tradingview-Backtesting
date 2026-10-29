@@ -10,7 +10,7 @@
 
 ## Status
 
-- Status: REQUESTED
+- Status: RETURNED (docs/reviews/tvb40-codex-audit.md, 2026-10-29, NEEDS-CHANGES, six MEDIUM; synthesis pending in HANDOFF)
   <!-- REQUESTED | RETURNED (audit file written) | ADDRESSED | N/A -->
 - Session under review: TVB-40 (2026-10-14 to 2026-10-17) -- the charting upgrade: the trade
   viewer rebuilt on amCharts 5 as a two-builder design-off (CLAUDE `proto_claude/`, CODEX

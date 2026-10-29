@@ -379,7 +379,7 @@ the TVB-39 lightweight-charts page is retired (in git history to da7f4c2). The p
 > below) and write a verbatim assessment to docs/reviews/tvb40-codex-audit.md.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: REQUESTED
+- Review status: RETURNED 2026-10-29 (`docs/reviews/tvb40-codex-audit.md`, NEEDS-CHANGES, six MEDIUM, all display / readback; synthesis pending)
 - Commits to review: `9f6c5c8..2c7fe1c` on `main` (9f6c5c8 is the pre-session sha, so the
   range holds e79f8d3 round one, da7f4c2 round two and 2c7fe1c the promotion; it also contains
   the two maintenance pull requests merged 2026-10-16 (45f83fc, 2dde483, 706cb3d, 46de307:
@@ -399,8 +399,8 @@ the TVB-39 lightweight-charts page is retired (in git history to da7f4c2). The p
   decoding in `fromUniverse`; the magnet's coordinate math (`toAxisPosition` over
   `axisLength`) and the proof flag; the Playbook's receipt numbers; hygiene (vendor and data
   gitignored, the CDN agent string, no private link in the repo, `proto_codex/` untracked).
-- Reviewed by: pending
-- Findings: {blank until docs/reviews/tvb40-codex-audit.md exists}
+- Reviewed by: Codex (local, via SSH), 2026-10-29
+- Findings: F1 Compare drawdown measured row by row instead of on daily sums (engine does daily); F2 magnet picks the next candle on the right half of a candle; F3 exit narration: hourly clock worded long-only on 27,674 short rows, open rows told they "left with the daily clock", same-day stop / one-R ties told "before one R"; F4 best / worst travel is book C's window whatever book is selected; F5 calendar month average divides by all rows, censored rows count as zero; F6 changing the book does not re-sort the table. All six confirmed against the source on receipt; synthesis + repairs with the TVB-39 viewer findings F4-F7.
 
 ---
 
