@@ -677,7 +677,9 @@ settings at $1 risk, but with 26 fills they stay unread as arms.
   A and D move under a tenth). (3) Half at T1 sits between A and C everywhere (reversal A -0.05,
   E +0.09, C +0.22). (4) Two taker fills (0.077-0.082 per trade): three lines stay positive net
   with their interval clear, the reversal exit-only book +0.14 [+0.02, +0.27] and the inside
-  break's D +0.16 and D5 +0.16; everything else is flat net; the reference -0.35 to -0.92.
+  break's D +0.16 and D5 +0.16; six lines are negative net with the interval clear (reversal A
+  -0.13; continuation A, B, C and E -0.31 to -0.32; inside B -0.15); the rest flat net; the
+  reference -0.35 to -0.92 (corrected 2026-10-30, TVB-39 audit F8: "everything else flat" was wrong).
   (5) "Against" as under water (close through the entry price, week against): the same holding
   time, a slightly fatter tail, and the exit-only book does NOT lose more (C_u - C +0.20 [+0.09,
   +0.32] on the continuation, +0.04 / +0.04 / +0.23 elsewhere); A slips by a few hundredths, D

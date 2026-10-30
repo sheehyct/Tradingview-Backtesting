@@ -67,7 +67,10 @@ read-only `&show=sys|man|none` and the proof flags `&seed=1`, `&then=1W`, `&ray=
 
 - **Compare, universe scope, against the engine's CSV in pandas** (2026-10-17, all filters on,
   1,000 per trade): every card figure agrees to the printed precision (C: 178,203 filled, 35%
-  green, -0.09 average, -2.06 median, -152,675 total, -629,981 max drawdown, 3 median days;
+  green, -0.09 average, -2.06 median, -152,675 total, 3 median days; max drawdown -629,820 on the page
+  against the engine's -629,821, both on completed daily sums since the TVB-40 audit F1 repair of
+  2026-10-30 (the page scored a within-day path before: -629,981; every book now agrees with
+  `manage.book_stats` within about a dollar, the universe table's three-decimal returns);
   the chance book: 175,259 filled, -0.45 average, -796,301 total, 39% at target); totals differ
   by a few dollars because the universe table carries returns to three decimals. The by-setup
   rows agree (daily 2-2 reversal: C +0.19, chance -0.84, D5 minus chance +0.91 on 44,181 pairs;
@@ -83,7 +86,20 @@ read-only `&show=sys|man|none` and the proof flags `&seed=1`, `&then=1W`, `&ray=
   (restored), `_1W_magnet_switch` (still there on the weekly bars).
 - The rest: `compare_btc_book_C`, `compare_universe_book_C`, `calendar_every_coin`,
   `day_2026-03-25_all_coins`, `playbook`.
-- Python: `uv run ruff check .` clean; `uv run pytest tests/ -q` 372 passed, 2 skipped.
+- Python: `uv run ruff check .` clean; `uv run pytest tests/ -q` 428 passed, 2 skipped (2026-10-30;
+  `tests/test_domino_viewer_js.py` runs core.js / stats.js / story.js under node on the audits'
+  named shapes).
+- **Audit repairs, 2026-10-30** (TVB-39 F4-F7, TVB-40 F1-F6; see the TVB-41 HANDOFF entry): the
+  touch markers search the RECORDED price (level, target, one R, stop) with a one-in-a-billion
+  tolerance and never fall back to the day's first bar (a miss sits on the last bar and says so);
+  the chance book's stop exit sits on its touch hour; a selected book without a result keeps its
+  name (no book-C fall-back); the domino label and band cover the converged subset only and the
+  other same-day breaks are labelled with their distance; the Compare drawdown runs on daily sums;
+  the magnet picks the candle whose cell is under the pointer; the story reads the row's status
+  and direction (a short's hourly clock is green-in-green; an open row is marked, not clocked out;
+  a same-day stop / one-R tie is named as the engine's pessimistic order); travel is labelled as
+  book C's window; the calendar month averages over the rows with a result; a book change
+  re-sorts the table.
 
 Not proven: a drawing made by a real mouse drag (the trend line's two-point flow); drawings
 across a coin switch (the slot swap runs on every load, but only BTC was loaded headless); the

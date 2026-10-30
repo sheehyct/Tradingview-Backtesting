@@ -5,7 +5,7 @@ window.DV = window.DV || {};
 (function (DV) {
   "use strict";
   const C = DV.core;
-  const { iso, longDate, shortDate, weekdayOf, fmtPrice, fmtPct, fmtUsd, cls, esc, TF_LABEL, TF_WORD, KIND_LABEL, CLS_LABEL, BOOKS, BOOK_RET, BOOK_NAME, BOOK_LINE, BOOK_COL, settle, tradeSpan, stackLevels, htfType, btChip, BT_WORD, oneR } = C;
+  const { iso, longDate, shortDate, weekdayOf, fmtPrice, fmtPct, fmtUsd, cls, esc, TF_LABEL, TF_WORD, KIND_LABEL, CLS_LABEL, BOOKS, BOOK_RET, BOOK_NAME, BOOK_LINE, BOOK_COL, settle, tradeSpan, stackLevels, htfType, btChip, BT_WORD, oneR, stackWords } = C;
 
   function words(long) {
     return { side: long ? "long" : "short", hi: long ? "high" : "low", lo: long ? "low" : "high", up: long ? "up" : "down", down: long ? "down" : "up",
@@ -84,23 +84,26 @@ window.DV = window.DV || {};
     const when = (k) => dayWord(k, cal, i);
     const clock = clockWords(t, cal, i, p);
     const touchOrder = (k) => t.exit_k != null && k === t.exit_k ? "on the exit day itself (a touch on the exit day fills first)" : "before the exit";
+    // what happened when the book's own target never came: the row's status says it, not an assumed clock exit (TVB-40 audit F3)
+    const noTarget = t.status === "exit" ? "so it left with the daily clock. " + clock : t.status === "open" ? "and no daily exit fired inside the 20-day cap either, so the row is marked at the day-20 close." : "and the data ends inside the window, so the row is censored.";
+    if (book !== "C" && st.missing) return (book === "ref" ? "The chance book has " : "Book " + book + " has ") + st.how + ". " + clock;
     if (book === "C") return "Book C has no target: it holds until the daily clock, a close against the trade with the week also against it at that close. " + clock +
       (t.status === "exit" ? " Filled at that close: " + money(st.ret) + "." : t.status === "open" ? " Marked: " + money(st.ret) + "." : "");
     if (book === "A") {
       if (t.t1 == null) return "Book A takes everything at T1, but this trade has no T1, so it rides the exit like book C. " + clock + " Result " + money(st.ret) + ".";
       if (t.hit_A) return "Book A takes everything at T1. T1 " + fmtPrice(t.t1, p) + " was touched " + when(t.t1_k) + ", " + touchOrder(t.t1_k) + ", so the book left there: " + money(st.ret) + ".";
-      return "Book A would take everything at T1, but T1 " + (t.t1_k == null ? "was never touched inside the window" : "was only touched " + when(t.t1_k) + ", after the exit") + ", so it left with the daily clock. " + clock + " Result " + money(st.ret) + ".";
+      return "Book A would take everything at T1, but T1 " + (t.t1_k == null ? "was never touched inside the window" : "was only touched " + when(t.t1_k) + ", after the exit") + ", " + noTarget + " Result " + money(st.ret) + ".";
     }
     if (book === "B") {
       if (t.t2 == null) return "Book B holds through T2 with the exit live, but this trade has no T2, so it rides the exit like book C. " + clock + " Result " + money(st.ret) + ".";
       if (t.hit_B) return "Book B holds through T2 with the exit live (T1 is not a decision). T2 " + fmtPrice(t.t2, p) + " was touched " + when(t.t2_k) + ", " + touchOrder(t.t2_k) + ", so the book left there: " + money(st.ret) + ".";
-      return "Book B holds through T2 with the exit live, but T2 " + (t.t2_k == null ? "never came inside the window" : "only came " + when(t.t2_k) + ", after the exit") + ", so the daily clock took it off. " + clock + " Result " + money(st.ret) + ".";
+      return "Book B holds through T2 with the exit live, but T2 " + (t.t2_k == null ? "never came inside the window" : "only came " + when(t.t2_k) + ", after the exit") + ", " + noTarget + " Result " + money(st.ret) + ".";
     }
     if (book === "D") {
       const r1 = oneR(t);
       if (r1 == null) return "Book D takes one R or the exit, but this row has no setup range, so it rides the exit. " + clock + " Result " + money(st.ret) + ".";
       if (t.hit_D) return "Book D takes one R or the exit, whichever first, inside the 20-day cap. One R at " + fmtPrice(r1, p) + " was touched " + when(t.one_r_k) + ", " + touchOrder(t.one_r_k) + ", so the book left there: " + money(st.ret) + ".";
-      return "Book D takes one R or the exit, whichever first. One R at " + fmtPrice(r1, p) + " " + (t.one_r_k == null ? "was never touched inside the window" : "was only touched " + when(t.one_r_k) + ", after the exit") + ", so the daily clock took it off. " + clock + " Result " + money(st.ret) + ".";
+      return "Book D takes one R or the exit, whichever first. One R at " + fmtPrice(r1, p) + " " + (t.one_r_k == null ? "was never touched inside the window" : "was only touched " + when(t.one_r_k) + ", after the exit") + ", " + noTarget + " Result " + money(st.ret) + ".";
     }
     if (book === "D5") {
       const r1 = oneR(t);
@@ -111,19 +114,23 @@ window.DV = window.DV || {};
     }
     // the chance book
     if (st.book !== "ref") return "The chance book has no result on this row (the five-bar window is incomplete).";
-    if (t.out5 === "stop") return "The chance book keeps the setup-" + (t.tf === "D" ? "bar" : TF_WORD[t.tf]) + " stop at " + fmtPrice(t.stop, p) + ". It was hit " + when(t.stop_k) + ", before one R, so the book is out there: " + money(st.ret) + ".";
+    if (t.out5 === "stop") {
+      const tie = t.one_r_k != null && t.one_r_k === t.stop_k;
+      return "The chance book keeps the setup-" + (t.tf === "D" ? "bar" : TF_WORD[t.tf]) + " stop at " + fmtPrice(t.stop, p) + ". It was hit " + when(t.stop_k) +
+        (tie ? ", the same " + (t.tf === "D" ? "day" : TF_WORD[t.tf]) + " one R was touched: the bar cannot say which came first, and the engine takes the stop (pessimistic)" : ", before one R") + ", so the book is out there: " + money(st.ret) + ".";
+    }
     if (t.out5 === "one_r") return "The chance book keeps the setup stop at " + fmtPrice(t.stop, p) + " and takes one R. One R came first, " + when(t.one_r_k) + ": " + money(st.ret) + ".";
     if (t.out5 === "neither") return "The chance book keeps the setup stop at " + fmtPrice(t.stop, p) + " and takes one R. Neither came inside five bars, so the row is marked at the bar-5 close: " + money(st.ret) + ".";
     return "The chance book is censored on this row (the data ends inside its five bars).";
   }
   function otherClocks(t, cal, i, p) {
-    const out = [];
+    const out = [], w = words(t.direction === "up");
     if (t.status_u === "exit" && t.exit_k_u != null) {
       out.push("Reading <i>against</i> as under water instead (a close through the entry price with the week against it), the exit " +
         (t.exit_k_u === t.exit_k ? "fires on the same day" : "moves to " + dayWord(t.exit_k_u, cal, i).replace(/^on /, "")) + ": " + fmtPct(t.ret_C_u) + " on the exit-only book.");
     } else if (t.status_u === "open") out.push("Read as under water, the exit never fires inside the cap: " + fmtPct(t.ret_C_u) + " marked at the cap.");
     if (t.status_h === "exit" && t.entry_h != null && t.exit_h != null) {
-      out.push("On the hourly clock (out on the first red hour while the day is red; the entry is the same level, hour " + t.entry_h + " of the entry day), the trade is off " + t.exit_h + " hours later: " + fmtPct(t.ret_C_h) + ".");
+      out.push("On the hourly clock (out on the first " + w.redWord + " hour while the day is " + w.redWord + ", both against the trade; the entry is the same level, hour " + t.entry_h + " of the entry day), the trade is off " + t.exit_h + " hours later: " + fmtPct(t.ret_C_h) + ".");
     }
     if (t.tf !== "D") {
       const own = t.tf === "W" ? "a weekly close against the week's open with the month also against it" : "a monthly close against the month's open";
@@ -143,9 +150,14 @@ window.DV = window.DV || {};
     const levels = stackLevels(t, i, cal);
     let stack = "";
     if (levels.length > 1) {
-      const prices = levels.map((l) => l.price), gap = (Math.max(...prices) - Math.min(...prices)) / Math.min(...prices) * 100;
-      const others = levels.filter((l) => l.tf !== t.tf).map((l) => "the " + TF_WORD[l.tf] + "'s level " + fmtPrice(l.price, p));
-      stack = " The same day broke " + others.join(" and ") + " (" + (CLS_LABEL[t.cls] || t.cls) + ", a " + gap.toFixed(2) + "% gap between the triggers" + (t.cls !== "spread" ? ": a domino, the levels converged" : "") + ").";
+      const sw = stackWords(t, levels);
+      const name = (l) => "the " + TF_WORD[l.tf] + "'s level " + fmtPrice(l.price, p);
+      const convOthers = sw.conv.filter((l) => l.tf !== t.tf);
+      if (convOthers.length) {
+        const prices = sw.conv.map((l) => l.price), gap = (Math.max(...prices) - Math.min(...prices)) / Math.min(...prices) * 100;
+        stack += " The same day broke " + convOthers.map(name).join(" and ") + " (" + (CLS_LABEL[t.cls] || t.cls) + ", a " + gap.toFixed(2) + "% gap between the triggers" + (t.cls !== "spread" ? ": a domino, the levels converged" : "") + ").";
+      }
+      if (sw.far.length) stack += " " + sw.far.map((l) => name(l) + " also broke the same day, " + (l.gap >= 0 ? "+" : "") + l.gap.toFixed(2) + "% beyond the entry").join("; ") + (convOthers.length ? ": not part of the converged stack, the entry-time class does not describe it." : ": too far from the entry to be a domino (the entry-time class is " + (CLS_LABEL[t.cls] || t.cls) + ").");
     }
     const week = t.w_support === "with" ? "The week was on the trade's side at entry (price " + w.above + " Monday's open)." : t.w_support === "against" ? "The week was against the trade at entry (price " + w.below + " Monday's open)." : "";
     const paras = [];
@@ -156,7 +168,7 @@ window.DV = window.DV || {};
     const others = otherClocks(t, cal, i, p);
     if (others.length) paras.push("<p><b>The other clocks.</b> " + others.join(" ") + "</p>");
     const travel = [];
-    if (t.mfe_x != null || t.mae_x != null) travel.push("Between the entry and the exit the trade got +" + n2(t.mfe_x) + "% in its favour at best and " + n2(t.mae_x) + "% against it at worst" +
+    if (t.mfe_x != null || t.mae_x != null) travel.push("Between the entry and book C's exit (the headline window, whatever book is selected; the engine records travel once) the trade got +" + n2(t.mfe_x) + "% in its favour at best and " + n2(t.mae_x) + "% against it at worst" +
       (t.r_pct != null && t.mae_x != null ? " (" + (t.mae_x / t.r_pct).toFixed(1) + " R of adverse travel)" : "") + ".");
     const nb = { with: "went with the trade", against: "went against it", inside: "stayed inside the entry " + TF_WORD[t.tf], outside: "went through both sides (an outside bar)" }[t.next_bar];
     if (nb) travel.push("The " + TF_WORD[t.tf] + " after the entry " + nb + ".");
@@ -191,7 +203,7 @@ window.DV = window.DV || {};
     items.push(["Last closed week", btChip("W", wt) + " " + BT_WORD[wt.code], "the complete week before the entry, typed as a STRAT bar against the week before it (R10: strict breaks). An inside week is the owner's hazard."]);
     items.push(["Last closed month", btChip("M", mt) + " " + BT_WORD[mt.code], "the complete month before the entry, typed the same way."]);
     items.push(["Week at entry", t.w_support === "with" ? '<span class="chip ok">with the trade</span>' : '<span class="chip warn">against the trade</span>', "price above Monday's open for a long (below for a short) at the moment of entry."]);
-    items.push(["Stack", t.stack && t.stack !== t.tf ? '<span class="chip flag">' + esc(t.stack) + " " + esc(CLS_LABEL[t.cls] || t.cls) + "</span>" : '<span class="chip tf">' + TF_LABEL[t.tf] + " alone</span>", "which timeframes' levels broke the same day and how far apart the triggers sat (the census band)."]);
+    items.push(["Stack", t.stack && t.stack !== t.tf ? '<span class="chip flag">' + esc(stackWords(t, i != null ? stackLevels(t, i, cal) : []).text) + "</span>" : '<span class="chip tf">' + TF_LABEL[t.tf] + " alone</span>", "the converged stack (the daily level plus the levels inside its class band of it) and, after the semicolon, the other levels that broke the same day with their distance beyond the entry."]);
     items.push(["Hammer flag", t.flag && t.flag !== "none" ? '<span class="chip flag">' + (t.flag === "strict" ? "strict (detector)" : "third (range test)") + "</span>" : '<span class="chip dim">none</span>', "the setup bar closed in the far third of its own range (THIRD), or passed the strict hammer / shooter detector."]);
     items.push(["Liquidity", t.liquid ? '<span class="chip tf">liquid</span>' : '<span class="chip dim">thin</span>', "the coin passed the census's liquidity screen on the entry day."]);
     items.push(["Venue", '<span class="chip dim">' + esc(t.dex || "") + "</span>", "main = the venue's own perps; xyz = the HIP-3 dex."]);
@@ -220,7 +232,7 @@ window.DV = window.DV || {};
       "<p>Weekly and monthly rows are the same thing one level up: the week's or month's level breaks on some day, and that day is the entry day. A <b>stack</b> is a day on which more than one timeframe's level broke; the chips say how far apart those triggers sat (same price, near, within 1%, spread). Converged triggers are the domino the census was built to find.</p>",
       "<h2>How a trade leaves: the daily clock</h2>",
       "<p>There is no price stop. The management books leave at the close of a day that closed against the trade (a red candle for a long, green for a short) with the week also against it at that close (price under Monday's open for a long). The fill is that close. The entry day counts, a Monday is one test (the day's open is the week's open), and equality is not against. This is the exit on every management book; the targets sit on top of it.</p>",
-      "<p>Two readings of <i>against</i> sit beside it on every row. <b>Under water</b>: a close through the entry price (instead of a red candle) with the week against. <b>The hourly clock</b>: out on the first red hour while the day is red, entry at the same daily level. Weekly and monthly rows also carry their <b>own-bar clock</b>: a red weekly close with the month red (a red monthly close for a month), run to a cap of 20 of their own bars.</p>",
+      "<p>Two readings of <i>against</i> sit beside it on every row. <b>Under water</b>: a close through the entry price (instead of a red candle) with the week against. <b>The hourly clock</b>: out on the first hour that closes against the trade while the day is against it (a red hour in a red day for a long, a green hour in a green day for a short), entry at the same daily level. Weekly and monthly rows also carry their <b>own-bar clock</b>: a weekly close against the trade with the month also against it (a monthly close against the trade for a month), run to a cap of 20 of their own bars.</p>",
       "<h2>Targets</h2>",
       "<p><b>T1</b> is the pattern's own magnitude where it has one (reversal, inside break off a bar against or outside), otherwise the first unbroken weekly or monthly level beyond the entry. <b>T2</b> and <b>T3</b> are the next unbroken weekly or monthly levels beyond T1. The ladder is fixed at entry and a target fills on touch. <b>One R</b> is the setup bar's far side measured from the entry: the chance book's stop distance, kept only as a yardstick. The <b>measured move</b> is the two-bar range (setup bar plus the bar before it) projected from the entry; it is a declared variant, drawn but not traded by these books.</p>",
       "<h2>The books</h2>",

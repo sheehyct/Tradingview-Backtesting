@@ -18,23 +18,37 @@ window.DV = window.DV || {};
   }
   function median(sorted) { const n = sorted.length; if (!n) return null; return n % 2 ? sorted[(n - 1) / 2] : (sorted[n / 2 - 1] + sorted[n / 2]) / 2; }
 
+  function maxDrawdown(values) {
+    // peak-to-trough on a sequence of end-of-day equity values, the peak never below zero (the engine's clip)
+    let peak = 0, dd = 0;
+    for (const v of values) { peak = Math.max(peak, v); dd = Math.max(dd, peak - v); }
+    return dd;
+  }
+  function monthSummary(map, startTs, endTs) {
+    // TVB-40 audit F5: a month's trade count, the count WITH a recorded result, the dollar total and the average over
+    // the filled rows only (a censored row is not a zero return); avg is null when nothing is filled
+    let n = 0, filled = 0, usd = 0, pct = 0;
+    for (const [date, e] of map) { const ts = dateMs(date) / 1000; if (ts < startTs || ts >= endTs) continue; n += e.n; filled += e.filled; usd += e.usd; pct += e.sum; }
+    return { n, filled, usd, avg: filled ? pct / filled : null };
+  }
   function bookStats(items, book, size) {
-    // one book over a list of {coin, t}: the equity curve by entry date and the headline figures
-    // by entry date; same-day trades in the file's own order (the engine's), so the drawdown is the same whatever the table's sort
+    // one book over a list of {coin, t}: the equity curve by entry date and the headline figures. The drawdown is
+    // measured on the completed daily sums, as the engine's book_stats does (TVB-40 audit F1): same-day trades have
+    // no observed order, so no intra-day path is scored, and the number is the same whatever the table's sort
     const rows = items.map((it) => ({ t: it.t, coin: it.coin, r: it.t[BOOK_RET[book]] })).filter((x) => x.r != null);
     rows.sort((a, b) => (a.t.date < b.t.date ? -1 : a.t.date > b.t.date ? 1 : a.coin < b.coin ? -1 : a.coin > b.coin ? 1 : (a.t._i || 0) - (b.t._i || 0)));
-    let sum = 0, wins = 0, peak = 0, dd = 0, cum = 0, targets = 0, withTarget = 0;
+    let sum = 0, wins = 0, cum = 0, targets = 0, withTarget = 0;
     const curve = [], rets = [], days = [];
     let last = null;
     for (const x of rows) {
       cum += x.r / 100 * size; sum += x.r; if (x.r > 0) wins++; rets.push(x.r);
-      peak = Math.max(peak, cum); dd = Math.max(dd, peak - cum);
       if (x.t.date === last) curve[curve.length - 1].v = cum; else curve.push({ t: dateMs(x.t.date), v: cum });
       last = x.t.date;
       const h = hitOf(x.t, book);
       if (h != null) { withTarget++; if (h) targets++; }
       const d = daysOf(x.t, book); if (d != null) days.push(d);
     }
+    const dd = maxDrawdown(curve.map((pt) => pt.v));
     rets.sort((a, b) => a - b); days.sort((a, b) => a - b);
     const filled = rows.length;
     const avgWin = rets.filter((r) => r > 0), avgLoss = rets.filter((r) => r < 0);
@@ -114,5 +128,5 @@ window.DV = window.DV || {};
     return out;
   }
 
-  DV.stats = { bookStats, allBooks, bySetup, histogram, calendarDays, fromUniverse, hitOf, daysOf };
+  DV.stats = { bookStats, allBooks, bySetup, histogram, calendarDays, fromUniverse, hitOf, daysOf, maxDrawdown, monthSummary };
 })(window.DV);

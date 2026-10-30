@@ -38,8 +38,12 @@ Binding operating beliefs. Apply them; do not re-litigate them.
 
 - **Generating data is not selecting on it.** Reading the distribution across 30 combinations is
   exploration; picking the top performer and deploying it is the overfit.
-- **Backtest to KILL the strategy, not confirm it.** Hunt the regime where it dies and the bar
-  where the logic breaks. A run made to confirm always confirms.
+- **Characterize, do not adjudicate.** Report what the data shows in both directions with equal
+  weight: a positive cell is a path worth naming as a declared arm, a negative cell a path worth
+  naming as a kill test. Neither becomes a verdict, a parameter change or a recommendation unless
+  the owner asks for one. Answer the question asked. (Reworded 2026-10-30 from "backtest to KILL
+  the strategy, not confirm it"; what stays: a run made to confirm always confirms, so hunt bugs
+  and regime breaks as actively as wins.)
 - **There is no best combination -- that is the premise.** The spread IS the finding; a tight
   cluster of great results is suspicious.
 - **Extreme metrics are questions, not verdicts.** Sharpe 3-4 or 95/100 wins is where the

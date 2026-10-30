@@ -577,7 +577,10 @@ test was meant to answer). Nothing is promoted; nothing is read into the hierarc
 - **R3 half at T1: holds.** E between A and C on every kind (reversal -0.05 / +0.09 / +0.22).
 - **R4 fees: three lines survive.** Two taker fills cost 0.077-0.082 per trade; net of that,
   intervals clear of zero: reversal C +0.14 [+0.02, +0.27]; inside D +0.16 [+0.08, +0.23] and
-  D5 +0.16 [+0.09, +0.24]. Everything else flat net; the reference -0.35..-0.92 net.
+  D5 +0.16 [+0.09, +0.24]. Six lines are negative net with the interval clear: reversal A -0.13
+  [-0.18, -0.08]; continuation A -0.31, B -0.32, C -0.32, E -0.32; inside B -0.15 [-0.27, -0.02].
+  The rest flat net; the reference -0.35..-0.92 net. (Corrected 2026-10-30 per the TVB-39 audit
+  F8; this line previously called everything else flat.)
 - **R5 under water: the lead was wrong.** The lead called C_u < C (holds longer, loses more).
   Holding time is the same (median 2-4 days), the tail a little fatter (44-57% past one R
   against 42-54%), and the exit-only book loses LESS or the same: C_u - C +0.20 [+0.09, +0.32]

@@ -70,7 +70,7 @@ EXTERNAL REVIEW (prior session):
 - {RETURNED: verdict + top finding(s), folded into priorities | PENDING: awaiting review of {range} | N/A}
 
 REMINDERS:
-- Charter Section 0 governs: explore to KILL the strategy, not confirm; the spread is the finding.
+- Charter Section 0 governs: characterize, do not adjudicate; both directions with equal weight; answer the question asked; the spread is the finding.
 - strat-methodology skill MANDATORY before any bar/continuity/Pine detection logic (STOP-and-ASK).
 - Audit every request.security for lookahead_off.
 - TradingView strategy() is the backtest vehicle; TV MCP needs TradingView Desktop on CDP 9222.

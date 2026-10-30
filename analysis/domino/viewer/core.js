@@ -97,16 +97,30 @@ window.DV = window.DV || {};
     const head = { book: "C", k: t.exit_k != null ? t.exit_k : t.days != null ? t.days : CAP, ret: t.ret_C, target: false,
       how: t.status === "exit" ? "daily-close exit" : t.status === "open" ? "marked at the 20-day cap" : "censored (data ends)" };
     head.price = t.status === "exit" || t.status === "open" ? fill(t.ret_C) : null;
+    head.stop = false; head.at = null; head.missing = t.status !== "exit" && t.status !== "open";
     const ret = t[BOOK_RET[b]];
-    if (b === "C" || ret == null || t[BOOK_DAYS[b]] == null) return head;
+    if (b === "C") return head;
+    if (ret == null || t[BOOK_DAYS[b]] == null) {
+      // TVB-39 audit F6: a selected book without a result keeps its own identity (no silent fall-back to book C);
+      // k is only the window the book would have run, so the candles show where the data ended
+      const five = b === "D5" || b === "ref";
+      return { book: b, k: five ? 5 : CAP, ret: null, target: false, stop: false, missing: true, price: null, at: null,
+        how: five ? "no result (the five-bar window is incomplete)" : "no result (censored: the data ends inside the 20-day window)" };
+    }
     const k = t[BOOK_DAYS[b]];
-    let how, target = false;
-    if (b === "A") { target = !!t.hit_A; how = target ? "all out at T1" : head.how; }
-    else if (b === "B") { target = !!t.hit_B; how = target ? "all out at T2" : head.how; }
-    else if (b === "D") { target = !!t.hit_D; how = target ? "one R" : head.how; }
-    else if (b === "D5") { target = !!t.hit_D5; how = target ? "one R" : k === head.k && t.status === "exit" ? "daily-close exit" : "marked at the 5-bar horizon"; }
-    else { target = t.out5 === "one_r"; how = t.out5 === "stop" ? "setup-bar stop" : target ? "one R" : t.out5 === "neither" ? "marked at bar 5" : "censored (data ends)"; }
-    return { book: b, k, ret, target, how, price: fill(ret) };
+    // `at` is the recorded price the book left on (the target, one R or the stop as the engine wrote it): the marker
+    // search uses it, never the fill reconstructed from the return (TVB-39 audit F4)
+    let how, target = false, stop = false, at = null;
+    if (b === "A") { target = !!t.hit_A; how = target ? "all out at T1" : head.how; at = target ? t.t1 : null; }
+    else if (b === "B") { target = !!t.hit_B; how = target ? "all out at T2" : head.how; at = target ? t.t2 : null; }
+    else if (b === "D") { target = !!t.hit_D; how = target ? "one R" : head.how; at = target ? oneR(t) : null; }
+    else if (b === "D5") { target = !!t.hit_D5; how = target ? "one R" : k === head.k && t.status === "exit" ? "daily-close exit" : "marked at the 5-bar horizon"; at = target ? oneR(t) : null; }
+    else {
+      target = t.out5 === "one_r"; stop = t.out5 === "stop";
+      how = stop ? "setup-bar stop" : target ? "one R" : t.out5 === "neither" ? "marked at bar 5" : "censored (data ends)";
+      at = target ? oneR(t) : stop ? t.stop : null;
+    }
+    return { book: b, k, ret, target, stop, how, price: fill(ret), at };
   }
   function tradeSpan(t, book, cal) {
     const i = cal.dayIdx.get(t.date);
@@ -134,6 +148,34 @@ window.DV = window.DV || {};
     if (bi > 1) buckets[bi - 2].days.forEach((d) => ref.add(d));
     return { setup, ref };
   }
+  const BAND = { exact_shared: 0, exact_plain: 0, near: 0.0025, within1: 0.01 };
+  function stackSubset(t, levels) {
+    // TVB-39 audit F7: for a DAILY row the class (`cls`) describes the nearest fresh higher level at entry, while `stack`
+    // lists every level that broke that day; the two are different sets. The converged stack is the daily level plus the
+    // other levels that sit inside the class's own band of it (the census bands: exact 0, near 0.25%, within 1%); the
+    // rest broke the same day but are not part of the domino. Weekly / monthly rows are classed on the whole stack.
+    const long = t.direction === "up";
+    const out = levels.map((l) => ({ ...l, gap: t.level ? (long ? l.price - t.level : t.level - l.price) / t.level * 100 : null }));
+    if (t.tf !== "D") return { conv: out, far: [] };
+    const band = BAND[t.cls];
+    const conv = out.filter((l) => l.tf === "D" || (band != null && l.gap != null && Math.abs(l.gap) <= band * 100 + 1e-9));
+    const far = out.filter((l) => !conv.includes(l));
+    return { conv, far };
+  }
+  function stackWords(t, levels) {
+    // the stack chip's text: the converged subset with its class, then the other same-day breaks with their distance
+    const { conv, far } = stackSubset(t, levels);
+    const convTxt = conv.length > 1 ? conv.map((l) => l.tf).join("+") + " " + (CLS_LABEL[t.cls] || t.cls) : null;
+    const farTxt = far.map((l) => l.tf + " " + (l.gap == null ? "" : (l.gap >= 0 ? "+" : "") + l.gap.toFixed(2) + "%") + " beyond, broke the same day");
+    return { conv, far, text: [convTxt, ...farTxt].filter(Boolean).join("; ") || t.stack };
+  }
+  function cellIndex(bs, tMs) {
+    // TVB-40 audit F2: the bar whose axis cell holds the time (the last bar opening at or before it), not the bar whose
+    // open is nearest; a candle is drawn centred in its cell, so "nearest open" flips to the next bar past the midpoint
+    let k = 0;
+    for (let i = 0; i < bs.length; i++) { if (bs[i].t * MS <= tMs) k = i; else break; }
+    return k;
+  }
   function oneR(t) { if (t.stop == null || t.level == null) return null; const r = Math.abs(t.level - t.stop); return t.direction === "up" ? t.level + r : t.level - r; }
 
   // ---------------------------------------------------------------- the week's / month's bar type at entry (closed bars only)
@@ -157,5 +199,6 @@ window.DV = window.DV || {};
 
   DV.core = { DAY, HOUR, CAP, MS, COL, BOOKS, BOOK_RET, BOOK_HIT, BOOK_DAYS, BOOK_NAME, BOOK_SHORT, BOOK_LINE, BOOK_COL, CLS_LABEL, KIND_LABEL, KIND_SHORT,
     TF_LABEL, TF_WORD, DASH, INTERVAL, BT_CLASS, BT_WORD, $, weekStart, monthStart, nextMonth, aggregate, makeCalendar, iso, isoH, dateMs, longDate, shortDate,
-    monthName, weekdayOf, decimalsOf, precisionFor, fmtPrice, fmtPct, fmtUsd, fmtUsd0, cls, esc, settle, tradeSpan, stackLevels, setupDays, oneR, barType, htfType, btChip };
+    monthName, weekdayOf, decimalsOf, precisionFor, fmtPrice, fmtPct, fmtUsd, fmtUsd0, cls, esc, settle, tradeSpan, stackLevels, setupDays, oneR, barType, htfType, btChip,
+    stackSubset, stackWords, cellIndex, BAND };
 })(window.DV);

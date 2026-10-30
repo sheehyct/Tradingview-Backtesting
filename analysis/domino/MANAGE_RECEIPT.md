@@ -310,9 +310,13 @@ nothing is combined or promoted. Tables: `results/manage_tables.md`, "Amendment 
 - **Charge the taker fee (A2.4).** Two fills at the venue's rate are 0.077 to 0.082 per trade
   on these books. Net of that, the lines whose interval stays over zero are three: the reversal
   exit-only book +0.14 [+0.02, +0.27], the inside break's book D +0.16 [+0.08, +0.23] and D5
-  +0.16 [+0.09, +0.24]. Every other management line is flat net (intervals through zero); the
-  reference is -0.35 to -0.92 net. R4 asked which lines survive; these three do, on gross
-  intervals that already cleared zero. Slippage is not charged (the entry is a taker at a level
+  +0.16 [+0.09, +0.24]. Six management lines are NEGATIVE net with their interval clear of
+  zero: the reversal's book A -0.13 [-0.18, -0.08]; the continuation's A -0.31, B -0.32, C -0.32
+  and E -0.32 (intervals -0.39 to -0.20); the inside break's book B -0.15 [-0.27, -0.02]. The
+  remaining lines are flat net (intervals through zero); the reference is -0.35 to -0.92 net.
+  (The sentence that called every other line flat was corrected 2026-10-30 after the TVB-39
+  external audit, F8.) R4 asked which lines survive; these three do, on gross intervals that
+  already cleared zero, and the continuation book loses net under every management rule. Slippage is not charged (the entry is a taker at a level
   that just broke; TVB-2's finding that slippage, not the fee, is the binding cost stands).
 - **"Against" as under water (A2.5).** Exiting on a daily close THROUGH the entry price (with
   the week against) instead of on a red candle holds about the same time (median 2-4 days on

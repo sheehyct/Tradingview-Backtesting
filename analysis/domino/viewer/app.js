@@ -9,7 +9,7 @@
   "use strict";
   const C = DV.core, S = DV.story, ST = DV.stats;
   const { $, DAY, HOUR, MS, COL, BOOKS, BOOK_RET, BOOK_NAME, BOOK_COL, CLS_LABEL, KIND_LABEL, KIND_SHORT, TF_LABEL, DASH, INTERVAL, iso, isoH, longDate, monthName, precisionFor,
-    fmtPrice, fmtPct, fmtUsd, fmtUsd0, cls, esc, settle, tradeSpan, stackLevels, setupDays, oneR, htfType, btChip, makeCalendar, weekStart, nextMonth } = C;
+    fmtPrice, fmtPct, fmtUsd, fmtUsd0, cls, esc, settle, tradeSpan, stackLevels, setupDays, oneR, htfType, btChip, makeCalendar, weekStart, nextMonth, stackWords, cellIndex } = C;
 
   const state = {
     index: null, dates: null, coin: null, data: null, cal: null, cals: new Map(),
@@ -121,9 +121,7 @@
     // pixel to axis position: the renderer's own inverse where the build has one, else the start / end formula the renderer uses
     const posOf = (axis, r, coord) => typeof r.coordinateToPosition === "function" ? r.coordinateToPosition(coord) : axis.toAxisPosition(coord / r.axisLength());
     const tMs = pane.xAxis.positionToValue(posOf(pane.xAxis, xr, local.x));
-    let k = 0, best = Infinity;
-    bs.forEach((b, i) => { const d = Math.abs(b.t * MS - tMs); if (d < best) { best = d; k = i; } });
-    const b = bs[k];
+    const b = bs[cellIndex(bs, tMs)];
     const yOf = (price) => yr.positionToCoordinate(pane.yAxis.valueToPosition(price));
     let price = b.c, dist = Infinity;
     for (const v of [b.o, b.h, b.l, b.c]) { const d = Math.abs(yOf(v) - local.y); if (d < dist) { dist = d; price = v; } }
@@ -274,11 +272,13 @@
       const st = settle(t, state.book);
       const hs = tradeSpan(t, "C", cal);
       const levels = stackLevels(t, span.i, cal);
-      const domino = levels.length > 1 && CLS_LABEL[t.cls] && t.cls !== "spread";
-      addLine(pane, t.level, COL.level, 0, domino ? "Position opened: domino " + t.stack + " (" + CLS_LABEL[t.cls] + ")" : "Position opened (" + TF_LABEL[t.tf] + " trigger)", p);
-      for (const l of levels) if (l.tf !== t.tf) addLine(pane, l.price, COL.level, 2, TF_LABEL[l.tf] + " trigger, broke the same day", p);
-      if (levels.length > 1) {
-        const prices = levels.map((l) => l.price), lo = Math.min(...prices), hi = Math.max(...prices);
+      const sw = stackWords(t, levels);
+      const domino = sw.conv.length > 1 && t.cls !== "spread";
+      addLine(pane, t.level, COL.level, 0, domino ? "Position opened: domino " + sw.conv.map((l) => l.tf).join("+") + " (" + (CLS_LABEL[t.cls] || t.cls) + ")" : "Position opened (" + TF_LABEL[t.tf] + " trigger)", p);
+      for (const l of sw.conv) if (l.tf !== t.tf) addLine(pane, l.price, COL.level, 2, TF_LABEL[l.tf] + " trigger, broke the same day", p);
+      for (const l of sw.far) addLine(pane, l.price, COL.level, 2, TF_LABEL[l.tf] + " trigger, broke the same day, " + (l.gap >= 0 ? "+" : "") + l.gap.toFixed(2) + "% beyond the entry (not part of the converged stack)", p);
+      if (sw.conv.length > 1) {
+        const prices = sw.conv.map((l) => l.price), lo = Math.min(...prices), hi = Math.max(...prices);
         addBand(pane, lo, hi, COL.level, "gap " + ((hi - lo) / lo * 100).toFixed(2) + "% (" + (CLS_LABEL[t.cls] || t.cls) + ")");
       }
       if (st.price != null) addLine(pane, st.price, COL.exit, 2, "Position closed: " + st.book + " " + st.how, p);
@@ -296,20 +296,30 @@
         if (!pick || ks.length === 1) return ks[0];
         return pick(ks);
       };
-      const touchBar = (d, price, side) => barOfDay(d, (ks) => ks.find((k) => side === "hi" ? bs[k].h >= price : bs[k].l <= price) ?? ks[0]);
+      // a touch is the RECORDED price (level, target, one R, stop as the engine wrote it) against the bar's own high / low,
+      // with a one-part-in-a-billion tolerance for the cached bars' float; the fill reconstructed from the return is never a
+      // touch threshold (TVB-39 audit F4). When no bar of the day reaches the price, the marker sits on the day's last bar
+      // and says so instead of the day's first bar.
+      const near = (a, b) => Math.abs(a - b) <= Math.abs(b) * 1e-9;
+      const lastBar = (d) => barOfDay(d, (ks) => ks[ks.length - 1]);
+      const touchBar = (d, price, side) => barOfDay(d, (ks) => ks.find((k) => side === "hi" ? bs[k].h >= price || near(bs[k].h, price) : bs[k].l <= price || near(bs[k].l, price)));
       const put = (k, text, above, color, shape) => { if (k != null) markers.push({ t: bs[k].t * MS, y: above ? bs[k].h : bs[k].l, above, text, color, shape }); };
-      put(touchBar(span.i, t.level, long ? "hi" : "lo"), "in " + fmtPrice(t.level, p), !long, COL.level, long ? "arrowUp" : "arrowDown");
+      const putTouch = (d, price, side, text, above, color, shape) => { const k = touchBar(d, price, side); if (k != null) put(k, text, above, color, shape); else put(lastBar(d), text + " (no bar of the day reaches the price)", above, color, shape); };
+      putTouch(span.i, t.level, long ? "hi" : "lo", "in " + fmtPrice(t.level, p), !long, COL.level, long ? "arrowUp" : "arrowDown");
       const touches = [["t1_k", "T1", t.t1], ["t2_k", "T2", t.t2], ["t3_k", "T3", t.t3], ["one_r_k", "1R", oneR(t)], ["mm1_k", "MM", t.mm_t1]];
       for (const [key, label, price] of touches) {
         if (t[key] == null || price == null) continue;
         const d = span.i + t[key];
         if (d > span.end) continue;
-        put(touchBar(d, price, long ? "hi" : "lo"), label, long, key === "one_r_k" ? COL.oneR : key === "mm1_k" ? COL.mm : COL.target, "circle");
+        putTouch(d, price, long ? "hi" : "lo", label, long, key === "one_r_k" ? COL.oneR : key === "mm1_k" ? COL.mm : COL.target, "circle");
       }
-      if (t.stop_k != null && span.i + t.stop_k <= span.end) put(touchBar(span.i + t.stop_k, t.stop, long ? "lo" : "hi"), "stop", !long, COL.stop, "circle");
-      if (st.price != null && st.target) put(touchBar(span.end, st.price, long ? "hi" : "lo"), "out " + fmtPrice(st.price, p) + " (" + st.how + ")", long, COL.exit, long ? "arrowDown" : "arrowUp");
-      else if (st.price != null) put(barOfDay(span.end, (ks) => ks[ks.length - 1]), "out " + fmtPrice(st.price, p) + (st.book === "C" ? "" : " (" + st.how + ")"), long, COL.exit, long ? "arrowDown" : "arrowUp");
-      else put(barOfDay(span.end, (ks) => ks[ks.length - 1]), "data ends", long, COL.stop, "square");
+      if (t.stop_k != null && span.i + t.stop_k <= span.end) putTouch(span.i + t.stop_k, t.stop, long ? "lo" : "hi", "stop", !long, COL.stop, "circle");
+      const outText = "out " + fmtPrice(st.price, p) + (st.book === "C" ? "" : " (" + st.how + ")");
+      if (st.price != null && st.target && st.at != null) putTouch(span.end, st.at, long ? "hi" : "lo", outText, long, COL.exit, long ? "arrowDown" : "arrowUp");
+      else if (st.price != null && st.stop && st.at != null) putTouch(span.end, st.at, long ? "lo" : "hi", outText + (st.k === 0 ? "; entry day: the daily bar does not order the entry and the stop, the engine takes the stop first" : ""), long, COL.exit, long ? "arrowDown" : "arrowUp");
+      else if (st.price != null) put(lastBar(span.end), outText, long, COL.exit, long ? "arrowDown" : "arrowUp");
+      else if (st.missing && st.book !== "C") put(lastBar(span.end), "data ends: book " + st.book + " has " + st.how, long, COL.stop, "square");
+      else put(lastBar(span.end), "data ends", long, COL.stop, "square");
       if (st.book !== "C" && hs && hs.end !== span.end && t.status === "exit") put(barOfDay(hs.end, (ks) => ks[ks.length - 1]), "daily clock out", long, COL.stop, "square");
       if (t.status_u === "exit" && t.exit_k_u != null && t.exit_k_u !== t.exit_k) {
         const ku = Math.min(span.i + t.exit_k_u, cal.daily.length - 1);
@@ -408,7 +418,7 @@
     if (!span) { el.innerHTML = '<span class="dim">This trade\'s entry day is not in the coin\'s bars.</span>'; return; }
     const exitDate = iso(cal.daily[span.end][0]);
     const wt = htfType(cal, "W", span.i), mt = htfType(cal, "M", span.i);
-    const stackChip = t.stack && t.stack !== t.tf ? ' <span class="chip flag">' + esc(t.stack) + " " + esc(CLS_LABEL[t.cls] || t.cls) + "</span>" : "";
+    const stackChip = t.stack && t.stack !== t.tf ? ' <span class="chip flag">' + esc(stackWords(t, stackLevels(t, span.i, cal)).text) + "</span>" : "";
     const facts = [
       ["Trade", esc(state.coin) + ' <span class="chip ' + (long ? "long" : "short") + '">' + (long ? "LONG" : "SHORT") + "</span>"],
       ["Setup", TF_LABEL[t.tf] + " " + KIND_LABEL[t.kind] + stackChip + (t.flag && t.flag !== "none" ? ' <span class="chip flag">hammer</span>' : "")],
@@ -416,7 +426,7 @@
       ["Exit, book " + esc(state.book), st.price != null ? exitDate + ' <span class="sm">at</span> ' + fmtPrice(st.price, p) + ' <span class="sm">' + esc(st.how) + "</span>" : '<span class="sm">' + esc(st.how) + "</span>"],
       ["Held", (span.end - span.i) + " day" + (span.end - span.i === 1 ? "" : "s")],
       ["Result", '<span class="' + cls(st.ret) + '">' + fmtPct(st.ret) + '</span> <span class="sm">' + fmtUsd(st.ret, state.size) + "</span>"],
-      ["Best / worst travel", '<span class="pos">+' + n2(t.mfe_x) + '%</span> <span class="sm">/</span> <span class="neg">-' + n2(t.mae_x) + "%</span>"],
+      ["Best / worst travel <span class=\"sm\">(book C window)</span>", '<span class="pos">+' + n2(t.mfe_x) + '%</span> <span class="sm">/</span> <span class="neg">-' + n2(t.mae_x) + "%</span>"],
       ["Week at entry", t.w_support === "with" ? '<span class="pos">with</span>' : '<span class="neg">against</span>'],
       ["Closed bars", btChip("W", wt) + " " + btChip("M", mt)],
     ];
@@ -436,6 +446,7 @@
   function setBook(b) {
     if (!BOOK_RET[b]) return;
     state.book = b; $("book").value = b;
+    sortItems();
     draw(); renderTable(); renderCalendar(); renderCompare();
   }
 
@@ -478,7 +489,6 @@
     let dMax = 0;
     for (let ts = first; ts < end; ts += DAY) { const e = map.get(iso(ts)); if (e) dMax = Math.max(dMax, Math.abs(e.usd)); }
     let html = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun", "Week"].map((h) => '<div class="cd hd">' + h + "</div>").join("");
-    let mSum = 0, mN = 0, mPct = 0;
     for (let w = start; w < end; w += 7 * DAY) {
       let wSum = 0, wN = 0;
       for (let d = 0; d < 7; d++) {
@@ -487,14 +497,15 @@
         const title = e ? e.n + " trade" + (e.n === 1 ? "" : "s") + ": " + fmtUsd0(e.usd) + " USD at " + state.size.toLocaleString("en-US") + " each, " + fmtPct(e.sum) + " summed" + (e.filled ? ", " + fmtPct(e.sum / e.filled) + " average" : "") : "";
         html += '<div class="cd' + (out ? " out" : "") + (sel ? " sel" : "") + '" data-date="' + date + '" style="' + (e ? shade(e.usd, dMax) : "") + '" title="' + esc(title) + '"><span class="dn">' + new Date(ts * 1000).getUTCDate() + "</span>" +
           (e ? '<span class="dc">' + e.n + '</span><span class="dv ' + cls(e.usd) + '">' + fmtK(e.usd) + "</span>" : "") + "</div>";
-        if (e && !out) { wSum += e.usd; wN += e.n; mSum += e.usd; mN += e.n; mPct += e.sum; }
+        if (e && !out) { wSum += e.usd; wN += e.n; }
       }
       html += '<div class="cd wk"><span class="dn">wk</span>' + (wN ? '<span class="dc">' + wN + '</span><span class="dv ' + cls(wSum) + '">' + fmtK(wSum) + "</span>" : "") + "</div>";
     }
     $("cal").innerHTML = html;
     $("cal").querySelectorAll(".cd[data-date]").forEach((d) => { d.onclick = () => calClick(d.dataset.date); });
     $("calTitle").textContent = monthName(y, m);
-    $("calFoot").innerHTML = mN ? mN + " trades, <b class=\"" + cls(mSum) + '">' + fmtUsd0(mSum) + "</b> USD, avg " + fmtPct(mPct / mN) : "no trades this month";
+    const msum = ST.monthSummary(map, first, end);
+    $("calFoot").innerHTML = msum.n ? msum.n + " trades" + (msum.filled < msum.n ? " (" + msum.filled + " with a result)" : "") + ", <b class=\"" + cls(msum.usd) + '">' + fmtUsd0(msum.usd) + "</b> USD, avg " + (msum.avg == null ? "n/a" : fmtPct(msum.avg) + " over the " + msum.filled + " with a result") : "no trades this month";
     $("calFoot2").textContent = (state.calScope === "all" ? "every coin, book " + state.book : "book " + state.book) + ", " + state.size.toLocaleString("en-US") + " USD each";
   }
   async function calClick(date) {
