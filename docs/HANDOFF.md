@@ -5,6 +5,225 @@
 
 ---
 
+## Session TVB-41: the two audits synthesized and repaired (hourly clock, viewer), the neutral framing, the cc menu's viewer entry (COMPLETE)
+
+**Date:** 2026-10-29 to 2026-10-30
+**Status:** COMPLETE. The TVB-39 Codex audit (returned 2026-10-14, never synthesized) and the
+TVB-40 Codex audit (returned 2026-10-29, the owner's first SSH-launched review) are both
+adjudicated below and every accepted finding is repaired, rerun and receipted. The daily
+headline is byte-identical. The owner's direction this session: go slowly, stop tweaking
+strategies until review is done, organise priorities; two rulings recorded (the 18:00 ET Globex
+roll is "the day" for any futures bench; "backtest to KILL" replaced by "characterize, do not
+adjudicate" in the charter, CLAUDE.md and the session-start reminder).
+
+### Context pulled in at the start
+
+- Local main was 32 commits behind origin (the two cloud STRAT ML sessions, PRs #3-#6, merged
+  2026-10-28 by the owner); fast-forwarded to 8351054. VectorBT Pro is retired (CLAUDE.md
+  gotcha rewritten in the cloud); `uv sync` is safe. The cloud-to-local handoff is
+  `docs/experiments/strat_ml_cloud_handoff_2026-10-28.md`; nothing of the vessel was run here.
+- The owner's first SSH Codex run (13:41 local, 2026-10-29) came through but carried the
+  plugin's generic "last five commits" prompt, not the work order: it reviewed PR #6's phone
+  review page (four findings: blind mode leaks the outcome through the anchor description and
+  the result shown on tap; a blind call stays editable after the reveal; clearing a verdict
+  deletes the whole record; an empty filter leaves the previous trade on screen) and wrote no
+  file. Those findings live only in the Codex session log and in this entry; the phone page is
+  the vessel's, not this thread's. The second run (15:11) followed the work order and wrote
+  `docs/reviews/tvb40-codex-audit.md`.
+- A stale git worktree from the TVB-12 era (`.claude/worktrees/agent-aba898ce6f7f356c9`, one
+  commit: a 330-line BF paired-detector design draft never on main) was removed with its
+  branch on the owner's word.
+
+### TVB-39 audit: critical synthesis (F1-F8)
+
+Read critically; every finding reproduced in the code or the data before acting.
+
+- **F1 HIGH, the hourly entry on equality: ACCEPTED, repaired.** `walk_hourly` entered on
+  `>=` / `<=` where the census breaks strictly. The audit's count (1,210 rows entered on a
+  touch, 312 exited before the trade existed) and its worked case (ACE 2026-04-29: entered and
+  lost -0.72% at 00:00 on a high exactly at the level; the first strict break is 02:00)
+  reproduce: in the rebuilt viewer data that row now enters at hour 2 and leaves an hour later
+  at -0.16%. Fix: strict entry; target, one-R and stop touches stay inclusive.
+- **F2 MEDIUM, a partial entry day accepted: ACCEPTED, repaired.** The entry day must be
+  observed from 00:00 through the entry hour without a gap, else the unit's hourly result is
+  `partial_entry_day` (counted, excluded; the daily unit untouched). 264 rows (the audit's 261
+  plus the 3 old `no_entry_hour` rows, which were also partial days).
+- **F3 MEDIUM, a missing cap hour removed the cap: ACCEPTED, repaired** (the audit's fault
+  injection; not observed in the snapshot). The scan is bounded by the cap day's 23:00
+  timestamp whatever candles exist; a missing hour before the exit censors; `hours` and
+  `entry_hour` are timestamp differences.
+  Vectors first: `tests/test_domino_manage_hourly_fix.py` (v20a-e: long and short equality
+  before the break, an equality hour that would have exited, a partial entry day and a gap
+  before the entry hour, a gap before / after the exit, the missing cap hour with later data,
+  hours from timestamps); all five failed on the old walker and pass on the new one; the
+  existing v17 vectors unchanged. Prereg A2.2 carries a dated clarification of "reached".
+  Rerun `manage --as-of 2026-10-10`: every non-hourly column of the 179,498 rows identical to
+  the baseline, zero non-hourly fields of manage.json moved, the markdown differs only in the
+  hourly counters and the A2.2 table; 1,473 hourly rows changed, `hourly_exit` 55,112 -> 54,851.
+  The paired lines: reversal C_h - C -0.14 -> -0.12 [-0.26, +0.03] (its interval now spans
+  zero), continuation 0.00, inside +0.21 -> +0.23 [+0.06, +0.40], outside -0.27 -> -0.26; A and
+  D within about a tenth. No sign moved. Receipt, ledger and the TVB-39 R2 line updated.
+- **F4 MEDIUM, the reconstructed fill as a touch threshold with a first-candle fallback:
+  ACCEPTED, repaired.** `settle` now carries `at`, the recorded price the book left on (T1, T2,
+  one R, the stop); the marker search uses it with a one-in-a-billion tolerance and never falls
+  back to the day's first bar (a miss sits on the last bar and says "no bar of the day reaches
+  the price"). The one-R circle and the out arrow now use the same price (the ACE 2026-06-14
+  17:00 / 18:00 split).
+- **F5 MEDIUM, the reference stop drawn at the end of the day: ACCEPTED, repaired.** The chance
+  book's stop exit sits on the adverse-side touch hour; an entry-day stop is labelled "the daily
+  bar does not order the entry and the stop, the engine takes the stop first".
+- **F6 MEDIUM, the silent book-C fallback: ACCEPTED, repaired.** A selected book without a
+  result keeps its name (`missing: true`, the window it would have run, no price); the ladder,
+  the strip, the story and the chart say so instead of borrowing C.
+- **F7 MEDIUM, the whole stack labelled with the entry-time class: ACCEPTED, repaired.**
+  `stackSubset` splits the day's breaks into the converged subset (the daily level plus the
+  levels inside the class's own census band of it: exact 0, near 0.25%, within 1%) and the far
+  ones; the domino label, the band, the strip chip, the context chip and the story name the
+  subset and label the far levels with their distance (0G 2026-08-31: "D+W same price; M
+  +34.59% beyond"). Weekly and monthly rows are classed on the whole stack, unchanged.
+- **F8 MEDIUM, the fee narrative: ACCEPTED, corrected** in the receipt, the ledger and the
+  TVB-39 HANDOFF line: six management lines are negative net with the interval clear (reversal
+  A -0.13; continuation A, B, C, E -0.31 to -0.32; inside B -0.15), not "flat".
+- **Open question the audit named and did not rule:** the with-trend inside break's T1 (the
+  prereg's ladder versus the skill's mother-bar far side) stays the owner's STOP-and-ASK.
+
+### TVB-40 audit: critical synthesis (F1-F6)
+
+All six confirmed against the source on receipt; all six display / readback; none touches a
+row or the engine.
+
+- **F1 Compare drawdown by row, not by day: ACCEPTED, repaired.** `bookStats` scores the
+  drawdown on completed daily sums (the engine's `book_stats`, peak clipped at zero). Verified
+  on the universe table against pandas on the engine CSV: every book within about a dollar
+  (C -629,820 page / -629,821 engine; the old row-level figure was -629,981). NOTES corrected.
+- **F2 the magnet picks the next candle on the right half: ACCEPTED, repaired.** `cellIndex`
+  picks the bar whose axis cell holds the time (the last bar opening at or before it); the
+  audit's 0.49 / 0.51 case is a unit test.
+- **F3 exit narration: ACCEPTED, repaired.** The hourly clock in the trade's own colours (a
+  short leaves on a green hour in a green day; 27,674 short rows read wrong before); a no-target
+  row reads its status (exit / marked at the cap / censored) instead of "left with the daily
+  clock"; a same-day stop and one-R tie says the bar cannot order them and the engine takes the
+  stop. The Playbook's clock sentences are direction-neutral.
+- **F4 travel is book C's window: ACCEPTED, labelled** in the strip and the story (the engine
+  records travel once; the page does not rerun it for the selected book).
+- **F5 the calendar month average counts censored rows as zero: ACCEPTED, repaired.**
+  `monthSummary` divides by the rows with a result and prints the filled count.
+- **F6 a book change leaves the old sort: ACCEPTED, repaired.** `setBook` re-sorts.
+- Held by the audit and not re-done here: the universe round trip, 620 Compare statistics, the
+  closed-bar chips, the founding rule. Not proven by anyone yet: drawing persistence across coin
+  switches in a live browser (the audit's own caveat; still on the viewer's list).
+
+Coverage: `tests/test_domino_viewer_js.py` (14 cases, node on core / stats / story with the
+audits' named shapes). Suite 433 passed, 2 skipped; ruff clean.
+
+### In-session cold review (a separate Claude agent, static read, no access to the lead's reasoning)
+
+Five MEDIUM on the repairs above, four accepted and folded before the commit, one accepted in
+part:
+
+- **M1 the 1H entry arrow still used the equality touch: ACCEPTED, repaired.** On the hourly
+  pane the entry arrow sits on the engine's own entry hour (`entry_h`) when the hourly clock
+  recorded one, else on the first bar strictly through the level; ACE 2026-04-29 now shows the
+  arrow at 02:00 beside the hourly-clock exit, not at 00:00.
+- **M2 a missing book got a borrowed window and a false reason: ACCEPTED, repaired.** The data
+  settles it: 1,295 of the 1,296 null-D5 rows are headline-censored rows the engine never
+  scored (237 of them with a complete chance window), and a weekly / monthly chance window runs
+  to 41 / 183 days, not five. A missing book now borrows no window (the entry day only), the
+  Held fact reads n/a, and the reason is the row's own status (`status5` for the five-bar books,
+  `status` for the others: "not scored: the headline row is censored" where that is the case).
+- **M3 weekly rows still carried the whole-stack label: ACCEPTED, repaired.** `chance.stack_class`
+  classes a weekly / monthly unit on its OWN level against the daily level; the converged pair
+  is now read from the row (daily rows: the daily level and `near_tf`; weekly / monthly rows:
+  the unit's level and the daily level) and no census band is re-derived in the browser. The
+  test fixture now has the engine's shape (the daily level is always in the stack).
+- **M4 book D5's reason on weekly / monthly units: ACCEPTED, repaired.** `status5` decides
+  "daily-close exit" versus "marked at the 5-bar horizon"; the D5 horizon runs past the daily cap
+  on those units.
+- **M5 the marker repairs have no behavioural test: ACCEPTED IN PART.** `drawPane` is DOM-bound
+  and stays checked at the source (the fallback greps now also catch `|| ks[0]`; the entry-hour
+  wiring is asserted); `cellIndex` is tested on unequal month cells too; the missing-book
+  story test now asserts the paragraph carries none of book C's figures. A headless-browser
+  marker test on the audits' named rows (ATOM 2026-05-09, ACE 2026-06-14, BTC 2026-03-16 W)
+  is on the viewer's list, not done.
+
+The review's LOW items and its held list are appended to this entry when the agent's cut-off
+tail is recovered (the first message truncated at M5). Suite after the fold: 435 passed.
+
+### Also this session
+
+- **Framing (owner, 2026-10-30):** the insights report showed the lead turning "do the targets
+  get hit?" into a stop verdict; the owner traced it to "backtest to KILL the strategy". Charter
+  S0, the CLAUDE.md invariant and the session-start reminder now read "characterize, do not
+  adjudicate: both directions with equal weight; a positive cell a path to a declared arm, a
+  negative cell a path to a kill test; no verdict, parameter change or recommendation unless
+  asked; answer the question asked". The run-to-confirm warning stays.
+- **The cc menu (the owner's SSH menu on this PC, `~/Documents/WindowsPowerShell/cc-tools/`):**
+  entries 6 and 7 start / stop the trade viewer as a scheduled task (`viewer.ps1`, port 8765,
+  survives the SSH session); the laptop reaches it with `ssh -L 8765:127.0.0.1:8765 pc` then
+  `http://127.0.0.1:8765/`. Not in this repo (the owner's profile); parse-checked, not yet
+  exercised from the laptop.
+- **Ruling: the 18:00 ET Globex roll is "the day"** for the futures bench the owner is
+  considering (ES / NQ / MES / MNQ from the ATLAS Databento cache, 1-minute source 2011-01 to
+  2025-12, resampled 5m to monthly, `vectorbt-workspace/data/databento_cache/`). Recorded
+  before any run; the equity-perp session-bar result in the vessel showed the bar choice alone
+  flips every family's sign.
+- **The owner's direction:** stop tweaking until review is done; one neutral row contract so
+  any run (either line) exports rows the viewer draws, then the one-instrument bench to see
+  entry / exit / target / continuity options side by side; the lead's ranking of the current
+  implementations by evidence state was given in session (management book, stacked 2-2
+  continuation, equity perps on the session bar, continuity strategies, alt break book, the
+  round-3 executor book), as a reading, not a promotion.
+
+### Files created/modified
+
+- `analysis/domino/manage.py` (`walk_hourly`, its caller), `tests/test_domino_manage_hourly_fix.py`
+- `analysis/domino/viewer/{core.js,stats.js,story.js,app.js,NOTES.md}`, `tests/test_domino_viewer_js.py`
+- `analysis/domino/results/{manage_tables.md,manage.json,manage_trades.csv.gz}` (hourly columns
+  and the A2.2 table only), the viewer's data rebuilt (gitignored)
+- `analysis/domino/MANAGE_RECEIPT.md`, `docs/ARM_LEDGER.md`, `docs/experiments/tvb37_management_book_prereg.md`
+- `docs/ATLAS_Timeframe_Continuity_Charter.md` (S0), `CLAUDE.md`, `.claude/commands/session-start.md`
+- `docs/reviews/tvb40-codex-audit.md` (committed as returned), `docs/reviews/REVIEW_REQUEST.md`,
+  `docs/HANDOFF.md`, `.session_startup_prompt.md`
+
+### Open
+
+- [ ] The viewer row contract: one neutral export so any run (the management book, the vessel,
+      a futures bench) draws on the same page; then import runs for review (owner's direction)
+- [ ] The one-instrument bench (ES on the Globex day, or an equity perp) after the contract
+- [ ] The with-trend inside break's T1 STOP-and-ASK (owner rules; amendment A3 before code)
+- [ ] Drawing persistence across coin switches in a live browser (never proven)
+- [ ] Viewer: journal layer; one drawing slot across panes; an hourly archive beyond ~208 days
+- [ ] The phone review page's four Codex findings (vessel thread; blind calls so far were not blind)
+- [ ] HANDOFF.md archive (over the limit; the owner's word); `proto_codex/` disposition
+- [ ] The vessel's cloud handoff section 5 questions, when that thread resumes locally
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb41-codex-audit.md.
+> See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: `8351054..HEAD` on `main` (8351054 is the post-cloud-merge sha the session
+  started from; 5e71b05 commits the TVB-40 audit as returned, 3fa6990 the viewer repairs and the
+  framing, the session-end commit the engine repair, the rerun's results and the docs).
+  Sanity-check: `git diff --name-status 8351054..HEAD`.
+- Scope / what changed: `walk_hourly` (strict entry, entry-day coverage, cap bound, gap
+  censoring, timestamp hours) with five vectors; the hourly columns and the A2.2 table rerun;
+  the viewer's four modules on ten audit findings with 14 node cases; prose corrections.
+- Focus areas: the byte-identical claim (every non-hourly column of manage_trades.csv.gz
+  against 2c7fe1c's file, which this repo does not keep: regenerate from `git stash` or trust the
+  method in the entry); whether `partial_entry_day` should also censor rows whose entry day is
+  complete but whose later days have gaps that the scan now treats as censored (it does; is the
+  count surfaced anywhere other than `hourly_censored`?); `stackSubset`'s bands against
+  `chance.py`; `settle`'s missing-book contract against every caller; the magnet's `cellIndex`
+  on the 1M pane; the `near` tolerance on sub-cent coins; the story's new sentences against the
+  rows; the cold in-session review's findings (listed in this entry once returned).
+- Reviewed by: pending
+- Findings: {blank until docs/reviews/tvb41-codex-audit.md exists}
+
+---
+
 ## Side thread 2026-10-22 (not a TVB session): STRAT ML research vessel, Phase 3 to the test-1 gate (STOPPED AT THE GATE, as the brief orders)
 
 **Date:** 2026-10-22 (cloud session, branch claude/jolly-babbage-vlk7yz; the owner's brief
@@ -571,9 +790,11 @@ test was meant to answer). Nothing is promoted; nothing is read into the hierarc
 - **R2 the hourly clock: a different trade, not a better one.** On ~38k trades inside the
   hourly window: held 9-11 hours against 48-72; every trade exits inside the cap; losers shrink
   to less than half (-1.5..-1.9 against -3.8..-4.9); T1 before the exit falls by a third to a
-  half. Net paired: C_h - C reversal -0.14 [-0.28, +0.01], continuation 0.00, inside +0.21
-  [+0.04, +0.37], outside -0.27 [-0.59, +0.05]; A and D within a tenth. The declared
-  expectations (sooner, smaller losers, fewer targets) all held; no sign was predicted.
+  half. Net paired (rerun 2026-10-30 under the repaired walker, TVB-39 audit F1-F3; the
+  original read -0.14 / 0.00 / +0.21 / -0.27): C_h - C reversal -0.12 [-0.26, +0.03],
+  continuation 0.00, inside +0.23 [+0.06, +0.40], outside -0.26 [-0.58, +0.06]; A and D within
+  about a tenth. The declared expectations (sooner, smaller losers, fewer targets) all held; no
+  sign was predicted.
 - **R3 half at T1: holds.** E between A and C on every kind (reversal -0.05 / +0.09 / +0.22).
 - **R4 fees: three lines survive.** Two taker fills cost 0.077-0.082 per trade; net of that,
   intervals clear of zero: reversal C +0.14 [+0.02, +0.27]; inside D +0.16 [+0.08, +0.23] and

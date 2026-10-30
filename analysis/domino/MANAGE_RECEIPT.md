@@ -291,15 +291,26 @@ nothing is combined or promoted. Tables: `results/manage_tables.md`, "Amendment 
   condition; it is a pattern-specific read the owner can take or leave (an inside-bar break
   against the week is a counter-trend break with the week's open ahead of it as a level).
 - **Manage on the hourly (A2.2).** On the hourly window (the venue keeps about 208 days of
-  hours: 13,013 reversal, 12,521 continuation, 8,731 inside, 3,664 outside trades since
-  2026-03-18), getting out on the first red hour while the day is red holds a median 9-11 hours
+  hours: 12,932 reversal, 12,477 continuation, 8,644 inside, 3,656 outside trades since
+  2026-03-18; rerun 2026-10-30 under the repaired walker, see below), getting out on the first
+  hour that closes against the trade while the day is against it holds a median 9-11 hours
   against 48-72 on the daily clock, every trade exits inside the cap, and the losing trades
   shrink to less than half (average loser -1.5 to -1.9 against -3.8 to -4.9). The price is the
   targets: T1 before the exit falls from 65 to 45 percent on the reversal, 36 to 14 on the
-  continuation, 51 to 32 on the inside, 39 to 16 on the outside. Net, paired on the same trades,
-  the exit-only book moves -0.14 [-0.28, +0.01] on the reversal, 0.00 on the continuation, +0.21
-  [+0.04, +0.37] on the inside break, -0.27 [-0.59, +0.05] on the outside; books A and D move by
-  under a tenth with every interval over zero. R2 made no sign prediction; the declared
+  continuation, 50 to 32 on the inside, 39 to 16 on the outside. Net, paired on the same trades,
+  the exit-only book moves -0.12 [-0.26, +0.03] on the reversal, 0.00 on the continuation, +0.23
+  [+0.06, +0.40] on the inside break, -0.26 [-0.58, +0.06] on the outside; books A and D move
+  within about a tenth with every interval through zero. *Repaired 2026-10-30 (TVB-39 external
+  audit F1-F3): the walker had entered on an hour whose extreme merely EQUALLED the level (1,210
+  rows entered on a touch; 312 of them exited before the census's strict break, ACE 2026-04-29
+  the worked case), accepted an entry day cached only from mid-day (264 rows, APEX 2026-03-18),
+  and would have run past a missing cap hour. Now: strict entry, the entry day observed from
+  00:00 through the entry hour, the scan bounded by the cap timestamp, a gap before the exit
+  censors. 1,473 hourly rows changed, the hourly subset lost 264 rows to "partial entry day",
+  the daily headline is byte-identical (every non-hourly column of the 179,498 rows), and no
+  paired line changed sign or lost / gained an interval clear of zero except the reversal
+  exit-only line, whose interval now spans zero (-0.14 [-0.28, +0.01] before).*
+  R2 made no sign prediction; the declared
   expectations (sooner, smaller losers, fewer targets) all held. Small losers and few winners
   come out where big losers and more winners did. The hourly books fill a target only up to the
   exit hour, where the daily bar fills any touch on the exit day; that ordering is part of the

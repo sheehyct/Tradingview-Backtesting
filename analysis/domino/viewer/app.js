@@ -305,7 +305,12 @@
       const touchBar = (d, price, side) => barOfDay(d, (ks) => ks.find((k) => side === "hi" ? bs[k].h >= price || near(bs[k].h, price) : bs[k].l <= price || near(bs[k].l, price)));
       const put = (k, text, above, color, shape) => { if (k != null) markers.push({ t: bs[k].t * MS, y: above ? bs[k].h : bs[k].l, above, text, color, shape }); };
       const putTouch = (d, price, side, text, above, color, shape) => { const k = touchBar(d, price, side); if (k != null) put(k, text, above, color, shape); else put(lastBar(d), text + " (no bar of the day reaches the price)", above, color, shape); };
-      putTouch(span.i, t.level, long ? "hi" : "lo", "in " + fmtPrice(t.level, p), !long, COL.level, long ? "arrowUp" : "arrowDown");
+      // the entry marker: on the hourly pane the engine's own entry hour when the hourly clock recorded one (a strict
+      // break, TVB-39 audit F1); otherwise the first bar of the entry day strictly through the level (an equal extreme is
+      // not a break), falling back to the recorded entry day's bar
+      const entryHour = pane.tf === "1H" && t.entry_h != null && (t.status_h === "exit" || t.status_h === "open") ? bs.findIndex((b) => b.t === cal.daily[span.i][0] + t.entry_h * HOUR) : -1;
+      const strictBar = barOfDay(span.i, (ks) => ks.find((k) => long ? bs[k].h > t.level : bs[k].l < t.level));
+      put(entryHour >= 0 ? entryHour : strictBar != null ? strictBar : lastBar(span.i), "in " + fmtPrice(t.level, p) + (entryHour >= 0 || strictBar != null ? "" : " (no bar of the day trades through the level)"), !long, COL.level, long ? "arrowUp" : "arrowDown");
       const touches = [["t1_k", "T1", t.t1], ["t2_k", "T2", t.t2], ["t3_k", "T3", t.t3], ["one_r_k", "1R", oneR(t)], ["mm1_k", "MM", t.mm_t1]];
       for (const [key, label, price] of touches) {
         if (t[key] == null || price == null) continue;
@@ -424,7 +429,7 @@
       ["Setup", TF_LABEL[t.tf] + " " + KIND_LABEL[t.kind] + stackChip + (t.flag && t.flag !== "none" ? ' <span class="chip flag">hammer</span>' : "")],
       ["Entry", t.date + ' <span class="sm">at</span> ' + fmtPrice(t.level, p)],
       ["Exit, book " + esc(state.book), st.price != null ? exitDate + ' <span class="sm">at</span> ' + fmtPrice(st.price, p) + ' <span class="sm">' + esc(st.how) + "</span>" : '<span class="sm">' + esc(st.how) + "</span>"],
-      ["Held", (span.end - span.i) + " day" + (span.end - span.i === 1 ? "" : "s")],
+      ["Held", st.missing ? '<span class="sm">n/a</span>' : (span.end - span.i) + " day" + (span.end - span.i === 1 ? "" : "s")],
       ["Result", '<span class="' + cls(st.ret) + '">' + fmtPct(st.ret) + '</span> <span class="sm">' + fmtUsd(st.ret, state.size) + "</span>"],
       ["Best / worst travel <span class=\"sm\">(book C window)</span>", '<span class="pos">+' + n2(t.mfe_x) + '%</span> <span class="sm">/</span> <span class="neg">-' + n2(t.mae_x) + "%</span>"],
       ["Week at entry", t.w_support === "with" ? '<span class="pos">with</span>' : '<span class="neg">against</span>'],

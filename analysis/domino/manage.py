@@ -410,40 +410,58 @@ def walk_hourly(
     prices: dict,
     cap_end: int | None,
 ) -> dict | None:
-    """Amendment A2.2: the hourly exit clock. None when the entry day has no cached hours or no
-    hour reached the level (the caller counts which). Otherwise the entry hour (the first hour of
-    the entry day whose high / low reached L), the first hour at or after it that closed against
-    its own open AND the day's open (fill = that close), the first touch hour of every named
-    price from the entry hour on, and the status: exit / open (marked at the last hour of the cap
-    day) / censored (the hourly data ends before the cap day's last hour)."""
+    """Amendment A2.2: the hourly exit clock. None when the entry day has no cached hours (the
+    caller counts it as outside the window). Otherwise the entry hour (the first hour of the
+    entry day whose high / low traded strictly THROUGH L, the census's first break; an hour whose
+    extreme merely equals L is not the entry hour), the first hour at or after it that closed
+    against its own open AND the day's open (fill = that close), the first touch hour of every
+    named price from the entry hour on (touches stay inclusive), and the status: exit / open
+    (marked at the cap day's 23:00 hour) / censored (the hourly data ends, or has a gap, before
+    the exit or the cap hour) / no_entry_hour (the day is fully observed and no hour traded
+    through L) / partial_entry_day (the entry day is not observed from its first hour through
+    the entry hour without a gap, so the entry hour cannot be known).
+
+    Repairs 2026-10-30 (TVB-39 external audit F1-F3): strict entry; the entry day's coverage
+    checked from 00:00; the scan bounded by the cap TIMESTAMP whatever candles exist; a missing
+    hour before the exit censors; elapsed hours are timestamp differences, not list offsets."""
     hs = by_day.get(daily[i]["t"])
     if not hs:
         return None
+    day_t = daily[i]["t"]
     lv = _dec(level)
     entry = None
+    expect = day_t
     for h in hs:
         b = hourly[h]
-        if (direction == "up" and _dec(b["h"]) >= lv) or (
-            direction == "down" and _dec(b["l"]) <= lv
-        ):
+        if b["t"] != expect:
+            return {"status": "partial_entry_day"}
+        if (direction == "up" and _dec(b["h"]) > lv) or (direction == "down" and _dec(b["l"]) < lv):
             entry = h
             break
+        expect += HOUR
     if entry is None:
+        if expect != day_t + 24 * HOUR:
+            return {"status": "partial_entry_day"}
         return {"status": "no_entry_hour"}
-    last_h = None
-    if cap_end is not None:
-        cap_hs = by_day.get(daily[cap_end]["t"])
-        if cap_hs and hourly[cap_hs[-1]]["t"] == daily[cap_end]["t"] + 23 * HOUR:
-            last_h = cap_hs[-1]
+    cap_ts = daily[cap_end]["t"] + 23 * HOUR if cap_end is not None else None
     day_idx = {d["t"]: k for k, d in enumerate(daily)}
     tgt = {
         k: (p if isinstance(p, Decimal) else _dec(p)) for k, p in prices.items() if p is not None
     }
     touch: dict[str, int | None] = dict.fromkeys(prices, None)
     exit_h = None
-    stop = last_h if last_h is not None else len(hourly) - 1
-    for h in range(entry, stop + 1):
+    gap = False
+    last = None
+    prev_t = hourly[entry]["t"] - HOUR
+    for h in range(entry, len(hourly)):
         b = hourly[h]
+        if cap_ts is not None and b["t"] > cap_ts:
+            break
+        if b["t"] != prev_t + HOUR:
+            gap = True
+            break
+        prev_t = b["t"]
+        last = h
         bh, bl = _dec(b["h"]), _dec(b["l"])
         for k, p in tgt.items():
             if touch[k] is None and (bh >= p if direction == "up" else bl <= p):
@@ -458,8 +476,8 @@ def walk_hourly(
             break
     if exit_h is not None:
         status, end = "exit", exit_h
-    elif last_h is not None:
-        status, end = "open", last_h
+    elif not gap and cap_ts is not None and last is not None and hourly[last]["t"] == cap_ts:
+        status, end = "open", last
     else:
         return {"status": "censored", "entry": entry}
     sign = 1.0 if direction == "up" else -1.0
@@ -467,9 +485,9 @@ def walk_hourly(
     return {
         "status": status,
         "entry": entry,
-        "entry_hour": (hourly[entry]["t"] - daily[i]["t"]) // HOUR,
+        "entry_hour": (hourly[entry]["t"] - day_t) // HOUR,
         "end": end,
-        "hours": end - entry,
+        "hours": (hourly[end]["t"] - hourly[entry]["t"]) // HOUR,
         "ret_c": sign * (close - level) / level * 100.0,
         "touch": touch,
     }
@@ -634,9 +652,9 @@ def coin_manage_rows(
                 wh = walk_hourly(hourly, by_day, daily, i, direction, level, prices, cap_end)
                 if wh is None:
                     counts["hourly_outside_window"] += 1
-                elif wh["status"] == "no_entry_hour":
-                    counts["hourly_no_entry_hour"] += 1
-                    row["status_h"] = "no_entry_hour"
+                elif wh["status"] in ("no_entry_hour", "partial_entry_day"):
+                    counts[f"hourly_{wh['status']}"] += 1
+                    row["status_h"] = wh["status"]
                 else:
                     row["status_h"] = wh["status"]
                     counts[f"hourly_{wh['status']}"] += 1

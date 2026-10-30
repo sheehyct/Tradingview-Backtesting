@@ -297,6 +297,15 @@ a red candle.
   therefore a SUBSET of the headline's rows; every comparison is paired on that subset only.
 - Entry hour: the first hour of the entry day whose high reached the level (long) or whose low
   reached it (short); the fill stays L.
+  *Clarified 2026-10-30 after the TVB-39 external audit (F1-F3; wording, not a rule change: the
+  intent was always the census's strict break): "reached" means traded strictly THROUGH the level;
+  an hour whose high (low) merely equals the level is not the entry hour, while target, one-R and
+  stop touches stay inclusive. The entry day must be observed from its first hour through the
+  entry hour without a gap, otherwise the unit's hourly result is "partial entry day" (counted,
+  excluded; the daily unit is untouched). The scan ends at the cap day's 23:00 timestamp whatever
+  candles exist; a missing hour before the exit censors the unit; elapsed hours are timestamp
+  differences. The hourly rows, counts and A2.2 tables were rerun under this reading on
+  2026-10-30; the daily headline did not move.*
 - Exit: the first hour, the entry hour included, whose close is against its OWN open (strict)
   AND against the DAY's open (strict; the daily bar's open of that UTC day). The clock steps
   down one rung as a whole: the headline tests the day and its parent the week, the hourly tests

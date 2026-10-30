@@ -669,12 +669,14 @@ settings at $1 risk, but with 26 fills they stay unread as arms.
   is on your side at the break: better on the reversal, the continuation and the outside break
   (reversal C +0.28 with against +0.13; continuation C -0.20 against -0.53) but WORSE on the
   inside break (against the week A +0.18 / C +0.16 / D +0.38, with it -0.07 / -0.13 / +0.16), so
-  by the declared reading it is not a general condition. (2) The hourly exit clock (first red
-  hour while the day is red; 13k / 12.5k / 8.7k / 3.7k trades inside the venue's 208-day hourly
-  window): holds 9-11 hours instead of 48-72, losers shrink to less than half (-1.5 to -1.9
-  against -3.8 to -4.9), T1 before the exit falls by a third to a half; net per trade about the
-  same (C_h - C: reversal -0.14, continuation 0.00, inside +0.21 [+0.04, +0.37], outside -0.27;
-  A and D move under a tenth). (3) Half at T1 sits between A and C everywhere (reversal A -0.05,
+  by the declared reading it is not a general condition. (2) The hourly exit clock (first hour
+  closing against the trade while the day is against it; 12.9k / 12.5k / 8.6k / 3.7k trades
+  inside the venue's 208-day hourly window after the 2026-10-30 repair: strict entry, a fully
+  observed entry day, the scan bounded by the cap; TVB-39 audit F1-F3): holds 9-11 hours instead
+  of 48-72, losers shrink to less than half (-1.5 to -1.9 against -3.8 to -4.9), T1 before the
+  exit falls by a third to a half; net per trade about the same (C_h - C: reversal -0.12
+  [-0.26, +0.03], continuation 0.00, inside +0.23 [+0.06, +0.40], outside -0.26; A and D move
+  within about a tenth). The repair moved 1,473 hourly rows and no sign. (3) Half at T1 sits between A and C everywhere (reversal A -0.05,
   E +0.09, C +0.22). (4) Two taker fills (0.077-0.082 per trade): three lines stay positive net
   with their interval clear, the reversal exit-only book +0.14 [+0.02, +0.27] and the inside
   break's D +0.16 and D5 +0.16; six lines are negative net with the interval clear (reversal A

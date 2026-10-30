@@ -101,11 +101,13 @@ window.DV = window.DV || {};
     const ret = t[BOOK_RET[b]];
     if (b === "C") return head;
     if (ret == null || t[BOOK_DAYS[b]] == null) {
-      // TVB-39 audit F6: a selected book without a result keeps its own identity (no silent fall-back to book C);
-      // k is only the window the book would have run, so the candles show where the data ended
-      const five = b === "D5" || b === "ref";
-      return { book: b, k: five ? 5 : CAP, ret: null, target: false, stop: false, missing: true, price: null, at: null,
-        how: five ? "no result (the five-bar window is incomplete)" : "no result (censored: the data ends inside the 20-day window)" };
+      // TVB-39 audit F6: a selected book without a result keeps its own identity (no silent fall-back to book C) and
+      // borrows no window (k = 0: the entry day only); the reason is the row's own status for that book
+      let how = "no result";
+      if (b === "ref") how = t.status5 === "censored" || t.out5 == null ? "no result (the five-bar window runs past the data)" : "no result";
+      else if (b === "D5") how = t.status5 === "censored" ? "no result (the five-bar window runs past the data)" : t.status === "censored" ? "no result (not scored: the headline row is censored)" : "no result";
+      else how = t.status === "censored" ? "no result (censored: the data ends inside the 20-day window)" : "no result";
+      return { book: b, k: 0, ret: null, target: false, stop: false, missing: true, price: null, at: null, how };
     }
     const k = t[BOOK_DAYS[b]];
     // `at` is the recorded price the book left on (the target, one R or the stop as the engine wrote it): the marker
@@ -114,7 +116,7 @@ window.DV = window.DV || {};
     if (b === "A") { target = !!t.hit_A; how = target ? "all out at T1" : head.how; at = target ? t.t1 : null; }
     else if (b === "B") { target = !!t.hit_B; how = target ? "all out at T2" : head.how; at = target ? t.t2 : null; }
     else if (b === "D") { target = !!t.hit_D; how = target ? "one R" : head.how; at = target ? oneR(t) : null; }
-    else if (b === "D5") { target = !!t.hit_D5; how = target ? "one R" : k === head.k && t.status === "exit" ? "daily-close exit" : "marked at the 5-bar horizon"; at = target ? oneR(t) : null; }
+    else if (b === "D5") { target = !!t.hit_D5; how = target ? "one R" : t.status5 === "exit" ? "daily-close exit" : "marked at the 5-bar horizon"; at = target ? oneR(t) : null; }
     else {
       target = t.out5 === "one_r"; stop = t.out5 === "stop";
       how = stop ? "setup-bar stop" : target ? "one R" : t.out5 === "neither" ? "marked at bar 5" : "censored (data ends)";
@@ -148,17 +150,16 @@ window.DV = window.DV || {};
     if (bi > 1) buckets[bi - 2].days.forEach((d) => ref.add(d));
     return { setup, ref };
   }
-  const BAND = { exact_shared: 0, exact_plain: 0, near: 0.0025, within1: 0.01 };
   function stackSubset(t, levels) {
-    // TVB-39 audit F7: for a DAILY row the class (`cls`) describes the nearest fresh higher level at entry, while `stack`
-    // lists every level that broke that day; the two are different sets. The converged stack is the daily level plus the
-    // other levels that sit inside the class's own band of it (the census bands: exact 0, near 0.25%, within 1%); the
-    // rest broke the same day but are not part of the domino. Weekly / monthly rows are classed on the whole stack.
+    // TVB-39 audit F7: `stack` lists every level that broke on the entry day; the class (`cls`) describes a PAIR. For a
+    // daily row it is the daily level against the nearest fresh higher level at entry (`near_tf`, chance.entry_class);
+    // for a weekly / monthly row it is the unit's own level against the daily level (chance.stack_class). The converged
+    // stack is that pair when both broke; the other same-day breaks are listed apart with their distance from the entry.
+    // Read from the row (near_tf, cls, tf): no band is re-derived here.
     const long = t.direction === "up";
     const out = levels.map((l) => ({ ...l, gap: t.level ? (long ? l.price - t.level : t.level - l.price) / t.level * 100 : null }));
-    if (t.tf !== "D") return { conv: out, far: [] };
-    const band = BAND[t.cls];
-    const conv = out.filter((l) => l.tf === "D" || (band != null && l.gap != null && Math.abs(l.gap) <= band * 100 + 1e-9));
+    const pairTf = t.tf === "D" ? (t.cls && t.cls !== "plain" && t.cls !== "spread" ? t.near_tf : null) : "D";
+    const conv = out.filter((l) => l.tf === t.tf || (pairTf != null && l.tf === pairTf));
     const far = out.filter((l) => !conv.includes(l));
     return { conv, far };
   }
@@ -200,5 +201,5 @@ window.DV = window.DV || {};
   DV.core = { DAY, HOUR, CAP, MS, COL, BOOKS, BOOK_RET, BOOK_HIT, BOOK_DAYS, BOOK_NAME, BOOK_SHORT, BOOK_LINE, BOOK_COL, CLS_LABEL, KIND_LABEL, KIND_SHORT,
     TF_LABEL, TF_WORD, DASH, INTERVAL, BT_CLASS, BT_WORD, $, weekStart, monthStart, nextMonth, aggregate, makeCalendar, iso, isoH, dateMs, longDate, shortDate,
     monthName, weekdayOf, decimalsOf, precisionFor, fmtPrice, fmtPct, fmtUsd, fmtUsd0, cls, esc, settle, tradeSpan, stackLevels, setupDays, oneR, barType, htfType, btChip,
-    stackSubset, stackWords, cellIndex, BAND };
+    stackSubset, stackWords, cellIndex };
 })(window.DV);

@@ -86,7 +86,7 @@ window.DV = window.DV || {};
     const touchOrder = (k) => t.exit_k != null && k === t.exit_k ? "on the exit day itself (a touch on the exit day fills first)" : "before the exit";
     // what happened when the book's own target never came: the row's status says it, not an assumed clock exit (TVB-40 audit F3)
     const noTarget = t.status === "exit" ? "so it left with the daily clock. " + clock : t.status === "open" ? "and no daily exit fired inside the 20-day cap either, so the row is marked at the day-20 close." : "and the data ends inside the window, so the row is censored.";
-    if (book !== "C" && st.missing) return (book === "ref" ? "The chance book has " : "Book " + book + " has ") + st.how + ". " + clock;
+    if (book !== "C" && st.missing) return (book === "ref" ? "The chance book has " : "Book " + book + " has ") + st.how + ". Nothing of the headline book is borrowed here.";
     if (book === "C") return "Book C has no target: it holds until the daily clock, a close against the trade with the week also against it at that close. " + clock +
       (t.status === "exit" ? " Filled at that close: " + money(st.ret) + "." : t.status === "open" ? " Marked: " + money(st.ret) + "." : "");
     if (book === "A") {
@@ -107,7 +107,6 @@ window.DV = window.DV || {};
     }
     if (book === "D5") {
       const r1 = oneR(t);
-      if (st.book !== "D5") return "Book D5 has no result on this row (the five-bar window is incomplete). " + clock;
       if (t.hit_D5) return "Book D5 takes one R or the exit inside five bars, the chance book's own horizon. One R at " + fmtPrice(r1, p) + " was touched " + when(t.one_r_k) + ", so the book left there: " + money(st.ret) + ".";
       if (st.how === "daily-close exit") return "Book D5 takes one R or the exit inside five bars. The daily clock fired first. " + clock + " Result " + money(st.ret) + ".";
       return "Book D5 takes one R or the exit inside five bars. Neither came: the row is marked at the bar-5 close, " + money(st.ret) + ".";

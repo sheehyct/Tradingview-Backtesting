@@ -93,8 +93,11 @@ read-only `&show=sys|man|none` and the proof flags `&seed=1`, `&then=1W`, `&ray=
   touch markers search the RECORDED price (level, target, one R, stop) with a one-in-a-billion
   tolerance and never fall back to the day's first bar (a miss sits on the last bar and says so);
   the chance book's stop exit sits on its touch hour; a selected book without a result keeps its
-  name (no book-C fall-back); the domino label and band cover the converged subset only and the
-  other same-day breaks are labelled with their distance; the Compare drawdown runs on daily sums;
+  name, borrows no window and states the row's own status (no book-C fall-back); the domino
+  label and band cover the classed PAIR read from the row (daily rows: the daily level and
+  `near_tf`; weekly / monthly rows: the unit's level and the daily level) and the other same-day
+  breaks are labelled with their distance; on the hourly pane the entry arrow sits on the
+  engine's entry hour; the Compare drawdown runs on daily sums;
   the magnet picks the candle whose cell is under the pointer; the story reads the row's status
   and direction (a short's hourly clock is green-in-green; an open row is marked, not clocked out;
   a same-day stop / one-R tie is named as the engine's pessimistic order); travel is labelled as
