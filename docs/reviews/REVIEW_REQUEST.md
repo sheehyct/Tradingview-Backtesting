@@ -33,7 +33,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `8351054..HEAD` (8351054 is the post-cloud-merge sha the session started from: 5e71b05 commits the TVB-40 audit as returned and flips the status; 3fa6990 the viewer repairs, the F8 prose and the framing; the session-end commit the engine repair, the rerun's results, the prereg clarification and the docs). Verify with `git diff --name-status 8351054..HEAD`. |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `8351054..74dcb28` (8351054 is the post-cloud-merge sha the session started from: 5e71b05 commits the TVB-40 audit as returned and flips the status; 3fa6990 the viewer repairs, the F8 prose and the framing; f24a4ce the engine repair, the rerun's results, the prereg clarification, the in-session review fold and the docs; 74dcb28 the review's tail; the sha-pinning commit after it is docs only). Verify with `git diff --name-status 8351054..74dcb28`. |
 
 No sibling-repo commits. The candle cache, the viewer's data folder and the vendored library
 are gitignored; `uv run python -m analysis.domino.manage --as-of 2026-10-10` (about 10 min)

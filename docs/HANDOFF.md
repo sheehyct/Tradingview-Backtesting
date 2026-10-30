@@ -219,9 +219,10 @@ edge bars and the proof flag. Suite after the fold: 435 passed, 2 skipped.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: `8351054..HEAD` on `main` (8351054 is the post-cloud-merge sha the session
+- Commits to review: `8351054..74dcb28` on `main` (8351054 is the post-cloud-merge sha the session
   started from; 5e71b05 commits the TVB-40 audit as returned, 3fa6990 the viewer repairs and the
-  framing, the session-end commit the engine repair, the rerun's results and the docs).
+  framing, f24a4ce the engine repair, the rerun's results, the review fold and the docs, 74dcb28
+  the review tail; the sha-pinning commit after 74dcb28 is docs only).
   Sanity-check: `git diff --name-status 8351054..HEAD`.
 - Scope / what changed: `walk_hourly` (strict entry, entry-day coverage, cap bound, gap
   censoring, timestamp hours) with five vectors; the hourly columns and the A2.2 table rerun;
