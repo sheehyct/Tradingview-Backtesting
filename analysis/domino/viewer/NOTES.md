@@ -102,7 +102,10 @@ read-only `&show=sys|man|none` and the proof flags `&seed=1`, `&then=1W`, `&ray=
   and direction (a short's hourly clock is green-in-green; an open row is marked, not clocked out;
   a same-day stop / one-R tie is named as the engine's pessimistic order); travel is labelled as
   book C's window; the calendar month averages over the rows with a result; a book change
-  re-sorts the table.
+  re-sorts the table. These repairs are proven under node (`tests/test_domino_viewer_js.py`) and
+  by the universe drawdown check above; the browser shots in `shots/` predate them and were not
+  re-taken, so marker placement on the audits' named rows (ATOM 2026-05-09, ACE 2026-06-14, BTC
+  2026-03-16 W) is not yet proven on a rendered page.
 
 Not proven: a drawing made by a real mouse drag (the trend line's two-point flow); drawings
 across a coin switch (the slot swap runs on every load, but only BTC was loaded headless); the

@@ -316,8 +316,10 @@ def test_same_day_stop_and_one_r_tie_is_not_told_as_stop_first():
     s = _story(t, "ref")
     assert "before one R" not in s
     assert "cannot say which came first" in s and "takes the stop" in s
-    plain = _story(row(out5="stop", stop_k=1, one_r_k=None), "ref")
-    assert "before one R" in plain
+    later = _story(row(out5="stop", stop_k=1, one_r_k=3), "ref")
+    assert "before one R" in later
+    never = _story(row(out5="stop", stop_k=1, one_r_k=None), "ref")
+    assert "before one R" not in never and "never touched" in never
 
 
 def test_missing_book_is_named_not_borrowed():

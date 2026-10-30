@@ -109,7 +109,7 @@ def test_v20c_partial_entry_day_is_not_observable():
     assert _walk(daily, gap_at_1)["status"] == "partial_entry_day"
     # a gap AFTER the entry hour on the entry day is not a partial entry day (it is a coverage gap: v20d)
     gap_at_10 = [b for b in full if b["t"] != TUE + 10 * HOUR]
-    assert _walk(daily, gap_at_10)["status"] != "partial_entry_day"
+    assert _walk(daily, gap_at_10)["status"] == "censored"
 
 
 def test_v20d_a_missing_hour_before_the_exit_censors_and_after_the_exit_does_not():

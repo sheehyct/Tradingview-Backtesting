@@ -116,7 +116,7 @@ window.DV = window.DV || {};
     if (t.out5 === "stop") {
       const tie = t.one_r_k != null && t.one_r_k === t.stop_k;
       return "The chance book keeps the setup-" + (t.tf === "D" ? "bar" : TF_WORD[t.tf]) + " stop at " + fmtPrice(t.stop, p) + ". It was hit " + when(t.stop_k) +
-        (tie ? ", the same " + (t.tf === "D" ? "day" : TF_WORD[t.tf]) + " one R was touched: the bar cannot say which came first, and the engine takes the stop (pessimistic)" : ", before one R") + ", so the book is out there: " + money(st.ret) + ".";
+        (tie ? ", the same day one R was touched: the daily bar cannot say which came first, and the engine takes the stop (pessimistic)" : t.one_r_k == null ? " and one R was never touched inside the window" : ", before one R") + ", so the book is out there: " + money(st.ret) + ".";
     }
     if (t.out5 === "one_r") return "The chance book keeps the setup stop at " + fmtPrice(t.stop, p) + " and takes one R. One R came first, " + when(t.one_r_k) + ": " + money(st.ret) + ".";
     if (t.out5 === "neither") return "The chance book keeps the setup stop at " + fmtPrice(t.stop, p) + " and takes one R. Neither came inside five bars, so the row is marked at the bar-5 close: " + money(st.ret) + ".";
@@ -190,7 +190,7 @@ window.DV = window.DV || {};
         '<td class="num"><b class="' + cls(has ? st.ret : null) + '">' + (has ? fmtPct(st.ret) : "-") + "</b></td></tr>";
     });
     return '<table class="ladder"><thead><tr><th>Book</th><th>How it left</th><th>When</th><th class="num">Result</th></tr></thead><tbody>' + rows.join("") + "</tbody></table>" +
-      '<div class="fine">Fill = the entry level moved by the recorded return; book ' + esc(book) + " fills at " + (settle(t, book).price != null ? fmtPrice(settle(t, book).price, p) : "-") + " for " + fmtUsd(settle(t, book).ret, size) + " at the size box. Click a book to make it the page's book.</div>";
+      '<div class="fine">Fill = the entry level moved by the recorded return; ' + (settle(t, book).price != null ? "book " + esc(book) + " fills at " + fmtPrice(settle(t, book).price, p) + " for " + fmtUsd(settle(t, book).ret, size) + " at the size box." : "book " + esc(book) + " has no result on this row.") + " Click a book to make it the page's book.</div>";
   }
 
   // ---------------------------------------------------------------- context chips for one trade

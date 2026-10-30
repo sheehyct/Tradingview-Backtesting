@@ -367,7 +367,8 @@ a red candle.
 - v16 under water: a long whose first day closes red but above L does not exit; a day that
   opened under L and closed green but under L, with the week against, exits at that close; the
   colour clock on the same bars gives a different day.
-- v17 hourly: the entry hour is the first hour whose high reaches L; a target touched on the
+- v17 hourly: the entry hour is the first hour whose high reaches L (strictly through, per the
+  2026-10-30 clarification above; v20a-e cover the equality and coverage cases); a target touched on the
   exit day AFTER the exit hour does not fill (corrected as above); a red hour while the day is green does not exit; the first
   red hour with the day red exits at that hour's close; the hourly cap marks at the last hour of
   the twentieth day; a coin with no hourly bars yields no hourly rows and the headline rows are

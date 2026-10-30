@@ -28,7 +28,7 @@ window.DV = window.DV || {};
     ref: "The chance book itself: one R or the setup-bar stop, marked at bar five.",
   };
   const BOOK_COL = { C: "#3b82f6", A: "#22c55e", B: "#a78bfa", D: "#f59e0b", D5: "#fb923c", ref: "#9ca3af" };
-  const CLS_LABEL = { exact_shared: "same price", exact_plain: "same price", near: "near, within 0.25%", within1: "within 1%", spread: "spread, more than 1% apart" };
+  const CLS_LABEL = { exact_shared: "same price", exact_plain: "same price", near: "near, within 0.25%", within1: "within 1%", spread: "spread, more than 1% apart", plain: "plain, no fresh higher level within 1%" };
   const KIND_LABEL = { reversal: "2-2 reversal", continuation: "2-2 continuation", inside: "inside break", outside: "outside break" };
   const KIND_SHORT = { reversal: "Rev", continuation: "Cont", inside: "Inside", outside: "Outside" };
   const TF_LABEL = { D: "daily", W: "weekly", M: "monthly" };

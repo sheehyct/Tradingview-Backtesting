@@ -146,8 +146,23 @@ part:
   marker test on the audits' named rows (ATOM 2026-05-09, ACE 2026-06-14, BTC 2026-03-16 W)
   is on the viewer's list, not done.
 
-The review's LOW items and its held list are appended to this entry when the agent's cut-off
-tail is recovered (the first message truncated at M5). Suite after the fold: 435 passed.
+M5's tail: `oneR` in the page is a float rebuild of the engine's decimal one R (the 1e-9
+tolerance covers it; the audits' ATOM / ACE rows are not exercised by the tests), and NOTES
+claimed marker behaviour without a rerun (NOTES now says the repairs are node-tested and the
+browser shots predate them). LOW, fixed: the tie sentence said "the same week / month" for
+weekly / monthly rows (the offsets are days: now "the same day"); "before one R" printed when
+one R was never touched (now says so; the test covers both); the v20c assertion now says
+`censored`; the prereg's v17 line now cites the strict reading; CLS_LABEL has a "plain" label;
+the ladder footer no longer prints "fills at - for" for a book without a result. LOW, noted and
+left: `walk_hourly` rebuilds the day-index dict per unit (performance only); its "stop" touch
+uses the target-side comparison and is never read (an engine edit, so a rerun: next engine
+round); the v20e timestamp claim is unobservable while contiguity is enforced (kept as a guard);
+the magnet snaps to the first or last bar from any distance outside the data. Held by the
+review (checked, correct): the strict entry against the census, the partial-day rule, `open`
+only at the cap timestamp, the caller's status handling, the paired comparison under the
+prereg's own wording, no caller assuming book C, the drawdown and month bounds, the stack bands,
+the stop marker's side and the labelled miss, the direction- and status-aware words, the magnet's
+edge bars and the proof flag. Suite after the fold: 435 passed, 2 skipped.
 
 ### Also this session
 
