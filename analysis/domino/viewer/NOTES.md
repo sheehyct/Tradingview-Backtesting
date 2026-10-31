@@ -123,6 +123,38 @@ Context pane's own slot across a reload (same control, same code path, a differe
 - Weekly and monthly panes fit the y axis loosely when the 2025 highs are in view.
 - The hourly window is the venue's ~208 days; older trades say so on the 1H view.
 
+## The run contract, stage 1 (2026-10-31, TVB-42)
+
+`CONTRACT.md` is the one card shape every run exports and this page will draw (stage 2): a run
+card (name, as-of, bar clock, rule card in words, the books with a role), one card per trade
+with the books as a list on it, every time an exact timestamp. Stage 1 built the gate and the
+first run, no page change:
+
+- `analysis/domino/contract.py` validates a run in plain words with the card named, lays it out
+  under `data/runs/<id>/` with `index.json`, `dates.json` and `universe.json` derived from the
+  cards, and lists it in `data/runs.json`; a folder, a single JSON file or a zip imports
+  (`trade_viewer import`), so a run made elsewhere, a phone included, is viewable by writing the
+  shape. Bars are optional; `--bars-from-cache` fills a Hyperliquid coin's from the census cache.
+- `analysis/domino/run_export.py` writes the management book as run one
+  (`trade_viewer export-run --as-of 2026-10-10`): 292 instruments, 179,498 cards, 17 books per
+  card (the six ladder books, the hourly, under-water, own and long clocks with their A / D
+  variants, the measured-move A), 486 MB against 302 MB for the flat layout, 56 s to export and
+  about a minute to validate and derive. Times come from the engine's daily bar list by index
+  (the census fills no gaps); clock-exit prices are recovered from the recorded return.
+- The gate caught a real shape defect on the first export: 339 shorts (278 monthly, 48 weekly,
+  13 daily) carry a one R at or below zero (the setup range exceeds the price) and 964 rows a
+  measured move at or below zero; none ever filled. The card now carries no price for those,
+  says why on the D books, and keeps the raw numbers in `extras` (`one_r_raw`, `mm_raw`).
+- `trade_viewer check-run management-book-20261010` compared every card with this page's flat
+  data: 179,498 cards, no differences in level, the six ladder books' returns, the headline's
+  reason and day, D5's and the chance book's reason and day, T1's price and touch day, one R's
+  touch day, the hourly clock. The derived universe table matches the old one row for row on
+  every return column and the headline status; its hit columns differ only where a book has no
+  target (25,948 rows without T1, 81,140 without T2, 335 with no reachable one R): the engine
+  wrote "not hit" there, the contract says "not applicable" (null), by rule.
+- Tests: `tests/test_domino_contract.py` (31: the validator's refusals by name, the derived
+  shapes, single-file / zip / in-place import, the mapping on the audits' row shapes).
+
 ## The three things next
 
 1. **A journal layer**: a note and a one-tap verdict per row, saved beside the drawings and

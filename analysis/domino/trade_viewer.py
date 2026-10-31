@@ -376,6 +376,32 @@ def main(argv: list[str] | None = None) -> None:
     h = sub.add_parser("hourly", help="fetch and cache hourly candles for coins (or 'all')")
     h.add_argument("--as-of", required=True)
     h.add_argument("coins", nargs="+")
+    e = sub.add_parser(
+        "export-run",
+        help="the management book as a run in the contract (viewer/CONTRACT.md), imported under viewer/data/runs/<id>",
+    )
+    e.add_argument("--as-of", required=True)
+    e.add_argument("--id", default=None, help="run id (default management-book-<stamp>)")
+    im = sub.add_parser(
+        "import",
+        help="validate a run (folder, run.json or zip) and lay it out under viewer/data/runs/<id>",
+    )
+    im.add_argument("path")
+    im.add_argument("--id", default=None, help="import under this run id")
+    im.add_argument(
+        "--bars-from-cache",
+        metavar="AS_OF",
+        default=None,
+        help="fill missing bars for Hyperliquid coins from the census cache stamped AS_OF",
+    )
+    va = sub.add_parser(
+        "validate", help="say in plain words whether a run fits the contract; imports nothing"
+    )
+    va.add_argument("path")
+    ck = sub.add_parser(
+        "check-run", help="compare an imported run with the flat viewer data row for row"
+    )
+    ck.add_argument("id")
     s = sub.add_parser("serve", help="host viewer/ on localhost and open the browser")
     s.add_argument("--port", type=int, default=8765)
     s.add_argument("--host", default="127.0.0.1", help="bind address (0.0.0.0 = every interface)")
@@ -383,6 +409,56 @@ def main(argv: list[str] | None = None) -> None:
     args = ap.parse_args(argv)
     if args.cmd == "build":
         build(parse_as_of(args.as_of))
+    elif args.cmd == "export-run":
+        from analysis.domino import contract
+        from analysis.domino.run_export import export_run, run_card
+
+        as_of_ms = parse_as_of(args.as_of)
+        run_id = run_card(as_of_ms, args.id)["id"]
+        folder = export_run(as_of_ms, DATA / "runs" / run_id, args.id)
+        try:
+            contract.import_run(folder, DATA)
+        except contract.ContractError as e:
+            sys.exit(
+                f"the export does not fit the contract ({len(e.problems)} problems):\n  "
+                + "\n  ".join(e.problems[:40])
+            )
+    elif args.cmd == "import":
+        from analysis.domino import contract
+
+        lookup = None
+        if args.bars_from_cache:
+            as_of_ms = parse_as_of(args.bars_from_cache)
+
+            def lookup(coin: str) -> dict | None:
+                dp = cache_path(coin, "1d", as_of_ms)
+                if not dp.exists():
+                    return None
+                hp = cache_path(coin, "1h", as_of_ms)
+                return {
+                    "1d": compact(normalize(json.load(open(dp)), as_of_ms)),
+                    "1h": compact(normalize_hourly(json.load(open(hp)), as_of_ms))
+                    if hp.exists()
+                    else [],
+                }
+
+        try:
+            contract.import_run(Path(args.path), DATA, args.id, lookup)
+        except contract.ContractError as e:
+            sys.exit("the run does not fit the contract:\n  " + "\n  ".join(e.problems))
+    elif args.cmd == "validate":
+        from analysis.domino import contract
+
+        try:
+            problems, _ = contract.check(Path(args.path))
+        except contract.ContractError as e:
+            sys.exit("\n".join(e.problems))
+        if problems:
+            sys.exit(1)
+    elif args.cmd == "check-run":
+        from analysis.domino.run_export import check_run
+
+        check_run(args.id, DATA)
     elif args.cmd == "hourly":
         hourly(parse_as_of(args.as_of), args.coins)
     else:

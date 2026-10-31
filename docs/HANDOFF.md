@@ -57,15 +57,71 @@ Read critically; both reproduced before acting (the BLUR probe and the manage.js
   (Domino Trade Viewer), the log writes, stop clears the port. The laptop side (the tunnel in the
   laptop's ssh config) is in the owner's hands; the exact lines are in this entry's close-out.
 
+### The viewer row contract: designed with the owner, stage 1 built
+
+The owner's three choices (AskUserQuestion, trader terms): one card per trade with the books as
+a list on it; every "when" an exact timestamp with a declared resolution; each run names its own
+books with a role (headline / target / stop / clock / reference). The owner's added ask: a run
+made outside this workspace (a phone backtest) must be viewable by writing the same shape;
+answered as JSON (a folder, one file or a zip) through `import` with a plain-words validator,
+bars optional, CSV deferred (a card holds a list of books, which one CSV table cannot). Spec:
+`analysis/domino/viewer/CONTRACT.md`, confirmed by the owner before code ("greenlighted for
+go"), read as stage 1 only; stages 2 and 3 wait for the owner's word.
+
+Stage 1, same day: `analysis/domino/contract.py` (validate, derive index / dates / universe,
+import from folder / file / zip, `runs.json`), `analysis/domino/run_export.py` (the management
+book's mapping, CONTRACT.md section 9, plus `check_run`), four CLI commands on `trade_viewer`
+(`export-run`, `import`, `validate`, `check-run`), `tests/test_domino_contract.py` (31). The
+management book is run one: 292 instruments, 179,498 cards, 17 books per card, 486 MB (the flat
+layout is 302 MB), 56 s to export, about a minute to validate and derive. `check-run` against
+the page's flat data: 179,498 cards, NO differences (level, the six ladder books' returns, the
+headline's / D5's / chance book's reason and day, T1's price and touch day, one R's touch day,
+the hourly clock); the derived universe table equals the old one on every return column and
+the headline status, and differs on the hit columns only where a book has no target (25,948
+rows without T1, 81,140 without T2, 335 with no reachable one R), the contract's "not
+applicable" against the engine's "not hit".
+
+Two things the gate and the build surfaced:
+
+- **A real shape defect on the first export, caught by the validator:** 339 shorts (278
+  monthly, 48 weekly, 13 daily) carry a one R at or below zero (the setup range exceeds the
+  price; `2 x level - far side` for a short) and 964 rows a measured move at or below zero.
+  None ever filled (the engine's `hit_D` is False on all 335 scored ones). The card carries no
+  one-R / measured-move price there, the D books say "no one-R fill is possible", and the raw
+  numbers stay in `extras` (`one_r_raw`, `mm_raw`). The engine's numbers are untouched; this is
+  the card refusing to call a negative number a price. Named in CONTRACT.md section 9.
+- **Two honest limits of the row:** `B_mm` is not exported (the row holds neither the second
+  measured-move rung's price nor its touch day); `D_h`'s one-R fill carries the touch DAY with
+  a note (the row has no touch hour for one R). Both on the run card's `notes`.
+
+Stage-1 settlements written into CONTRACT.md section 12: the universe table carries the ladder
+books only (grouped clock variants stay on the cards); flags and short strings in `extras`
+become coded columns; `runs.json` newest first, same id replaces; an export in place is
+allowed; a folder streams file by file.
+
+The escape trap bit twice more while building (a `sys.exit` string's newline escapes became
+real line breaks through the Bash heredoc): the rule from the cc-menu repair stands, no
+backslash escapes through Bash, use the Edit / Write tools for source.
+
+### Files created/modified (TVB-42)
+
+- `analysis/domino/contract.py`, `analysis/domino/run_export.py` (new), `analysis/domino/trade_viewer.py`
+  (four subcommands), `tests/test_domino_contract.py` (new, 31)
+- `analysis/domino/viewer/CONTRACT.md` (new), `analysis/domino/viewer/NOTES.md` (stage-1 section),
+  `analysis/domino/viewer/story.js`, `tests/test_domino_viewer_js.py` (audit F1)
+- `analysis/domino/MANAGE_RECEIPT.md`, `docs/ARM_LEDGER.md` (audit F2), `docs/reviews/REVIEW_REQUEST.md`,
+  `docs/reviews/tvb41-codex-audit.md` (committed as returned), `docs/HANDOFF.md`
+- Outside the repo: `~/Documents/WindowsPowerShell/cc-tools/menu.ps1` (two bytes, `cc viewer`)
+
 ### Open
 
-- [ ] The viewer row contract: DESIGNED, awaiting the owner's read of
-      `analysis/domino/viewer/CONTRACT.md` (2026-10-31). The owner's three choices: one card per
-      trade with the books as a list; exact timestamps with a declared resolution; run-defined
-      books with a role. The owner's added ask: runs made outside this workspace (a phone
-      backtest) must import for viewing by writing the same shape: answered as JSON (one file
-      or a folder) through `import` with a plain-words validator, bars optional, CSV deferred.
-      Build stages 1-3 in the spec; the go / no-go question is re-asked after the owner reads it.
+- [x] The viewer row contract, stage 1 (see the section above): spec confirmed by the owner,
+      validator / importer / exporter / check built, the management book imported as run one
+      with no differences against the page's data.
+- [ ] Stage 2 (the page reads runs: the picker, `core.js` over `run.books`, the story and the
+      ladder from the card, markers from timestamps, the node tests moved to the card shape, the
+      audits' named rows re-checked) and stage 3 (Compare per run, the flat layout retired, a
+      hand-written single-file run imported end to end as the phone test): on the owner's word.
 - [ ] The one-instrument bench after the contract
 - [ ] The with-trend inside break's T1 STOP-and-ASK; the viewer list; the hierarchy rulings; the
       carried items (see the TVB-41 entry)

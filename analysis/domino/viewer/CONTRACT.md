@@ -1,7 +1,10 @@
 # The run and trade-card contract (the viewer's row contract)
 
-> Status: DESIGN, 2026-10-31 (TVB-42). Confirmed choices are in section 11. No code reads this
-> shape yet; the first code is the management book's export and the importer (section 9).
+> Status: CONFIRMED by the owner 2026-10-31 (TVB-42), stage 1 built the same day: the validator
+> and importer (`analysis/domino/contract.py`), the management book's exporter and the row-for-row
+> check (`analysis/domino/run_export.py`), the CLI (`trade_viewer export-run / import / validate /
+> check-run`), tests in `tests/test_domino_contract.py`. The page still reads the flat layout
+> (stage 2). Confirmed choices are in section 11; section 12 lists what stage 1 settled.
 
 One card shape that every run exports and the trade viewer draws. The page reads cards, it
 never computes a trade: every price, time, fill and return on screen is what the producing
@@ -41,6 +44,7 @@ this shape.
   "source": { "repo": "tradingview-backtesting", "commit": "75626b7",
               "command": "uv run python -m analysis.domino.trade_viewer export-run --as-of 2026-10-10" },
   "clock": { "day_roll": "00:00 UTC", "resolution": "day", "weeks": "Monday 00:00 UTC", "months": "calendar" },
+  "units": ["D", "W", "M"],
   "bars": ["1h", "1d"],
   "returns": "percent of price, equal size, no fees, no leverage",
   "rules": {
@@ -68,8 +72,13 @@ this shape.
 }
 ```
 
-`instruments` is filled by the importer from the instrument files; a producer may leave it out.
-A run with one instrument may put everything in `run.json` (section 7, the single-file flavour).
+`units` names the setup bar sizes the cards use (`bar` on a card must be one of them); `bars`
+names the candle sizes shipped. A book may carry `resolution` (overriding the run's) and an
+optional `group` (words, e.g. "hourly clock", "under water"): grouped books are the same book on
+another clock or target, which the page folds under their group and Compare leaves off its
+table. `instruments` is filled by the importer from the instrument files; a producer may leave
+it out. A run with one instrument may put everything in `run.json` (section 7, the single-file
+flavour).
 
 ## 3. The trade card
 
@@ -125,10 +134,13 @@ Field rules:
 - `touches.one_r` and `touches.far` are the first touch of one R and of the far side.
 - Every `books[]` entry's `id` must be declared in the run. `how` is the vocabulary of section
   1. `at` and `price` are required when `how` is `target`, `one_r`, `stop` or `clock`; `at` is
-  the cap time when `how` is `cap`; both null when `censored` or `none`. `ret` is a number
-  except for `none` and `censored`. `hit` says whether the book's own target or one R was
-  touched (null for books without one). `note` is optional words (why `none`, a tie the bar
-  cannot order).
+  the cap time when `how` is `cap` (`price` optional there); all three null when `censored` or
+  `none`. `ret` is a number except for `none` and `censored`. `hit` says whether the book's own
+  target or one R was touched (null for books without one). `note` is optional words (why
+  `none`, a tie the bar cannot order). A declared book ABSENT from a card does not apply to that
+  trade (a daily unit has no own clock); `none` means it applied and was not scored.
+- `stack` entries may carry only `bar` when the producer did not record the other levels'
+  prices; the page reads the prices off the bars in that case.
 - `travel` is recorded once, in the window the run names (`window` is a book id).
 - `context` holds the sides at entry; `extras` is a free bag shown as chips (fees in R, ATR,
   volume tier, anything a run wants on the card) and never computed on.
@@ -189,8 +201,12 @@ uv run python -m analysis.domino.trade_viewer validate <folder | run.json | zip>
 uv run python -m analysis.domino.trade_viewer serve [--port 8765] [--no-open]
 ```
 
-`validate` says what is wrong in plain words with the card named ("BTC card 2026-03-16 W up:
-book A left by target but has no price"); `import` refuses a run that does not validate.
+`validate` says what is wrong in plain words with the card named ("BTC card
+BTC-2026-03-16-W-reversal-up: book A left by target but has no price"); `import` refuses a run
+that does not validate. `check-run <id>` compares an imported run with the flat viewer data
+row for row (the level, each ladder book's return / reason / day, the touch days, the hourly
+clock) and prints every kind of difference with examples; it is the stage-1 regression guard
+and goes away with the flat layout.
 Checks: the contract version; one headline book; every book id on a card declared in the run;
 `how` in the vocabulary and the `at` / `price` / `ret` rules of section 3; prices positive;
 times at or after the entry; a touched target's time at or before the book that filled on it;
@@ -234,9 +250,14 @@ flagged "no bars".
 | `context` | `w_support`, `m_support` |
 | `extras` | `liquid`, `dex`, `flag`, `anchor`, `reached1..3`, `stop_saw`, `stop0` |
 
-The exporter cites the engine's docstrings for each column; the export of the current run is
-checked against the page's current data (every return, touch day and exit day identical) before
-the flat `viewer/data/*.json` layout is retired.
+Two honest limits of the row, stated on the run card: `B_mm` (hold through the second
+measured-move rung) is not exported because the row holds neither that rung's price nor its
+touch day; `D_h`'s one-R fill carries the touch DAY (the row has no touch hour for one R) with
+a note saying so. Prices of clock exits and cap marks are recovered from the recorded return
+(`level * (1 + sign * ret / 100)`), which is the engine's own definition of the return. The
+`A_h`, `D_h`, `A_u`, `D_u`, `A_own`, `A_long` and `A_mm` variants are exported as grouped books.
+`check-run` compares the imported run with the page's current flat data row for row before the
+flat `viewer/data/*.json` layout is retired (stage 3).
 
 ## 10. Build stages (each lands on its own, tested, before the next)
 
@@ -259,3 +280,17 @@ as a run.
 - Each run declares its own books with a role; no fixed house names across runs.
 - Runs made outside this workspace (a phone backtest included) must be importable by writing
   this shape: JSON, one file or a folder, validated on import; bars optional. CSV deferred.
+
+## 12. What stage 1 settled (2026-10-31)
+
+- The universe table (Compare) carries the ladder books only: roles headline / target / stop /
+  reference without a `group`. Grouped books (the other clocks, the measured-move variant) stay
+  on the cards. Flags and short categorical strings in `extras` become coded columns (`x:<key>`);
+  anything else stays on the card.
+- Day offsets on the universe table are whole days from the entry time; the page derives words
+  from them, cards never carry them.
+- `runs.json` lists runs newest-built first; importing under an existing id replaces that run.
+- An export in place (the source folder is the destination) is allowed: the files are read
+  before they are rewritten.
+- The importer streams a folder file by file (the management book is 300 MB of JSON); a
+  single-file run or a zip is read whole.
