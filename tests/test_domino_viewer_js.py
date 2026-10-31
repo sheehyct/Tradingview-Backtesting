@@ -170,6 +170,36 @@ def test_book_d5_reason_follows_status5_on_weekly_rows():
         run_js(f"out.s = C.settle({json.dumps(t2)}, 'D5');")["s"]["how"]
         == "marked at the 5-bar horizon"
     )
+    # TVB-41 Codex audit F1: the whole paragraph, not only settle(). The D5 sentence must narrate
+    # D5's own exit day and never append book C's clock sentence ("marked at the day-20 close").
+    for unit, k in (("W", 27), ("M", 45)):
+        t3 = row(
+            tf=unit,
+            status="open",
+            exit_k=None,
+            days=20,
+            ret_C=0.4,
+            ret_D5=-0.8,
+            days_D5=k,
+            hit_D5=False,
+            status5="exit",
+        )
+        para = _d5_paragraph(t3, n_days=70)
+        assert f"on day {k}" in para and "past the headline's 20-day cap" in para
+        assert "marked at the day-20 close" not in para and "No daily close went against" not in para
+        assert "-0.80%" in para
+    # a daily unit where both clocks are the same exit: D5's day, no headline sentence
+    t4 = row(status="exit", exit_k=3, days=3, ret_C=1.0, ret_D5=1.0, days_D5=3, hit_D5=False, status5="exit")
+    para = _d5_paragraph(t4, n_days=30)
+    assert "on day 3" in para and "headline" not in para
+
+
+def _d5_paragraph(t: dict, n_days: int) -> str:
+    out = run_js(
+        f"const cal = C.makeCalendar({{ daily: {json.dumps(_daily(n_days))}, hourly: [] }});"
+        f"out.s = S.narrate({{ t: {json.dumps(t)}, coin: 'X', cal, book: 'D5', size: 1000, p: 2 }});"
+    )
+    return out["s"].split("What book D5 did.")[1].split("</p>")[0]
 
 
 def test_settle_carries_the_recorded_exit_price_for_the_marker_search():

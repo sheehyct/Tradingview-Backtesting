@@ -5,6 +5,72 @@
 
 ---
 
+## Session TVB-42: the TVB-41 audit folded (D5 narration, the rerun prose), the cc menu's viewer entry repaired and proven, the viewer row contract (IN PROGRESS)
+
+**Date:** 2026-10-31
+**Status:** IN PROGRESS. The TVB-41 Codex audit (returned 2026-10-30, NEEDS-CHANGES, two MEDIUM)
+adjudicated and both findings repaired; the cc menu's viewer entries, which had never worked, repaired
+and exercised end to end; then the viewer row contract designed with the owner (below, as it lands).
+Mid-session the owner switched the account to purchased API credits (the subscription's usage
+window ran out; the credits expire within a month); Remote Control and the claude.ai artifacts tools
+dropped with the switch, nothing on this session's list needs either.
+
+### TVB-41 audit: critical synthesis (F1-F2)
+
+Read critically; both reproduced before acting (the BLUR probe and the manage.json diff at both commits).
+
+- **F1 MEDIUM, book D5's "daily-close exit" sentence appended book C's clock: ACCEPTED, repaired.**
+  `clockWords` read the headline fields (`status`, `exit_k`), so a weekly / monthly row whose headline
+  is open at day 20 while D5 exits later (24 rows; BLUR 2026-07-24 W short, D5 out on day 24) said
+  "the daily clock fired" and "marked at the day-20 close" in one breath. `clockWords` now takes the
+  selected book's status and exit offset (defaults: the headline's); the D5 branch passes `status5` /
+  `days_D5`, names its horizon (five days / weeks / months) and, when the headline is open or
+  censored, says so in a separate sentence. The weekly-row test runs through `narrate()` on weekly
+  and monthly rows (day 27 / day 45 named, the day-20 sentence absent) and on a daily row where both
+  clocks are one exit. The BLUR paragraph now reads: day 24, Monday Aug 17, past the headline's cap
+  where book C is marked open, +13.10%.
+- **F2 MEDIUM, the rerun prose: ACCEPTED, corrected** in the receipt, the ledger and the TVB-41 entry
+  (annotated, not rewritten). The reversal paired interval was through zero before and after
+  ([-0.28, +0.01] then [-0.26, +0.03]): no transition. The inside D_h - D point estimate did cross
+  zero (-0.002 to +0.008, interval through zero both times), so "no sign moved" was wrong by that one
+  line. The 264 are partial-entry exclusions; 261 of them were formerly scored (55,112 to 54,851) and 3
+  were already out as `no_entry_hour`. No research parameter or engine arithmetic touched.
+- **Held by the audit, not re-done here:** every new hourly column reproduced from the cached candles
+  (54,851 / 264 / 123,088; 1,473 changed rows; zero censored, zero open, 5,050 `cap_end` None rows all
+  with an observed exit); zero non-hourly leaf changes in `manage.json` between 3fa6990 and 74dcb28;
+  the 264 partial days all on the first calendar day of a coin's hourly cache; settlement over every
+  book, the classed pairs (35,239, zero band mismatches), the markers (121,512 exits, the 1e-9 tolerance
+  repaired 222 float touches with zero differences from exact decimals), drawdown, month denominator,
+  the fee prose, the charter wording. Limits the audit states and this entry keeps: the old CSV was not
+  regenerated (the committed-artifact route verified instead); no browser pass, no drawing-persistence
+  check.
+
+### Also this session
+
+- **The cc menu's viewer entries (TVB-41) had never worked.** `menu.ps1` held a literal tab and a
+  literal vertical-tab where the backslashes of `.claude-rc	rade-viewer.log` and `cc-toolsiewer.ps1`
+  belonged (an escape-interpreting write; the TradeViewer task was never registered and nothing
+  listened on 8765). Repaired with numeric byte writes (the first repair attempt through the tool layer
+  reproduced the same corruption, which is the lesson: write Windows paths with byte values, never with
+  backslash escapes through a tool that un-escapes). Added `cc viewer` / `cc viewer stop` as direct
+  commands. Proven on this PC: parse clean, the task registers and runs, HTTP 200 on 127.0.0.1:8765
+  (Domino Trade Viewer), the log writes, stop clears the port. The laptop side (the tunnel in the
+  laptop's ssh config) is in the owner's hands; the exact lines are in this entry's close-out.
+
+### Open
+
+- [ ] The viewer row contract (this session's design item)
+- [ ] The one-instrument bench after the contract
+- [ ] The with-trend inside break's T1 STOP-and-ASK; the viewer list; the hierarchy rulings; the
+      carried items (see the TVB-41 entry)
+- [ ] HANDOFF.md archive (over the limit; the owner's word); `proto_codex/` disposition
+
+### External Review (for Codex / cloud review agents)
+
+- Review status: pending (filled at session end)
+
+---
+
 ## Session TVB-41: the two audits synthesized and repaired (hourly clock, viewer), the neutral framing, the cc menu's viewer entry (COMPLETE)
 
 **Date:** 2026-10-29 to 2026-10-30
@@ -63,6 +129,11 @@ Read critically; every finding reproduced in the code or the data before acting.
   The paired lines: reversal C_h - C -0.14 -> -0.12 [-0.26, +0.03] (its interval now spans
   zero), continuation 0.00, inside +0.21 -> +0.23 [+0.06, +0.40], outside -0.27 -> -0.26; A and
   D within about a tenth. No sign moved. Receipt, ledger and the TVB-39 R2 line updated.
+  *[Corrected 2026-10-31, TVB-41 Codex audit F2: the reversal interval was already through
+  zero before the rerun ([-0.28, +0.01]), so nothing transitioned; the inside D_h - D point
+  estimate did cross zero (-0.002 to +0.008, its interval through zero both times); and the
+  264 are exclusions, of which 261 were formerly scored (the scored hourly subset shrank
+  55,112 to 54,851). Receipt and ledger corrected in TVB-42.]*
 - **F4 MEDIUM, the reconstructed fill as a touch threshold with a first-candle fallback:
   ACCEPTED, repaired.** `settle` now carries `at`, the recorded price the book left on (T1, T2,
   one R, the stop); the marker search uses it with a one-in-a-billion tolerance and never falls
@@ -218,7 +289,7 @@ edge bars and the proof flag. Suite after the fold: 435 passed, 2 skipped.
 > below) and write a verbatim assessment to docs/reviews/tvb41-codex-audit.md.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: REQUESTED
+- Review status: ADDRESSED (returned 2026-10-30; both findings repaired in TVB-42)
 - Commits to review: `8351054..74dcb28` on `main` (8351054 is the post-cloud-merge sha the session
   started from; 5e71b05 commits the TVB-40 audit as returned, 3fa6990 the viewer repairs and the
   framing, f24a4ce the engine repair, the rerun's results, the review fold and the docs, 74dcb28
@@ -235,8 +306,20 @@ edge bars and the proof flag. Suite after the fold: 435 passed, 2 skipped.
   `chance.py`; `settle`'s missing-book contract against every caller; the magnet's `cellIndex`
   on the 1M pane; the `near` tolerance on sub-cent coins; the story's new sentences against the
   rows; the cold in-session review's findings (listed in this entry once returned).
-- Reviewed by: pending
-- Findings: {blank until docs/reviews/tvb41-codex-audit.md exists}
+- Reviewed by: Codex (local CLI, source review + cached-data replay), `docs/reviews/tvb41-codex-audit.md`
+- Findings: NEEDS-CHANGES, two MEDIUM, no engine defect. F1: book D5's "daily-close exit"
+  sentence in `story.js` appends `clockWords`, which reads the headline book's `status` /
+  `exit_k`, so a weekly / monthly row whose headline is open at day 20 while D5 exits later says
+  both "the daily clock fired" and "marked at the day-20 close" (BLUR 2026-07-24 W short; 24
+  rows). F2: the rerun prose above says the reversal paired interval "now spans zero" (it
+  already did: [-0.28, +0.01] before) and "no sign moved" (the inside D_h - D point estimate
+  went -0.002 to +0.008, interval through zero both times), and "lost 264 rows" conflates the
+  264 partial-entry exclusions with the 261-row contraction of the scored subset (3 of the 264
+  were already excluded as `no_entry_hour`). Verified repairs: the hourly engine and every new
+  hourly column reproduce from the cached candles; zero non-hourly changes in `manage.json`;
+  settlement, stacks, markers (121,512 exits, 1e-9 repaired 222 float touches, zero differences
+  from exact decimals), drawdown, month denominator, fee prose all held. Critical synthesis and
+  repairs: the TVB-42 entry.
 
 ---
 

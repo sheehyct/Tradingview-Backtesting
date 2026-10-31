@@ -10,7 +10,9 @@
 
 ## Status
 
-- Status: REQUESTED
+- Status: ADDRESSED (audit written 2026-10-30; verdict NEEDS-CHANGES, two MEDIUM, both repaired in TVB-42: F1 the D5
+  narration appends book C's clock sentence, F2 the rerun prose claims an interval transition
+  that did not happen and misses a point-estimate sign change; synthesis in the TVB-42 HANDOFF entry)
   <!-- REQUESTED | RETURNED (audit file written) | ADDRESSED | N/A -->
 - Session under review: TVB-41 (2026-10-29 to 2026-10-30) -- the two outstanding Codex audits
   (TVB-39 F1-F8, TVB-40 F1-F6) adjudicated and repaired: the hourly exit clock in

@@ -306,10 +306,16 @@ nothing is combined or promoted. Tables: `results/manage_tables.md`, "Amendment 
   the worked case), accepted an entry day cached only from mid-day (264 rows, APEX 2026-03-18),
   and would have run past a missing cap hour. Now: strict entry, the entry day observed from
   00:00 through the entry hour, the scan bounded by the cap timestamp, a gap before the exit
-  censors. 1,473 hourly rows changed, the hourly subset lost 264 rows to "partial entry day",
-  the daily headline is byte-identical (every non-hourly column of the 179,498 rows), and no
-  paired line changed sign or lost / gained an interval clear of zero except the reversal
-  exit-only line, whose interval now spans zero (-0.14 [-0.28, +0.01] before).*
+  censors. 1,473 hourly rows changed; 264 rows are now excluded as "partial entry day" (261 of them
+  formerly scored, 3 formerly excluded as "no entry hour"), so the scored hourly subset shrank
+  from 55,112 to 54,851; the daily headline is byte-identical (every non-hourly column of the
+  179,498 rows). No paired interval gained or lost clearance of zero: the reversal exit-only
+  line read -0.14 [-0.28, +0.01] before and -0.12 [-0.26, +0.03] after, through zero both
+  times. One paired point estimate crossed zero, the inside break's D_h - D (-0.002 before,
+  +0.008 after, its interval [-0.09, +0.10] through zero both times); every other paired line
+  kept its sign. (Corrected 2026-10-31, TVB-41 audit F2: this note first said the reversal
+  interval "now spans zero" and that no sign moved, and called the 264 exclusions a loss of
+  264 scored rows.)*
   R2 made no sign prediction; the declared
   expectations (sooner, smaller losers, fewer targets) all held. Small losers and few winners
   come out where big losers and more winners did. The hourly books fill a target only up to the

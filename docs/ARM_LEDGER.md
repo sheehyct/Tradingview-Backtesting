@@ -676,7 +676,10 @@ settings at $1 risk, but with 26 fills they stay unread as arms.
   of 48-72, losers shrink to less than half (-1.5 to -1.9 against -3.8 to -4.9), T1 before the
   exit falls by a third to a half; net per trade about the same (C_h - C: reversal -0.12
   [-0.26, +0.03], continuation 0.00, inside +0.23 [+0.06, +0.40], outside -0.26; A and D move
-  within about a tenth). The repair moved 1,473 hourly rows and no sign. (3) Half at T1 sits between A and C everywhere (reversal A -0.05,
+  within about a tenth). The repair moved 1,473 hourly rows (264 excluded as a partial entry day, 261 of them formerly
+  scored); no paired interval gained or lost clearance of zero, and one paired point estimate
+  crossed it, the inside D_h - D (-0.00 to +0.01, interval through zero both times; corrected
+  2026-10-31, TVB-41 audit F2: "no sign" was wrong by that one line). (3) Half at T1 sits between A and C everywhere (reversal A -0.05,
   E +0.09, C +0.22). (4) Two taker fills (0.077-0.082 per trade): three lines stay positive net
   with their interval clear, the reversal exit-only book +0.14 [+0.02, +0.27] and the inside
   break's D +0.16 and D5 +0.16; six lines are negative net with the interval clear (reversal A

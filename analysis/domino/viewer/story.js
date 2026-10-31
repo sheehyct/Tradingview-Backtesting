@@ -66,16 +66,19 @@ window.DV = window.DV || {};
     const j = Math.min(i + k, cal.daily.length - 1);
     return "on day " + k + " (" + shortDate(iso(cal.daily[j][0])) + ")";
   }
-  function clockWords(t, cal, i, p) {
+  // status / exitK default to the headline book's (book C) fields; a book with its own clock passes its own
+  // (D5: status5 / days_D5), so the words never describe another book's exit (TVB-41 audit F1).
+  function clockWords(t, cal, i, p, status, exitK) {
     const long = t.direction === "up", w = words(long);
-    if (t.status === "exit") {
-      const k = t.exit_k, j = Math.min(i + k, cal.daily.length - 1), b = cal.daily[j], wo = cal.weekOpenAt(b[0]);
+    const st = status == null ? t.status : status, ek = exitK == null ? t.exit_k : exitK;
+    if (st === "exit") {
+      const k = ek, j = Math.min(i + k, cal.daily.length - 1), b = cal.daily[j], wo = cal.weekOpenAt(b[0]);
       const monday = C.weekStart(b[0]) === b[0];
       const colour = b[4] < b[1] ? "red" : b[4] > b[1] ? "green" : "flat";
       return "The daily clock fired " + (k === 0 ? "on the entry day" : "on day " + k) + ", " + weekdayOf(iso(b[0])) + " " + shortDate(iso(b[0])) + ": the day closed " + colour + " at " + fmtPrice(b[4], p) +
         ", " + w.below + " its open " + fmtPrice(b[1], p) + (monday ? " (a Monday, so the day's open is the week's open and the two tests are one)" : " and " + w.below + " the week's open " + fmtPrice(wo, p)) + ".";
     }
-    if (t.status === "open") return "No daily close went against the trade with the week against it inside the 20-day cap, so the row is marked at the day-20 close.";
+    if (st === "open") return "No daily close went against the trade with the week against it inside the 20-day cap, so the row is marked at the day-20 close.";
     return "The data ends before the 20-day cap, so the row is censored: no result is recorded.";
   }
   function bookWords(t, book, cal, i, p, size) {
@@ -108,7 +111,14 @@ window.DV = window.DV || {};
     if (book === "D5") {
       const r1 = oneR(t);
       if (t.hit_D5) return "Book D5 takes one R or the exit inside five bars, the chance book's own horizon. One R at " + fmtPrice(r1, p) + " was touched " + when(t.one_r_k) + ", so the book left there: " + money(st.ret) + ".";
-      if (st.how === "daily-close exit") return "Book D5 takes one R or the exit inside five bars. The daily clock fired first. " + clock + " Result " + money(st.ret) + ".";
+      if (st.how === "daily-close exit") {
+        // D5 runs on its own horizon (five of the unit's bars), which on a weekly / monthly unit runs past the headline's
+        // 20-day cap: narrate D5's own exit (status5 / days_D5), never book C's clock (TVB-41 audit F1)
+        const horizon = t.tf === "D" ? "five days" : "five " + TF_WORD[t.tf] + "s";
+        const clock5 = clockWords(t, cal, i, p, t.status5, t.days_D5);
+        const headline = t.status === "open" ? " That is past the headline's 20-day cap, where book C is marked open." : t.status === "censored" ? " The headline row itself is censored (the data ends before its 20-day cap)." : "";
+        return "Book D5 takes one R or the exit inside five bars (" + horizon + ", its own horizon). The daily clock fired first. " + clock5 + headline + " Result " + money(st.ret) + ".";
+      }
       return "Book D5 takes one R or the exit inside five bars. Neither came: the row is marked at the bar-5 close, " + money(st.ret) + ".";
     }
     // the chance book
