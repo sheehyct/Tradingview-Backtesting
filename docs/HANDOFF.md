@@ -59,7 +59,13 @@ Read critically; both reproduced before acting (the BLUR probe and the manage.js
 
 ### Open
 
-- [ ] The viewer row contract (this session's design item)
+- [ ] The viewer row contract: DESIGNED, awaiting the owner's read of
+      `analysis/domino/viewer/CONTRACT.md` (2026-10-31). The owner's three choices: one card per
+      trade with the books as a list; exact timestamps with a declared resolution; run-defined
+      books with a role. The owner's added ask: runs made outside this workspace (a phone
+      backtest) must import for viewing by writing the same shape: answered as JSON (one file
+      or a folder) through `import` with a plain-words validator, bars optional, CSV deferred.
+      Build stages 1-3 in the spec; the go / no-go question is re-asked after the owner reads it.
 - [ ] The one-instrument bench after the contract
 - [ ] The with-trend inside break's T1 STOP-and-ASK; the viewer list; the hierarchy rulings; the
       carried items (see the TVB-41 entry)
