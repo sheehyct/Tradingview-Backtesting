@@ -467,6 +467,23 @@ def test_an_extras_key_first_seen_on_a_later_card_stays_on_that_card():
     assert all(len(v) == 3 for v in u["cols"].values())
 
 
+def test_the_flat_layout_and_its_commands_are_retired(tmp_path: Path, monkeypatch):
+    """Stage 3: `build` and `check-run` are gone; `serve` wants runs.json, not the flat index."""
+    from analysis.domino import run_export as RX
+    from analysis.domino import trade_viewer as TV
+
+    assert not hasattr(TV, "build") and not hasattr(TV, "universe_table")
+    assert not hasattr(RX, "check_run")
+    with pytest.raises(SystemExit):
+        TV.main(["build", "--as-of", "2026-10-10"])
+    with pytest.raises(SystemExit):
+        TV.main(["check-run", "x"])
+    monkeypatch.setattr(TV, "DATA", tmp_path)
+    with pytest.raises(SystemExit) as e:
+        TV.serve(8765, open_browser=False)
+    assert "no runs" in str(e.value) and "import" in str(e.value)
+
+
 def test_export_run_refuses_an_id_that_would_leave_the_runs_folder():
     """TVB-42 audit F1: `export-run --id ..` built its destination before any check."""
     from analysis.domino import trade_viewer as TV

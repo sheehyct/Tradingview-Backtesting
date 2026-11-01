@@ -1,5 +1,5 @@
-"""The trade viewer's data side: hourly normalisation, the compact bar shape, the row slimming,
-and the page's calendar bucketing (JavaScript) against the census's own (Python)."""
+"""The trade viewer's data side: hourly normalisation, the compact bar shape, the exporter's typed
+row cells, and the page's calendar bucketing (JavaScript) against the census's own (Python)."""
 
 from __future__ import annotations
 
@@ -12,7 +12,8 @@ import pytest
 
 from analysis.domino import census
 from analysis.domino.census import HOUR, normalize_hourly
-from analysis.domino.trade_viewer import VIEWER, _bool, _num, compact
+from analysis.domino.run_export import _val
+from analysis.domino.trade_viewer import VIEWER, compact
 
 DAY = census.DAY
 
@@ -52,9 +53,11 @@ def test_compact_is_seconds_then_ohlcv():
 
 
 def test_csv_cell_parsing_treats_nan_and_blank_as_missing():
-    assert _num("nan") is None and _num("") is None and _num("None") is None
-    assert _num("3.5") == 3.5 and _num("-2") == -2.0
-    assert _bool("True") is True and _bool("False") is False and _bool("nan") is None
+    # the exporter's typed cell (the flat loader's _num / _bool went with the flat layout, stage 3)
+    assert _val("nan") is None and _val("") is None and _val("None") is None
+    assert _val("3.5") == 3.5 and _val("-2") == -2.0
+    assert _val("True") is True and _val("False") is False
+    assert _val("exit") == "exit"  # words stay words
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="node not installed")

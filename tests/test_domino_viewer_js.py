@@ -628,6 +628,40 @@ def test_run_switch_reloads_the_universe_and_drops_stale_loads():
     assert "the universe table failed to load" in src
 
 
+def test_compare_across_runs_lines_books_up_by_role():
+    """Stage 3: another run's ladder books line up with this run's by ROLE, in each run's order,
+    whatever the ids; a side with fewer books of a role leaves a gap. The page wires an
+    "Against run" select, a by-role table over both universe tables and a dashed headline curve."""
+    a = [
+        {"id": "C", "role": "headline", "name": "exit only"},
+        {"id": "A", "role": "target", "name": "all out at T1"},
+        {"id": "B", "role": "target", "name": "hold through T2"},
+        {"id": "ref", "role": "reference", "name": "chance book"},
+    ]
+    b = [
+        {"id": "H", "role": "headline", "name": "session clock"},
+        {"id": "T", "role": "target", "name": "T1"},
+        {"id": "S", "role": "stop", "name": "setup stop"},
+    ]
+    out = run_js(
+        f"out.r = ST.roleRows({json.dumps(a)}, {json.dumps(b)}).map(r => [r.role, r.a && r.a.id, r.b && r.b.id]);"
+    )
+    assert out["r"] == [
+        ["headline", "C", "H"],
+        ["target", "A", "T"],
+        ["target", "B", None],
+        ["stop", None, "S"],
+        ["reference", "ref", None],
+    ]
+    src = (VIEWER / "app.js").read_text(encoding="utf-8")
+    html = (VIEWER / "index.html").read_text(encoding="utf-8")
+    assert 'id="cmpRun"' in html and 'id="byRoleCard"' in html
+    assert "async function loadOther(" in src and "function renderByRole(" in src
+    assert "ST.roleRows(ladderBooks().map((id) => bookOf(id)), o.books)" in src
+    assert 'q.push("cmpRun="' in src and 'cmpRun: g("cmpRun")' in src and "fillRunCompare();" in src
+    assert "otherS.strokes.template.setAll({ strokeWidth: 1.5, strokeDasharray: [4, 3] })" in src
+
+
 def test_open_card_without_a_target_is_not_told_it_left_with_the_clock():
     """TVB-40 F3 (ADA 2024-01-30 book A shape): open at the cap, T1 never touched."""
     c = with_books(
@@ -786,8 +820,11 @@ def test_app_wiring_resort_cell_index_entry_hour_no_fallback_runs():
         "hourEntry(t, st)" in src and "bs[k].h > t.level" in src
     )  # the 1H entry arrow at the recorded entry hour, else a strict break
     assert (
-        'fetch("data/runs.json")' in src and '"data/runs/" + id + "/"' in src
+        'getJson("data/runs.json")' in src and '"data/runs/" + id + "/"' in src
     )  # the page reads runs
+    assert (
+        'fetch(url, { cache: "no-cache" })' in src and "await (await fetch(" not in src
+    )  # every JSON revalidated
     assert (
         "ret_C" not in src and "exit_k" not in src and "status_h" not in src
     )  # no engine column names survive in the page

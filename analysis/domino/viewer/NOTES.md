@@ -6,18 +6,21 @@ This page replaced it on the owner's call of 2026-10-17 after a two-builder desi
 and its save / restore on the same rows; da7f4c2 was the UI / UX overhaul). This file is the
 page's receipt; the viewer section of `analysis/domino/MANAGE_RECEIPT.md` points here.
 
-    uv run python -m analysis.domino.trade_viewer hourly --as-of 2026-10-10 all   # once, ~9 min
-    uv run python -m analysis.domino.trade_viewer build  --as-of 2026-10-10       # ~1 min
-    uv run python -m analysis.domino.trade_viewer serve                            # opens the browser
-    http://127.0.0.1:8765/#coin=BTC&date=2026-03-25&tf=D&dir=up&view=1D&book=C
+    uv run python -m analysis.domino.trade_viewer hourly --as-of 2026-10-10 all        # once, ~9 min
+    uv run python -m analysis.domino.trade_viewer export-run --as-of 2026-10-10        # run one, ~3 min
+    uv run python -m analysis.domino.trade_viewer import <folder | run.json | zip>     # any run in the contract
+    uv run python -m analysis.domino.trade_viewer serve                                 # opens the browser
+    http://127.0.0.1:8765/#run=management-book-20261010&coin=BTC&date=2026-03-25&tf=D&dir=up&view=1D&book=C
 
-`build` vendors amCharts 5 into `viewer/vendor/amcharts5/` (gitignored; free tier, logo kept; the
-CDN serves the current 5.x: 5.21.2 at promotion) and writes `data/` (gitignored): one JSON per
-coin, `index.json`, `dates.json` and `universe.json` (every coin's rows, columnar, 15 MB).
+`serve` vendors amCharts 5 into `viewer/vendor/amcharts5/` (gitignored; free tier, logo kept; the
+CDN serves the current 5.x: 5.21.2 at promotion). The data is `data/runs.json` and
+`data/runs/<id>/` (gitignored), written by the importer (`CONTRACT.md`); the flat `data/*.json`
+layout and the `build` and `check-run` commands were retired in stage 3 (2026-11-01). Files the
+old `build` left under `data/` are not read and can be deleted.
 
 ## The founding rule holds
 
-The page reads what `build` wrote and draws each row off the row. `settle()`, `tradeSpan()`,
+The page reads the cards the importer laid out and draws each card off the card. `settle()`, `tradeSpan()`,
 `stackLevels()`, `setupDays()` and the calendar bucketing (Monday 00:00 UTC weeks, calendar
 months) live in `core.js`, the TVB-39 logic with the calendar passed in; `test_domino_viewer`
 checks the bucketing against the census's own. No trade logic is re-run; the chart's data
@@ -220,6 +223,31 @@ Verification (the audits' named trades, through the new modules):
 Not done in stage 2 (stage 3): the flat `data/*.json` layout and `trade_viewer build` still exist
 and are no longer read; Compare does not yet line runs up against each other (one run at a time);
 the hand-written single-file phone run has been imported in a test, not on the page.
+
+## The run contract, stage 3 (2026-11-01, TVB-43): one data path, Compare across runs, the example run
+
+- **The flat layout is gone.** `trade_viewer build`, `check-run`, the flat loader and the flat
+  universe table are deleted; `serve` wants `data/runs.json`. The page has had one data path
+  since stage 2; now the code does too. `check-run`'s exact coverage and its result on run one
+  are recorded in `CONTRACT.md` section 7 (the TVB-42 audit F8 wording).
+- **Compare across runs, by role.** The Compare tab's "Against run" list names every other
+  imported run. Choosing one loads that run's card and universe table and draws a by-role table:
+  each row is a role (headline, target books in order, stop books, the chance book), with this
+  run's book and figures on the left and the other run's on the right, both over their whole
+  universe table with the page's filters (the unit filter only where the other run shares a unit
+  name); a gap means that run has no book of that role. The other run's headline curve is dashed
+  on the equity chart. Nothing matches books by id: `stats.roleRows` pairs the k-th book of each
+  role (`tests/test_domino_viewer_js.py`). The address carries `cmpRun=`.
+- **The example single-file run** (`viewer/examples/single_file_run.json`, rebuilt by
+  `examples/make_example.py`): one `run.json` with BTC inline, the venue's real last 100 daily
+  bars and six of the engine's own daily cards from run one trimmed to three books. It is the
+  shape a phone backtest writes, not a result. Imported with `trade_viewer import` it appears in
+  the picker as `example-single-file`; the browser pass below is on it.
+- **Importer hardening from the TVB-42 audit and the in-session Codex pass** (the `fix(viewer)`
+  commit of 2026-11-01): staging and swap with rollback and `recover`; ids and file names that
+  cannot leave the run folder; case-folded collisions; inline runs inside a zip or a folder;
+  sparse extras backfilled. The page: value-derived clock words, the target share's denominator,
+  generation-guarded run switches.
 
 ## The three things next
 

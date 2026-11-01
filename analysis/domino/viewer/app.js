@@ -22,12 +22,16 @@
     calScope: "coin", calY: null, calM: null,
     panes: {}, cmp: null, cmpDirty: true, cmpScope: "shown", playbookDone: false, hover: "a",
     uni: null, uniItems: null, uniLoading: null, uniError: null,
+    other: null,                          // Compare across runs: { id, run, uni, units, books } of the run chosen in "Against run"
     gen: 0,                               // bumped on every run switch; an async load compares it before writing state
     proof: { seed: false, then: null, ray: null },
   };
   const tradeRet = (t) => ST.retOf(t, state.book);
   const n2 = (x) => x == null ? "?" : Number(x).toFixed(2);
   const RAY = "#60a5fa";
+  // every JSON the page reads is revalidated with the server (the files change on every import; a browser that
+  // trusted its copy of runs.json showed one run after a second had been imported, stage 3 browser pass)
+  const getJson = async (url) => { const r = await fetch(url, { cache: "no-cache" }); if (!r.ok) throw new Error("HTTP " + r.status + " for " + url); return r.json(); };
 
   // ---------------------------------------------------------------- chart panes (amCharts 5 StockChart)
   function makePane(key) {
@@ -491,9 +495,7 @@
       const p = (async () => {
         let rows;
         try {
-          const r = await fetch(base + "universe.json");
-          if (!r.ok) throw new Error("HTTP " + r.status + " for " + base + "universe.json");
-          rows = ST.fromUniverse(await r.json());
+          rows = ST.fromUniverse(await getJson(base + "universe.json"));
         } catch (e) {
           // a failed load is said, not spun on: Compare and the calendar show the failure instead of "loading..."
           if (gen === state.gen) { state.uniError = String(e && e.message || e); $("meta").textContent = "the universe table failed to load: " + state.uniError; }
@@ -618,6 +620,11 @@
       s.strokes.template.setAll({ strokeWidth: 1.25 });
       series[b] = s;
     }
+    // the other run's headline (Compare across runs, stage 3): a dashed curve, named when a run is chosen
+    const otherS = ch.series.push(am5xy.LineSeries.new(r1, { name: "other run", xAxis: x, yAxis: y, valueXField: "t", valueYField: "v", stroke: am5.color("#e5e7eb"),
+      tooltip: am5.Tooltip.new(r1, { labelText: "{name}: {valueY.formatNumber('#,###')} USD" }) }));
+    otherS.strokes.template.setAll({ strokeWidth: 1.5, strokeDasharray: [4, 3] });
+    otherS.hide(0);
     const legend = ch.children.push(am5.Legend.new(r1, { centerX: am5.p50, x: am5.p50, marginTop: 4 }));
     legend.labels.template.setAll({ fontSize: 11 }); legend.markers.template.setAll({ width: 10, height: 10 });
     legend.data.setAll(ch.series.values);
@@ -639,7 +646,77 @@
     const hA = mk("a", bookCol(headline())), hB = mk("b", bookCol(reference() || headline()));
     const hl = hc.children.push(am5.Legend.new(r2, { centerX: am5.p50, x: am5.p50, marginTop: 4 }));
     hl.labels.template.setAll({ fontSize: 11 }); hl.markers.template.setAll({ width: 10, height: 10 });
-    state.cmp = { r1, series, r2, hx, hA, hB, hl };
+    state.cmp = { r1, series, otherS, r2, hx, hA, hB, hl };
+  }
+
+  // ---------------------------------------------------------------- Compare across runs, by role (stage 3)
+  function filteredFor(rows, units) {
+    // the page's filters on another run's rows; the unit filter applies only where that run shares a unit name
+    const useTf = (units || []).some((u) => state.tf.has(u));
+    return rows.filter((t) => (!useTf || state.tf.has(t.tf)) && state.kind.has(t.kind) && state.dir.has(t.direction) && (!state.liquid || t.liquid) && (!state.hasT1 || t.t1 != null));
+  }
+  async function loadOther(id) {
+    // another run's card and universe table, for the by-role table and the dashed headline curve
+    if (!id) { state.other = null; return null; }
+    if (state.other && state.other.id === id && state.other.uni) return state.other;
+    const gen = state.gen, base = "data/runs/" + id + "/";
+    state.other = { id, loading: true };
+    try {
+      const run = await getJson(base + "run.json");
+      const u = await getJson(base + "universe.json");
+      if (gen !== state.gen || !state.other || state.other.id !== id) return null;
+      state.other = { id, run, uni: ST.fromUniverse(u), units: (u.codes && u.codes.bar) || [], books: (run.books || []).filter((b) => u.books.includes(b.id)) };
+    } catch (e) {
+      if (gen === state.gen && state.other && state.other.id === id) state.other = { id, error: String((e && e.message) || e) };
+      return null;
+    }
+    return state.other;
+  }
+  function renderByRole() {
+    const card = $("byRoleCard"), o = state.other, otherS = state.cmp && state.cmp.otherS;
+    const clearCurve = () => { if (otherS) { otherS.data.setAll([]); otherS.hide(0); } };
+    if (!o) { card.hidden = true; clearCurve(); return; }
+    card.hidden = false;
+    if (o.loading) { $("byRoleNote").textContent = "loading run " + o.id + "..."; $("byRole").innerHTML = ""; clearCurve(); return; }
+    if (o.error) { $("byRoleNote").textContent = "run " + o.id + " failed to load (" + o.error + ")"; $("byRole").innerHTML = ""; clearCurve(); return; }
+    if (!state.uni) {
+      // both sides are read over their whole universe table, whatever the Compare scope says
+      $("byRoleNote").textContent = state.uniError ? "this run's universe table failed to load (" + state.uniError + ")" : "loading this run's universe table...";
+      $("byRole").innerHTML = ""; clearCurve();
+      if (!state.uniError && !state.uniLoading) loadUniverse().then(() => renderCompare());
+      return;
+    }
+    const itemsA = universeItems(), itemsB = filteredFor(o.uni, o.units).map((t) => ({ coin: t.coin, t }));
+    const rows = ST.roleRows(ladderBooks().map((id) => bookOf(id)), o.books);
+    const pct0 = (v) => (v * 100).toFixed(0) + "%";
+    const cells = (s) => s ? [fmtPct(s.avg), s.filled.toLocaleString("en-US"), s.win == null ? "-" : pct0(s.win), fmtUsd0(s.total), s.maxDD ? "-" + fmtUsd0(s.maxDD).slice(1) : "0", s.target == null ? "-" : pct0(s.target) + " of " + fmtCount(s.withTarget), s.medDays == null ? "-" : String(s.medDays)] : ["-", "-", "-", "-", "-", "-", "-"];
+    const head = ["avg", "filled", "green", "total USD", "max DD", "at target", "med days"].map((h) => "<th>" + h + "</th>").join("");
+    const html = ['<table class="setup roles"><thead><tr><th>role</th><th class="run">' + esc(state.runId) + "</th>" + head + '<th class="run">' + esc(o.id) + "</th>" + head + "</tr></thead><tbody>"];
+    for (const r of rows) {
+      const sa = r.a ? ST.bookStats(itemsA, r.a.id, state.size) : null, sb = r.b ? ST.bookStats(itemsB, r.b.id, state.size) : null;
+      html.push("<tr><td>" + esc(C.ROLE_WORD[r.role] || r.role) + '</td><td class="run">' + (r.a ? esc(r.a.id + ": " + r.a.name) : "-") + "</td>" + cells(sa).map((v) => "<td>" + v + "</td>").join("") +
+        '<td class="run">' + (r.b ? esc(r.b.id + ": " + r.b.name) : "-") + "</td>" + cells(sb).map((v) => "<td>" + v + "</td>").join("") + "</tr>");
+    }
+    html.push("</tbody></table>");
+    $("byRole").innerHTML = html.join("");
+    const sharesUnit = (o.units || []).some((u) => state.tf.has(u));
+    $("byRoleNote").textContent = itemsA.length.toLocaleString("en-US") + " rows of " + state.runId + " against " + itemsB.length.toLocaleString("en-US") + " rows of " + o.id + ", the page's filters on both" + (sharesUnit ? "" : " (its units differ, so the unit filter is not applied to it") +
+      "; books lined up by role in each run's order, equal size " + state.size.toLocaleString("en-US") + " USD; a gap means that run has no book of that role";
+    if (otherS) {
+      const hb = (o.books.find((b) => b.role === "headline") || {}).id;
+      const s = hb ? ST.bookStats(itemsB, hb, state.size) : null;
+      otherS.set("name", o.id + (hb ? " " + hb + ": " + (o.books.find((b) => b.id === hb).name || "") : ""));
+      otherS.data.setAll(s ? s.curve : []);
+      if (s && s.curve.length) otherS.show(0); else otherS.hide(0);
+    }
+  }
+  function fillRunCompare() {
+    // the "Against run" list: every imported run but the one on the page
+    const sel = $("cmpRun");
+    sel.innerHTML = '<option value="">none</option>';
+    for (const r of state.runs) if (r.id !== state.runId) { const o = document.createElement("option"); o.value = r.id; o.textContent = r.name; sel.appendChild(o); }
+    if (state.other && state.other.id === state.runId) state.other = null;
+    sel.value = state.other ? state.other.id : "";
   }
   function dropCompareCharts() {
     if (!state.cmp) return;
@@ -675,6 +752,7 @@
       s.data.setAll(stats[b].curve);
       s.strokes.template.setAll({ strokeWidth: b === state.book ? 3 : 1.25, strokeOpacity: b === state.book ? 1 : 0.8 });
     }
+    renderByRole();
     const shown = books.includes(state.book) ? state.book : headline();
     const other = reference() && shown !== reference() ? reference() : headline();
     const bins = ST.histogram(items, shown, other, -15, 15);
@@ -721,7 +799,7 @@
     const entry = state.index.instruments.find((c) => c.instrument === coin);
     if (!entry) return false;
     const gen = state.gen;
-    const d = await (await fetch(state.base + entry.file)).json();
+    const d = await getJson(state.base + entry.file);
     if (gen !== state.gen) return false;  // the run changed while this instrument was in flight
     const cal = prepFile(coin, d);
     state.coin = coin; state.data = d; state.cal = cal;
@@ -749,13 +827,14 @@
     if (state.layout === "dual") q.push("layout=dual", "view2=" + (state.panes.b ? state.panes.b.tf : "1W"));
     if (state.tab !== "trade") q.push("tab=" + state.tab);
     if (state.cmpScope === "universe") q.push("cmp=universe");
+    if (state.other) q.push("cmpRun=" + encodeURIComponent(state.other.id));
     if (state.calScope === "all") q.push("cal=all");
     history.replaceState(null, "", "#" + q.join("&"));
   }
   function fromHash() {
     const q = new URLSearchParams(location.hash.slice(1));
     const g = (k) => q.get(k);
-    return { run: g("run"), coin: g("coin"), date: g("date"), tf: g("tf"), dir: g("dir"), view: g("view"), book: g("book"), seed: g("seed"), then: g("then"), ray: g("ray"), show: g("show"), layout: g("layout"), view2: g("view2"), tab: g("tab"), cmp: g("cmp"), cal: g("cal"), day: g("day") };
+    return { run: g("run"), coin: g("coin"), date: g("date"), tf: g("tf"), dir: g("dir"), view: g("view"), book: g("book"), seed: g("seed"), then: g("then"), ray: g("ray"), show: g("show"), layout: g("layout"), view2: g("view2"), tab: g("tab"), cmp: g("cmp"), cmpRun: g("cmpRun"), cal: g("cal"), day: g("day") };
   }
   function lastSettled(items) { const h = headline(); for (let k = 0; k < items.length; k++) if (ST.retOf(items[k].t, h) != null) return k; return items.length ? 0 : -1; }
 
@@ -774,7 +853,7 @@
   }
   async function loadDates() {
     if (!state.base) return null;
-    if (!state.dates) { const gen = state.gen; const d = await (await fetch(state.base + "dates.json")).json(); if (gen !== state.gen) return null; state.dates = d; }
+    if (!state.dates) { const gen = state.gen; const d = await getJson(state.base + "dates.json"); if (gen !== state.gen) return null; state.dates = d; }
     return state.dates;
   }
   async function applyDate(date) {
@@ -790,7 +869,7 @@
     const byCoin = new Map();
     for (const w of want) if (!byCoin.has(w.coin)) {
       const entry = state.index.instruments.find((c) => c.instrument === w.coin);
-      if (entry) byCoin.set(w.coin, fetch(state.base + entry.file).then((r) => r.json()));
+      if (entry) byCoin.set(w.coin, getJson(state.base + entry.file));
     }
     const items = [];
     const docs = new Map();
@@ -839,8 +918,8 @@
     state.runId = null; state.base = null; state.index = null;  // while the switch is in flight no loader has a run to read
     let run, index;
     try {
-      run = await (await fetch(base + "run.json")).json();
-      index = await (await fetch(base + "index.json")).json();
+      run = await getJson(base + "run.json");
+      index = await getJson(base + "index.json");
     } catch (e) {
       if (gen === state.gen) { Object.assign(state, prev); $("meta").textContent = "failed to load run " + id + ": " + (e && e.message || e); }
       return false;
@@ -858,6 +937,7 @@
     dl.innerHTML = "";
     for (const c of index.instruments) { const o = document.createElement("option"); o.value = c.instrument; o.label = c.n + " trades"; dl.appendChild(o); }
     $("run").value = id;
+    fillRunCompare();
     $("meta").textContent = index.instruments.length + " instruments, " + index.trades.toLocaleString() + " trades, as of " + index.as_of + " (" + esc(run.name) + ")";
     try { localStorage.setItem("domino-run", id); } catch (e) { /* storage off */ }
     // a retained universe scope (Compare on every instrument, the all-instrument calendar) needs the NEW run's table
@@ -886,9 +966,8 @@
   async function init() {
     state.panes.a = makePane("a");
     const want = fromHash();
-    const rr = await fetch("data/runs.json");
-    if (!rr.ok) throw new Error("no runs: data/runs.json is missing. Import a run first (trade_viewer export-run --as-of ... or trade_viewer import <run>)");
-    state.runs = await rr.json();
+    try { state.runs = await getJson("data/runs.json"); }
+    catch (e) { throw new Error("no runs: data/runs.json could not be read (" + (e && e.message || e) + "). Import a run first (trade_viewer export-run --as-of ... or trade_viewer import <run>)"); }
     if (!state.runs.length) throw new Error("no runs listed in data/runs.json");
     const rs = $("run");
     rs.innerHTML = "";
@@ -907,6 +986,8 @@
     seg("tabs", (v) => setTab(v), false);
     seg("calScope", async (v) => { state.calScope = v; if (v === "all") await loadUniverse(); syncHash(); renderCalendar(); }, false);
     seg("cmpScope", async (v) => { state.cmpScope = v; if (v === "universe") { renderCompare(); await loadUniverse(); } syncHash(); renderCompare(); }, false);
+    $("cmpRun").onchange = async (e) => { const id = e.target.value; state.other = null; if (id) { state.other = { id, loading: true }; renderCompare(); await loadOther(id); } syncHash(); renderCompare(); };
+    if (want.cmpRun && want.cmpRun !== state.runId && state.runs.some((r) => r.id === want.cmpRun)) { $("cmpRun").value = want.cmpRun; await loadOther(want.cmpRun); }
     seg("fShow", (v, on) => {
       if (v === "sys") { state.showSys = on; draw(); }
       else { state.showMan = on; for (const p of visiblePanes()) setDrawingsVisible(p, on); legend(); }

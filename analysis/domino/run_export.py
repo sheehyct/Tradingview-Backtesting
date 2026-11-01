@@ -1,6 +1,10 @@
 """The management book (`results/manage_trades.csv.gz`) exported as a run in the viewer's
-contract (`viewer/CONTRACT.md`, section 9 is this file's mapping), and the row-for-row check of
-that run against the flat viewer data.
+contract (`viewer/CONTRACT.md`, section 9 is this file's mapping).
+
+The row-for-row check of run one against the retired flat viewer data (`check_run`) went with
+that layout in stage 3 (2026-11-01); CONTRACT.md section 7 records exactly what it covered, and
+the TVB-42 audit's independent probe (4,314,995 field checks against the typed CSV rows, zero
+differences) is the broader receipt for run one.
 
 Every time on a card is the open of the engine's own bar: the engine's day offsets are INDEX
 offsets in the normalised daily list (the census never fills a gap), so `at` is read from the
@@ -21,7 +25,7 @@ from pathlib import Path
 
 from analysis.domino import contract as K
 from analysis.domino.census import cached_universe, normalize, normalize_hourly
-from analysis.domino.trade_viewer import DATA, TRADES, cache_path, compact, stamp_of
+from analysis.domino.trade_viewer import TRADES, cache_path, compact, stamp_of
 
 DAY = 86_400
 HOUR = 3_600
@@ -683,133 +687,3 @@ def export_run(as_of_ms: int, out: Path, run_id: str | None = None, log=print) -
         json.dump(run, fh, indent=1)
     log(f"exported {n:,} cards for {len(rows)} coins -> {out}")
     return out
-
-
-# ----------------------------------------------------------------------------- the check
-
-
-def check_run(run_id: str, root: Path = DATA, log=print) -> dict:
-    """Compare an imported run's cards with the flat viewer data (`data/<coin>.json`) row for
-    row: the level, each ladder book's return / reason / day, the touch days. Returns the
-    counts; logs the first examples of every kind of difference."""
-    counts: dict[str, int] = defaultdict(int)
-    examples: dict[str, list[str]] = defaultdict(list)
-
-    def diff(key: str, tag: str) -> None:
-        counts[key] += 1
-        if len(examples[key]) < 3:
-            examples[key].append(tag)
-
-    def same(a, b) -> bool:
-        if a is None or b is None:
-            return a is None and b is None
-        return abs(a - b) <= 1e-9 * max(1.0, abs(a), abs(b))
-
-    for fname, doc in K.iter_files(root, run_id):
-        flat_path = root / fname
-        if not flat_path.exists():
-            diff("coin missing from the flat data", doc["instrument"])
-            continue
-        flat = json.loads(flat_path.read_text(encoding="utf-8"))
-        daily = flat["daily"]
-        idx = {int(b[0]): i for i, b in enumerate(daily)}
-        # the flat loader keeps a missing text field as the string "nan" / ""; read those as None
-        rows = {
-            (r["date"], r["tf"], r["kind"], r["direction"]): {
-                k: (None if v in ("", "nan", "None") else v) for k, v in r.items()
-            }
-            for r in flat["trades"]
-        }
-        for c in doc["trades"]:
-            key = (K.day_of(c["entry"]["t"]), c["bar"], c["kind"], c["direction"])
-            r = rows.pop(key, None)
-            tag = c["id"]
-            if r is None:
-                diff("card without a flat row", tag)
-                continue
-            counts["cards compared"] += 1
-            if not same(c["entry"]["price"], r["level"]):
-                diff("level", tag)
-            i = idx.get(c["entry"]["t"])
-
-            def at_k(k):
-                if k is None:
-                    return None
-                j = None if i is None else i + int(k)
-                return (
-                    int(daily[j][0])
-                    if j is not None and 0 <= j < len(daily)
-                    else c["entry"]["t"] + int(k) * DAY
-                )
-
-            by_id = {b["id"]: b for b in c["books"]}
-            for bid, ret_key, hit_key in (
-                ("C", "ret_C", None),
-                ("A", "ret_A", "hit_A"),
-                ("B", "ret_B", "hit_B"),
-                ("D", "ret_D", "hit_D"),
-                ("D5", "ret_D5", "hit_D5"),
-                ("ref", "ret5", None),
-            ):
-                b = by_id.get(bid)
-                if b is None:
-                    diff(f"{bid} absent", tag)
-                    continue
-                if not same(b["ret"], r.get(ret_key)):
-                    diff(f"{bid} return", tag)
-                if hit_key and (b["hit"] or False) != (r.get(hit_key) or False):
-                    diff(f"{bid} hit", tag)
-            C = by_id["C"]
-            if C["how"] != STATUS_HOW.get(r["status"]):
-                diff("C reason", tag)
-            elif C["how"] == "clock" and C["at"] != at_k(r["exit_k"]):
-                diff("C exit day", tag)
-            elif C["how"] == "cap" and C["at"] != at_k(r["days"]):
-                diff("C cap day", tag)
-            D5 = by_id["D5"]
-            want5 = (
-                "one_r"
-                if r.get("hit_D5")
-                else ("none" if r.get("status5") is None else STATUS_HOW.get(r["status5"]))
-            )
-            if D5["how"] != want5:
-                diff("D5 reason", tag)
-            elif D5["how"] in ("clock", "cap") and D5["at"] != at_k(r["days_D5"]):
-                diff("D5 day", tag)
-            ref = by_id["ref"]
-            want_ref = {"stop": "stop", "one_r": "one_r", "neither": "cap"}.get(
-                r.get("out5"), "censored"
-            )
-            if ref["how"] != want_ref:
-                diff("ref reason", tag)
-            elif ref["how"] != "censored" and ref["at"] != at_k(r["days_ref"]):
-                diff("ref day", tag)
-            t1 = next((tg for tg in c["targets"] if tg["name"] == "T1"), None)
-            if (t1 is None) != (r.get("t1") is None):
-                diff("T1 present", tag)
-            elif t1 is not None and (
-                not same(t1["price"], r["t1"]) or t1["touched"] != at_k(r.get("t1_k"))
-            ):
-                diff("T1 price or touch day", tag)
-            if c["touches"]["one_r"] != at_k(r.get("one_r_k")):
-                diff("one R touch day", tag)
-            Ch = by_id.get("C_h")
-            sh = r.get("status_h")
-            want_h = (
-                "none" if sh in H_NOTE else ("censored" if sh == "censored" else STATUS_HOW[sh])
-            )
-            if (
-                Ch is None
-                or Ch["how"] != want_h
-                or (Ch["how"] in ("clock", "cap") and not same(Ch["ret"], r.get("ret_C_h")))
-            ):
-                diff("hourly clock", tag)
-        for key in rows:
-            diff("flat row without a card", f"{doc['instrument']} {key}")
-    log(f"check-run {run_id}: {counts.get('cards compared', 0):,} cards compared")
-    for key, n in sorted(counts.items()):
-        if key != "cards compared":
-            log(f"  {key}: {n:,}  e.g. {', '.join(examples[key])}")
-    if all(k == "cards compared" for k in counts):
-        log("  no differences")
-    return dict(counts)

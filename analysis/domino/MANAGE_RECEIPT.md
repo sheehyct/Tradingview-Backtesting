@@ -381,9 +381,9 @@ candles locally, with no TradingView and no re-run of any trade logic: the entry
 targets, the touch days and the exit day are read off `manage_trades.csv.gz` exactly as the
 engine wrote them, so a chart that disagrees with a row is evidence against the engine.
 
-    uv run python -m analysis.domino.trade_viewer hourly --as-of 2026-10-10 all   # once, ~9 min
-    uv run python -m analysis.domino.trade_viewer build  --as-of 2026-10-10       # ~1 min
-    uv run python -m analysis.domino.trade_viewer serve                            # opens the browser
+    uv run python -m analysis.domino.trade_viewer hourly --as-of 2026-10-10 all        # once, ~9 min
+    uv run python -m analysis.domino.trade_viewer export-run --as-of 2026-10-10        # the book as run one (~3 min; `build` retired 2026-11-01)
+    uv run python -m analysis.domino.trade_viewer serve                                 # opens the browser
     uv run python -m analysis.domino.trade_viewer serve --no-open                  # from an SSH shell; browse through a port forward
 
 What it shows: one coin at a time (or every trade entered on one day, across coins); 1H / 1D /

@@ -174,6 +174,7 @@
   table.setup th:first-child, table.setup td:first-child { text-align: left; }
   table.setup td { padding: 3px 6px; border-top: 1px solid var(--line); text-align: right; white-space: nowrap; }
   table.setup tr.head td { font-weight: 600; }
+  table.roles th.run, table.roles td.run { text-align: left; border-left: 1px solid var(--line); padding-left: 10px; white-space: nowrap; max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
   #cmpNote { color: var(--muted); font-size: 11.5px; margin: 0 8px 8px; }
 
   /* ---- playbook */
@@ -259,8 +260,11 @@
       <div id="legend"></div>
     </div>
     <div id="view-compare" class="view">
-      <div class="cmpBar"><span class="lab">Scope</span><span class="seg small" id="cmpScope"><button data-v="shown" class="on">This coin / day</button><button data-v="universe">Universe, every coin</button></span><span id="cmpScopeNote"></span></div>
+      <div class="cmpBar"><span class="lab">Scope</span><span class="seg small" id="cmpScope"><button data-v="shown" class="on">This coin / day</button><button data-v="universe">Universe, every coin</button></span>
+        <span class="lab">Against run</span><select id="cmpRun" class="small" title="another imported run: its ladder books lined up with this run's by role (headline against headline, the target books in order, the chance book against the chance book), each over its own universe table with the page's filters; its headline's curve is dashed on the equity chart"><option value="">none</option></select>
+        <span id="cmpScopeNote"></span></div>
       <div id="kpis"></div>
+      <div class="card" id="byRoleCard" hidden><h3>By role: this run against another, both over every instrument <span class="right" id="byRoleNote"></span></h3><div id="byRole"></div></div>
       <div class="cmpRow">
         <div class="card"><h3>Equity by entry date, equal size <span class="right" id="eqNote"></span></h3><div id="eq"></div></div>
         <div class="card"><h3>Where the trades land <span class="right" id="histNote"></span></h3><div id="hist"></div></div>

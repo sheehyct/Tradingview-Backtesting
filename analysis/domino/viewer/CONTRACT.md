@@ -7,8 +7,9 @@
 > word: the page reads runs (`data/runs.json`, a run picker; `core.js` holds the run's books with
 > roles and colours; `prep` derives day offsets from the card's times against the run's bars; the
 > ladder, the story, the markers and Compare read the card's book entries; no engine column name
-> survives in the page). The flat layout and `build` are retired in stage 3. Confirmed choices
-> are in section 11; section 12 lists what stages 1 and 2 settled.
+> survives in the page). Stage 3 built 2026-11-01 (TVB-43): the flat layout, `build` and
+> `check-run` retired; Compare across runs by role; the example single-file run imported and
+> viewed end to end. Confirmed choices are in section 11; section 12 lists what the stages settled.
 
 One card shape that every run exports and the trade viewer draws. The page reads cards, it
 never computes a trade: every price, time, fill and return on screen is what the producing
@@ -290,10 +291,10 @@ not cover) is the broader receipt for run one.
    read the card; markers from timestamps; the node tests moved to the card shape; the audits'
    named rows (ATOM 2026-05-09, ACE 2026-06-14, BTC 2026-03-16 W, BLUR 2026-07-24 W) re-checked.
 3. Compare per run and by role; the flat layout retired; NOTES.md updated; the importer tried on
-   a hand-written single-file run (the phone case) end to end.
+   a hand-written single-file run (the phone case) end to end. DONE 2026-11-01.
 
 Later, on the owner's word: a CSV input flavour; the vessel's event table as a run; the ES bench
-as a run.
+as a run (`docs/experiments/tvb43_bench_prereg.md`, draft).
 
 ## 11. Decisions recorded (2026-10-31, the owner)
 
@@ -323,3 +324,14 @@ as a run.
   the run from `runs.json` (the address carries `run=`; the last choice is remembered in the
   browser). The ladder lists ladder books then groups; Compare lines up the ladder books of ONE
   run; Compare across runs is stage 3.
+- Stage 3 (2026-11-01): Compare across runs lines two runs up BY ROLE, never by id: the k-th book
+  of each role on each side (headline, target books in order, stop books, reference), each over
+  its own universe table with the page's filters; a run with fewer books of a role leaves a gap.
+  Run ids start and end with a letter or digit and are not Windows device names; ids differing
+  only by case are one run. Instrument names become plain file names (anything outside letters,
+  digits, dot, dash, underscore turns into an underscore; collisions and reserved files compared
+  without case). An import is staged and swapped in; a refused replacement leaves the old run;
+  `recover` restores a run an interrupted import left stepped aside. The single-file flavour is
+  recognised inside a zip or a folder too, and a folder mixing the two flavours is refused. The
+  flat layout, `build` and `check-run` are gone; `viewer/examples/single_file_run.json` is the
+  shipped example of the shape (real bars, the engine's own cards, not a result).

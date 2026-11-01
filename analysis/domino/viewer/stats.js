@@ -145,5 +145,17 @@ window.DV = window.DV || {};
     return out;
   }
 
-  DV.stats = { bookStats, allBooks, bySetup, histogram, calendarDays, fromUniverse, retOf, hitOf, daysOf, howOf, maxDrawdown, monthSummary, swapPair };
+  function roleRows(aBooks, bBooks) {
+    // Compare across runs (stage 3): the k-th book of each role on either side, roles in the ladder's order, so a
+    // headline lines up with a headline and the first target book with the first target book whatever the ids are;
+    // a side with fewer books of a role leaves a gap, never a borrowed book
+    const out = [];
+    for (const r of ["headline", "target", "stop", "reference"]) {
+      const A = (aBooks || []).filter((b) => b && b.role === r), B = (bBooks || []).filter((b) => b && b.role === r);
+      for (let k = 0; k < Math.max(A.length, B.length); k++) out.push({ role: r, a: A[k] || null, b: B[k] || null });
+    }
+    return out;
+  }
+
+  DV.stats = { bookStats, allBooks, bySetup, histogram, calendarDays, fromUniverse, retOf, hitOf, daysOf, howOf, maxDrawdown, monthSummary, swapPair, roleRows };
 })(window.DV);
