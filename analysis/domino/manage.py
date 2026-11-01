@@ -67,6 +67,7 @@ from analysis.domino.census import (
     normalize,
     normalize_hourly,
     parse_as_of,
+    session_calendar,
     universe,
 )
 from analysis.domino.chance import (
@@ -423,7 +424,12 @@ def walk_hourly(
 
     Repairs 2026-10-30 (TVB-39 external audit F1-F3): strict entry; the entry day's coverage
     checked from 00:00; the scan bounded by the cap TIMESTAMP whatever candles exist; a missing
-    hour before the exit censors; elapsed hours are timestamp differences, not list offsets."""
+    hour before the exit censors; elapsed hours are timestamp differences, not list offsets.
+
+    On a session calendar (`census.use_calendar("session")`, the bench) the walk is
+    `_walk_hourly_session` below; this body is the 24/7 venue's, unchanged."""
+    if session_calendar():
+        return _walk_hourly_session(hourly, by_day, daily, i, direction, level, prices, cap_end)
     hs = by_day.get(daily[i]["t"])
     if not hs:
         return None
@@ -477,6 +483,100 @@ def walk_hourly(
     if exit_h is not None:
         status, end = "exit", exit_h
     elif not gap and cap_ts is not None and last is not None and hourly[last]["t"] == cap_ts:
+        status, end = "open", last
+    else:
+        return {"status": "censored", "entry": entry}
+    sign = 1.0 if direction == "up" else -1.0
+    close = hourly[end]["c"]
+    return {
+        "status": status,
+        "entry": entry,
+        "entry_hour": (hourly[entry]["t"] - day_t) // HOUR,
+        "end": end,
+        "hours": (hourly[end]["t"] - hourly[entry]["t"]) // HOUR,
+        "ret_c": sign * (close - level) / level * 100.0,
+        "touch": touch,
+    }
+
+
+def _walk_hourly_session(
+    hourly: list[dict],
+    by_day: dict[int, list[int]],
+    daily: list[dict],
+    i: int,
+    direction: str,
+    level: float,
+    prices: dict,
+    cap_end: int | None,
+) -> dict | None:
+    """The hourly clock on a session calendar (the bench prereg, section 2.3). The hours of a
+    session run from its open (offset 0, in session time) to its last traded hour with no fixed
+    count (23 on the Globex day, 7 on the RTH day, fewer on an early close); the hour after a
+    session's last is the next session's first; the cap is the cap session's last hour. The same
+    rules as the 24/7 walk otherwise: strict entry on the first hour through L; exit on the first
+    hour closing against its own open with the session also against; touches inclusive; a
+    missing hour inside a session, or a session with no hours before the exit or the cap,
+    censors; an entry day not observed from its open through the entry hour is partial.
+    `hours` is elapsed SESSION-TIME hours (a session's hours sit at offsets from its trade date's
+    00:00 UTC, so a weekend adds 48 empty hours and a Friday-to-Monday hold reads 53, not 5);
+    the exporter maps it back to a real time through the session table
+    (`run_export.Tape.hour_time`), and a receipt that wants traded hours must count them."""
+    day_t = daily[i]["t"]
+    hs = by_day.get(day_t)
+    if not hs:
+        return None
+    lv = _dec(level)
+    entry = None
+    expect = day_t
+    for h in hs:
+        b = hourly[h]
+        if b["t"] != expect:
+            return {"status": "partial_entry_day"}
+        if (direction == "up" and _dec(b["h"]) > lv) or (direction == "down" and _dec(b["l"]) < lv):
+            entry = h
+            break
+        expect += HOUR
+    if entry is None:
+        # the session's hours were contiguous from its open to its last traded hour; a session has
+        # no fixed length, so a fully observed session with no hour through L is no_entry_hour
+        return {"status": "no_entry_hour"}
+    tgt = {
+        k: (p if isinstance(p, Decimal) else _dec(p)) for k, p in prices.items() if p is not None
+    }
+    touch: dict[str, int | None] = dict.fromkeys(prices, None)
+    exit_h = None
+    gap = False
+    last = None
+    reached_cap = False
+    last_day = cap_end if cap_end is not None else len(daily) - 1
+    for dj in range(i, last_day + 1):
+        hs_j = by_day.get(daily[dj]["t"])
+        if not hs_j:
+            gap = True  # a session with no hours before the exit or the cap: the data ends here
+            break
+        hours = [h for h in hs_j if h >= entry] if dj == i else hs_j
+        expect = hourly[hours[0]]["t"] if dj == i else daily[dj]["t"]
+        for h in hours:
+            b = hourly[h]
+            if b["t"] != expect:
+                gap = True
+                break
+            expect += HOUR
+            last = h
+            bh, bl = _dec(b["h"]), _dec(b["l"])
+            for k, p in tgt.items():
+                if touch[k] is None and (bh >= p if direction == "up" else bl <= p):
+                    touch[k] = h
+            if against(b["c"], b["o"], direction) and against(b["c"], daily[dj]["o"], direction):
+                exit_h = h
+                break
+        if exit_h is not None or gap:
+            break
+        if cap_end is not None and dj == cap_end:
+            reached_cap = True
+    if exit_h is not None:
+        status, end = "exit", exit_h
+    elif reached_cap and not gap and last is not None:
         status, end = "open", last
     else:
         return {"status": "censored", "entry": entry}
@@ -670,9 +770,18 @@ def coin_manage_rows(
                             wh, "one_r", one_r_d, direction, level
                         )
                         t1h = wh["touch"].get("t1")
-                        row["t1_h"] = (
-                            t1h - wh["entry"] if t1h is not None and t1h <= wh["end"] else None
-                        )
+                        if session_calendar():
+                            # session time, like `hours_h`: a list offset would cross the
+                            # session's end as if the empty hours were there (bench build)
+                            row["t1_h"] = (
+                                (hourly[t1h]["t"] - hourly[wh["entry"]]["t"]) // HOUR
+                                if t1h is not None and t1h <= wh["end"]
+                                else None
+                            )
+                        else:
+                            row["t1_h"] = (
+                                t1h - wh["entry"] if t1h is not None and t1h <= wh["end"] else None
+                            )
             # each book's own holding time: the day it filled its target, else the exit / mark
             # day (audit F4)
             row["days_A"] = row["t1_k"] if row["hit_A"] else s["days"]

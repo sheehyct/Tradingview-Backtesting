@@ -251,12 +251,42 @@ def one_r_price(level: float, stop: float | None) -> float | None:
 
 
 class Tape:
-    """One coin's normalised bars, as the engine indexed them."""
+    """One instrument's bars in REAL time, as the engine indexed them. `opens_by_date` (a
+    session tape, the bench): the engine's row date (a trade date) -> the session's real open,
+    so the card's times are the exchange's; without it a row date is its 00:00 UTC day (run one)."""
 
-    def __init__(self, daily: list[list[float]], hourly: list[list[float]]):
+    def __init__(
+        self,
+        daily: list[list[float]],
+        hourly: list[list[float]],
+        opens_by_date: dict[str, int] | None = None,
+    ):
         self.daily = daily
         self.day_idx = {int(b[0]): i for i, b in enumerate(daily)}
         self.hour_close = {int(b[0]): b[4] for b in hourly}
+        self.opens_by_date = opens_by_date
+
+    def open_of(self, date: str) -> int:
+        """The real open of the row's day: the session table's, else the 00:00 UTC day."""
+        if self.opens_by_date is not None and date in self.opens_by_date:
+            return self.opens_by_date[date]
+        return day_ts(date)
+
+    def hour_time(self, date: str, offset_hours: int) -> int:
+        """The real time `offset_hours` of the engine's hour steps after the row's day. On a 24/7
+        tape plain arithmetic from the 00:00 UTC day (run one's cards are unchanged). On a session
+        tape the engine's hours are SESSION TIME (a session's hours sit at offsets from its trade
+        date's 00:00 UTC, so a weekend is 48 empty hours): the step lands on a trade date and an
+        hour inside it, and the session table gives that date's real open; a DST change between
+        sessions is absorbed by the table."""
+        if self.opens_by_date is None:
+            return day_ts(date) + int(offset_hours) * HOUR
+        st = day_ts(date) + int(offset_hours) * HOUR
+        land = datetime.fromtimestamp(st, tz=timezone.utc).strftime("%Y-%m-%d")
+        open_s = self.opens_by_date.get(land)
+        if open_s is None:
+            return st  # no session on that date: the engine never puts an hour there
+        return open_s + (st % DAY) // HOUR * HOUR
 
     def at(self, t0: int, k) -> int:
         """The open time of the bar k index steps after the entry day; arithmetic past the end."""
@@ -305,7 +335,7 @@ def _target_like(bid, base: dict, hit, price, touch_k, ret, tape, t0, note=None)
 
 
 def card_from_row(r: dict, coin: str, dex: str, tape: Tape) -> dict:
-    t0 = day_ts(r["date"])
+    t0 = tape.open_of(r["date"])
     level, stop, direction = r["level"], r.get("stop"), r["direction"]
     one_r = one_r_price(level, stop)
     kind, tf = r["kind"], r["tf"]
@@ -413,9 +443,9 @@ def card_from_row(r: dict, coin: str, dex: str, tape: Tape) -> dict:
     elif sh == "censored":
         base_h = _book("C_h", "censored")
     else:
-        entry_ts = t0 + int(r["entry_h"]) * HOUR
+        entry_ts = tape.hour_time(r["date"], int(r["entry_h"]))
         held = int(r["exit_h"] if sh == "exit" else r["hours_h"])
-        at_h = entry_ts + held * HOUR
+        at_h = tape.hour_time(r["date"], int(r["entry_h"]) + held)
         base_h = _book(
             "C_h",
             "clock" if sh == "exit" else "cap",
@@ -425,13 +455,13 @@ def card_from_row(r: dict, coin: str, dex: str, tape: Tape) -> dict:
         )
     books.append(base_h)
     if base_h["how"] in ("clock", "cap"):
-        entry_ts = t0 + int(r["entry_h"]) * HOUR
+        entry_ts = tape.hour_time(r["date"], int(r["entry_h"]))
         if r.get("hit_A_h"):
             books.append(
                 _book(
                     "A_h",
                     "target",
-                    entry_ts + int(r["t1_h"]) * HOUR,
+                    tape.hour_time(r["date"], int(r["entry_h"]) + int(r["t1_h"])),
                     r["t1"],
                     r.get("ret_A_h"),
                     True,
@@ -484,7 +514,7 @@ def card_from_row(r: dict, coin: str, dex: str, tape: Tape) -> dict:
         # the hourly books enter at their own hour (CONTRACT.md section 3, `entry` on a book entry)
         for b in books:
             if b["id"] in ("C_h", "A_h", "D_h"):
-                b["entry"] = t0 + int(r["entry_h"]) * HOUR
+                b["entry"] = tape.hour_time(r["date"], int(r["entry_h"]))
     # under water (amendment A2.5), the same cap
     su = r.get("status_u")
     if su is None:

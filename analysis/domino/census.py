@@ -37,6 +37,7 @@ import statistics
 import sys
 import time
 from collections import Counter
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
@@ -54,6 +55,35 @@ SLIVER = Decimal("0.10")  # TA-Lib's "very short shadow" figure, measured on the
 LIQUID_USD = 1_000_000.0
 LIQUID_DAYS = 30
 MAX_CANDLES = 5000
+
+# The calendar the engine counts in (the bench prereg, docs/experiments/tvb43_bench_prereg.md
+# section 2.1; the owner's word 2026-11-01). "utc_day": every calendar day is a bar, a missing
+# day is a gap, a week is complete only with all seven days present (the 24/7 venue; the default,
+# and every number in the committed receipts). "session": the bars are sparse sessions
+# relabelled to their trade date (no weekend, holidays): "yesterday" is the previous session
+# whatever the calendar gap, a week or month is complete once the data runs past it or a later
+# bucket has begun, and a week's first day is its first session. Set only through
+# `use_calendar`; with the switch absent every code path below is the one the receipts ran on.
+CALENDAR = "utc_day"
+CALENDARS = ("utc_day", "session")
+
+
+@contextmanager
+def use_calendar(name: str):
+    """Run a block on the named calendar; the default is restored on the way out."""
+    global CALENDAR
+    if name not in CALENDARS:
+        raise ValueError(f"calendar must be one of {CALENDARS}, got {name!r}")
+    prev = CALENDAR
+    CALENDAR = name
+    try:
+        yield
+    finally:
+        CALENDAR = prev
+
+
+def session_calendar() -> bool:
+    return CALENDAR == "session"
 
 
 # ----------------------------------------------------------------------------- venue I/O
@@ -295,7 +325,13 @@ def aggregate(daily: list[dict], tf: str) -> list[dict]:
     if buckets and daily and daily[0]["t"] > buckets[0]["t"]:
         buckets.pop(0)
     last_end = daily[-1]["t"] + DAY if daily else 0
-    for b in buckets:
+    for n, b in enumerate(buckets):
+        if CALENDAR == "session":
+            # sparse sessions: the bucket is closed once the data runs past its end or a later
+            # bucket has begun (a holiday week of four sessions is complete; the forming last
+            # bucket is not); no calendar-day count applies
+            b["complete"] = b["end"] <= last_end or n < len(buckets) - 1
+            continue
         have = [daily[i]["t"] for i in b["days"]]
         want = list(range(b["t"], b["end"], DAY))
         # complete = every calendar day of the bucket present exactly once (audit F1: a duplicate
@@ -421,8 +457,11 @@ def _context(daily: list[dict], buckets: dict[str, list[dict]]) -> dict[str, dic
                     "open": b["o"],
                     "run_h": run_h,
                     "run_l": run_l,
-                    "is_first_day": daily[di]["t"]
-                    == b["t"],  # the calendar open, not the first bar seen
+                    # the calendar open, not the first bar seen; on a session calendar the
+                    # bucket's first session (a Tuesday after a Monday holiday opens its week)
+                    "is_first_day": (
+                        di == b["days"][0] if CALENDAR == "session" else daily[di]["t"] == b["t"]
+                    ),
                 }
                 d = daily[di]
                 run_h = d["h"] if run_h is None else max(run_h, d["h"])
@@ -471,10 +510,15 @@ def day_events(daily: list[dict], i: int, ctx: dict[str, dict[int, dict]]) -> li
     """
     d = daily[i]
     pd = daily[i - 1]
-    if pd["t"] != d["t"] - DAY:
-        return None
-    adj2 = i >= 2 and daily[i - 2]["t"] == pd["t"] - DAY
-    adj3 = adj2 and i >= 3 and daily[i - 3]["t"] == daily[i - 2]["t"] - DAY
+    if CALENDAR == "session":
+        # sessions: yesterday is the previous session whatever the calendar gap (a Monday's level
+        # is Friday's high or low; the bar before it is Thursday's)
+        adj2, adj3 = i >= 2, i >= 3
+    else:
+        if pd["t"] != d["t"] - DAY:
+            return None
+        adj2 = i >= 2 and daily[i - 2]["t"] == pd["t"] - DAY
+        adj3 = adj2 and i >= 3 and daily[i - 3]["t"] == daily[i - 2]["t"] - DAY
     pd_type = classify(pd, daily[i - 2]) if adj2 else None
     pd_ref = classify(daily[i - 2], daily[i - 3]) if adj3 else None
     out = []

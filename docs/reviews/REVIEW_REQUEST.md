@@ -17,7 +17,11 @@
   of the viewer contract (the flat layout, `build` and `check-run` deleted; Compare across runs
   by role; the example single-file run imported and verified in Chrome); the page made ready for
   session-day runs (`clock.label_shift_hours`, `clock.calendar`, `cal.sessionOf`, label-date
-  buckets, shipped `1w` / `1M` bars, bar offsets in the universe table); the bench prereg DRAFT.
+  buckets, shipped `1w` / `1M` bars, bar offsets in the universe table); the bench prereg drafted
+  and CONFIRMED by the owner; the engine's session calendar (`census.use_calendar("session")`,
+  `manage._walk_hourly_session`) with the crypto book byte-identical through it; the ES tape
+  (`analysis/bench/es_tape.py`) and runner (`run_bench.py`); runs `es-globex-2011-2025` and
+  `es-rth-2011-2025` on the viewer; `analysis/bench/BENCH_RECEIPT.md`.
 - Requested: 2026-11-01
 - Write the audit to: `docs/reviews/tvb43-codex-audit.md` (copy `docs/reviews/_TEMPLATE.md`)
 - Note: the TVB-42 audit's eight findings and the in-session pass's seven are ADDRESSED in the
@@ -27,14 +31,18 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `8a5806c..b05c7da` (8a5806c is the TVB-42 close-out the session started from; 70bacdf the audit fold; 7111720 stage 3; 4140285 the prereg draft; b05c7da the close-out with the session-calendar page support and the docs; the pin commit after it is docs only). Verify with `git diff --name-status 8a5806c..HEAD`. |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `8a5806c..HEAD` (8a5806c is the TVB-42 close-out the session started from; 70bacdf the audit fold; 7111720 stage 3; 4140285 the prereg draft; b05c7da the page's session-calendar support; 95f6a50 a pin; the bench commit after it carries the engine's session calendar, the ES tape and runner, the receipt, the HANDOFF archive; the pin commit after that is docs only and names the exact end here). Verify with `git diff --name-status 8a5806c..HEAD`. |
 
 No sibling-repo commits. The viewer's data folder (`analysis/domino/viewer/data/`, the runs
 included) and the vendored chart library are gitignored; `uv run python -m
 analysis.domino.trade_viewer export-run --as-of 2026-10-10` (about three minutes) regenerates run
 one; `trade_viewer import analysis/domino/viewer/examples/single_file_run.json` imports the
-example run. The ES Databento cache lives in `vectorbt-workspace/data/databento_cache/` and is
-read-only for this review (nothing in this range reads it in code yet).
+example run; `uv run python -m analysis.bench.run_bench --variant globex` (and `rth`) rebuilds
+runs two and three in about fifteen seconds each from the ES Databento cache in
+`vectorbt-workspace/data/databento_cache/` (read-only; `BENCH_CACHE` overrides the path). The
+byte-identical gate: `uv run python -m analysis.domino.manage --as-of 2026-10-10` (about 90 s)
+then `git diff --stat -- analysis/domino/results/manage.json analysis/domino/results/manage_tables.md`
+must be empty.
 
 ## What to read first
 
@@ -53,6 +61,23 @@ read-only for this review (nothing in this range reads it in code yet).
 
 ## Focus areas
 
+- **The engine's session calendar** (`analysis/domino/census.py` `use_calendar`, `aggregate`,
+  `_context`, `day_events`; `analysis/domino/manage.py` `_walk_hourly_session`, the `t1_h`
+  branch): does any line on the DEFAULT path differ from before (the gate says no; reproduce
+  it); the three session rules against the prereg's section 2 (the holiday week complete, the
+  Tuesday opening its week, Monday's level is Friday's, the data-start partial bucket still
+  dropped); the session hourly walk against the 24/7 walker's rules (strict entry, exit on the
+  hour closing against its open with the session against, touches inclusive, the early-close
+  session, the cap session's last hour, a missing hour censors, a session with no hours censors).
+- **The tape** (`analysis/bench/es_tape.py`): the trade-date label (open plus six hours), the
+  hour offsets on the session grid, the 1-minute RTH bins (09:30 open, the 15:30 half hour),
+  roll sessions from `instrument_id` (Globex: the session already open at the switch; RTH: the
+  next regular session), the short sessions. Nothing filled, nothing synthetic.
+- **The exporter's real times** (`run_export.Tape.open_of`, `hour_time`): a hold across a
+  weekend and across the November clock change; `A_h`'s target hour; run one's path unchanged.
+- **The receipt against the tables** (`analysis/bench/BENCH_RECEIPT.md`, the ledger card): every
+  number traceable to `bench_*_tables.md` or `bench_*.json`; both directions stated with equal
+  weight; nothing promoted; the confounds (roll, drift, short sessions) named where they bite.
 - **The staged import on Windows**: `dest.rename(old)` and `stage.rename(dest)` while the viewer
   serves the folder (open handles); `recover`'s parse of `.old-<id>-<stamp>` for ids that hold
   dashes; two imports of the same id at once (out of scope: say so if it is not handled, do not
@@ -83,5 +108,5 @@ read-only for this review (nothing in this range reads it in code yet).
 ## What is NOT in scope
 
 The TVB-42 audit's findings and the in-session pass's findings themselves (adjudicated in the
-TVB-43 entry); the engine (`manage.py`, `census.py`, `chance.py` are untouched this session); the
-bench build (not started; the prereg awaits the owner); the STRAT ML vessel; the owner's cc menu.
+TVB-43 entry); `chance.py` and `book.py` (untouched); the research questions the receipt leaves
+to the owner (which lines become arms or kill tests); the STRAT ML vessel; the owner's cc menu.

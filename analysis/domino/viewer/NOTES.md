@@ -248,6 +248,17 @@ the hand-written single-file phone run has been imported in a test, not on the p
   cannot leave the run folder; case-folded collisions; inline runs inside a zip or a folder;
   sparse extras backfilled. The page: value-derived clock words, the target share's denominator,
   generation-guarded run switches.
+- **Session-day runs, the same day** (the bench prereg's build order): a run card may declare
+  `clock.label_shift_hours` and `clock.calendar: session`; `cal.sessionOf` puts a time in the
+  session whose open is the latest at or before it; weeks and months bucket by the label date;
+  shipped `1w` / `1M` bars replace the aggregate's prices; offsets count sessions. The first
+  such runs are `es-globex-2011-2025` and `es-rth-2011-2025` (`analysis/bench/`), where a
+  Friday entry that leaves on Monday reads "day 1, the week's first session" and the hourly
+  clock's entry is the session's real 22:00 / 23:00 UTC open.
+- **Caching:** `serve` now answers every file with `Cache-Control: no-cache` (a browser left to
+  its heuristics served a day-old `app.js` and a stale run list), and the page fetches every
+  JSON with `cache: "no-cache"`. A server started before this change needs a restart to send
+  the header.
 
 ## The three things next
 

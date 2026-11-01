@@ -1,9 +1,10 @@
-# TVB-43 -- the one-instrument bench: the management book on ES at the Globex day -- pre-registration (DRAFT)
+# TVB-43 -- the one-instrument bench: the management book on ES at the Globex day -- pre-registration (CONFIRMED)
 
-**LABEL: CHARACTERIZATION, NO STRATEGY, NO P&L CLAIM. STATUS: DRAFT, awaiting the owner's word.
-Nothing below runs on data until the owner confirms the arms in this file (standing rule: prereg
-before code, declared variants, never a pick-the-winner). Definitions are fixed here BEFORE any
-outcome is read.**
+**LABEL: CHARACTERIZATION, NO STRATEGY, NO P&L CLAIM. STATUS: CONFIRMED by the owner 2026-11-01
+("The three items you flagged are approved on my end"): the arms V0 / V1 / the C0-C2 split,
+roll sessions flagged and split, and the engine change of section 2.1 under its byte-identical
+gate. Definitions were fixed in the draft BEFORE any outcome was read and are unchanged here;
+the build began the same day in the order of section 7.**
 
 - Drafted: 2026-11-01 (TVB-43) by the lead, after the TVB-42 audit fold and stage 3 of the viewer
   contract. The owner's rulings it rests on: the Globex 18:00 ET roll is "the day" for any
@@ -35,14 +36,23 @@ outcome is read.**
   RTH day.
 - **Book, card, headline, how it left**: as in `analysis/domino/viewer/CONTRACT.md` section 1.
 
+> **Results (2026-11-01, same day):** `analysis/bench/BENCH_RECEIPT.md` (glossary first, both
+> directions, the roll and longs / shorts splits, the continuity ladder as a split, the clocks),
+> the tables `analysis/bench/results/bench_globex_tables.md` and `bench_rth_tables.md`, the runs
+> `es-globex-2011-2025` (run two) and `es-rth-2011-2025` (run three) on the viewer. Build:
+> `analysis/bench/es_tape.py`, `analysis/bench/run_bench.py`; the engine change is
+> `census.use_calendar("session")` with the crypto book byte-identical through it.
+
 ## 1. Instrument and data (fixed)
 
 - `ES.n.0` (CME E-mini S&P 500, continuous front month by open interest, unadjusted), Databento
   GLBX MDP3, 1-minute source bars 2011-01-02 23:00 UTC to 2025-12-31 21:59 UTC (5,231,844 rows),
-  cached in `vectorbt-workspace/data/databento_cache/ES.n.0/` as `source_1m.parquet` (with the
-  `symbol` and `instrument_id` columns, so every roll session is known exactly) and resampled
-  there to `5m 15m 30m 60m 4H 1D 1W 1M` parquet files, each with a `.meta.json`
-  (`source_version: resampled-from-source_1m-v1`, written 2026-04-21).
+  cached in `vectorbt-workspace/data/databento_cache/ES.n.0/` as `source_1m.parquet` and
+  resampled there to `5m 15m 30m 60m 4H 1D 1W 1M` parquet files, each with a `.meta.json`
+  (`source_version: resampled-from-source_1m-v1`, written 2026-04-21). Roll sessions are known
+  exactly from the 1-minute source's `instrument_id`, which switches 60 times (quarterly, at
+  00:00 UTC, inside a Globex session); the continuous `symbol` column never changes (corrected
+  2026-11-01 at build time: the draft named the symbol column).
 - The cache's `1D` bar IS the Globex session: 3,859 bars opening 22:00 UTC in summer and 23:00
   UTC in winter (18:00 ET both), 2011-01-02 to 2025-12-30. `1W` opens Sunday evening; `1M` on
   the first session of the month. The 1-minute tape has the daily 17:00 to 18:00 ET gap and the
@@ -161,9 +171,9 @@ cap) is NOT in this file and does not run.
 4. The run: V0 then V1, exported as runs two and three, imported, viewed; the receipt; the
    ledger card.
 
-## 8. What the owner is asked to rule on (one message, any order)
+## 8. What the owner was asked to rule on, and the ruling (2026-11-01)
 
-- Confirm the arms: V0 (ruled day), V1 (the RTH pair), the C0 / C1 / C2 split. Strike any.
-- Confirm the roll handling: flag and split, never drop.
+- Confirm the arms: V0 (ruled day), V1 (the RTH pair), the C0 / C1 / C2 split. **Confirmed.**
+- Confirm the roll handling: flag and split, never drop. **Confirmed.**
 - Confirm the engine change in section 2.1 may be built (Plan Mode), with the byte-identical
-  crypto regression as its gate.
+  crypto regression as its gate. **Confirmed.**

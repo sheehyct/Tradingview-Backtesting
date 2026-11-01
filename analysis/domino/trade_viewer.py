@@ -116,6 +116,13 @@ class _Quiet(http.server.SimpleHTTPRequestHandler):
     def log_message(self, fmt, *args):  # noqa: D102
         pass
 
+    def end_headers(self):  # noqa: D102
+        # the page's own scripts and every run's JSON change on every edit and every import; a
+        # browser left to its heuristics served a day-old app.js and a stale run list (stage 3
+        # browser pass): every response says "revalidate" (a 304 when nothing changed)
+        self.send_header("Cache-Control", "no-cache")
+        super().end_headers()
+
 
 def serve(port: int, host: str = "127.0.0.1", open_browser: bool = True) -> None:
     """Host viewer/ over plain HTTP. `host` 127.0.0.1 = this machine only (the default); a

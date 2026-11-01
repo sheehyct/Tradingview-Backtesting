@@ -120,3 +120,4 @@ analysis/domino/viewer/proto_codex/vendor/
 # 208-day hourly window). A frozen snapshot, 22 MB, so every session reproduces the same rows.
 !analysis/strat_ml/snapshots/
 !analysis/strat_ml/snapshots/**
+analysis/bench/results/*.csv.gz

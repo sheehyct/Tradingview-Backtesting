@@ -692,7 +692,7 @@ settings at $1 risk, but with 26 fills they stay unread as arms.
   local, 1H / 1D / 1W / 1M, grey context and coloured trade candles) draws every row with its
   three exits for the owner's own pass.
 
-### TVB-43 the one-instrument bench (DRAFT prereg 2026-11-01, `docs/experiments/tvb43_bench_prereg.md`) -- no arm yet, awaiting the owner's word
+### TVB-43 the one-instrument bench (prereg 2026-11-01, `docs/experiments/tvb43_bench_prereg.md`, CONFIRMED by the owner the same day) -- a data product, no arm, no P&L claim
 
 - **In trader terms:** the same management book (no price stop; out on a session close against
   the trade with the week against it; the ladder of structural targets; the chance book beside
@@ -706,14 +706,34 @@ settings at $1 risk, but with 26 fills they stay unread as arms.
 - **Declared, side by side, none picked:** V0 the Globex day; V1 the regular-hours day (09:30 to
   16:00 ET) as the paired reading; the continuity ladder as a split of what every card already
   records (C0 every trade; C1 the week on your side at entry; C2 the week and the month).
-- **The one mechanical change:** the engine's calendar must count sessions instead of calendar
+- **The one mechanical change:** the engine's calendar counts sessions instead of calendar
   days (a holiday week of four sessions is a complete week; a Friday-to-Monday hold is one
-  bar). That is an engine change and waits for the owner; its gate is that the crypto book
-  reproduces byte-identically through the new code path.
+  bar). Built 2026-11-01 on the owner's word as `census.use_calendar("session")`; the crypto
+  book (`results/manage.json`, `manage_tables.md`) reproduced byte-identically through the
+  switched code before any ES row existed.
 - **Confounds named up front:** the contract roll (flagged and split, never dropped); one rising
   index over fifteen years (longs and shorts reported apart); short sessions and the 16:15
   break; the page's session labels (a Sunday-evening open is Monday's session).
-- **Numbers:** none yet. The card gets them when runs two and three exist in the viewer.
+- **Numbers (2026-11-01, `analysis/bench/BENCH_RECEIPT.md`; percent per trade, equal size,
+  no fees; both directions):** on the Globex day (3,824 session units) every management book
+  sits within a few hundredths of zero (exit only -0.05 [-0.11, +0.00]) and the chance book is
+  the one line clearly below (-0.11 [-0.15, -0.06]); on the regular-hours day (3,797) every
+  book, the chance book included, sits a few hundredths above zero with the intervals clear
+  (exit only +0.08 [+0.03, +0.14], chance +0.06). The stop swap (D5 minus the chance book, same
+  rows) replicates in direction on the daily unit of both days (+0.11 [+0.08, +0.15] and +0.04
+  [+0.01, +0.06]) at a fifth to a tenth of crypto's size, is flat on weekly units and REVERSES
+  on monthly units (-0.97 and -1.06, intervals clear). Longs carry both days (+0.15 / +0.21);
+  shorts lose on both (-0.32 / -0.09); the index rose five-fold over the sample. A roll inside
+  the window adds about a point to every book (a contract switch scored as a move; flagged on
+  every card, never dropped); without a roll the sign difference between the two days survives
+  (-0.11 against +0.05). The continuity ladder as a split: the complement (the week against or
+  unknown) reads HIGHER than the gated rung for the exit-only book on both days (RTH +0.21
+  [+0.11, +0.31] against +0.04); a gate would have removed the better-reading half. The hourly
+  clock halves the losers on both days and is the one clock with every setup's interval clear
+  of zero on the regular-hours day (+0.16 to +0.20; hold two to three traded hours). T1 is
+  reached at run one's rates (about two thirds of reversals and inside breaks, a third of
+  continuations and outside breaks). Runs `es-globex-2011-2025` and `es-rth-2011-2025` sit
+  beside run one on the viewer, Compare by role.
 
 ## Maintenance rule
 
