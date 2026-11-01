@@ -74,7 +74,7 @@ window.DV = window.DV || {};
     if (k == null) return "";
     if (k === 0) return "on the entry day";
     const j = Math.min(i + k, cal.daily.length - 1);
-    return "on day " + k + " (" + shortDate(iso(cal.daily[j][0])) + ")";
+    return "on day " + k + " (" + shortDate(cal.dateOf(j)) + ")";
   }
   function hoursHeld(b) { return b && b.entry != null && b.at != null ? Math.round((b.at - b.entry) / HOUR) : null; }
   function whenShort(t, b, hourly) {
@@ -94,7 +94,7 @@ window.DV = window.DV || {};
       if (hourly && b.at != null) {
         const hb = cal.hourly.find((x) => x[0] === b.at);
         const held = hoursHeld(b);
-        const di = cal.dayIdx.get(iso(b.at)), day = di != null ? cal.daily[di] : null;
+        const di = cal.sessionOf(b.at), day = di != null ? cal.daily[di] : null;
         // the day's side AT THAT HOUR is the exit hour's close against the day's open; the day's final close is
         // later information and is not what the clock saw
         const dayAt = hb && day ? colourWord(hb[4], day[1]) : null;
@@ -103,9 +103,9 @@ window.DV = window.DV || {};
             (dayAt ? ", with the day " + dayAt + " at that hour (" + relWord(hb[4], day[1]) + " the day's open " + fmtPrice(day[1], p) + ")" : "") : "") + ".";
       }
       const k = b.k == null ? 0 : b.k, j = Math.min(i + k, cal.daily.length - 1), bar = cal.daily[j], wo = cal.weekOpenAt(bar[0]);
-      const monday = C.weekStart(bar[0]) === bar[0];
-      return "The exit clock fired " + (k === 0 ? "on the entry day" : "on day " + k) + ", " + weekdayOf(iso(bar[0])) + " " + shortDate(iso(bar[0])) + ": that day closed " + colourWord(bar[4], bar[1]) + " at " + fmtPrice(bar[4], p) +
-        ", " + relWord(bar[4], bar[1]) + " its open " + fmtPrice(bar[1], p) + (monday ? " (a Monday: the day's open is also the week's open)" : wo != null ? " and " + relWord(bar[4], wo) + " the week's open " + fmtPrice(wo, p) : "") + ".";
+      const first = cal.firstOfWeek.has(j), label = cal.dateOf(j);
+      return "The exit clock fired " + (k === 0 ? "on the entry day" : "on day " + k) + ", " + weekdayOf(label) + " " + shortDate(label) + ": that day closed " + colourWord(bar[4], bar[1]) + " at " + fmtPrice(bar[4], p) +
+        ", " + relWord(bar[4], bar[1]) + " its open " + fmtPrice(bar[1], p) + (first ? " (the week's first session: the day's open is also the week's open)" : wo != null ? " and " + relWord(bar[4], wo) + " the week's open " + fmtPrice(wo, p) : "") + ".";
     }
     if (b.how === "cap") {
       if (hourly && b.at != null) return "Nothing fired inside the book's horizon, so the row is marked at the cap hour, " + isoH(b.at) + " UTC.";

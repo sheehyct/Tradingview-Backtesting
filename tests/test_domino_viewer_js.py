@@ -199,6 +199,87 @@ def test_prep_derives_day_offsets_from_the_bars_by_index():
     )  # the 12th is index +1, the 13th index +2
 
 
+GLOBEX_SUN = 1_767_564_000  # 2026-01-04 22:00 UTC: the Monday 2026-01-05 session's open
+
+
+def _globex(weeks: int = 3) -> list[list[float]]:
+    # daily bars opening Sunday to Thursday 22:00 UTC (Monday to Friday sessions), no weekend bars
+    out = []
+    for w in range(weeks):
+        for d in range(5):
+            out.append([GLOBEX_SUN + (7 * w + d) * DAY, 100.0, 101.0, 99.0, 100.0 + 5 * w + d, 1.0])
+    return out
+
+
+def test_session_runs_label_bars_bucket_weeks_and_hold_hours_by_session():
+    """The bench prereg's page side: a Globex run declares a 6-hour label shift and a session
+    calendar. The Sunday 22:00 UTC bar is Monday; a week holds five sessions and is complete; an
+    hour at Monday 20:00 UTC (16:00 ET, inside Monday's session) belongs to Monday, not Tuesday;
+    offsets count sessions; shipped weekly bars replace the aggregate's prices; a 00:00 UTC run
+    reads exactly as before."""
+    run = dict(
+        RUN,
+        clock={
+            "day_roll": "18:00 ET",
+            "resolution": "day",
+            "label_shift_hours": 6,
+            "calendar": "session",
+        },
+    )
+    daily = _globex()
+    hourly = [[GLOBEX_SUN + 22 * HOUR, 100.0, 101.0, 99.0, 100.5, 1.0]]  # Monday 20:00 UTC
+    weekly = [
+        [GLOBEX_SUN, 100.0, 150.0, 90.0, 104.0, 5.0]
+    ]  # the exchange's own first week, a higher high
+    fri, mon = GLOBEX_SUN + 4 * DAY, GLOBEX_SUN + 7 * DAY
+    c = card(
+        entry={"t": fri, "price": 100.0},
+        targets=[{"name": "T1", "price": 103.0, "source": "anchor", "touched": mon}],
+        touches={"one_r": mon, "far": None},
+        books=[
+            book("C", "clock", mon, 104.0, 4.0),
+            book("A", "target", mon, 103.0, 3.0, True),
+            book("ref", "cap", mon + DAY, 100.0, 0.0, False),
+        ],
+    )
+    out = run_js(
+        f"C.setRun({json.dumps(run)});"
+        f"const cal = C.makeCalendar({{ bars: {{ '1d': {json.dumps(daily)}, '1h': {json.dumps(hourly)}, '1w': {json.dumps(weekly)} }} }});"
+        f"const t = prep({json.dumps(c)}, cal);"
+        "out = { keys: [...cal.dayIdx.keys()].slice(0, 6), weekDays: cal.weeks.map(w => w.days.length), complete: cal.weeks.map(w => w.complete),"
+        f" hourSession: cal.sessionOf({GLOBEX_SUN + 22 * HOUR}), friSession: cal.sessionOf({fri}), date: t.date, ck: t.byBook.C.k, ak: t.byBook.A.k, t1k: t.t1_k,"
+        " weekHigh: cal.weeks[0].h, shipped: !!cal.weeks[0].shipped, firstOfWeek: [...cal.firstOfWeek], dateOf4: cal.dateOf(4),"
+        f" weekOpenAtHour: cal.weekOpenAt({GLOBEX_SUN + 22 * HOUR}) }};"
+        "C.setRun(" + json.dumps(RUN) + ");"
+        f"const cal0 = C.makeCalendar({{ daily: {json.dumps(_daily(21))}, hourly: [] }}); const t0 = prep({json.dumps(card())}, cal0);"
+        "out.plain = { keys: [...cal0.dayIdx.keys()].slice(0, 2), weekDays: cal0.weeks.map(w => w.days.length), complete: cal0.weeks.map(w => w.complete), date: t0.date, ck: t0.byBook.C.k };"
+    )
+    assert out["keys"] == [
+        "2026-01-05",
+        "2026-01-06",
+        "2026-01-07",
+        "2026-01-08",
+        "2026-01-09",
+        "2026-01-12",
+    ]
+    assert out["weekDays"] == [5, 5, 5] and out["complete"] == [True, True, False]
+    assert out["hourSession"] == 0 and out["friSession"] == 4 and out["weekOpenAtHour"] == 100.0
+    assert out["date"] == "2026-01-09" and out["ck"] == 1 and out["ak"] == 1 and out["t1k"] == 1
+    assert out["weekHigh"] == 150.0 and out["shipped"] is True
+    assert out["firstOfWeek"] == [0, 5, 10] and out["dateOf4"] == "2026-01-09"
+    # the 24/7 run: calendar-day keys, seven-day weeks complete only when every day is present, offsets by bar
+    assert (
+        out["plain"]["keys"] == ["2026-01-01", "2026-01-02"]
+        and out["plain"]["date"] == "2026-01-10"
+        and out["plain"]["ck"] == 3
+    )
+    assert (
+        out["plain"]["weekDays"][1] == 7
+        and out["plain"]["complete"][1] is True
+        and out["plain"]["complete"][0] is False
+    )
+
+
 def test_settle_keeps_the_selected_book_when_it_has_no_result():
     """TVB-39 F6: the chance book censored while book C has a result. The missing book borrows no
     window (k = 0) and states the card's own reason; a book absent from the card says so."""

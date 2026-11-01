@@ -467,6 +467,82 @@ def test_an_extras_key_first_seen_on_a_later_card_stays_on_that_card():
     assert all(len(v) == 3 for v in u["cols"].values())
 
 
+GLOBEX_SUN = (
+    1_767_564_000  # 2026-01-04 22:00 UTC, a Sunday evening: the Monday 2026-01-05 session's open
+)
+
+
+def globex_tape(weeks: int = 3) -> list[list[float]]:
+    """Daily bars opening Sunday to Thursday 22:00 UTC (sessions Monday to Friday), no weekend bars."""
+    out = []
+    for w in range(weeks):
+        for d in range(5):
+            t = GLOBEX_SUN + (7 * w + d) * DAY
+            out.append([t, 100.0, 101.0, 99.0, 100.0 + 5 * w + d, 1.0])
+    return out
+
+
+def test_clock_label_shift_and_calendar_are_validated():
+    assert (
+        K.validate_run(
+            run_doc(
+                clock={
+                    "day_roll": "18:00 ET",
+                    "resolution": "day",
+                    "label_shift_hours": 6,
+                    "calendar": "session",
+                }
+            )
+        )
+        == []
+    )
+    bad = run_doc(clock={"day_roll": "18:00 ET", "resolution": "day", "label_shift_hours": 30})
+    assert any("label_shift_hours" in p for p in K.validate_run(bad))
+    bad = run_doc(clock={"day_roll": "18:00 ET", "resolution": "day", "label_shift_hours": 6.5})
+    assert any("label_shift_hours" in p for p in K.validate_run(bad))
+    bad = run_doc(clock={"day_roll": "18:00 ET", "resolution": "day", "calendar": "lunar"})
+    assert any("clock.calendar" in p for p in K.validate_run(bad))
+
+
+def test_derived_dates_carry_the_session_label_and_offsets_count_bars():
+    """A Globex run (the bench prereg): the Sunday-evening open is Monday's session in the dates
+    file and the universe table, and a Friday-to-Monday hold is one bar, not three days."""
+    run = run_doc(
+        clock={
+            "day_roll": "18:00 ET",
+            "resolution": "day",
+            "label_shift_hours": 6,
+            "calendar": "session",
+        }
+    )
+    tape = globex_tape()
+    fri = GLOBEX_SUN + 4 * DAY  # Thursday 22:00 UTC = Friday's session
+    mon = GLOBEX_SUN + 7 * DAY  # the next Monday's session
+    c = card(
+        entry={"t": fri, "price": 100.0},
+        targets=[{"name": "T1", "price": 103.0, "source": "anchor", "touched": mon}],
+        touches={"one_r": mon, "far": None},
+        books=[
+            {"id": "C", "how": "clock", "at": mon, "price": 104.0, "ret": 4.0, "hit": None},
+            {"id": "A", "how": "target", "at": mon, "price": 103.0, "ret": 3.0, "hit": True},
+        ],
+    )
+    assert (
+        K.validate(run, {"X.json": {"instrument": "X", "bars": {"1d": tape}, "trades": [c]}})[0]
+        == []
+    )
+    d = K.Derive(run)
+    d.add("X.json", {"instrument": "X", "bars": {"1d": tape}, "trades": [c]})
+    assert list(d.dates) == ["2026-01-09"]  # Thursday 22:00 UTC labelled Friday
+    u = d.universe()
+    assert u["cols"]["date"] == [(fri + 6 * 3600 - int(K.UNI_EPOCH.timestamp())) // DAY]
+    assert u["cols"]["C:days"] == [1] and u["cols"]["A:days"] == [1]  # one session, not three days
+    # a 00:00 UTC run is unchanged: the label is the day, the offset the bar count
+    d0 = K.Derive(run_doc())
+    d0.add("X.json", files_doc()["X.json"])
+    assert list(d0.dates) == ["2026-01-03"] and d0.universe()["cols"]["C:days"] == [3]
+
+
 def test_the_flat_layout_and_its_commands_are_retired(tmp_path: Path, monkeypatch):
     """Stage 3: `build` and `check-run` are gone; `serve` wants runs.json, not the flat index."""
     from analysis.domino import run_export as RX

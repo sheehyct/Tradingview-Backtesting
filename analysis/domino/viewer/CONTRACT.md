@@ -48,7 +48,8 @@ this shape.
   "built": "2026-10-31T14:00:00Z",
   "source": { "repo": "tradingview-backtesting", "commit": "75626b7",
               "command": "uv run python -m analysis.domino.trade_viewer export-run --as-of 2026-10-10" },
-  "clock": { "day_roll": "00:00 UTC", "resolution": "day", "weeks": "Monday 00:00 UTC", "months": "calendar" },
+  "clock": { "day_roll": "00:00 UTC", "resolution": "day", "weeks": "Monday 00:00 UTC", "months": "calendar",
+             "label_shift_hours": 0, "calendar": "utc_day" },
   "units": ["D", "W", "M"],
   "bars": ["1h", "1d"],
   "returns": "percent of price, equal size, no fees, no leverage",
@@ -165,6 +166,15 @@ the entry time and the run's day roll; cards never carry offsets. A fill known t
 timestamp at that day's open under the run's day roll (00:00 UTC for a perp day; the 18:00 ET
 open for a Globex day). The exit of a clock exit is the time of the bar whose close fired it.
 
+A time belongs to the SESSION whose daily bar opens latest at or before it (an hour of a Globex
+session that crosses midnight UTC stays with its session). A session is NAMED by the calendar
+date of its open plus `clock.label_shift_hours` (0 for a 00:00 UTC day; 6 for the Globex day,
+whose Sunday 22:00 or 23:00 UTC open is Monday's session): that label is the date the page
+prints, the key of `dates.json` and the universe table's `date`. `clock.calendar` is `utc_day`
+(the default: every calendar day is a bar, a missing day is a gap) or `session` (sparse: no
+weekend, holidays; a week or month is complete once the data runs past it). Day offsets are
+counted in bars (sessions), not calendar days: a Friday-to-Monday hold is one bar.
+
 ## 5. How it left
 
 | `how`      | meaning                                                      | needs `at` / `price` |
@@ -187,8 +197,10 @@ with `t` the bar's open in UTC seconds, sorted, as the engine normalised them. B
 a run that ships none still imports; the importer can fill a Hyperliquid coin's bars from the
 census cache (`--bars-from-cache`), otherwise the card shows the story and the ladder with a
 "no bars for this run" chart. The page aggregates weekly and monthly candles from the daily
-bars with the run's `clock.weeks` / `clock.months` rules; a run on another day roll ships its
-own daily bars already rolled.
+bars, bucketed by each bar's LABEL date (Monday 00:00 weeks, calendar months of the label); a run
+on another day roll ships its own daily bars already rolled and may ship `1w` and `1M` bars too,
+whose open / high / low / close then replace the aggregate for the matching week or month (the
+exchange's bar, not a re-aggregation); the daily bars still say which days a week holds.
 
 ## 7. Files, folders, import
 

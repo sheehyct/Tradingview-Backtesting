@@ -237,7 +237,7 @@
 
   function bars(pane) {
     const cal = state.cal;
-    if (pane.tf === "1H") return cal.hourly.map((b) => ({ t: b[0], o: b[1], h: b[2], l: b[3], c: b[4], days: [cal.dayIdx.get(iso(b[0]))].filter((x) => x != null), hour: true }));
+    if (pane.tf === "1H") return cal.hourly.map((b) => ({ t: b[0], o: b[1], h: b[2], l: b[3], c: b[4], days: [cal.sessionOf(b[0])].filter((x) => x != null), hour: true }));
     if (pane.tf === "1D") return cal.daily.map((b, i) => ({ t: b[0], o: b[1], h: b[2], l: b[3], c: b[4], days: [i] }));
     return (pane.tf === "1W" ? cal.weeks : cal.months).map((b) => ({ t: b.t, o: b.o, h: b.h, l: b.l, c: b.c, days: b.days, complete: b.complete }));
   }
@@ -442,7 +442,7 @@
     const long = t.direction === "up", p = precisionFor(cal.daily, t), st = settle(t, state.book), span = tradeSpan(t, state.book, cal);
     if (!span) { el.innerHTML = '<span class="dim">This trade\'s entry day is not in the instrument\'s bars.</span>'; return; }
     const hourly = st.res === "hour";
-    const exitWhen = st.t != null ? (hourly ? isoH(st.t) : iso(cal.daily[span.end][0])) : "";
+    const exitWhen = st.t != null ? (hourly ? isoH(st.t) : cal.dateOf(span.end)) : "";
     const held = st.missing ? '<span class="sm">n/a</span>' : hourly && st.entry != null && st.t != null ? Math.round((st.t - st.entry) / C.HOUR) + " h" : (span.end - span.i) + " day" + (span.end - span.i === 1 ? "" : "s");
     const wt = htfType(cal, "W", span.i), mt = htfType(cal, "M", span.i);
     const stackChip = t.stackList && t.stackList.length > 1 ? ' <span class="chip flag">' + esc(stackWords(t, stackLevels(t, span.i, cal)).text) + "</span>" : "";

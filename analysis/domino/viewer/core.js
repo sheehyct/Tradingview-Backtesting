@@ -35,9 +35,16 @@ window.DV = window.DV || {};
   const $ = (id) => document.getElementById(id);
 
   // ---------------------------------------------------------------- the run: its books, roles, colours
-  const RUN = { run: null, ids: [], byId: {}, ladder: [], groups: [], head: null, ref: null, col: {} };
+  const RUN = { run: null, ids: [], byId: {}, ladder: [], groups: [], head: null, ref: null, col: {}, shift: 0, session: false };
   function setRun(run) {
     RUN.run = run; RUN.ids = []; RUN.byId = {}; RUN.ladder = []; RUN.groups = []; RUN.head = null; RUN.ref = null; RUN.col = {};
+    // a run on another day roll (the Globex session opens 18:00 ET, 22:00 or 23:00 UTC, and is named by the NEXT
+    // calendar day) declares `clock.label_shift_hours`: the hours added to a bar's open before its calendar date is read
+    // as the session's label. `clock.calendar: "session"` says sessions are sparse (no weekend, holidays), so a week or
+    // month is complete when the data runs past it, not when every calendar day is present (CONTRACT.md sections 2, 4, 6)
+    const clock = run.clock || {};
+    RUN.shift = (Number(clock.label_shift_hours) || 0) * HOUR;
+    RUN.session = clock.calendar === "session";
     let li = 0;
     for (const b of run.books || []) {
       RUN.ids.push(b.id); RUN.byId[b.id] = b;
@@ -79,11 +86,17 @@ window.DV = window.DV || {};
   function weekStart(t) { const dse = Math.floor(t / DAY); const wd = (dse + 4) % 7; return (dse - (wd + 6) % 7) * DAY; }
   function monthStart(t) { const d = new Date(t * 1000); return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1) / 1000; }
   function nextMonth(t) { const d = new Date(t * 1000); return Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1) / 1000; }
-  function aggregate(daily, tf) {
+  // the calendar date a bar or a time is labelled with: its open plus the run's label shift (0 for a 00:00 UTC day)
+  const dayFloor = (t) => t - (t % DAY);
+  const labelOf = (t) => iso(t + RUN.shift);
+  function aggregate(daily, tf, shipped) {
+    // week / month buckets of the daily bars, keyed by the LABEL date (so a Sunday-evening Globex open sits in Monday's
+    // week); `shipped` = the run's own weekly or monthly bars, whose open / high / low / close replace the aggregate
+    // when a bar's label week (month) matches (the exchange's bar, not a re-aggregation)
     const start = tf === "W" ? weekStart : monthStart;
     const out = [];
     daily.forEach((b, i) => {
-      const k = start(b[0]);
+      const k = start(b[0] + RUN.shift);
       if (!out.length || out[out.length - 1].t !== k) {
         out.push({ t: k, end: tf === "W" ? k + 7 * DAY : nextMonth(k), o: b[1], h: b[2], l: b[3], c: b[4], v: b[5], days: [i] });
       } else {
@@ -91,16 +104,38 @@ window.DV = window.DV || {};
         x.h = Math.max(x.h, b[2]); x.l = Math.min(x.l, b[3]); x.c = b[4]; x.v += b[5]; x.days.push(i);
       }
     });
-    const lastEnd = daily.length ? daily[daily.length - 1][0] + DAY : 0;
-    for (const x of out) x.complete = x.end <= lastEnd && x.days.length === (x.end - x.t) / DAY;
+    if (shipped && shipped.length) {
+      const byKey = new Map(shipped.map((s) => [start(s[0] + RUN.shift), s]));
+      for (const x of out) { const s = byKey.get(x.t); if (s) { x.o = s[1]; x.h = s[2]; x.l = s[3]; x.c = s[4]; x.v = s[5]; x.shipped = true; } }
+    }
+    const lastEnd = daily.length ? dayFloor(daily[daily.length - 1][0] + RUN.shift) + DAY : 0;
+    out.forEach((x, n) => {
+      // complete = the bar is closed: the data runs past its end; a 24/7 run also wants every calendar day present
+      // (a missing day is a data gap there); a session calendar is complete once a later bucket has begun
+      const closed = x.end <= lastEnd || (RUN.session && n < out.length - 1);
+      x.complete = closed && (RUN.session || x.days.length === (x.end - x.t) / DAY);
+    });
     return out;
   }
   function makeCalendar(d) {
-    // per-instrument day index + week / month buckets + the week's open for any day; `d` is { daily, hourly } or a run file ({ bars })
-    const daily = d.daily || (d.bars && d.bars["1d"]) || [], hourly = d.hourly || (d.bars && d.bars["1h"]) || [];
-    const weeks = aggregate(daily, "W"), months = aggregate(daily, "M");
-    const wo = new Map(); for (const w of weeks) for (const di of w.days) wo.set(daily[di][0], w.o);
-    return { daily, hourly, dayIdx: new Map(daily.map((b, i) => [iso(b[0]), i])), weeks, months, weekOpenAt: (t) => wo.get(t - (t % DAY)) ?? null };
+    // per-instrument day index + week / month buckets + the week's open for any time; `d` is { daily, hourly } or a run
+    // file ({ bars }). A time belongs to the SESSION whose open is the latest at or before it (an hour of a Globex
+    // session that crosses midnight UTC stays with its session); the day index is keyed by the label date.
+    const bars = d.bars || {};
+    const daily = d.daily || bars["1d"] || [], hourly = d.hourly || bars["1h"] || [];
+    const weeks = aggregate(daily, "W", bars["1w"]), months = aggregate(daily, "M", bars["1M"]);
+    const opens = daily.map((b) => b[0]);
+    const sessionOf = (t) => {
+      if (t == null || !opens.length || t < opens[0]) return null;
+      let lo = 0, hi = opens.length - 1;
+      while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (opens[mid] <= t) lo = mid; else hi = mid - 1; }
+      return lo;
+    };
+    const weekOpen = new Array(daily.length), firstOfWeek = new Set();
+    for (const w of weeks) { for (const di of w.days) weekOpen[di] = w.o; firstOfWeek.add(w.days[0]); }
+    return { daily, hourly, dayIdx: new Map(daily.map((b, i) => [labelOf(b[0]), i])), weeks, months, sessionOf, firstOfWeek,
+      dateOf: (i) => (i == null || !daily[i] ? null : labelOf(daily[i][0])),
+      weekOpenAt: (t) => { const i = sessionOf(t); return i == null || weekOpen[i] == null ? null : weekOpen[i]; } };
   }
   const iso = (t) => new Date(t * 1000).toISOString().slice(0, 10);
   const isoH = (t) => new Date(t * 1000).toISOString().slice(0, 16).replace("T", " ");
@@ -131,7 +166,11 @@ window.DV = window.DV || {};
     // day offset of every recorded time against the run's own bars (the inverse of the exporter: an offset is bars, not
     // calendar days, because the census fills no gaps). Nothing here changes what the card says.
     const t0 = t.entry.t;
-    t.date = iso(t0); t.tf = t.bar; t.level = t.entry.price; t.stop = t.far == null ? null : t.far;
+    // the entry's label date: the session holding the entry time (an hour-resolution entry inside a Globex session
+    // still labels as that session); without bars, the shifted calendar date
+    const s0 = cal ? cal.sessionOf(t0) : null;
+    t.date = s0 != null ? cal.dateOf(s0) : labelOf(t0);
+    t.tf = t.bar; t.level = t.entry.price; t.stop = t.far == null ? null : t.far;
     t.cls = t.class == null ? null : t.class;
     const ex = t.extras || {};
     t.near_tf = ex.near_tf == null ? null : ex.near_tf; t.liquid = !!ex.liquid; t.flag = ex.flag == null ? "none" : ex.flag;
@@ -142,8 +181,9 @@ window.DV = window.DV || {};
     t.window = tv.window || RUN.head;
     const i = cal ? cal.dayIdx.get(t.date) : null;
     const kOf = (ts) => {
+      // the offset in BARS (sessions) from the entry's bar to the bar holding `ts`; calendar days only without bars
       if (ts == null) return null;
-      if (cal && i != null) { const j = cal.dayIdx.get(iso(ts)); if (j != null) return j - i; }
+      if (cal && i != null) { const j = cal.sessionOf(ts); if (j != null) return j - i; }
       return Math.floor((ts - t0) / DAY);
     };
     t.kOf = kOf;
@@ -263,6 +303,6 @@ window.DV = window.DV || {};
 
   DV.core = { DAY, HOUR, CAP, MS, COL, ROLE_WORD, HOW_SHORT, CLS_LABEL, KIND_LABEL, KIND_SHORT, TF_LABEL, TF_WORD, tfLabel, tfWord, DASH, INTERVAL, BT_CLASS, BT_WORD, $,
     setRun, getRun, bookIds, ladderBooks, groupNames, groupBooks, bookOf, bookName, bookRule, bookRole, bookGroup, bookTarget, bookCol, bookRes, entryRes, headline, reference, bookLabel,
-    weekStart, monthStart, nextMonth, aggregate, makeCalendar, iso, isoH, dateMs, longDate, shortDate, monthName, weekdayOf, decimalsOf, precisionFor, fmtPrice, fmtPct, fmtUsd, fmtUsd0, cls, esc,
+    weekStart, monthStart, nextMonth, aggregate, makeCalendar, labelOf, dayFloor, iso, isoH, dateMs, longDate, shortDate, monthName, weekdayOf, decimalsOf, precisionFor, fmtPrice, fmtPct, fmtUsd, fmtUsd0, cls, esc,
     prep, targetName, howWords, settle, tradeSpan, stackLevels, setupDays, oneR, barType, htfType, btChip, stackSubset, stackWords, cellIndex };
 })(window.DV);

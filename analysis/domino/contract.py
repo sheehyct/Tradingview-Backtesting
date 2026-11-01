@@ -14,6 +14,7 @@ import math
 import shutil
 import tempfile
 import zipfile
+from bisect import bisect_right
 from collections import defaultdict
 from collections.abc import Callable, Iterable, Iterator
 from datetime import datetime, timezone
@@ -25,6 +26,10 @@ HOW_PRICED = ("target", "one_r", "stop", "clock")  # these need a time, a price 
 ROLES = ("headline", "target", "stop", "clock", "reference")
 LADDER_ROLES = ("headline", "target", "stop", "reference")  # the books Compare lines up
 RESOLUTIONS = ("day", "hour", "minute")
+CALENDARS = (
+    "utc_day",
+    "session",
+)  # every calendar day is a bar | sparse sessions (no weekend, holidays)
 KINDS = ("reversal", "continuation", "inside", "outside")
 DIRECTIONS = ("up", "down")
 DERIVED = ("index.json", "dates.json", "universe.json")
@@ -141,6 +146,17 @@ def validate_run(run: dict) -> list[str]:
             p.append("run: clock.day_roll missing (for example '00:00 UTC' or '18:00 ET')")
         if clock.get("resolution") not in RESOLUTIONS:
             p.append("run: clock.resolution must be day, hour or minute")
+        shift = clock.get("label_shift_hours", 0)
+        if not (isinstance(shift, int) and not isinstance(shift, bool) and -23 <= shift <= 23):
+            p.append(
+                "run: clock.label_shift_hours must be a whole number of hours from -23 to 23 (added to "
+                "a bar's open before its calendar date names the session; 6 for the Globex day)"
+            )
+        if clock.get("calendar", "utc_day") not in CALENDARS:
+            p.append(
+                "run: clock.calendar must be utc_day (every calendar day is a bar) or session "
+                "(sparse: no weekend, holidays)"
+            )
     units = run.get("units")
     if not isinstance(units, list) or not units or not all(isinstance(u, str) and u for u in units):
         p.append("run: units must list the setup bar names the cards use (for example D, W, M)")
@@ -414,11 +430,23 @@ class Derive:
         self.classes: list[str] = []
         self.extras: dict[str, dict] = {}  # key -> {"kind": "flag"|"code", "codes": [...]}
         self.n = 0
+        clock = run.get("clock") if isinstance(run.get("clock"), dict) else {}
+        # the label shift (CONTRACT.md section 4): the universe's date column and the dates file
+        # carry the SESSION'S label, the same date the page prints for the card
+        self.shift = int(clock.get("label_shift_hours") or 0) * 3_600
 
     def add(self, fname: str, doc: dict) -> None:
         inst = doc["instrument"]
         bars = doc.get("bars") or {}
         daily = bars.get("1d") or []
+        opens = [int(b[0]) for b in daily]
+
+        def session(ts) -> int | None:
+            # the bar whose open is the latest at or before ts (the page's sessionOf), None without bars
+            if ts is None or not opens or ts < opens[0]:
+                return None
+            return bisect_right(opens, ts) - 1
+
         ci = len(self.instruments)
         self.instruments.append(
             {
@@ -433,14 +461,16 @@ class Derive:
         units = self.run.get("units", [])
         for c in doc.get("trades", []):
             t0 = c["entry"]["t"]
+            s0 = session(t0)
+            label_t = (opens[s0] if s0 is not None else t0) + self.shift
             by_id = {b["id"]: b for b in c["books"]}
             head = by_id.get(self.head, {})
-            self.dates[day_of(t0)].append(
+            self.dates[day_of(label_t)].append(
                 [inst, c["direction"], c["bar"], c["kind"], head.get("ret"), head.get("how")]
             )
             cols = self.cols
             cols["instrument"].append(ci)
-            cols["date"].append((t0 - int(UNI_EPOCH.timestamp())) // DAY)
+            cols["date"].append((label_t - int(UNI_EPOCH.timestamp())) // DAY)
             cols["bar"].append(units.index(c["bar"]) if c["bar"] in units else -1)
             cols["kind"].append(KINDS.index(c["kind"]))
             cols["dir"].append(DIRECTIONS.index(c["direction"]))
@@ -457,7 +487,16 @@ class Derive:
                 cols[bid + ":ret"].append(None if r is None else round(r, 3))
                 cols[bid + ":how"].append(-1 if b is None else HOW.index(b["how"]))
                 at = None if b is None else b.get("at")
-                cols[bid + ":days"].append(-1 if at is None else (at - t0) // DAY)
+                # the offset in BARS from the entry's bar to the bar holding the exit (the page's k);
+                # calendar days only when the file ships no daily bars
+                sj = session(at)
+                if at is None:
+                    k = -1
+                elif sj is not None and s0 is not None:
+                    k = sj - s0
+                else:
+                    k = (at - t0) // DAY
+                cols[bid + ":days"].append(k)
                 hit = None if b is None else b.get("hit")
                 cols[bid + ":hit"].append(-1 if hit is None else int(hit))
             self._extras(c.get("extras") or {})

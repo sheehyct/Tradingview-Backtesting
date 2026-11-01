@@ -5,6 +5,207 @@
 
 ---
 
+## Session TVB-43: the TVB-42 audit folded in code with an in-session Codex pass, the contract's stage 3 built and verified in Chrome, the page made ready for session-day runs, the bench prereg drafted (COMPLETE)
+
+**Date:** 2026-11-01
+**Status:** COMPLETE. Four commits on `main`, pushed: `70bacdf` (the audit fold), `7111720` (stage
+3), `4140285` (the bench prereg draft), and the close-out (the page's session-calendar support,
+this entry). Suite 500 passed, 2 skipped. Run one re-imported in place through the new importer
+(twice, 69 s each, no leftovers). The owner's direction at the start of the session: "proceed
+with our priorities as listed"; move back to the autonomous side; the stop-early, request-Codex,
+sessions-of-small-fixes loop is the thing to avoid; a one-screen priorities list; few check-ins.
+Recorded as a standing memory and applied: the audit was folded IN CODE the same session and the
+adversarial pass ran IN-SESSION on the diff before the commit.
+
+### TVB-42 audit: critical synthesis (F1-F8), all ACCEPTED and repaired
+
+Every finding was re-read against the cited lines before acting; all eight held.
+
+- **F1 HIGH, ids and file names could escape the runs folder:** `_slug` now requires an id to
+  start AND end with a letter or digit and not be a Windows device name (`.`, `..`, `x.`,
+  `CON` refused); `_fname` turns every character outside letters, digits, dot, dash, underscore
+  into an underscore, strips leading and trailing dots, prefixes device names and suffixes
+  reserved files (`RUN` -> `RUN_instrument.json`); `_plain_name` and `_inside` guard every write;
+  `export-run` checks its id before any folder is made. Run one's 292 file names are unchanged.
+- **F2 HIGH, a refused replacement destroyed the old run:** `import_run` builds the run in a
+  staging folder beside the runs and swaps it in only after every card passes; a refused
+  replacement leaves the old run and `runs.json` exactly as they were (test: byte-identical
+  files, unchanged listing); the in-place import now recognises `<dest>/run.json` as its own
+  source.
+- **F3 MEDIUM, a zipped inline run imported zero cards:** the folder branch recognises an inline
+  `run.json` and splits it like a direct file (the zip branch goes through it); a folder that
+  mixes the two flavours is refused; direct file, zipped file and folder give one card count.
+- **F4 MEDIUM, a sparse extras column shifted onto earlier cards:** a key first seen on card n
+  starts its column with n absent marks; tested across cards and files.
+- **F5 MEDIUM, clock sentences asserted false relationships:** "above / below / level with"
+  and "red / green / flat" are read off the two prices compared, never the trade's direction;
+  the hourly branch states the day's side AT THE EXIT HOUR (the hour's close against the day's
+  open) and never the day's final close; the Monday sentence is a bar fact ("the week's first
+  session: the day's open is also the week's open"), not a rule claim.
+- **F6 MEDIUM, "at target" divided by a different count than its note described:** the KPI
+  shows "51% of 135k with one"; the note names the denominator (filled trades that HAD a target,
+  one R for the one-R books); `bookStats` returns `withTarget`, `targets`, `targetAll`.
+- **F7 MEDIUM, a run switch kept the universe scope stale and accepted stale responses:**
+  `loadRun` bumps a generation and reloads the universe for a retained scope; every async load
+  compares the generation before writing state; one universe fetch in flight at a time.
+- **F8 LOW, `check-run` claimed more than it compared:** its exact coverage and its omissions
+  are now stated in `CONTRACT.md` section 7; the command was retired with the flat layout in
+  stage 3 (below). The audit's own 4,314,995-field probe is recorded as the broader receipt.
+- **Held by the audit and not re-done:** the saved-row probe (zero differences, clock variants
+  included); both TVB-41 repairs; probe 3 (3,913 A_h and 4,644 D_h rows with hit false and a
+  day-resolution touch at or before an hourly exit are a coarse-timestamp comparison, no engine
+  or flag change); probe 7 (the target-fill rule stays existential; the 200-problem stop is
+  after the file that crosses it, now said in the docstring).
+
+### The in-session Codex pass on the repairs (before the commit): 2 HIGH, 5 MEDIUM, all repaired
+
+Run with the `codex:codex-rescue` agent on the uncommitted diff, read-only. Areas 3 (zip and
+folder routing), 4 (extras backfill) and 5 (clock prose) came back CLEAN.
+
+- **#1 HIGH, an interrupted swap plus the next import's sweep could destroy a run:** the stepped-
+  aside copy (`.old-<id>-<stamp>`) is the only copy if the process dies between the two renames,
+  and `_sweep` deleted it. Now `recover()` runs first and PUTS BACK a stepped-aside run whose name
+  is empty (and removes one whose swap had completed); a failed second rename renames the old
+  run straight back; the stamp carries no dash so an id with dashes splits off cleanly. Tests:
+  the interrupted shape restored byte-identical; a simulated rename failure leaves files and
+  listing untouched.
+- **#2 HIGH, `Foo` / `foo` / `Foo.` are one folder on Windows while the listing compared ids
+  exactly:** ids must end with a letter or digit; `register` folds case (one listing, the newer
+  id's words win).
+- **#3, #4 MEDIUM, case-sensitive collision checks and device names:** `_split_single` keys
+  collisions by casefold (`BTC` and `btc` refused); reserved files compared without case
+  (`INDEX.json`); `NUL` -> `_NUL.json`; `_plain_name` refuses both.
+- **#5 MEDIUM, a load could capture the new generation with the OLD address:** `loadRun` nulls
+  `runId` / `base` / `index` while the switch is in flight and every loader bails on a null base.
+- **#6 MEDIUM, `applyDate` and `select` committed stale selections:** `applyDate` awaits every
+  instrument file, re-checks the generation, then commits; `select` stops when `loadCoin`
+  reports the run changed.
+- **#7 MEDIUM, a failed universe load left "loading..." forever:** the failure is caught, said
+  in the meta line and on the Compare scope note ("pick the scope again to retry"), never spun on.
+- One more found in the browser pass, not by either review: **the page trusted a cached
+  `runs.json`** (the server sends no cache headers) and showed one run after a second had been
+  imported. Every JSON the page reads now goes through `getJson` with `cache: "no-cache"`
+  (SimpleHTTPRequestHandler answers 304s).
+
+### Stage 3 of the contract (on the owner's word, read from "proceed with our priorities as listed")
+
+- `trade_viewer build`, `check-run`, the flat loader and the flat universe table are DELETED;
+  `serve` wants `data/runs.json`. The old flat files under `viewer/data/*.json` (302 MB,
+  gitignored) are unread and can be deleted by the owner.
+- **Compare across runs, by role.** An "Against run" list on the Compare tab; the chosen run's
+  card and universe table load and a by-role table lines its ladder books up with this run's:
+  headline against headline, the target books in order, stop books, the chance book against
+  the chance book (`stats.roleRows` pairs the k-th book of each role; a gap where a run has
+  none); both sides over their whole universe table with the page's filters (the unit filter
+  only where the other run shares a unit name); the other run's headline is a dashed curve on
+  the equity chart; `cmpRun=` in the address. Rough edge kept: the dashed curve shares the y
+  axis, so a tiny run's curves flatten beside run one's hundreds of thousands.
+- **The example single-file run** (`analysis/domino/viewer/examples/single_file_run.json`,
+  rebuilt by `make_example.py`): one `run.json` with BTC inline, the venue's REAL last 100 daily
+  bars from run one's file and six of the engine's own daily cards trimmed to three books. It
+  is the shape a phone backtest writes and not a result. Imported beside run one and verified in
+  Chrome: the picker lists both runs; the switch loads 6 cards and 100 bars, the book select and
+  the unit filter follow the run card (D only), the ladder and story read the cards; Compare
+  against run one shows the by-role table (6 rows against 153,516 daily rows of run one under
+  the page's Daily filter) and the dashed headline; no console errors.
+- `NOTES.md` ("stage 3"), `CONTRACT.md` (header, sections 7, 10, 12), `MANAGE_RECEIPT.md` (the
+  command block) updated; `tests/test_domino_viewer.py` points at the exporter's typed cell
+  (`run_export._val`) now that the flat loader is gone.
+
+### The page made ready for session-day runs (the bench prereg's build order, item 1; page work, Plan Mode OFF)
+
+- Two optional run-card fields, validated: `clock.label_shift_hours` (the hours added to a
+  bar's open before its calendar date names the session; 6 for the Globex day, whose Sunday
+  22:00 or 23:00 UTC open is Monday's session) and `clock.calendar` (`utc_day`, the default, or
+  `session`: sparse, no weekend, holidays).
+- `core.js`: `cal.sessionOf(ts)` (a time belongs to the session whose open is the latest at or
+  before it, so an hour of a Globex session that crosses midnight UTC stays with its session;
+  binary search over the daily opens); the day index keyed by LABEL date; week and month
+  buckets by label date; a session calendar is complete once a later bucket has begun; shipped
+  `1w` / `1M` bars replace the aggregate's prices for the matching week or month; `prep` labels
+  the entry by its session and counts offsets in BARS; `weekOpenAt` by session. The story and
+  the strip read labels through `cal.dateOf`; the hourly pane maps hours by session.
+- `contract.py` `Derive`: the dates file and the universe's `date` carry the label; the
+  universe's `:days` columns are BAR offsets (sessions), as the page's k, no longer calendar
+  days (run one re-imported so its table matches; a coin with a gap in its daily bars now
+  counts bars across the gap).
+- Tests under node on a Globex-shaped tape (Sunday to Thursday 22:00 UTC opens, a Monday 20:00
+  UTC hour, a shipped weekly bar) and on the unchanged 24/7 shape; Python tests on the
+  validator and on `Derive`'s label and offsets (a Friday-to-Monday hold is one bar).
+
+### The bench prereg, DRAFT (`docs/experiments/tvb43_bench_prereg.md`), awaiting the owner's word
+
+What the data is: `ES.n.0` in `vectorbt-workspace/data/databento_cache/` (Databento GLBX MDP3,
+1-minute source 2011-01-02 to 2025-12-31 with the `symbol` column, so every roll session is
+known; resampled to 5m to 1M). The cache's `1D` bar IS the Globex session (22:00 UTC summer,
+23:00 UTC winter; 3,859 bars); `1W` opens Sunday evening; the 1-minute tape has the 17:00 to
+18:00 ET break. What the engine cannot do today: the census treats a day as a calendar day and a
+week as complete only with seven days present (`aggregate`, `gap_days`); on a session tape every
+week would be incomplete and the data-quality gate would exclude the instrument. So the ONE
+declared mechanical change is the session calendar (section 2.1 of the draft), an engine change
+(Plan Mode) with the crypto cache's byte-identical `manage.json` as its gate. The books are run
+one's seventeen, unchanged. Declared variants: V0 the Globex day (ruled), V1 the RTH day as the
+declared pair (the mirror rule), the continuity ladder C0 / C1 / C2 as a SPLIT of recorded context
+(no new engine path). Roll sessions flagged and split, never dropped. The owner is asked for one
+message: confirm or strike V0 / V1 / the split; confirm flag-and-split; allow the engine change.
+An ARM_LEDGER card for the bench is in `docs/ARM_LEDGER.md` under data products, marked proposed.
+
+### Files created/modified (TVB-43)
+
+- `analysis/domino/contract.py` (staging swap, `recover`, ids and names, inline routing, extras
+  backfill, `label_shift_hours` / `calendar`, bar offsets), `analysis/domino/run_export.py`
+  (`check_run` removed, id check), `analysis/domino/trade_viewer.py` (`build` / `check-run`
+  removed, `serve` precondition, id check)
+- `analysis/domino/viewer/app.js`, `core.js`, `story.js`, `stats.js`, `index.html`,
+  `CONTRACT.md`, `NOTES.md`, `examples/make_example.py`, `examples/single_file_run.json` (new)
+- `tests/test_domino_contract.py` (+15), `tests/test_domino_viewer_js.py` (+5),
+  `tests/test_domino_viewer.py`; `analysis/domino/MANAGE_RECEIPT.md`; `docs/ARM_LEDGER.md`;
+  `docs/experiments/tvb43_bench_prereg.md` (new); `docs/reviews/tvb42-codex-audit.md` (committed
+  as RETURNED), `REVIEW_REQUEST.md`, `.session_startup_prompt.md`, this file
+
+### Open
+
+- [x] The TVB-42 audit folded in code; the in-session Codex pass folded; stage 3 built and
+      verified in Chrome; the page ready for session-day runs; the bench prereg drafted.
+- [ ] **The owner's one message on the bench prereg** (section 8 of the draft); then the engine
+      change under Plan Mode (session calendar behind a parameter, crypto `manage.json`
+      byte-identical), the loader (`analysis/bench/es_tape.py`), V0 then V1 exported as runs two
+      and three, the receipt, the ledger card's numbers.
+- [ ] The with-trend inside break's T1 STOP-and-ASK (open since TVB-39; the owner rules; A3
+      before code); the exit and hierarchy rulings (carried).
+- [ ] Viewer: the other run's curve on its own axis in Compare across runs; drawing persistence
+      across coin switches proven in a live browser; the journal layer; the hourly archive.
+- [ ] Housekeeping on the owner's word: HANDOFF.md is over the limit (archive TVB-36..38 and the
+      maintenance entries); `proto_codex/` deleted or kept; the old flat files under
+      `viewer/data/` deleted; `User_Notes.md` stays untracked.
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range below) and write
+> a verbatim assessment to docs/reviews/tvb43-codex-audit.md. See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+> The next session folds it IN CODE the same session (owner's direction 2026-11-01); it does not
+> block the bench.
+
+- Review status: REQUESTED
+- Commits to review: `8a5806c..HEAD` on `main` (8a5806c is the TVB-42 close-out; 70bacdf the
+  audit fold; 7111720 stage 3; 4140285 the prereg draft; the close-out commit after it carries
+  the session-calendar page support and the docs). Pinned in `docs/reviews/REVIEW_REQUEST.md`.
+- Scope / what changed: see "Files created/modified" above.
+- Focus areas: the staged import's swap and `recover` on Windows (open handles while the viewer
+  serves the folder; two imports at once is out of scope and should be said if it is not);
+  `_slug` / `_fname` / `_plain_name` against anything that still folds two names onto one path;
+  `cal.sessionOf` and the label shift against a 00:00 UTC run (nothing may move for run one:
+  the audits' named rows ATOM 2026-05-09, ACE 2026-04-29 hourly, BTC 2026-03-16 W, BLUR
+  2026-07-24 W) and against a Globex shape (a Friday-to-Monday hold is one bar; an hour after
+  midnight UTC stays with its session); `Derive`'s bar offsets against the page's k on run one;
+  Compare across runs by role (the unit filter rule, the dashed curve, the generation guards
+  on `loadOther`); the bench prereg draft against the charter (declared variants, no
+  promotion, the engine change gated).
+- Reviewed by: pending
+- Findings: {blank until docs/reviews/tvb43-codex-audit.md exists}
+
+---
+
 ## Session TVB-42: the TVB-41 audit folded, the cc menu's viewer entry repaired, the viewer row contract designed with the owner and built through stage 2 (the page reads runs) (COMPLETE)
 
 **Date:** 2026-10-31 to 2026-11-01

@@ -692,6 +692,29 @@ settings at $1 risk, but with 26 fills they stay unread as arms.
   local, 1H / 1D / 1W / 1M, grey context and coloured trade candles) draws every row with its
   three exits for the owner's own pass.
 
+### TVB-43 the one-instrument bench (DRAFT prereg 2026-11-01, `docs/experiments/tvb43_bench_prereg.md`) -- no arm yet, awaiting the owner's word
+
+- **In trader terms:** the same management book (no price stop; out on a session close against
+  the trade with the week against it; the ladder of structural targets; the chance book beside
+  it; the hourly, under-water, own-clock and long-cap variants) run on ONE instrument, the
+  E-mini S&P future, with fifteen years of tape, where "the day" is the Globex session (18:00 ET
+  open, the owner's ruling of 2026-10-30). Nothing is added to the book and nothing is tuned.
+- **Why:** run one read the book on 292 perps over about two years; this is a second tape for
+  the same rules, with a bell, a weekend and a contract roll, to see whether the readings
+  (targets get reached; the setup-bar stop is what loses; the clocks differ) look the same or
+  not. Either answer is a finding.
+- **Declared, side by side, none picked:** V0 the Globex day; V1 the regular-hours day (09:30 to
+  16:00 ET) as the paired reading; the continuity ladder as a split of what every card already
+  records (C0 every trade; C1 the week on your side at entry; C2 the week and the month).
+- **The one mechanical change:** the engine's calendar must count sessions instead of calendar
+  days (a holiday week of four sessions is a complete week; a Friday-to-Monday hold is one
+  bar). That is an engine change and waits for the owner; its gate is that the crypto book
+  reproduces byte-identically through the new code path.
+- **Confounds named up front:** the contract roll (flagged and split, never dropped); one rising
+  index over fifteen years (longs and shorts reported apart); short sessions and the 16:15
+  break; the page's session labels (a Sunday-evening open is Monday's session).
+- **Numbers:** none yet. The card gets them when runs two and three exist in the viewer.
+
 ## Maintenance rule
 
 Every round: add a card per new arm (trader terms FIRST, then numbers),
