@@ -187,7 +187,7 @@ An ARM_LEDGER card for the bench is in `docs/ARM_LEDGER.md` under data products,
 > block the bench.
 
 - Review status: REQUESTED
-- Commits to review: `8a5806c..HEAD` on `main` (8a5806c is the TVB-42 close-out; 70bacdf the
+- Commits to review: `8a5806c..b05c7da` on `main` (8a5806c is the TVB-42 close-out; 70bacdf the
   audit fold; 7111720 stage 3; 4140285 the prereg draft; the close-out commit after it carries
   the session-calendar page support and the docs). Pinned in `docs/reviews/REVIEW_REQUEST.md`.
 - Scope / what changed: see "Files created/modified" above.
