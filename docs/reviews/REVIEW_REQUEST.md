@@ -32,7 +32,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `{pending push}` (2f3a3a8 is the TVB-41 close-out the session started from; 75626b7 the audit fold; bc79aa4 the contract spec; cba482e stage 1; ef5be09 stage 2; the close-out commit after it is docs only). Verify with `git diff --name-status 2f3a3a8..HEAD`. |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `2f3a3a8..57c054c` (2f3a3a8 is the TVB-41 close-out the session started from; 75626b7 the audit fold; bc79aa4 the contract spec; cba482e stage 1; ef5be09 stage 2; the close-out commit after it is docs only). Verify with `git diff --name-status 2f3a3a8..HEAD`. |
 
 No sibling-repo commits. The viewer's data folder (`analysis/domino/viewer/data/`, the runs
 included) and the vendored chart library are gitignored; `uv run python -m

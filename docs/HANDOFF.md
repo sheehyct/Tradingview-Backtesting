@@ -149,7 +149,7 @@ backslash escapes through Bash, use the Edit / Write tools for source.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: `2f3a3a8..{close-out sha}` on `main` (2f3a3a8 is the TVB-41 close-out the
+- Commits to review: `2f3a3a8..57c054c` on `main` (2f3a3a8 is the TVB-41 close-out the
   session started from; 75626b7 the audit fold; bc79aa4 the contract spec; cba482e stage 1;
   ef5be09 stage 2; the close-out commit after it is docs only). Pinned after the push.
   Sanity-check: `git diff --name-status 2f3a3a8..HEAD`.
