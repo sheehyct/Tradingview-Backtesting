@@ -147,6 +147,8 @@ def validate_run(run: dict) -> list[str]:
             p.append(f"{tag}: resolution must be day, hour or minute")
         if "group" in b and (not isinstance(b["group"], str) or not b["group"]):
             p.append(f"{tag}: group must be words")
+        if "target" in b and (not isinstance(b["target"], str) or not b["target"]):
+            p.append(f"{tag}: target must name the target the book takes (T1, T2, mm, one_r)")
     if heads != 1:
         p.append(f"run: {heads} headline books; there must be exactly one")
     return p
@@ -307,10 +309,22 @@ def _check_card(
             p.append(f"{tag}: book {bid} left by {how} must carry no time, price or return")
         if b.get("hit") is not None and not isinstance(b["hit"], bool):
             p.append(f"{tag}: book {bid} hit must be true, false or null")
+        if "resolution" in b and b["resolution"] not in RESOLUTIONS:
+            p.append(f"{tag}: book {bid} resolution must be day, hour or minute")
         if "note" in b and b["note"] is not None and not isinstance(b["note"], str):
             p.append(f"{tag}: book {bid} note must be words")
         if _time(at) and _time(t0) and at < t0:
             p.append(f"{tag}: book {bid} leaves at {iso(at)}, before the entry {iso(t0)}")
+        be = b.get("entry")
+        if be is not None:
+            if not _time(be):
+                p.append(f"{tag}: book {bid} entry must be a timestamp or absent")
+            elif _time(t0) and be < t0:
+                p.append(
+                    f"{tag}: book {bid} enters at {iso(be)}, before the card's entry {iso(t0)}"
+                )
+            elif _time(at) and be > at:
+                p.append(f"{tag}: book {bid} enters at {iso(be)}, after it leaves {iso(at)}")
         if how == "target" and _time(at) and not any(tt <= at for tt in touched_times):
             p.append(
                 f"{tag}: book {bid} left by target at {iso(at)} but no target is recorded as touched by then"

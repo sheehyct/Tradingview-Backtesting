@@ -1,21 +1,17 @@
-/* stats.js: arithmetic on the recorded rows for the Compare tab and the calendar. Equal-size
-   trades at the size box, summed by entry date; no leverage, fees or funding (same as the receipt). */
+/* stats.js: arithmetic on the recorded cards for the Compare tab and the calendar. Equal-size
+   trades at the size box, summed by entry date; no leverage, fees or funding (same as the receipt).
+   Every figure reads a book entry on the card (ret / how / k / hit); the books are the run's. */
 window.DV = window.DV || {};
 (function (DV) {
   "use strict";
   const C = DV.core;
-  const { BOOKS, BOOK_RET, BOOK_HIT, BOOK_DAYS, dateMs } = C;
+  const { dateMs } = C;
 
-  function hitOf(t, book) {
-    if (book === "ref") return t.out5 === "one_r";
-    const k = BOOK_HIT[book];
-    return k ? !!t[k] : null;
-  }
-  function daysOf(t, book) {
-    if (book === "C") return t.exit_k != null ? t.exit_k : t.days != null ? t.days : null;
-    const v = t[BOOK_DAYS[book]];
-    return v == null ? null : v;
-  }
+  const entry = (t, book) => (t.byBook ? t.byBook[book] : null) || null;
+  function retOf(t, book) { const b = entry(t, book); return b && b.ret != null ? b.ret : null; }
+  function hitOf(t, book) { const b = entry(t, book); return b && b.hit != null ? !!b.hit : null; }
+  function daysOf(t, book) { const b = entry(t, book); return b && b.ret != null && b.k != null ? b.k : null; }
+  function howOf(t, book) { const b = entry(t, book); return b ? b.how : null; }
   function median(sorted) { const n = sorted.length; if (!n) return null; return n % 2 ? sorted[(n - 1) / 2] : (sorted[n / 2 - 1] + sorted[n / 2]) / 2; }
 
   function maxDrawdown(values) {
@@ -35,7 +31,7 @@ window.DV = window.DV || {};
     // one book over a list of {coin, t}: the equity curve by entry date and the headline figures. The drawdown is
     // measured on the completed daily sums, as the engine's book_stats does (TVB-40 audit F1): same-day trades have
     // no observed order, so no intra-day path is scored, and the number is the same whatever the table's sort
-    const rows = items.map((it) => ({ t: it.t, coin: it.coin, r: it.t[BOOK_RET[book]] })).filter((x) => x.r != null);
+    const rows = items.map((it) => ({ t: it.t, coin: it.coin, r: retOf(it.t, book) })).filter((x) => x.r != null);
     rows.sort((a, b) => (a.t.date < b.t.date ? -1 : a.t.date > b.t.date ? 1 : a.coin < b.coin ? -1 : a.coin > b.coin ? 1 : (a.t._i || 0) - (b.t._i || 0)));
     let sum = 0, wins = 0, cum = 0, targets = 0, withTarget = 0;
     const curve = [], rets = [], days = [];
@@ -59,24 +55,32 @@ window.DV = window.DV || {};
       best: rets.length ? rets[rets.length - 1] : null, worst: rets.length ? rets[0] : null,
     };
   }
-  function allBooks(items, size) { const out = {}; for (const b of BOOKS) out[b] = bookStats(items, b, size); return out; }
+  function allBooks(items, size) { const out = {}; for (const b of C.ladderBooks()) out[b] = bookStats(items, b, size); return out; }
+
+  // the stop swap: the run's five-bar one-R book against its reference, paired on the rows that have both (the
+  // management book's H2); only when the run declares both ids
+  function swapPair() { const ids = C.bookIds(); return ids.includes("D5") && ids.includes("ref") ? ["D5", "ref"] : null; }
 
   function bySetup(items) {
-    // rows: unit timeframe x setup kind; columns: each book's average, and D5 minus the chance book paired on the rows that have both
+    // rows: unit timeframe x setup kind; columns: each ladder book's average, and the stop swap paired on the rows that have both
+    const books = C.ladderBooks(), pair = swapPair();
     const groups = new Map();
     const key = (t) => t.tf + "|" + t.kind;
     for (const it of items) { const k = key(it.t); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(it.t); }
-    const order = ["D|reversal", "D|continuation", "D|inside", "D|outside", "W|reversal", "W|continuation", "W|inside", "W|outside", "M|reversal", "M|continuation", "M|inside", "M|outside"];
+    const units = (C.getRun() && C.getRun().units) || ["D", "W", "M"], kinds = ["reversal", "continuation", "inside", "outside"];
+    const order = []; for (const u of units) for (const k of kinds) order.push(u + "|" + k);
     const line = (label, ts) => {
       const row = { label, n: ts.length, avg: {}, swap: null, swapN: 0 };
-      for (const b of BOOKS) { const v = ts.map((t) => t[BOOK_RET[b]]).filter((x) => x != null); row.avg[b] = v.length ? v.reduce((a, c) => a + c, 0) / v.length : null; row["n" + b] = v.length; }
-      const pairs = ts.filter((t) => t.ret_D5 != null && t.ret5 != null);
-      row.swapN = pairs.length;
-      row.swap = pairs.length ? pairs.reduce((a, t) => a + (t.ret_D5 - t.ret5), 0) / pairs.length : null;
+      for (const b of books) { const v = ts.map((t) => retOf(t, b)).filter((x) => x != null); row.avg[b] = v.length ? v.reduce((a, c) => a + c, 0) / v.length : null; row["n" + b] = v.length; }
+      if (pair) {
+        const pairs = ts.filter((t) => retOf(t, pair[0]) != null && retOf(t, pair[1]) != null);
+        row.swapN = pairs.length;
+        row.swap = pairs.length ? pairs.reduce((a, t) => a + (retOf(t, pair[0]) - retOf(t, pair[1])), 0) / pairs.length : null;
+      }
       return row;
     };
     const rows = [line("all shown", items.map((it) => it.t))];
-    for (const k of order) if (groups.has(k)) { const [tf, kind] = k.split("|"); rows.push(line(C.TF_LABEL[tf] + " " + C.KIND_LABEL[kind], groups.get(k))); }
+    for (const k of order) if (groups.has(k)) { const [tf, kind] = k.split("|"); rows.push(line(C.tfLabel(tf) + " " + (C.KIND_LABEL[kind] || kind), groups.get(k))); }
     return rows;
   }
 
@@ -87,7 +91,7 @@ window.DV = window.DV || {};
     const count = (book, field) => {
       let n = 0;
       for (const it of items) {
-        const r = it.t[BOOK_RET[book]]; if (r == null) continue; n++;
+        const r = retOf(it.t, book); if (r == null) continue; n++;
         const idx = Math.min(bins.length - 1, Math.max(0, Math.floor(r) - lo));
         bins[idx][field]++;
       }
@@ -101,7 +105,7 @@ window.DV = window.DV || {};
     // date -> { n, sum (percent), usd, items }
     const map = new Map();
     for (const it of items) {
-      const r = it.t[BOOK_RET[book]];
+      const r = retOf(it.t, book);
       let e = map.get(it.t.date);
       if (!e) { e = { n: 0, sum: 0, usd: 0, filled: 0, items: [] }; map.set(it.t.date, e); }
       e.n++; e.items.push(it);
@@ -110,23 +114,33 @@ window.DV = window.DV || {};
     return map;
   }
   function fromUniverse(u) {
-    // data/universe.json (trade_viewer build): one columnar table of every coin's rows, decoded into the same row
-    // shape the per-coin files use for the fields the Compare tab and the calendar read (nothing else is there)
+    // runs/<id>/universe.json (the importer): one columnar table of every instrument's cards, decoded into the same row
+    // shape the per-instrument files use for the fields the Compare tab and the calendar read (the ladder books'
+    // ret / how / days / hit, the setup codes, the flag and short-string extras); nothing else is there
     const c = u.cols, K = u.codes, epoch = dateMs(u.epoch) / 1000, out = new Array(u.n);
     const int = (v) => v == null || v < 0 ? null : v;
     const flag = (v) => v == null || v < 0 ? null : v === 1;
+    const code = (key, v) => (v == null || v < 0 || !K[key] ? null : K[key][v]);
+    const xcols = Object.keys(c).filter((k) => k.startsWith("x:"));
     for (let i = 0; i < u.n; i++) {
-      out[i] = {
-        _i: i, coin: u.coins[c.coin[i]], date: C.iso(epoch + c.date[i] * C.DAY),
-        tf: K.tf[c.tf[i]], kind: K.kind[c.kind[i]], direction: K.dir[c.dir[i]], status: K.status[c.status[i]], out5: K.out5[c.out5[i]],
-        cls: K.cls[c.cls[i]], flag: K.flag[c.flag[i]], liquid: c.liquid[i] === 1, t1: c.t1[i] === 1 ? 1 : null, exit_k: int(c.exit_k[i]),
-        ret_C: c.ret_C[i], ret_A: c.ret_A[i], ret_B: c.ret_B[i], ret_D: c.ret_D[i], ret_D5: c.ret_D5[i], ret5: c.ret5[i],
-        hit_A: flag(c.hit_A[i]), hit_B: flag(c.hit_B[i]), hit_D: flag(c.hit_D[i]), hit_D5: flag(c.hit_D5[i]),
-        days_A: int(c.days_A[i]), days_B: int(c.days_B[i]), days_D: int(c.days_D[i]), days_D5: int(c.days_D5[i]), days_ref: int(c.days_ref[i]),
+      const t = {
+        _i: i, coin: u.instruments[c.instrument[i]], date: C.iso(epoch + c.date[i] * C.DAY),
+        tf: code("bar", c.bar[i]), kind: code("kind", c.kind[i]), direction: code("dir", c.dir[i]), cls: code("class", c.class[i]),
+        t1: c.t1[i] === 1 ? 1 : null, liquid: false, flag: "none", byBook: {},
       };
+      for (const b of u.books) {
+        t.byBook[b] = { id: b, ret: c[b + ":ret"][i], how: code("how", c[b + ":how"][i]) || "none", k: int(c[b + ":days"][i]), hit: flag(c[b + ":hit"][i]) };
+      }
+      for (const k of xcols) {
+        const name = k.slice(2), v = c[k][i];
+        t[name] = K[k] ? code(k, v) : flag(v);
+        if (name === "liquid") t.liquid = v === 1;
+        if (name === "flag") t.flag = code(k, v) || "none";
+      }
+      out[i] = t;
     }
     return out;
   }
 
-  DV.stats = { bookStats, allBooks, bySetup, histogram, calendarDays, fromUniverse, hitOf, daysOf, maxDrawdown, monthSummary };
+  DV.stats = { bookStats, allBooks, bySetup, histogram, calendarDays, fromUniverse, retOf, hitOf, daysOf, howOf, maxDrawdown, monthSummary, swapPair };
 })(window.DV);

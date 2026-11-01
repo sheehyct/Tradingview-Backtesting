@@ -499,6 +499,31 @@ def test_card_open_headline_with_d5_exit_later_and_the_hourly_clock():
         and by["A_h"]["at"] == by["C_h"]["at"]
         and by["A_h"]["hit"] is False
     )
+    # a one-R fill on the hourly clock is known to the day: recorded at the latest time known to be at or
+    # before it (the entry hour on the entry day), marked day resolution, never before the book's entry
+    r2 = dict(r, hit_D_h=True, ret_D_h=2.0, one_r_k=0, entry_h=18, exit_h=3, hours_h=3)
+    c2 = X.card_from_row(r2, "2Z", "main", tape)
+    dh = {b["id"]: b for b in c2["books"]}["D_h"]
+    assert dh["how"] == "one_r" and dh["at"] == t0 + 18 * HOUR and dh["entry"] == t0 + 18 * HOUR
+    assert dh["resolution"] == "day" and "day resolution" in dh["note"]
+    assert (
+        K.validate(
+            X.run_card(1_791_504_000_000),
+            {"2Z.json": {"instrument": "2Z", "bars": {"1d": tape.daily}, "trades": [c2]}},
+        )[0]
+        == []
+    )
+    # the hourly books carry their own entry hour; the run card declares each book's target
+    assert by["C_h"]["entry"] == t0 + 2 * HOUR and by["A_h"]["entry"] == t0 + 2 * HOUR
+    assert by["D_h"]["entry"] == t0 + 2 * HOUR
+    run = X.run_card(1_791_504_000_000)
+    assert {b["id"]: b.get("target") for b in run["books"] if "target" in b}["A"] == "T1"
+    bad = dict(by["C_h"], entry=by["C_h"]["at"] + HOUR)
+    c2 = dict(c, books=[bad if b["id"] == "C_h" else b for b in c["books"]])
+    problems, _ = K.validate(
+        run, {"BLUR.json": {"instrument": "BLUR", "bars": {"1d": tape.daily}, "trades": [c2]}}
+    )
+    assert any("enters at" in x and "after it leaves" in x for x in problems)
     assert (
         by["C_u"]["how"] == "cap"
         and by["C_own"]["how"] == "clock"

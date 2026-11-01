@@ -1,20 +1,22 @@
-/* app.js: the Domino trade viewer (TVB-40, amCharts 5). Reads the per-coin JSON that `trade_viewer
-   build` writes (data/<coin>.json) and draws each row off the row (core.js carries the TVB-39
-   logic; no trade logic is re-run): the layout (calendar + trade table on the left, one or two
-   stock panes in the centre, the trade in plain words on the right), the Compare tab across the
-   six books (this coin, this day, or the universe from data/universe.json), the Playbook, the
-   drawing toolbar with the library's own save / restore keyed per coin and pane, and the magnet
-   ray on top of it. */
+/* app.js: the Domino trade viewer (TVB-40, amCharts 5), reading runs in the contract
+   (viewer/CONTRACT.md): data/runs.json lists them, data/runs/<id>/ holds one file per instrument
+   (bars + cards) and the derived index / dates / universe. The page draws each card off the card
+   (core.js carries the geometry; no trade logic is re-run): the layout (calendar + trade table on
+   the left, one or two stock panes in the centre, the trade in plain words on the right), the
+   Compare tab across the run's ladder books (this instrument, this day, or the universe), the
+   Playbook (the run's rule card), the drawing toolbar with the library's own save / restore keyed
+   per instrument and pane, and the magnet ray on top of it. */
 (function (DV) {
   "use strict";
   const C = DV.core, S = DV.story, ST = DV.stats;
-  const { $, DAY, HOUR, MS, COL, BOOKS, BOOK_RET, BOOK_NAME, BOOK_COL, CLS_LABEL, KIND_LABEL, KIND_SHORT, TF_LABEL, DASH, INTERVAL, iso, isoH, longDate, monthName, precisionFor,
-    fmtPrice, fmtPct, fmtUsd, fmtUsd0, cls, esc, settle, tradeSpan, stackLevels, setupDays, oneR, htfType, btChip, makeCalendar, weekStart, nextMonth, stackWords, cellIndex } = C;
+  const { $, DAY, MS, COL, CLS_LABEL, KIND_LABEL, KIND_SHORT, tfLabel, DASH, INTERVAL, iso, isoH, longDate, monthName, precisionFor,
+    fmtPrice, fmtPct, fmtUsd, fmtUsd0, cls, esc, settle, tradeSpan, stackLevels, setupDays, oneR, htfType, btChip, makeCalendar, weekStart, nextMonth, stackWords, cellIndex,
+    bookName, bookCol, bookOf, bookRes, ladderBooks, groupNames, groupBooks, headline, reference } = C;
 
   const state = {
-    index: null, dates: null, coin: null, data: null, cal: null, cals: new Map(),
+    runs: [], runId: null, run: null, base: "", index: null, dates: null, coin: null, data: null, cal: null, cals: new Map(),
     tf: new Set(["D", "W", "M"]), kind: new Set(["reversal", "continuation", "inside", "outside"]), dir: new Set(["up", "down"]),
-    liquid: false, hasT1: false, book: "C", size: 1000,
+    liquid: false, hasT1: false, book: null, size: 1000,
     items: [], sel: -1, cur: null, dateMode: null, sort: "date-desc",
     layout: "single", tab: "trade", showSys: true, showMan: true,
     calScope: "coin", calY: null, calM: null,
@@ -22,7 +24,7 @@
     uni: null, uniItems: null,
     proof: { seed: false, then: null, ray: null },
   };
-  const tradeRet = (t) => t[BOOK_RET[state.book]];
+  const tradeRet = (t) => ST.retOf(t, state.book);
   const n2 = (x) => x == null ? "?" : Number(x).toFixed(2);
   const RAY = "#60a5fa";
 
@@ -114,7 +116,7 @@
   }
   function magnetDrop(pane, local) {
     // the magnet ray: the nearest open / high / low / close of the bar under the pointer, on this pane's own bars, dropped as the
-    // library's Horizontal Line at exactly that price, so it saves, moves and erases with every other drawing in the coin's slot
+    // library's Horizontal Line at exactly that price, so it saves, moves and erases with every other drawing in the instrument's slot
     const bs = bars(pane);
     if (!bs.length) return null;
     const xr = pane.xAxis.get("renderer"), yr = pane.yAxis.get("renderer");
@@ -158,7 +160,7 @@
   }
 
   function swapDrawings(pane, coin) {
-    // drawings are the owner's, per coin and per pane: park the current set, point the save control at the new slot, restore
+    // drawings are the owner's, per instrument and per pane: park the current set, point the save control at the new slot, restore
     pane.busy = true;
     try { pane.drawing.clearDrawings(); } catch (e) { /* nothing drawn yet */ }
     pane.save.set("storageId", "domino-" + coin + (pane.key === "a" ? "" : "-" + pane.key));
@@ -234,6 +236,12 @@
     if (pane.tf === "1D") return cal.daily.map((b, i) => ({ t: b[0], o: b[1], h: b[2], l: b[3], c: b[4], days: [i] }));
     return (pane.tf === "1W" ? cal.weeks : cal.months).map((b) => ({ t: b.t, o: b.o, h: b.h, l: b.l, c: b.c, days: b.days, complete: b.complete }));
   }
+  // the hourly entry a card carries: the selected book's own entry hour, else the first hour-resolution book's
+  function hourEntry(t, st) {
+    if (st && st.entry != null) return st.entry;
+    for (const b of Object.values(t.byBook || {})) if (b.entry != null && bookRes(b.id) === "hour") return b.entry;
+    return null;
+  }
 
   function drawPane(pane) {
     if (!pane || pane.el.hidden || !state.cal) return;
@@ -270,26 +278,22 @@
     if (t && span && state.showSys) {
       const long = t.direction === "up";
       const st = settle(t, state.book);
-      const hs = tradeSpan(t, "C", cal);
+      const head = headline();
+      const hs = tradeSpan(t, head, cal);
       const levels = stackLevels(t, span.i, cal);
       const sw = stackWords(t, levels);
       const domino = sw.conv.length > 1 && t.cls !== "spread";
-      addLine(pane, t.level, COL.level, 0, domino ? "Position opened: domino " + sw.conv.map((l) => l.tf).join("+") + " (" + (CLS_LABEL[t.cls] || t.cls) + ")" : "Position opened (" + TF_LABEL[t.tf] + " trigger)", p);
-      for (const l of sw.conv) if (l.tf !== t.tf) addLine(pane, l.price, COL.level, 2, TF_LABEL[l.tf] + " trigger, broke the same day", p);
-      for (const l of sw.far) addLine(pane, l.price, COL.level, 2, TF_LABEL[l.tf] + " trigger, broke the same day, " + (l.gap >= 0 ? "+" : "") + l.gap.toFixed(2) + "% beyond the entry (not part of the converged stack)", p);
+      addLine(pane, t.level, COL.level, 0, domino ? "Position opened: domino " + sw.conv.map((l) => l.tf).join("+") + " (" + (CLS_LABEL[t.cls] || t.cls) + ")" : "Position opened (" + tfLabel(t.tf) + " trigger)", p);
+      for (const l of sw.conv) if (l.tf !== t.tf) addLine(pane, l.price, COL.level, 2, tfLabel(l.tf) + " trigger, broke the same day", p);
+      for (const l of sw.far) addLine(pane, l.price, COL.level, 2, tfLabel(l.tf) + " trigger, broke the same day, " + (l.gap >= 0 ? "+" : "") + l.gap.toFixed(2) + "% beyond the entry (not part of the converged stack)", p);
       if (sw.conv.length > 1) {
         const prices = sw.conv.map((l) => l.price), lo = Math.min(...prices), hi = Math.max(...prices);
         addBand(pane, lo, hi, COL.level, "gap " + ((hi - lo) / lo * 100).toFixed(2) + "% (" + (CLS_LABEL[t.cls] || t.cls) + ")");
       }
       if (st.price != null) addLine(pane, st.price, COL.exit, 2, "Position closed: " + st.book + " " + st.how, p);
-      addLine(pane, t.t1, COL.target, 2, "T1 " + (t.t1_src || ""), p);
-      addLine(pane, t.t2, COL.target, 2, "T2 " + (t.t2_src || ""), p);
-      addLine(pane, t.t3, COL.target, 2, "T3 " + (t.t3_src || ""), p);
-      if (t.stop != null && t.level != null) {
-        addLine(pane, oneR(t), COL.oneR, 1, "one R", p);
-        addLine(pane, t.stop, COL.stop, 1, "setup-bar stop (chance book)", p);
-      }
-      if (t.mm_t1 != null) addLine(pane, t.mm_t1, COL.mm, 4, "measured move", p);
+      for (const tg of t.targets || []) addLine(pane, tg.price, tg.name === "mm" ? COL.mm : COL.target, tg.name === "mm" ? 4 : 2, tg.name === "mm" ? "measured move" : tg.name + " " + (tg.source || ""), p);
+      if (oneR(t) != null) addLine(pane, oneR(t), COL.oneR, 1, "one R", p);
+      if (t.stop != null) addLine(pane, t.stop, COL.stop, 1, "far side: the reference stop", p);
       const barOfDay = (d, pick) => {
         const ks = []; bs.forEach((b, k) => { if (b.days.includes(d)) ks.push(k); });
         if (!ks.length) return null;
@@ -305,35 +309,46 @@
       const touchBar = (d, price, side) => barOfDay(d, (ks) => ks.find((k) => side === "hi" ? bs[k].h >= price || near(bs[k].h, price) : bs[k].l <= price || near(bs[k].l, price)));
       const put = (k, text, above, color, shape) => { if (k != null) markers.push({ t: bs[k].t * MS, y: above ? bs[k].h : bs[k].l, above, text, color, shape }); };
       const putTouch = (d, price, side, text, above, color, shape) => { const k = touchBar(d, price, side); if (k != null) put(k, text, above, color, shape); else put(lastBar(d), text + " (no bar of the day reaches the price)", above, color, shape); };
-      // the entry marker: on the hourly pane the engine's own entry hour when the hourly clock recorded one (a strict
-      // break, TVB-39 audit F1); otherwise the first bar of the entry day strictly through the level (an equal extreme is
-      // not a break), falling back to the recorded entry day's bar
-      const entryHour = pane.tf === "1H" && t.entry_h != null && (t.status_h === "exit" || t.status_h === "open") ? bs.findIndex((b) => b.t === cal.daily[span.i][0] + t.entry_h * HOUR) : -1;
+      // the entry marker: on the hourly pane the recorded entry hour when a book carries one (the hourly clock's own
+      // entry, a strict break); otherwise the first bar of the entry day strictly through the level (an equal extreme is
+      // not a break), falling back to the recorded entry day's last bar
+      const he = hourEntry(t, st);
+      const entryHour = pane.tf === "1H" && he != null ? bs.findIndex((b) => b.t === he) : -1;
       const strictBar = barOfDay(span.i, (ks) => ks.find((k) => long ? bs[k].h > t.level : bs[k].l < t.level));
       put(entryHour >= 0 ? entryHour : strictBar != null ? strictBar : lastBar(span.i), "in " + fmtPrice(t.level, p) + (entryHour >= 0 || strictBar != null ? "" : " (no bar of the day trades through the level)"), !long, COL.level, long ? "arrowUp" : "arrowDown");
-      const touches = [["t1_k", "T1", t.t1], ["t2_k", "T2", t.t2], ["t3_k", "T3", t.t3], ["one_r_k", "1R", oneR(t)], ["mm1_k", "MM", t.mm_t1]];
-      for (const [key, label, price] of touches) {
-        if (t[key] == null || price == null) continue;
-        const d = span.i + t[key];
+      // touches: every target on the card, one R and the far side, at their recorded first-touch times inside the window
+      for (const tg of t.targets || []) {
+        const k = t.kOf(tg.touched);
+        if (k == null || tg.price == null) continue;
+        const d = span.i + k;
         if (d > span.end) continue;
-        putTouch(d, price, long ? "hi" : "lo", label, long, key === "one_r_k" ? COL.oneR : key === "mm1_k" ? COL.mm : COL.target, "circle");
+        putTouch(d, tg.price, long ? "hi" : "lo", tg.name === "mm" ? "MM" : tg.name, long, tg.name === "mm" ? COL.mm : COL.target, "circle");
       }
-      if (t.stop_k != null && span.i + t.stop_k <= span.end) putTouch(span.i + t.stop_k, t.stop, long ? "lo" : "hi", "stop", !long, COL.stop, "circle");
-      const outText = "out " + fmtPrice(st.price, p) + (st.book === "C" ? "" : " (" + st.how + ")");
-      if (st.price != null && st.target && st.at != null) putTouch(span.end, st.at, long ? "hi" : "lo", outText, long, COL.exit, long ? "arrowDown" : "arrowUp");
-      else if (st.price != null && st.stop && st.at != null) putTouch(span.end, st.at, long ? "lo" : "hi", outText + (st.k === 0 ? "; entry day: the daily bar does not order the entry and the stop, the engine takes the stop first" : ""), long, COL.exit, long ? "arrowDown" : "arrowUp");
+      if (t.one_r_k != null && oneR(t) != null && span.i + t.one_r_k <= span.end) putTouch(span.i + t.one_r_k, oneR(t), long ? "hi" : "lo", "1R", long, COL.oneR, "circle");
+      if (t.stop_k != null && t.stop != null && span.i + t.stop_k <= span.end) putTouch(span.i + t.stop_k, t.stop, long ? "lo" : "hi", "stop", !long, COL.stop, "circle");
+      // the selected book's exit: an hour-resolution book leaves on its recorded hour; a touch-fill on the first bar that
+      // reaches the recorded price; a clock exit on the exit day's last bar
+      const outText = "out " + fmtPrice(st.price, p) + (st.book === head ? "" : " (" + st.how + ")");
+      const hourExit = pane.tf === "1H" && st.res === "hour" && st.t != null ? bs.findIndex((b) => b.t === st.t) : -1;
+      if (hourExit >= 0 && st.price != null) put(hourExit, outText, long, COL.exit, long ? "arrowDown" : "arrowUp");
+      else if (st.price != null && st.target && st.at != null) putTouch(span.end, st.at, long ? "hi" : "lo", outText, long, COL.exit, long ? "arrowDown" : "arrowUp");
+      else if (st.price != null && st.stop && st.at != null) putTouch(span.end, st.at, long ? "lo" : "hi", outText + (st.k === 0 ? "; entry day: the daily bar does not order the entry and the stop, the engine takes the stop first" : ""), !long, COL.exit, long ? "arrowDown" : "arrowUp");
       else if (st.price != null) put(lastBar(span.end), outText, long, COL.exit, long ? "arrowDown" : "arrowUp");
-      else if (st.missing && st.book !== "C") put(lastBar(span.end), "data ends: book " + st.book + " has " + st.how, long, COL.stop, "square");
+      else if (st.missing && st.book !== head) put(lastBar(span.end), "no fill: book " + st.book + " " + st.how, long, COL.stop, "square");
       else put(lastBar(span.end), "data ends", long, COL.stop, "square");
-      if (st.book !== "C" && hs && hs.end !== span.end && t.status === "exit") put(barOfDay(hs.end, (ks) => ks[ks.length - 1]), "daily clock out", long, COL.stop, "square");
-      if (t.status_u === "exit" && t.exit_k_u != null && t.exit_k_u !== t.exit_k) {
-        const ku = Math.min(span.i + t.exit_k_u, cal.daily.length - 1);
-        put(barOfDay(ku, (ks) => ks[ks.length - 1]), "out: under water", long, COL.violet, "square");
-      }
-      if (pane.tf === "1H" && t.status_h === "exit" && t.entry_h != null && t.exit_h != null) {
-        const t0 = cal.daily[span.i][0] + t.entry_h * HOUR + t.exit_h * HOUR;
-        const kh = bs.findIndex((b) => b.t === t0);
-        if (kh >= 0) put(kh, "out: hourly clock", long, COL.mm, "square");
+      // the headline's own exit when the selected book left elsewhere
+      const hst = settle(t, head);
+      if (st.book !== head && hs && hs.end !== span.end && hst.clock) put(lastBar(hs.end), "headline clock out", long, COL.stop, "square");
+      // the other clocks: the first book of each group (the exit-only variant), when it left at another time
+      for (const g of groupNames()) {
+        const id = groupBooks(g)[0], b = t.byBook ? t.byBook[id] : null;
+        if (!b || id === st.book || !(b.how === "clock" || b.how === "cap")) continue;
+        if (bookRes(id) === "hour") {
+          if (pane.tf === "1H" && b.at != null) { const kh = bs.findIndex((x) => x.t === b.at); if (kh >= 0) put(kh, "out: " + g, long, COL.mm, "square"); }
+        } else if (b.how === "clock" && b.k != null && b.k !== st.k) {
+          const kd = Math.min(span.i + b.k, cal.daily.length - 1);
+          put(lastBar(kd), "out: " + g, long, COL.violet, "square");
+        }
       }
       markers.sort((a, b) => a.t - b.t);
       // collision slots: a marker within a bar and a half of the previous one on the same side stacks one step further out
@@ -360,8 +375,8 @@
     }
     // pane notes (hourly window)
     let note = "";
-    if (pane.tf === "1H" && !cal.hourly.length) note = "no hourly bars cached for this coin: `trade_viewer hourly --as-of ... " + state.coin + "` then `build`";
-    else if (pane.tf === "1H" && t && span && cal.hourly.length && cal.daily[span.i][0] < cal.hourly[0][0]) note = "this trade predates the hourly window (the venue serves about 208 days)";
+    if (pane.tf === "1H" && !cal.hourly.length) note = "no hourly bars in this run for " + state.coin;
+    else if (pane.tf === "1H" && t && span && cal.hourly.length && cal.daily[span.i][0] < cal.hourly[0][0]) note = "this trade predates the run's hourly window";
     else if (!bs.length) note = "no bars";
     paneNote(pane, note);
   }
@@ -411,7 +426,7 @@
       '<span><i style="background:' + COL.week + '"></i>week open</span>'];
     if (!state.showSys) bits.push("<span style='color:#f59e0b'>system levels hidden</span>");
     if (!state.showMan) bits.push("<span style='color:#f59e0b'>your drawings hidden</span>");
-    bits.push('<span class="hint"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> previous / next trade &middot; <kbd>R</kbd> magnet ray &middot; <kbd>Esc</kbd> leave / clear &middot; drawings: toolbar, saved per coin and pane (autosave on)</span>');
+    bits.push('<span class="hint"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> previous / next trade &middot; <kbd>R</kbd> magnet ray &middot; <kbd>Esc</kbd> leave / clear &middot; drawings: toolbar, saved per instrument and pane (autosave on)</span>');
     $("legend").innerHTML = bits.join("");
   }
 
@@ -420,19 +435,21 @@
     const t = state.cur, el = $("strip"), cal = state.cal;
     if (!t || !cal) { el.innerHTML = '<span class="dim">Pick a trade in the table or on the calendar, or press the arrow keys.</span>'; return; }
     const long = t.direction === "up", p = precisionFor(cal.daily, t), st = settle(t, state.book), span = tradeSpan(t, state.book, cal);
-    if (!span) { el.innerHTML = '<span class="dim">This trade\'s entry day is not in the coin\'s bars.</span>'; return; }
-    const exitDate = iso(cal.daily[span.end][0]);
+    if (!span) { el.innerHTML = '<span class="dim">This trade\'s entry day is not in the instrument\'s bars.</span>'; return; }
+    const hourly = st.res === "hour";
+    const exitWhen = st.t != null ? (hourly ? isoH(st.t) : iso(cal.daily[span.end][0])) : "";
+    const held = st.missing ? '<span class="sm">n/a</span>' : hourly && st.entry != null && st.t != null ? Math.round((st.t - st.entry) / C.HOUR) + " h" : (span.end - span.i) + " day" + (span.end - span.i === 1 ? "" : "s");
     const wt = htfType(cal, "W", span.i), mt = htfType(cal, "M", span.i);
-    const stackChip = t.stack && t.stack !== t.tf ? ' <span class="chip flag">' + esc(stackWords(t, stackLevels(t, span.i, cal)).text) + "</span>" : "";
+    const stackChip = t.stackList && t.stackList.length > 1 ? ' <span class="chip flag">' + esc(stackWords(t, stackLevels(t, span.i, cal)).text) + "</span>" : "";
     const facts = [
       ["Trade", esc(state.coin) + ' <span class="chip ' + (long ? "long" : "short") + '">' + (long ? "LONG" : "SHORT") + "</span>"],
-      ["Setup", TF_LABEL[t.tf] + " " + KIND_LABEL[t.kind] + stackChip + (t.flag && t.flag !== "none" ? ' <span class="chip flag">hammer</span>' : "")],
-      ["Entry", t.date + ' <span class="sm">at</span> ' + fmtPrice(t.level, p)],
-      ["Exit, book " + esc(state.book), st.price != null ? exitDate + ' <span class="sm">at</span> ' + fmtPrice(st.price, p) + ' <span class="sm">' + esc(st.how) + "</span>" : '<span class="sm">' + esc(st.how) + "</span>"],
-      ["Held", st.missing ? '<span class="sm">n/a</span>' : (span.end - span.i) + " day" + (span.end - span.i === 1 ? "" : "s")],
+      ["Setup", tfLabel(t.tf) + " " + (KIND_LABEL[t.kind] || esc(t.pattern || t.kind)) + stackChip + (t.flag && t.flag !== "none" ? ' <span class="chip flag">hammer</span>' : "")],
+      ["Entry", t.date + (hourly && st.entry != null ? ' <span class="sm">' + isoH(st.entry).slice(11) + " UTC</span>" : "") + ' <span class="sm">at</span> ' + fmtPrice(t.level, p)],
+      ["Exit, book " + esc(state.book), st.price != null ? exitWhen + ' <span class="sm">at</span> ' + fmtPrice(st.price, p) + ' <span class="sm">' + esc(st.how) + "</span>" : '<span class="sm">' + esc(st.how) + "</span>"],
+      ["Held", held],
       ["Result", '<span class="' + cls(st.ret) + '">' + fmtPct(st.ret) + '</span> <span class="sm">' + fmtUsd(st.ret, state.size) + "</span>"],
-      ["Best / worst travel <span class=\"sm\">(book C window)</span>", '<span class="pos">+' + n2(t.mfe_x) + '%</span> <span class="sm">/</span> <span class="neg">-' + n2(t.mae_x) + "%</span>"],
-      ["Week at entry", t.w_support === "with" ? '<span class="pos">with</span>' : '<span class="neg">against</span>'],
+      ["Best / worst travel <span class=\"sm\">(book " + esc(t.window) + " window)</span>", '<span class="pos">+' + n2(t.mfe_x) + '%</span> <span class="sm">/</span> <span class="neg">-' + n2(t.mae_x) + "%</span>"],
+      ["Week at entry", t.w_support === "with" ? '<span class="pos">with</span>' : t.w_support === "against" ? '<span class="neg">against</span>' : '<span class="sm">n/a</span>'],
       ["Closed bars", btChip("W", wt) + " " + btChip("M", mt)],
     ];
     el.innerHTML = facts.map((f) => '<div class="fact"><div class="fl">' + f[0] + '</div><div class="fv">' + f[1] + "</div></div>").join("");
@@ -449,7 +466,7 @@
     $("ladder").querySelectorAll("tr[data-book]").forEach((tr) => { tr.onclick = () => setBook(tr.dataset.book); });
   }
   function setBook(b) {
-    if (!BOOK_RET[b]) return;
+    if (!bookOf(b)) return;
     state.book = b; $("book").value = b;
     sortItems();
     draw(); renderTable(); renderCalendar(); renderCompare();
@@ -461,12 +478,12 @@
     return ST.calendarDays(state.items, state.book, state.size);
   }
   async function loadUniverse() {
-    // data/universe.json: every coin's rows, decoded once; the filters apply to it like to a coin's rows
+    // runs/<id>/universe.json: every instrument's cards, decoded once; the filters apply to it like to an instrument's cards
     if (!state.uni) {
       $("meta").textContent = "loading the universe table...";
-      state.uni = ST.fromUniverse(await (await fetch("data/universe.json")).json());
+      state.uni = ST.fromUniverse(await (await fetch(state.base + "universe.json")).json());
       state.uniItems = null;
-      $("meta").textContent = state.uni.length.toLocaleString("en-US") + " rows across " + new Set(state.uni.map((t) => t.coin)).size + " coins loaded";
+      $("meta").textContent = state.uni.length.toLocaleString("en-US") + " rows across " + new Set(state.uni.map((t) => t.coin)).size + " instruments loaded";
     }
     return state.uni;
   }
@@ -499,7 +516,7 @@
       for (let d = 0; d < 7; d++) {
         const ts = w + d * DAY, date = iso(ts), e = map.get(date), out = ts < first || ts >= end;
         const sel = state.cur && state.cur.date === date || state.dateMode && state.dateMode.date === date;
-        const title = e ? e.n + " trade" + (e.n === 1 ? "" : "s") + ": " + fmtUsd0(e.usd) + " USD at " + state.size.toLocaleString("en-US") + " each, " + fmtPct(e.sum) + " summed" + (e.filled ? ", " + fmtPct(e.sum / e.filled) + " average" : "") : "";
+        const title = e ? e.n + " trade" + (e.n === 1 ? "" : "s") + ": " + fmtUsd0(e.usd) + " USD at " + state.size.toLocaleString("en-US") + " each, " + fmtPct(e.sum) + " summed" + (e.filled ? ", " + fmtPct(e.sum / e.filled) + " avg over " + e.filled + " with a result" : "") : "no trades entered " + date;
         html += '<div class="cd' + (out ? " out" : "") + (sel ? " sel" : "") + '" data-date="' + date + '" style="' + (e ? shade(e.usd, dMax) : "") + '" title="' + esc(title) + '"><span class="dn">' + new Date(ts * 1000).getUTCDate() + "</span>" +
           (e ? '<span class="dc">' + e.n + '</span><span class="dv ' + cls(e.usd) + '">' + fmtK(e.usd) + "</span>" : "") + "</div>";
         if (e && !out) { wSum += e.usd; wN += e.n; }
@@ -510,8 +527,8 @@
     $("cal").querySelectorAll(".cd[data-date]").forEach((d) => { d.onclick = () => calClick(d.dataset.date); });
     $("calTitle").textContent = monthName(y, m);
     const msum = ST.monthSummary(map, first, end);
-    $("calFoot").innerHTML = msum.n ? msum.n + " trades" + (msum.filled < msum.n ? " (" + msum.filled + " with a result)" : "") + ", <b class=\"" + cls(msum.usd) + '">' + fmtUsd0(msum.usd) + "</b> USD, avg " + (msum.avg == null ? "n/a" : fmtPct(msum.avg) + " over the " + msum.filled + " with a result") : "no trades this month";
-    $("calFoot2").textContent = (state.calScope === "all" ? "every coin, book " + state.book : "book " + state.book) + ", " + state.size.toLocaleString("en-US") + " USD each";
+    $("calFoot").innerHTML = msum.n ? msum.n + " trades" + (msum.filled < msum.n ? " (" + msum.filled + " with a result)" : "") + ", <b class=\"" + cls(msum.usd) + '">' + fmtUsd0(msum.usd) + "</b> USD, avg " + (msum.avg == null ? "n/a" : fmtPct(msum.avg)) + " per filled trade" : "no trades this month";
+    $("calFoot2").textContent = (state.calScope === "all" ? "every instrument, book " + state.book : "book " + state.book) + ", " + state.size.toLocaleString("en-US") + " USD each";
   }
   async function calClick(date) {
     if (state.calScope === "all") { $("dateBox").value = date; await applyDate(date); return; }
@@ -546,8 +563,10 @@
       const t = it.t, long = t.direction === "up", v = tradeRet(t), cal = state.cals.get(it.coin), i = cal ? cal.dayIdx.get(t.date) : null;
       const bt = cal && i != null ? btChip("W", htfType(cal, "W", i)) + " " + btChip("M", htfType(cal, "M", i)) : "";
       const days = ST.daysOf(t, state.book), st = settle(t, state.book);
-      html += '<tr data-k="' + k + '"' + (k === state.sel ? ' class="sel"' : "") + ' title="' + esc(TF_LABEL[t.tf] + " " + KIND_LABEL[t.kind] + (t.stack && t.stack !== t.tf ? ", stack " + t.stack : "") + "; book " + state.book + ": " + st.how + (days == null ? "" : ", " + days + " day" + (days === 1 ? "" : "s"))) + '"><td>' + t.date + '</td><td class="coinCol">' + esc(it.coin) +
-        '</td><td><span class="' + (long ? "pos" : "neg") + '">' + (long ? "Long" : "Short") + "</span> " + t.tf + " " + KIND_SHORT[t.kind] + (t.stack && t.stack !== t.tf ? ' <span class="dim">+</span>' : "") + "</td><td>" + bt + '</td><td class="num ' + cls(v) + '">' + fmtPct(v) + "</td></tr>";
+      const stacked = t.stackList && t.stackList.length > 1;
+      html += '<tr data-k="' + k + '"' + (k === state.sel ? ' class="sel"' : "") + ' title="' + esc(tfLabel(t.tf) + " " + (KIND_LABEL[t.kind] || t.kind) + (stacked ? ", stack " + t.stackStr : "") + "; book " + state.book + ": " + st.how + (days != null ? ", " + days + " days" : "")) + '"><td>' + t.date +
+        '</td><td class="coinCol">' + esc(it.coin) + '</td><td><span class="' + (long ? "pos" : "neg") + '">' + (long ? "Long" : "Short") + "</span> " + esc(t.tf) + " " + (KIND_SHORT[t.kind] || t.kind) + (stacked ? ' <span class="dim">+</span>' : "") + "</td><td>" + bt +
+        '</td><td class="num ' + cls(v) + '">' + (v == null ? "-" : fmtPct(v)) + "</td></tr>";
     });
     tb.innerHTML = html;
     tb.querySelectorAll("tr").forEach((tr) => { tr.onclick = () => select(+tr.dataset.k); });
@@ -555,7 +574,7 @@
     if (sel) sel.scrollIntoView({ block: "nearest" });
     const n = state.items.length, rets = state.items.map((it) => tradeRet(it.t)).filter((x) => x != null);
     const avg = rets.length ? rets.reduce((a, b) => a + b, 0) / rets.length : null, sum = rets.reduce((a, b) => a + b, 0);
-    $("tableTitle").innerHTML = (state.dateMode ? "Entered " + longDate(state.dateMode.date) + ", all coins" : esc(state.coin || "") + " trades") + ' <span class="right" style="text-transform:none;letter-spacing:0">' + n + " shown &middot; avg <b class=\"" + cls(avg) + '">' + fmtPct(avg) + "</b> &middot; <b class=\"" + cls(sum) + '">' + fmtUsd(sum, state.size) + "</b></span>";
+    $("tableTitle").innerHTML = (state.dateMode ? "Entered " + longDate(state.dateMode.date) + ", all instruments" : esc(state.coin || "") + " trades") + ' <span class="right" style="text-transform:none;letter-spacing:0">' + n + " shown, book " + esc(state.book) + ": " + (rets.length ? fmtPct(avg) + " avg, " + fmtUsd0(sum / 100 * state.size) + " USD" : "no results") + "</span>";
   }
 
   // ---------------------------------------------------------------- the Compare tab
@@ -570,8 +589,8 @@
     const zero = y.createAxisRange(y.makeDataItem({ value: 0 }));
     zero.get("grid").setAll({ stroke: am5.color("#8b93a7"), strokeOpacity: 0.6, strokeDasharray: [3, 3], visible: true });
     const series = {};
-    for (const b of BOOKS) {
-      const s = ch.series.push(am5xy.LineSeries.new(r1, { name: BOOK_NAME[b], xAxis: x, yAxis: y, valueXField: "t", valueYField: "v", stroke: am5.color(BOOK_COL[b]),
+    for (const b of ladderBooks()) {
+      const s = ch.series.push(am5xy.LineSeries.new(r1, { name: b + ": " + bookName(b), xAxis: x, yAxis: y, valueXField: "t", valueYField: "v", stroke: am5.color(bookCol(b)),
         tooltip: am5.Tooltip.new(r1, { labelText: "{name}: {valueY.formatNumber('#,###')} USD" }) }));
       s.strokes.template.setAll({ strokeWidth: 1.25 });
       series[b] = s;
@@ -580,7 +599,7 @@
     legend.labels.template.setAll({ fontSize: 11 }); legend.markers.template.setAll({ width: 10, height: 10 });
     legend.data.setAll(ch.series.values);
     ch.set("cursor", am5xy.XYCursor.new(r1, { behavior: "none", xAxis: x }));
-    // the distribution: one-percent bins, the page's book against the chance book
+    // the distribution: one-percent bins, the page's book against the reference (or the headline)
     const r2 = am5.Root.new("hist"); r2.setThemes([am5themes_Dark.new(r2)]);
     const hc = r2.container.children.push(am5xy.XYChart.new(r2, { panX: false, panY: false, wheelY: "none", layout: r2.verticalLayout, paddingLeft: 0, paddingRight: 8 }));
     const hx = hc.xAxes.push(am5xy.CategoryAxis.new(r2, { categoryField: "bin", renderer: am5xy.AxisRendererX.new(r2, { minGridDistance: 24, minorGridEnabled: false }) }));
@@ -594,14 +613,19 @@
       s.columns.template.setAll({ width: am5.percent(80), fillOpacity: 0.85, strokeOpacity: 0 });
       return s;
     };
-    const hA = mk("a", BOOK_COL.C), hB = mk("b", BOOK_COL.ref);
+    const hA = mk("a", bookCol(headline())), hB = mk("b", bookCol(reference() || headline()));
     const hl = hc.children.push(am5.Legend.new(r2, { centerX: am5.p50, x: am5.p50, marginTop: 4 }));
     hl.labels.template.setAll({ fontSize: 11 }); hl.markers.template.setAll({ width: 10, height: 10 });
     state.cmp = { r1, series, r2, hx, hA, hB, hl };
   }
+  function dropCompareCharts() {
+    if (!state.cmp) return;
+    try { state.cmp.r1.dispose(); state.cmp.r2.dispose(); } catch (e) { /* already gone */ }
+    state.cmp = null;
+  }
   function kpiCard(s, b, sel) {
     const g = (label, val) => "<div><i>" + label + "</i>" + val + "</div>";
-    return '<div class="kpi' + (sel ? " sel" : "") + '" data-book="' + b + '"><div class="kh"><span class="dot" style="background:' + BOOK_COL[b] + '"></span>' + esc(BOOK_NAME[b]) + "</div>" +
+    return '<div class="kpi' + (sel ? " sel" : "") + '" data-book="' + esc(b) + '"><div class="kh"><span class="dot" style="background:' + bookCol(b) + '"></span>' + esc(b + ": " + bookName(b)) + "</div>" +
       '<div class="kbig ' + cls(s.avg) + '">' + fmtPct(s.avg) + "</div><div class=\"ksub\">avg per trade &middot; " + s.filled + " filled" + (s.filled !== s.n ? " of " + s.n : "") + "</div>" +
       '<div class="kgrid">' + g("green", s.win == null ? "-" : (s.win * 100).toFixed(0) + "%") + g("median", '<span class="' + cls(s.med) + '">' + fmtPct(s.med) + "</span>") +
       g("total USD", '<span class="' + cls(s.total) + '">' + fmtUsd0(s.total) + "</span>") + g("max drawdown", '<span class="neg">' + (s.maxDD ? "-" + fmtUsd0(s.maxDD).slice(1) : "0") + "</span>") +
@@ -613,34 +637,37 @@
     if (state.tab !== "compare") { state.cmpDirty = true; return; }
     state.cmpDirty = false;
     if (!state.cmp) makeCompareCharts();
+    const books = ladderBooks();
     const universe = state.cmpScope === "universe" && state.uni;
     const items = universe ? universeItems() : state.items;
-    $("cmpScopeNote").textContent = universe ? items.length.toLocaleString("en-US") + " rows across every coin, filters applied (returns to three decimals in the universe table)" : state.cmpScope === "universe" ? "loading the universe table..." : "";
+    $("cmpScopeNote").textContent = universe ? items.length.toLocaleString("en-US") + " rows across every instrument, filters applied (returns to three decimals in the universe table)" : state.cmpScope === "universe" ? "loading the universe table..." : "";
     const stats = ST.allBooks(items, state.size);
-    $("kpis").innerHTML = BOOKS.map((b) => kpiCard(stats[b], b, b === state.book)).join("");
+    $("kpis").innerHTML = books.map((b) => kpiCard(stats[b], b, b === state.book)).join("");
     $("kpis").querySelectorAll(".kpi").forEach((k) => { k.onclick = () => setBook(k.dataset.book); });
-    for (const b of BOOKS) {
+    for (const b of books) {
       const s = state.cmp.series[b];
+      if (!s) continue;
       s.data.setAll(stats[b].curve);
       s.strokes.template.setAll({ strokeWidth: b === state.book ? 3 : 1.25, strokeOpacity: b === state.book ? 1 : 0.8 });
     }
-    const other = state.book === "ref" ? "C" : "ref";
-    const bins = ST.histogram(items, state.book, other, -15, 15);
+    const shown = books.includes(state.book) ? state.book : headline();
+    const other = reference() && shown !== reference() ? reference() : headline();
+    const bins = ST.histogram(items, shown, other, -15, 15);
     state.cmp.hx.data.setAll(bins);
-    state.cmp.hA.set("name", BOOK_NAME[state.book]); state.cmp.hA.set("fill", am5.color(BOOK_COL[state.book])); state.cmp.hA.set("stroke", am5.color(BOOK_COL[state.book]));
-    state.cmp.hB.set("name", BOOK_NAME[other]); state.cmp.hB.set("fill", am5.color(BOOK_COL[other])); state.cmp.hB.set("stroke", am5.color(BOOK_COL[other]));
+    state.cmp.hA.set("name", shown + ": " + bookName(shown)); state.cmp.hA.set("fill", am5.color(bookCol(shown))); state.cmp.hA.set("stroke", am5.color(bookCol(shown)));
+    state.cmp.hB.set("name", other + ": " + bookName(other)); state.cmp.hB.set("fill", am5.color(bookCol(other))); state.cmp.hB.set("stroke", am5.color(bookCol(other)));
     state.cmp.hA.data.setAll(bins); state.cmp.hB.data.setAll(bins);
     state.cmp.hl.data.setAll([state.cmp.hA, state.cmp.hB]);
-    const scope = universe ? "every coin, filters applied" : state.dateMode ? "every trade entered " + longDate(state.dateMode.date) + " across coins" : (state.coin || "") + ", filters applied";
+    const scope = universe ? "every instrument, filters applied" : state.dateMode ? "every trade entered " + longDate(state.dateMode.date) + " across instruments" : (state.coin || "") + ", filters applied";
     $("eqNote").textContent = scope + ", " + state.size.toLocaleString("en-US") + " USD per trade";
     $("histNote").textContent = "one-percent bins, share of filled trades; the end bins collect everything beyond";
     // by setup
-    const rows = ST.bySetup(items);
+    const rows = ST.bySetup(items), pair = ST.swapPair();
     const cell = (v, n) => { if (v == null) return "<td>-</td>"; const a = Math.min(0.45, Math.abs(v) / 4); return '<td style="background:rgba(' + (v > 0 ? "34,197,94" : "239,68,68") + "," + a.toFixed(2) + ')" title="' + n + ' filled">' + fmtPct(v) + "</td>"; };
-    $("bySetup").innerHTML = '<table class="setup"><thead><tr><th>setup</th><th>trades</th>' + BOOKS.map((b) => "<th>" + esc(BOOK_NAME[b]) + "</th>").join("") + "<th>D5 - chance</th></tr></thead><tbody>" +
-      rows.map((r, k) => "<tr" + (k === 0 ? ' class="head"' : "") + "><td>" + esc(r.label) + "</td><td>" + r.n + "</td>" + BOOKS.map((b) => cell(r.avg[b], r["n" + b])).join("") + cell(r.swap, r.swapN) + "</tr>").join("") + "</tbody></table>";
-    $("cmpNote").innerHTML = "Equal-size trades at the size box, no leverage, fees or funding; totals are sums, never an account. The chance book and D5 settle at five bars, the others at the 20-day cap; " +
-      "\"at target\" is the share of filled trades that left at the book's target (one R for D, D5 and the chance book). The receipt's own tables (every coin, every unit) are in analysis/domino/results/manage_tables.md.";
+    $("bySetup").innerHTML = '<table class="setup"><thead><tr><th>setup</th><th>trades</th>' + books.map((b) => "<th>" + esc(b + ": " + bookName(b)) + "</th>").join("") + (pair ? "<th>" + esc(pair[0] + " - " + pair[1]) + "</th>" : "") + "</tr></thead><tbody>" +
+      rows.map((r, k) => "<tr" + (k === 0 ? ' class="head"' : "") + "><td>" + esc(r.label) + "</td><td>" + r.n + "</td>" + books.map((b) => cell(r.avg[b], r["n" + b])).join("") + (pair ? cell(r.swap, r.swapN) : "") + "</tr>").join("") + "</tbody></table>";
+    $("cmpNote").innerHTML = "Equal-size trades at the size box, no leverage, fees or funding; totals are sums, never an account. Each book settles on its own horizon (the run's rule card says which); " +
+      "\"at target\" is the share of filled trades that left at the book's target. Grouped books (the other clocks) are on the cards and in the ladder, not here." + (pair ? " The last column pairs " + esc(pair[0]) + " against " + esc(pair[1]) + " on the rows that have both (the stop swap)." : "");
   }
 
   // ---------------------------------------------------------------- tabs, data, selection
@@ -650,19 +677,27 @@
     $("tabs").querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.v === v));
     document.querySelectorAll(".view").forEach((el) => el.classList.toggle("on", el.id === "view-" + v));
     if (v === "compare") renderCompare();
-    if (v === "playbook" && !state.playbookDone) { $("playbook").innerHTML = S.playbook(); state.playbookDone = true; }
+    if (v === "playbook" && !state.playbookDone) { $("playbook").innerHTML = S.playbook(state.run); state.playbookDone = true; }
     if (v === "trade") for (const p of visiblePanes()) p.root.resize();
     syncHash();
   }
 
-  async function loadCoin(coin) {
-    const entry = state.index.coins.find((c) => c.coin === coin);
-    if (!entry) return false;
-    const d = await (await fetch("data/" + entry.file)).json();
-    d.trades.forEach((t, i) => { t._i = i; });
+  function prepFile(coin, d) {
+    // a run file: bars (1d / 1h) + cards; the calendar is built once per instrument and every card prepared against it
+    d.daily = (d.bars && d.bars["1d"]) || d.daily || [];
+    d.hourly = (d.bars && d.bars["1h"]) || d.hourly || [];
     if (!state.cals.has(coin)) state.cals.set(coin, makeCalendar(d));
-    state.coin = coin; state.data = d; state.cal = state.cals.get(coin);
-    $("meta").textContent = coin + ": " + d.daily.length + " daily bars " + iso(d.daily[0][0]) + " to " + iso(d.daily[d.daily.length - 1][0]) + (d.hourly.length ? ", hourly from " + isoH(d.hourly[0][0]) : ", no hourly bars") + ", " + d.trades.length + " trades, as of " + d.as_of;
+    const cal = state.cals.get(coin);
+    if (!d._prepped) { d.trades.forEach((t, i) => { t._i = i; C.prep(t, cal); }); d._prepped = true; }
+    return cal;
+  }
+  async function loadCoin(coin) {
+    const entry = state.index.instruments.find((c) => c.instrument === coin);
+    if (!entry) return false;
+    const d = await (await fetch(state.base + entry.file)).json();
+    const cal = prepFile(coin, d);
+    state.coin = coin; state.data = d; state.cal = cal;
+    $("meta").textContent = coin + ": " + d.daily.length + " daily bars " + (d.daily.length ? iso(d.daily[0][0]) + " to " + iso(d.daily[d.daily.length - 1][0]) : "") + (d.hourly.length ? ", hourly from " + isoH(d.hourly[0][0]) : ", no hourly bars") + ", " + d.trades.length + " trades, run " + state.runId;
     for (const pane of Object.values(state.panes)) if (pane) { pane.seg.querySelector('[data-v="1H"]').disabled = !d.hourly.length; swapDrawings(pane, coin); }
     return true;
   }
@@ -675,13 +710,14 @@
     draw(); renderTable(); renderCalendar();
   }
   function syncHash() {
-    // the reference page's address form (#coin=BTC&date=2025-06-17&tf=D&dir=down&view=1D&book=C) plus this page's layout keys
+    // the reference page's address form (#run=...&coin=BTC&date=2025-06-17&tf=D&dir=down&view=1D&book=C) plus this page's layout keys
     const t = state.cur, q = [];
+    if (state.runId) q.push("run=" + encodeURIComponent(state.runId));
     if (state.dateMode) q.push("day=" + state.dateMode.date);
     if (state.coin) q.push("coin=" + encodeURIComponent(state.coin));
     if (t) q.push("date=" + t.date, "tf=" + t.tf, "dir=" + t.direction);
     if (state.panes.a) q.push("view=" + state.panes.a.tf);
-    q.push("book=" + state.book);
+    if (state.book) q.push("book=" + encodeURIComponent(state.book));
     if (state.layout === "dual") q.push("layout=dual", "view2=" + (state.panes.b ? state.panes.b.tf : "1W"));
     if (state.tab !== "trade") q.push("tab=" + state.tab);
     if (state.cmpScope === "universe") q.push("cmp=universe");
@@ -691,9 +727,9 @@
   function fromHash() {
     const q = new URLSearchParams(location.hash.slice(1));
     const g = (k) => q.get(k);
-    return { coin: g("coin"), date: g("date"), tf: g("tf"), dir: g("dir"), view: g("view"), book: g("book"), seed: g("seed"), then: g("then"), ray: g("ray"), show: g("show"), layout: g("layout"), view2: g("view2"), tab: g("tab"), day: g("day"), cal: g("cal"), cmp: g("cmp") };
+    return { run: g("run"), coin: g("coin"), date: g("date"), tf: g("tf"), dir: g("dir"), view: g("view"), book: g("book"), seed: g("seed"), then: g("then"), ray: g("ray"), show: g("show"), layout: g("layout"), view2: g("view2"), tab: g("tab"), cmp: g("cmp"), cal: g("cal"), day: g("day") };
   }
-  function lastSettled(items) { for (let k = 0; k < items.length; k++) if (items[k].t.status === "exit") return k; return items.length ? 0 : -1; }
+  function lastSettled(items) { const h = headline(); for (let k = 0; k < items.length; k++) if (ST.retOf(items[k].t, h) != null) return k; return items.length ? 0 : -1; }
 
   function rebuildItems() {
     if (state.dateMode) state.items = state.dateMode.items.slice();
@@ -708,7 +744,7 @@
     rebuildItems();
     draw(); renderTable(); renderCalendar(); renderCompare();
   }
-  async function loadDates() { if (!state.dates) state.dates = await (await fetch("data/dates.json")).json(); return state.dates; }
+  async function loadDates() { if (!state.dates) state.dates = await (await fetch(state.base + "dates.json")).json(); return state.dates; }
   async function applyDate(date) {
     await loadDates();
     const rows = state.dates[date] || [];
@@ -719,12 +755,15 @@
       want.push({ coin, tf, direction });
     }
     const byCoin = new Map();
-    for (const w of want) if (!byCoin.has(w.coin)) byCoin.set(w.coin, fetch("data/" + state.index.coins.find((c) => c.coin === w.coin).file).then((r) => r.json()));
+    for (const w of want) if (!byCoin.has(w.coin)) {
+      const entry = state.index.instruments.find((c) => c.instrument === w.coin);
+      if (entry) byCoin.set(w.coin, fetch(state.base + entry.file).then((r) => r.json()));
+    }
     const items = [];
     for (const w of want) {
+      if (!byCoin.has(w.coin)) continue;
       const d = await byCoin.get(w.coin);
-      if (d.trades[0] && d.trades[0]._i == null) d.trades.forEach((t, i) => { t._i = i; });
-      if (!state.cals.has(w.coin)) state.cals.set(w.coin, makeCalendar(d));
+      prepFile(w.coin, d);
       const t = d.trades.find((x) => x.date === date && x.tf === w.tf && x.direction === w.direction);
       if (t && (!state.liquid || t.liquid) && (!state.hasT1 || t.t1 != null)) items.push({ coin: w.coin, t });
     }
@@ -735,6 +774,54 @@
     $("meta").textContent = items.length + " trades entered " + longDate(date) + " (filters applied)";
     if (state.items.length) await select(0); else { draw(); renderTable(); renderCalendar(); }
     renderCompare();
+  }
+
+  // ---------------------------------------------------------------- runs
+  function fillBookSelect() {
+    const sel = $("book");
+    sel.innerHTML = "";
+    const opt = (b) => { const o = document.createElement("option"); o.value = b; o.textContent = b + ": " + bookName(b); return o; };
+    for (const b of ladderBooks()) sel.appendChild(opt(b));
+    for (const g of groupNames()) {
+      const og = document.createElement("optgroup"); og.label = g;
+      for (const b of groupBooks(g)) og.appendChild(opt(b));
+      sel.appendChild(og);
+    }
+    sel.value = state.book;
+  }
+  function fillUnitFilter() {
+    // the unit buttons follow the run's declared units (D / W / M for the management book; a session bar for a futures run)
+    const el = $("fTf");
+    el.innerHTML = (state.run.units || ["D", "W", "M"]).map((u) => '<button data-v="' + esc(u) + '" class="on">' + esc(tfLabel(u).charAt(0).toUpperCase() + tfLabel(u).slice(1)) + "</button>").join("");
+    state.tf = new Set(state.run.units || ["D", "W", "M"]);
+    seg("fTf", () => { state.tf = setOf("fTf"); refilter(); }, true);
+  }
+  async function loadRun(id) {
+    const base = "data/runs/" + id + "/";
+    const run = await (await fetch(base + "run.json")).json();
+    const index = await (await fetch(base + "index.json")).json();
+    C.setRun(run);
+    state.runId = id; state.run = run; state.base = base; state.index = index;
+    state.cals = new Map(); state.uni = null; state.uniItems = null; state.dates = null; state.data = null; state.cal = null; state.coin = null;
+    state.cur = null; state.sel = -1; state.dateMode = null; state.playbookDone = false; state.items = [];
+    dropCompareCharts();
+    if (!bookOf(state.book)) state.book = headline();
+    fillBookSelect();
+    fillUnitFilter();
+    const dl = $("coinList");
+    dl.innerHTML = "";
+    for (const c of index.instruments) { const o = document.createElement("option"); o.value = c.instrument; o.label = c.n + " trades"; dl.appendChild(o); }
+    $("run").value = id;
+    $("meta").textContent = index.instruments.length + " instruments, " + index.trades.toLocaleString() + " trades, as of " + index.as_of + " (" + esc(run.name) + ")";
+    try { localStorage.setItem("domino-run", id); } catch (e) { /* storage off */ }
+  }
+  async function openCoin(coin) {
+    state.dateMode = null; $("dateBox").value = "";
+    if (!(await loadCoin(coin))) { $("meta").textContent = "no such instrument in this run: " + coin; return false; }
+    state.cur = null; rebuildItems(); state.sel = lastSettled(state.items); state.cur = state.items[state.sel] ? state.items[state.sel].t : null;
+    if (state.cur) calGoto(state.cur.date);
+    draw(); renderTable(); renderCalendar(); renderCompare();
+    return true;
   }
 
   // ---------------------------------------------------------------- wiring
@@ -749,11 +836,20 @@
 
   async function init() {
     state.panes.a = makePane("a");
-    state.index = await (await fetch("data/index.json")).json();
-    const dl = $("coinList");
-    for (const c of state.index.coins) { const o = document.createElement("option"); o.value = c.coin; o.label = c.n + " trades"; dl.appendChild(o); }
-    $("meta").textContent = state.index.coins.length + " coins, " + state.index.trades.toLocaleString() + " trades, as of " + state.index.as_of;
-    seg("fTf", () => { state.tf = setOf("fTf"); refilter(); }, true);
+    const want = fromHash();
+    const rr = await fetch("data/runs.json");
+    if (!rr.ok) throw new Error("no runs: data/runs.json is missing. Import a run first (trade_viewer export-run --as-of ... or trade_viewer import <run>)");
+    state.runs = await rr.json();
+    if (!state.runs.length) throw new Error("no runs listed in data/runs.json");
+    const rs = $("run");
+    rs.innerHTML = "";
+    for (const r of state.runs) { const o = document.createElement("option"); o.value = r.id; o.textContent = r.name + " (" + r.trades.toLocaleString() + " trades)"; rs.appendChild(o); }
+    let stored = null;
+    try { stored = localStorage.getItem("domino-run"); } catch (e) { /* storage off */ }
+    const runId = [want.run, stored].find((id) => id && state.runs.some((r) => r.id === id)) || state.runs[0].id;
+    if (want.book) state.book = want.book;
+    await loadRun(runId);
+    rs.onchange = async (e) => { await loadRun(e.target.value); const first = state.index.instruments.find((c) => c.instrument === "BTC") || state.index.instruments[0]; if (first) { $("coinBox").value = first.instrument; await openCoin(first.instrument); } };
     seg("fKind", () => { state.kind = setOf("fKind"); refilter(); }, true);
     seg("fDir", () => { state.dir = setOf("fDir"); refilter(); }, true);
     seg("fLiq", (v, on) => { state.liquid = on; refilter(); }, true);
@@ -771,11 +867,10 @@
     $("sort").onchange = (e) => { state.sort = e.target.value; sortItems(); renderTable(); };
     $("calPrev").onclick = () => calStep(-1); $("calNext").onclick = () => calStep(1);
     $("coinBox").onchange = async (e) => {
-      const v = e.target.value.trim().toUpperCase();
+      const v = e.target.value.trim();
       if (!v) return;
-      state.dateMode = null; $("dateBox").value = "";
-      if (await loadCoin(v)) { state.cur = null; rebuildItems(); state.sel = lastSettled(state.items); state.cur = state.items[state.sel] ? state.items[state.sel].t : null; if (state.cur) calGoto(state.cur.date); draw(); renderTable(); renderCalendar(); renderCompare(); }
-      else $("meta").textContent = "no such coin in the viewer data: " + v;
+      const hit = state.index.instruments.find((c) => c.instrument === v || c.instrument.toUpperCase() === v.toUpperCase());
+      if (hit) await openCoin(hit.instrument); else $("meta").textContent = "no such instrument in this run: " + v;
     };
     $("dateBox").onchange = (e) => { if (e.target.value) applyDate(e.target.value); };
     document.addEventListener("keydown", (e) => {
@@ -788,7 +883,6 @@
       else if (e.key === "Escape" && magnets.length) { for (const p of magnets) setMagnet(p, false); }
       else if (e.key === "Escape") { state.sel = -1; state.cur = null; draw(); renderTable(); renderCalendar(); }
     });
-    const want = fromHash();
     state.proof.seed = want.seed === "1"; state.proof.then = INTERVAL[want.then] ? want.then : null;
     state.proof.ray = ["open", "high", "low", "close"].includes(want.ray) ? want.ray : null;
     if (want.cmp === "universe") { state.cmpScope = "universe"; $("cmpScope").querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.v === "universe")); }
@@ -798,10 +892,10 @@
       $("fShow").querySelector('[data-v="sys"]').classList.toggle("on", state.showSys);
       $("fShow").querySelector('[data-v="man"]').classList.toggle("on", state.showMan);
     }
-    if (want.book && BOOK_RET[want.book]) { state.book = want.book; $("book").value = want.book; }
-    const first = state.index.coins.find((c) => c.coin === (want.coin || "BTC")) || state.index.coins[0];
-    $("coinBox").value = first.coin;
-    await loadCoin(first.coin);
+    if (want.book && bookOf(want.book)) { state.book = want.book; $("book").value = want.book; }
+    const first = state.index.instruments.find((c) => c.instrument === (want.coin || "BTC")) || state.index.instruments[0];
+    $("coinBox").value = first.instrument;
+    await loadCoin(first.instrument);
     if (want.view && INTERVAL[want.view] && state.panes.a) { state.panes.a.tf = want.view; state.panes.a.seg.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.v === want.view)); }
     if (want.layout === "dual") {
       setLayout("dual");
@@ -817,7 +911,7 @@
     if (want.cal === "all" || want.cmp === "universe") await loadUniverse();
     draw(); renderTable(); renderCalendar();
     if (want.day && /^\d{4}-\d{2}-\d{2}$/.test(want.day)) {
-      // &day=YYYY-MM-DD: every trade entered that day across coins (the date box), the coin / tf / dir keys picking one of them
+      // &day=YYYY-MM-DD: every trade entered that day across instruments (the date box), the coin / tf / dir keys picking one of them
       $("dateBox").value = want.day;
       await applyDate(want.day);
       const k = want.coin ? state.items.findIndex((it) => it.coin === want.coin && (!want.tf || it.t.tf === want.tf) && (!want.dir || it.t.direction === want.dir)) : -1;

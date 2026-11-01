@@ -155,6 +155,72 @@ first run, no page change:
 - Tests: `tests/test_domino_contract.py` (31: the validator's refusals by name, the derived
   shapes, single-file / zip / in-place import, the mapping on the audits' row shapes).
 
+## The run contract, stage 2 (2026-11-01, TVB-42): the page reads runs
+
+On the owner's word the page now reads the contract and nothing else. `data/runs.json` lists
+the runs and a Run picker in the header chooses one; every instrument, card, book and table on
+the page belongs to it (`data/runs/<id>/`, the address carries `run=`). What changed, module
+by module:
+
+- `core.js` holds a run registry instead of six hardcoded books: `setRun` takes the run card and
+  assigns roles, groups and colours (ladder books in the run's order, grouped books share their
+  group's colour). `prep` is the page's one derived layer: flat aliases for the setup fields the
+  words read, and the day offset of every recorded time against the run's own daily bars (the
+  inverse of the exporter: an offset is bars, not calendar days). `settle` reads the card's book
+  entry (how / at / price / ret / hit / note) and never infers which clock a book used; a book
+  absent from a card says "does not apply", a `none` book keeps its note. One R is the card's
+  (null when unreachable), never recomputed.
+- `story.js` narrates every book from the run's own definition: its name, its rule in words,
+  its declared target (`target` on the book, so "T1 was only touched after the exit" is read, not
+  guessed from the id) and its entry. The clock sentence is a reading of the bar at the recorded
+  exit time (hour or day), labelled as such in the fine print. The other clocks are one sentence
+  per group. The ladder lists the ladder books, then each group under its header. The Playbook
+  is the run's rule card and its books, plus the page-generic chart and chip notes.
+- `stats.js` reads book entries (`retOf / hitOf / daysOf`), Compare runs over the ladder books,
+  the stop-swap column appears only when the run declares `D5` and `ref`, and `fromUniverse`
+  decodes the importer's table (book columns by id, coded extras).
+- `app.js`: the run picker and `loadRun` (the book select is filled from the run, ladder books
+  then group optgroups; the unit filter follows `run.units`; Compare charts are rebuilt per run);
+  markers from timestamps (targets by name from `t.targets`, one R and the far side from
+  `t.touches`, the entry arrow on the hourly pane at a book's own recorded `entry`, an
+  hour-resolution exit on its recorded hour, the other clocks' squares from the first book of
+  each group); the strip shows hours held and the entry hour for an hour-resolution book.
+- Two contract additions the page needed, both removing an inference: `target` on a book
+  definition and `entry` on a book entry (the hourly clock's own entry hour), plus `resolution`
+  on a book entry for a fill known less finely than its book (the hourly one-R book's fill is
+  known to the day; recorded at the latest time known to be at or before it, so it never sits
+  before the book's entry). The validator caught the first export of that case (2Z 2026-08-12:
+  "book D_h enters at 18:00, after it leaves 00:00") and the exporter was corrected, not the rule.
+
+Verification (the audits' named trades, through the new modules):
+
+- Node, on the imported run (`check-run` still no differences after the re-export): ATOM
+  2026-05-09 long book D leaves at one R on day 2; ACE 2026-06-14 long book D at one R on day 1,
+  the exit day itself; ACE 2026-04-29 long on the hourly clock enters 02:00 and leaves 03:00,
+  "1 hour after its entry hour"; BTC 2026-03-16 weekly long's chance book stopped on day 11
+  before one R; BLUR 2026-07-24 weekly short's D5 leaves on day 24 by the clock, past the
+  headline's cap at day 20, where book C is marked open (the TVB-41 audit F1 sentence); 0G
+  2026-08-31 reads D+W same price with M 34.59% beyond. 24 cards carry a D5 clock exit past an
+  open headline, the audit's count.
+- Browser (Chrome, four loads, no console errors): the BLUR D5 strip reads exit 2026-08-17 at
+  0.013099, clock exit, held 24 days, +13.10%; the ACE hourly trade on the 1H pane shows the
+  entry arrow at 02:00 and the exit arrow at 03:00 with the strip at 1 h held; ATOM's one-R
+  circle and out arrow sit on the same May 11 bar; BTC's stop circle and out arrow sit on the
+  same March 27 bar; the ladder shows the six ladder books then the hourly clock, under water
+  and measured move groups; Compare on the universe scope reads 179,498 rows, book C -0.09%
+  per trade with a max drawdown of -629,820 (the engine's -629,821), the swap column present.
+- Tests: `tests/test_domino_viewer_js.py` rewritten to the card shape (21 cases: prep's offsets
+  by bar index, settle's missing / absent contract, the recorded exit price, the stack pair on
+  daily and weekly cards, cellIndex, drawdown and month summary on book entries, the universe
+  decoder, the D5 paragraph on weekly / monthly / daily cards, the hourly colours and the
+  day-resolution one-R fill, the no-target cap, the tie, the missing book, the travel label,
+  the stack sentence, the unreachable one R, the ladder and Playbook, the app's source checks:
+  no engine column name survives in any page module).
+
+Not done in stage 2 (stage 3): the flat `data/*.json` layout and `trade_viewer build` still exist
+and are no longer read; Compare does not yet line runs up against each other (one run at a time);
+the hand-written single-file phone run has been imported in a test, not on the page.
+
 ## The three things next
 
 1. **A journal layer**: a note and a one-tap verdict per row, saved beside the drawings and

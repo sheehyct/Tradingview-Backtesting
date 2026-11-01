@@ -3,8 +3,12 @@
 > Status: CONFIRMED by the owner 2026-10-31 (TVB-42), stage 1 built the same day: the validator
 > and importer (`analysis/domino/contract.py`), the management book's exporter and the row-for-row
 > check (`analysis/domino/run_export.py`), the CLI (`trade_viewer export-run / import / validate /
-> check-run`), tests in `tests/test_domino_contract.py`. The page still reads the flat layout
-> (stage 2). Confirmed choices are in section 11; section 12 lists what stage 1 settled.
+> check-run`), tests in `tests/test_domino_contract.py`. Stage 2 built 2026-11-01 on the owner's
+> word: the page reads runs (`data/runs.json`, a run picker; `core.js` holds the run's books with
+> roles and colours; `prep` derives day offsets from the card's times against the run's bars; the
+> ladder, the story, the markers and Compare read the card's book entries; no engine column name
+> survives in the page). The flat layout and `build` are retired in stage 3. Confirmed choices
+> are in section 11; section 12 lists what stages 1 and 2 settled.
 
 One card shape that every run exports and the trade viewer draws. The page reads cards, it
 never computes a trade: every price, time, fill and return on screen is what the producing
@@ -73,10 +77,12 @@ this shape.
 ```
 
 `units` names the setup bar sizes the cards use (`bar` on a card must be one of them); `bars`
-names the candle sizes shipped. A book may carry `resolution` (overriding the run's) and an
-optional `group` (words, e.g. "hourly clock", "under water"): grouped books are the same book on
+names the candle sizes shipped. A book may carry `resolution` (overriding the run's), an
+optional `group` (words, e.g. "hourly clock", "under water": grouped books are the same book on
 another clock or target, which the page folds under their group and Compare leaves off its
-table. `instruments` is filled by the importer from the instrument files; a producer may leave
+table) and, for a book that takes a target, `target`: the name of the target it takes (`T1`,
+`T2`, `mm`, or `one_r` for one R), so the page can say "its target was only touched after the
+exit" by reading the card, never by guessing from the book's id. `instruments` is filled by the importer from the instrument files; a producer may leave
 it out. A run with one instrument may put everything in `run.json` (section 7, the single-file
 flavour).
 
@@ -138,7 +144,12 @@ Field rules:
   `none`. `ret` is a number except for `none` and `censored`. `hit` says whether the book's own
   target or one R was touched (null for books without one). `note` is optional words (why
   `none`, a tie the bar cannot order). A declared book ABSENT from a card does not apply to that
-  trade (a daily unit has no own clock); `none` means it applied and was not scored.
+  trade (a daily unit has no own clock); `none` means it applied and was not scored. A book on
+  its own clock may carry `entry`, its own entry time (the hourly clock enters at the first hour
+  strictly through the level), at or after the card's entry and at or before its `at`. A book
+  entry may carry its own `resolution` when one fill is known less finely than the book's
+  (the hourly one-R book's fill is known to the day; its `at` is then the latest time known to
+  be at or before the fill: the touch day's open, or the entry hour on the entry day).
 - `stack` entries may carry only `bar` when the producer did not record the other levels'
   prices; the page reads the prices off the bars in that case.
 - `travel` is recorded once, in the window the run names (`window` is a book id).
@@ -294,3 +305,10 @@ as a run.
   before they are rewritten.
 - The importer streams a folder file by file (the management book is 300 MB of JSON); a
   single-file run or a zip is read whole.
+- Stage 2 (2026-11-01): a book definition may declare `target` (T1 / T2 / mm / one_r); a book
+  entry may carry `entry` (its own entry time) and `resolution` (a fill known less finely than
+  its book). The page's only derived layer is `prep` in `core.js`: flat aliases and day offsets
+  from the card's times against the run's daily bars (bars, not calendar days). The page chooses
+  the run from `runs.json` (the address carries `run=`; the last choice is remembered in the
+  browser). The ladder lists ladder books then groups; Compare lines up the ladder books of ONE
+  run; Compare across runs is stage 3.

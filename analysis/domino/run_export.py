@@ -38,30 +38,35 @@ BOOKS: list[dict] = [
     },
     {
         "id": "A",
+        "target": "T1",
         "name": "all out at T1",
         "role": "target",
         "rule": "Everything out at T1, the pattern's own magnitude or the first unbroken weekly / monthly level. Otherwise the exit.",
     },
     {
         "id": "B",
+        "target": "T2",
         "name": "hold through T2",
         "role": "target",
         "rule": "Hold through T2 with the exit live. T1 is not a decision.",
     },
     {
         "id": "D",
+        "target": "one_r",
         "name": "one R or the exit",
         "role": "target",
         "rule": "One R or the exit, whichever comes first, inside the 20-day cap.",
     },
     {
         "id": "D5",
+        "target": "one_r",
         "name": "one R or the exit, 5 bars",
         "role": "target",
         "rule": "One R or the exit inside five bars of the unit, the chance book's own horizon.",
     },
     {
         "id": "ref",
+        "target": "one_r",
         "name": "chance book",
         "role": "reference",
         "rule": "One R or the setup-bar stop, whichever comes first (the stop first on a shared day), marked at bar five.",
@@ -76,6 +81,7 @@ BOOKS: list[dict] = [
     },
     {
         "id": "A_h",
+        "target": "T1",
         "name": "all out at T1, hourly clock",
         "role": "clock",
         "resolution": "hour",
@@ -84,6 +90,7 @@ BOOKS: list[dict] = [
     },
     {
         "id": "D_h",
+        "target": "one_r",
         "name": "one R, hourly clock",
         "role": "clock",
         "resolution": "hour",
@@ -99,6 +106,7 @@ BOOKS: list[dict] = [
     },
     {
         "id": "A_u",
+        "target": "T1",
         "name": "all out at T1, under water",
         "role": "clock",
         "group": "under water",
@@ -106,6 +114,7 @@ BOOKS: list[dict] = [
     },
     {
         "id": "D_u",
+        "target": "one_r",
         "name": "one R, under water",
         "role": "clock",
         "group": "under water",
@@ -120,6 +129,7 @@ BOOKS: list[dict] = [
     },
     {
         "id": "A_own",
+        "target": "T1",
         "name": "all out at T1, own clock",
         "role": "clock",
         "group": "own clock",
@@ -134,6 +144,7 @@ BOOKS: list[dict] = [
     },
     {
         "id": "A_long",
+        "target": "T1",
         "name": "all out at T1, long cap",
         "role": "clock",
         "group": "long cap",
@@ -141,6 +152,7 @@ BOOKS: list[dict] = [
     },
     {
         "id": "A_mm",
+        "target": "mm",
         "name": "all out at the measured move",
         "role": "target",
         "group": "measured move",
@@ -433,15 +445,21 @@ def card_from_row(r: dict, coin: str, dex: str, tape: Tape) -> dict:
                 )
             )
         if r.get("hit_D_h"):
+            # the row holds no touch hour for one R: the fill is known to the day, recorded at the latest time known
+            # to be at or before it (the touch day's open, or the entry hour when the touch day is the entry day)
+            day_at = tape.at(t0, r.get("one_r_k"))
             books.append(
-                _book(
-                    "D_h",
-                    "one_r",
-                    tape.at(t0, r.get("one_r_k")),
-                    one_r,
-                    r.get("ret_D_h"),
-                    True,
-                    note="the touch hour is not in the row; the day is (day resolution)",
+                dict(
+                    _book(
+                        "D_h",
+                        "one_r",
+                        max(day_at, entry_ts) if day_at is not None else entry_ts,
+                        one_r,
+                        r.get("ret_D_h"),
+                        True,
+                        note="the touch hour is not in the row; the day is (day resolution)",
+                    ),
+                    resolution="day",
                 )
             )
         else:
@@ -458,6 +476,11 @@ def card_from_row(r: dict, coin: str, dex: str, tape: Tape) -> dict:
     else:
         books.append(_book("A_h", base_h["how"], note=base_h.get("note")))
         books.append(_book("D_h", base_h["how"], note=base_h.get("note")))
+    if base_h["how"] in ("clock", "cap"):
+        # the hourly books enter at their own hour (CONTRACT.md section 3, `entry` on a book entry)
+        for b in books:
+            if b["id"] in ("C_h", "A_h", "D_h"):
+                b["entry"] = t0 + int(r["entry_h"]) * HOUR
     # under water (amendment A2.5), the same cap
     su = r.get("status_u")
     if su is None:

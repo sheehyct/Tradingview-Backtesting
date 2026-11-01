@@ -1,9 +1,10 @@
-"""The trade viewer's page logic (core.js / stats.js / story.js) run under node against the
-recorded-row contract: the TVB-39 and TVB-40 audit repairs and the TVB-41 cold review's fold,
-each with the audit's named shape.
+"""The trade viewer's page logic (core.js / stats.js / story.js) run under node against the run
+contract's cards (viewer/CONTRACT.md): the TVB-39 and TVB-40 audit repairs, the TVB-41 cold
+review's fold and the TVB-41 Codex audit's F1, each with the audit's named shape, on the card
+shape the page now reads (stage 2 of the contract).
 
-Rows here are hand vectors in the engine's column names; the bars are unit-test fixtures for the
-words and the geometry only (no research number is derived from them)."""
+Cards here are hand vectors in the contract's field names; the bars are unit-test fixtures for
+the words and the geometry only (no research number is derived from them)."""
 
 from __future__ import annotations
 
@@ -20,16 +21,91 @@ from analysis.domino.trade_viewer import VIEWER
 pytestmark = pytest.mark.skipif(shutil.which("node") is None, reason="node not installed")
 
 DAY = 86400
+HOUR = 3600
 T0 = 1_767_225_600  # 2026-01-01 00:00 UTC
+E = T0 + 9 * DAY  # the default card's entry day, 2026-01-10
+
+RUN = {
+    "contract": 1,
+    "id": "test",
+    "name": "a test run",
+    "as_of": "2026-03-01",
+    "clock": {"day_roll": "00:00 UTC", "resolution": "day"},
+    "units": ["D", "W", "M"],
+    "bars": ["1d", "1h"],
+    "books": [
+        {
+            "id": "C",
+            "name": "exit only",
+            "role": "headline",
+            "rule": "No target. Hold until the daily clock fires; 20-day cap.",
+        },
+        {
+            "id": "A",
+            "name": "all out at T1",
+            "role": "target",
+            "target": "T1",
+            "rule": "Everything out at T1. Otherwise the exit.",
+        },
+        {
+            "id": "B",
+            "name": "hold through T2",
+            "role": "target",
+            "target": "T2",
+            "rule": "Hold through T2 with the exit live.",
+        },
+        {
+            "id": "D",
+            "name": "one R or the exit",
+            "role": "target",
+            "target": "one_r",
+            "rule": "One R or the exit, whichever first.",
+        },
+        {
+            "id": "D5",
+            "name": "one R or the exit, 5 bars",
+            "role": "target",
+            "target": "one_r",
+            "rule": "One R or the exit inside five bars.",
+        },
+        {
+            "id": "ref",
+            "name": "chance book",
+            "role": "reference",
+            "target": "one_r",
+            "rule": "One R or the setup-bar stop, marked at bar five.",
+        },
+        {
+            "id": "C_h",
+            "name": "hourly clock",
+            "role": "clock",
+            "resolution": "hour",
+            "group": "hourly clock",
+            "rule": "Exit only on the hourly clock.",
+        },
+        {
+            "id": "C_u",
+            "name": "under water",
+            "role": "clock",
+            "group": "under water",
+            "rule": "Exit only, reading against as under water.",
+        },
+    ],
+}
 
 
 def _daily(n: int, start: int = T0) -> list[list[float]]:
-    # a flat tape: every bar opens 100, high 101, low 99, closes 100 (the words read the ROW, not these bars)
+    # a flat tape: every bar opens 100, high 101, low 99, closes 100 (the words read the CARD, not these bars)
     return [[start + i * DAY, 100.0, 101.0, 99.0, 100.0, 1.0] for i in range(n)]
 
 
+def _hourly(n_days: int, start: int = T0) -> list[list[float]]:
+    return [[start + i * HOUR, 100.0, 101.0, 99.0, 100.0, 1.0] for i in range(24 * n_days)]
+
+
 def run_js(body: str) -> dict:
-    """Load the three page modules with a window shim and run `body`, which must assign `out`."""
+    """Load the three page modules with a window shim, set the test run, and run `body`, which
+    must assign `out`."""
     files = "".join(
         (VIEWER / f).read_text(encoding="utf-8") + "\n" for f in ("core.js", "stats.js", "story.js")
     )
@@ -37,6 +113,8 @@ def run_js(body: str) -> dict:
         "const window = {}; const document = { getElementById: () => null };\n"
         + files
         + "const DV = window.DV; const C = DV.core, ST = DV.stats, S = DV.story;\n"
+        + f"C.setRun({json.dumps(RUN)});\n"
+        + "const prep = (t, cal) => C.prep(t, cal || null);\n"
         + "let out = {};\n"
         + body
         + "\nprocess.stdout.write(JSON.stringify(out));"
@@ -50,183 +128,148 @@ def run_js(body: str) -> dict:
     return json.loads(r.stdout)
 
 
-def row(**kw) -> dict:
+def book(bid: str, how: str, at=None, price=None, ret=None, hit=None, **kw) -> dict:
+    b = {"id": bid, "how": how, "at": at, "price": price, "ret": ret, "hit": hit}
+    b.update(kw)
+    return b
+
+
+def card(**kw) -> dict:
+    """The default card: a daily long, T1 touched on day 2, one R on day 1, the headline clock on
+    day 3, the chance book stopped on day 1, the hourly clock outside its window."""
     base = {
-        "date": "2026-01-10",
-        "direction": "up",
-        "tf": "D",
+        "id": "X-2026-01-10-D-reversal-up",
+        "instrument": "X",
+        "bar": "D",
+        "pattern": "2-2 reversal",
         "kind": "reversal",
-        "cls": "plain",
-        "stack": "D",
-        "near_tf": None,
-        "level": 100.0,
-        "stop": 98.0,
+        "direction": "up",
+        "class": "plain",
+        "stack": [{"bar": "D"}],
+        "entry": {"t": E, "price": 100.0},
+        "far": 98.0,
+        "one_r": 102.0,
         "r_pct": 2.0,
-        "t1": 103.0,
-        "t1_src": "anchor",
-        "t1_k": None,
-        "t2": None,
-        "t3": None,
-        "status": "exit",
-        "exit_k": 3,
-        "days": 3,
-        "ret_C": 1.0,
-        "ret_A": 1.0,
-        "days_A": 3,
-        "hit_A": False,
-        "ret_B": None,
-        "days_B": None,
-        "hit_B": None,
-        "ret_D": 1.0,
-        "days_D": 3,
-        "hit_D": False,
-        "ret_D5": 1.0,
-        "days_D5": 3,
-        "hit_D5": False,
-        "status5": "exit",
-        "ret5": -2.0,
-        "days_ref": 1,
-        "out5": "stop",
-        "stop_k": 1,
-        "one_r_k": None,
-        "w_support": "with",
-        "mfe_x": 2.5,
-        "mae_x": 1.0,
-        "status_u": None,
-        "status_h": None,
-        "status_own": None,
-        "next_bar": None,
+        "targets": [{"name": "T1", "price": 103.0, "source": "anchor", "touched": E + 2 * DAY}],
+        "touches": {"one_r": E + DAY, "far": E + DAY},
+        "books": [
+            book("C", "clock", E + 3 * DAY, 101.0, 1.0),
+            book("A", "target", E + 2 * DAY, 103.0, 3.0, True),
+            book("B", "clock", E + 3 * DAY, 101.0, 1.0, None),
+            book("D", "one_r", E + DAY, 102.0, 2.0, True),
+            book("D5", "one_r", E + DAY, 102.0, 2.0, True),
+            book("ref", "stop", E + DAY, 98.0, -2.0, False),
+            book("C_h", "none", note="outside the venue's hourly window"),
+            book("C_u", "clock", E + 3 * DAY, 101.0, 1.0),
+        ],
+        "travel": {"mfe": 2.5, "mae": 1.0, "window": "C", "next_bar": "with"},
+        "context": {"week_side": "with", "month_side": "against"},
+        "extras": {"liquid": True, "flag": "none", "anchor": "anchor", "dex": "main"},
     }
     base.update(kw)
     return base
 
 
+def with_books(c: dict, **by_id) -> dict:
+    """Replace or add book entries on a card by id."""
+    books = [by_id.pop(b["id"]) if b["id"] in by_id else b for b in c["books"]]
+    books += list(by_id.values())
+    return dict(c, books=books)
+
+
 # ---------------------------------------------------------------- core.js
 
 
-def test_settle_keeps_the_selected_book_when_it_has_no_result():
-    """TVB-39 F6: 0G 2026-05-17 shape, the chance book censored while book C has a result. The
-    missing book borrows no window (k = 0) and states the row's own reason."""
-    t = row(ret5=None, days_ref=None, out5=None, status5="censored")
+def test_prep_derives_day_offsets_from_the_bars_by_index():
+    """The census fills no gaps: an offset is bars, not calendar days. With day 11 missing, a
+    touch on the 13th is two bars after the 10th, not three."""
+    daily = [b for b in _daily(40) if b[0] != T0 + 10 * DAY]
     out = run_js(
-        f"const t = {json.dumps(t)}; out.ref = C.settle(t, 'ref'); out.c = C.settle(t, 'C');"
+        f"const cal = C.makeCalendar({{ daily: {json.dumps(daily)}, hourly: [] }});"
+        f"const t = prep({json.dumps(card())}, cal); out = {{ t1k: t.t1_k, ck: t.byBook.C.k, ak: t.byBook.A.k, date: t.date, level: t.level, stop: t.stop, stack: t.stackStr }};"
+    )
+    assert (
+        out["date"] == "2026-01-10"
+        and out["level"] == 100.0
+        and out["stop"] == 98.0
+        and out["stack"] == "D"
+    )
+    assert (
+        out["t1k"] == 1 and out["ak"] == 1 and out["ck"] == 2
+    )  # the 12th is index +1, the 13th index +2
+
+
+def test_settle_keeps_the_selected_book_when_it_has_no_result():
+    """TVB-39 F6: the chance book censored while book C has a result. The missing book borrows no
+    window (k = 0) and states the card's own reason; a book absent from the card says so."""
+    c = with_books(card(), ref=book("ref", "censored"))
+    out = run_js(
+        f"const t = prep({json.dumps(c)}); out.ref = C.settle(t, 'ref'); out.c = C.settle(t, 'C'); out.z = C.settle(t, 'C_u');"
+        f"const t2 = prep({json.dumps(dict(card(), books=[b for b in card()['books'] if b['id'] != 'C_u']))}); out.absent = C.settle(t2, 'C_u');"
     )
     assert out["ref"]["book"] == "ref" and out["ref"]["missing"] is True
     assert out["ref"]["ret"] is None and out["ref"]["price"] is None and out["ref"]["k"] == 0
-    assert "five-bar window" in out["ref"]["how"]
-    assert out["c"]["book"] == "C" and out["c"]["ret"] == 1.0
+    assert "censored" in out["ref"]["how"]
+    assert out["c"]["book"] == "C" and out["c"]["ret"] == 1.0 and out["c"]["k"] == 3
+    assert out["z"]["missing"] is False
+    assert out["absent"]["missing"] is True and out["absent"]["absent"] is True
 
 
-def test_missing_book_d5_reads_its_reason_from_the_row():
-    """Cold review M2: 1,295 of the 1,296 null-D5 rows are headline-censored rows that were never
-    scored, not incomplete five-bar windows; a weekly chance book's window is not five days."""
-    not_scored = row(
-        status="censored",
-        exit_k=None,
-        ret_C=None,
-        ret_A=None,
-        days_A=None,
-        ret_D5=None,
-        days_D5=None,
-        hit_D5=None,
-        status5=None,
+def test_missing_book_d5_reads_its_reason_from_the_card():
+    """Cold review M2: a headline-censored card's D5 is `none` with the engine's note, not a
+    five-bar-window story; its k is 0."""
+    c = with_books(
+        card(),
+        C=book("C", "censored"),
+        A=book("A", "censored"),
+        D5=book("D5", "none", note="not scored: the headline row is censored"),
     )
     out = run_js(
-        f"out.d5 = C.settle({json.dumps(not_scored)}, 'D5'); out.a = C.settle({json.dumps(not_scored)}, 'A');"
+        f"const t = prep({json.dumps(c)}); out.d5 = C.settle(t, 'D5'); out.a = C.settle(t, 'A');"
     )
-    assert "not scored" in out["d5"]["how"] and "five-bar window" not in out["d5"]["how"]
+    assert "not scored" in out["d5"]["how"] and "five-bar" not in out["d5"]["how"]
     assert out["d5"]["k"] == 0 and out["a"]["k"] == 0
     assert "censored" in out["a"]["how"]
 
 
-def test_book_d5_reason_follows_status5_on_weekly_rows():
-    """Cold review M4: a weekly unit whose headline is open at day 20 while D5 exits on the daily
-    clock later (status5 = exit) must say daily-close exit, not marked at the horizon."""
-    t = row(
-        tf="W",
-        status="open",
-        exit_k=None,
-        days=20,
-        ret_C=0.4,
-        ret_D5=-0.8,
-        days_D5=27,
-        hit_D5=False,
-        status5="exit",
-    )
-    out = run_js(f"out.s = C.settle({json.dumps(t)}, 'D5');")
-    assert out["s"]["how"] == "daily-close exit" and out["s"]["k"] == 27
-    t2 = row(
-        tf="W",
-        status="open",
-        exit_k=None,
-        days=20,
-        ret_C=0.4,
-        ret_D5=0.2,
-        days_D5=35,
-        hit_D5=False,
-        status5="open",
+def test_settle_carries_the_recorded_exit_price_for_the_marker_search():
+    """TVB-39 F4 / F5: the out arrow searches the recorded target / stop (`at`), never a fill
+    reconstructed from the return; a clock exit has a price but no touch price."""
+    c = with_books(card(), ref=book("ref", "stop", E, 98.0, -2.0, False))
+    out = run_js(
+        f"const t = prep({json.dumps(c)}); out.a = C.settle(t, 'A'); out.s = C.settle(t, 'ref'); out.d = C.settle(t, 'D'); out.c = C.settle(t, 'C');"
     )
     assert (
-        run_js(f"out.s = C.settle({json.dumps(t2)}, 'D5');")["s"]["how"]
-        == "marked at the 5-bar horizon"
+        out["a"]["target"] is True
+        and out["a"]["at"] == 103.0
+        and out["a"]["how"] == "all out at T1"
     )
-    # TVB-41 Codex audit F1: the whole paragraph, not only settle(). The D5 sentence must narrate
-    # D5's own exit day and never append book C's clock sentence ("marked at the day-20 close").
-    for unit, k in (("W", 27), ("M", 45)):
-        t3 = row(
-            tf=unit,
-            status="open",
-            exit_k=None,
-            days=20,
-            ret_C=0.4,
-            ret_D5=-0.8,
-            days_D5=k,
-            hit_D5=False,
-            status5="exit",
-        )
-        para = _d5_paragraph(t3, n_days=70)
-        assert f"on day {k}" in para and "past the headline's 20-day cap" in para
-        assert "marked at the day-20 close" not in para and "No daily close went against" not in para
-        assert "-0.80%" in para
-    # a daily unit where both clocks are the same exit: D5's day, no headline sentence
-    t4 = row(status="exit", exit_k=3, days=3, ret_C=1.0, ret_D5=1.0, days_D5=3, hit_D5=False, status5="exit")
-    para = _d5_paragraph(t4, n_days=30)
-    assert "on day 3" in para and "headline" not in para
-
-
-def _d5_paragraph(t: dict, n_days: int) -> str:
-    out = run_js(
-        f"const cal = C.makeCalendar({{ daily: {json.dumps(_daily(n_days))}, hourly: [] }});"
-        f"out.s = S.narrate({{ t: {json.dumps(t)}, coin: 'X', cal, book: 'D5', size: 1000, p: 2 }});"
-    )
-    return out["s"].split("What book D5 did.")[1].split("</p>")[0]
-
-
-def test_settle_carries_the_recorded_exit_price_for_the_marker_search():
-    """TVB-39 F4 / F5: the out arrow searches the recorded target / stop, not the reconstructed fill."""
-    a = row(hit_A=True, ret_A=3.0, days_A=2, t1_k=2)
-    ref = row(out5="stop", stop_k=0, days_ref=0)
-    one_r = row(out5="one_r", one_r_k=2, days_ref=2, ret5=2.0)
-    out = run_js(
-        f"out.a = C.settle({json.dumps(a)}, 'A'); out.s = C.settle({json.dumps(ref)}, 'ref'); out.r = C.settle({json.dumps(one_r)}, 'ref');"
-    )
-    assert out["a"]["target"] is True and out["a"]["at"] == 103.0
     assert out["s"]["stop"] is True and out["s"]["at"] == 98.0 and out["s"]["k"] == 0
-    assert out["r"]["target"] is True and out["r"]["at"] == 102.0  # one R = level + (level - stop)
+    assert out["d"]["target"] is True and out["d"]["at"] == 102.0 and out["d"]["how"] == "one R"
+    assert out["c"]["at"] is None and out["c"]["price"] == 101.0 and out["c"]["clock"] is True
 
 
-def test_stack_subset_is_the_classed_pair_read_from_the_row():
-    """TVB-39 F7: 0G 2026-08-31 shape, D = W exact (near_tf W) and M 34.59% away, class exact_shared:
-    the converged stack is D+W, M is listed apart. A plain daily row with a far W: no pair."""
-    t = row(cls="exact_shared", stack="D+W+M", near_tf="W", level=0.17296)
+def test_stack_subset_is_the_classed_pair_read_from_the_card():
+    """TVB-39 F7: 0G 2026-08-31 shape, D = W exact (near_tf W) and M 34.59% away, class
+    exact_shared: the converged stack is D+W, M is listed apart. A plain daily card with a far W:
+    no pair."""
+    c = card(
+        **{
+            "class": "exact_shared",
+            "stack": [{"bar": "D"}, {"bar": "W"}, {"bar": "M"}],
+            "entry": {"t": E, "price": 0.17296},
+        }
+    )
+    c["extras"]["near_tf"] = "W"
     levels = [
         {"tf": "D", "price": 0.17296},
         {"tf": "W", "price": 0.17296},
         {"tf": "M", "price": 0.23279},
     ]
+    plain = card(**{"class": "plain", "stack": [{"bar": "D"}, {"bar": "W"}]})
     out = run_js(
-        f"out.s = C.stackSubset({json.dumps(t)}, {json.dumps(levels)}); out.w = C.stackWords({json.dumps(t)}, {json.dumps(levels)}).text;"
-        f"out.p = C.stackSubset({json.dumps(row(cls='plain', stack='D+W', near_tf=None, level=100.0))}, {json.dumps([{'tf': 'D', 'price': 100.0}, {'tf': 'W', 'price': 102.0}])});"
+        f"const t = prep({json.dumps(c)}); out.s = C.stackSubset(t, {json.dumps(levels)}); out.w = C.stackWords(t, {json.dumps(levels)}).text;"
+        f"out.p = C.stackSubset(prep({json.dumps(plain)}), {json.dumps([{'tf': 'D', 'price': 100.0}, {'tf': 'W', 'price': 102.0}])});"
     )
     assert [lv["tf"] for lv in out["s"]["conv"]] == ["D", "W"]
     assert [lv["tf"] for lv in out["s"]["far"]] == ["M"]
@@ -237,13 +280,15 @@ def test_stack_subset_is_the_classed_pair_read_from_the_row():
     ] == ["W"]
 
 
-def test_stack_subset_weekly_row_pairs_its_own_level_with_the_daily_only():
+def test_stack_subset_weekly_card_pairs_its_own_level_with_the_daily_only():
     """Cold review M3: a weekly unit is classed on its own level against the daily level
     (chance.stack_class); a monthly level in the same day's stack is listed apart."""
-    weekly = row(tf="W", cls="within1", stack="D+W+M", near_tf=None, level=100.0)
+    weekly = card(
+        bar="W", **{"class": "within1", "stack": [{"bar": "D"}, {"bar": "W"}, {"bar": "M"}]}
+    )
     lv = [{"tf": "D", "price": 99.5}, {"tf": "W", "price": 100.0}, {"tf": "M", "price": 105.0}]
     out = run_js(
-        f"out.w = C.stackSubset({json.dumps(weekly)}, {json.dumps(lv)}); out.t = C.stackWords({json.dumps(weekly)}, {json.dumps(lv)}).text;"
+        f"const t = prep({json.dumps(weekly)}); out.w = C.stackSubset(t, {json.dumps(lv)}); out.t = C.stackWords(t, {json.dumps(lv)}).text;"
     )
     assert sorted(x["tf"] for x in out["w"]["conv"]) == ["D", "W"]
     assert [x["tf"] for x in out["w"]["far"]] == ["M"] and abs(
@@ -273,18 +318,46 @@ def test_cell_index_keeps_the_candle_on_both_sides_of_its_centre():
     assert out["f"] == 1 and out["g"] == 1 and out["h"] == 1 and out["i"] == 2 and out["j"] == 3
 
 
+def test_run_registry_ladder_groups_and_colours():
+    out = run_js(
+        "out = { ladder: C.ladderBooks(), groups: C.groupNames(), hb: C.groupBooks('hourly clock'), head: C.headline(), ref: C.reference(), col: C.bookCol('C'), tgt: C.bookTarget('A'), res: C.bookRes('C_h') };"
+    )
+    assert out["ladder"] == ["C", "A", "B", "D", "D5", "ref"] and out["groups"] == [
+        "hourly clock",
+        "under water",
+    ]
+    assert (
+        out["hb"] == ["C_h"]
+        and out["head"] == "C"
+        and out["ref"] == "ref"
+        and out["col"] == "#3b82f6"
+    )
+    assert out["tgt"] == "T1" and out["res"] == "hour"
+
+
 # ---------------------------------------------------------------- stats.js
+
+
+def _items(*cards: dict) -> str:
+    return (
+        "["
+        + ",".join(
+            f"{{ coin: '{c.get('instrument', 'X')}', t: prep({json.dumps(c)}) }}" for c in cards
+        )
+        + "]"
+    )
 
 
 def test_drawdown_runs_on_daily_sums_not_within_the_day():
     """TVB-40 F1: +5% then -5% on the same day is a flat day (the engine's book_stats), not a 50-dollar dip."""
-    items = [
-        {"coin": "A", "t": row(ret_C=5.0)},
-        {"coin": "B", "t": row(ret_C=-5.0)},
-        {"coin": "A", "t": row(date="2026-01-11", ret_C=-3.0)},
-    ]
+    a = with_books(card(instrument="A"), C=book("C", "clock", E + 3 * DAY, 105.0, 5.0))
+    b = with_books(card(instrument="B"), C=book("C", "clock", E + 3 * DAY, 95.0, -5.0))
+    a2 = with_books(
+        card(instrument="A", entry={"t": E + DAY, "price": 100.0}),
+        C=book("C", "clock", E + 4 * DAY, 97.0, -3.0),
+    )
     out = run_js(
-        f"const s = ST.bookStats({json.dumps(items)}, 'C', 1000); out = {{ dd: s.maxDD, total: s.total, curve: s.curve.map(p => p.v) }};"
+        f"const s = ST.bookStats({_items(a, b, a2)}, 'C', 1000); out = {{ dd: s.maxDD, total: s.total, curve: s.curve.map(p => p.v) }};"
     )
     assert out["curve"] == [0.0, -30.0]
     assert (
@@ -294,27 +367,83 @@ def test_drawdown_runs_on_daily_sums_not_within_the_day():
 
 def test_month_summary_averages_over_filled_rows_only():
     """TVB-40 F5: a censored row is not a zero return."""
-    items = [
-        {"coin": "A", "t": row(ret_C=-4.0)},
-        {"coin": "B", "t": row(ret_C=None, status="censored")},
-        {"coin": "C", "t": row(date="2026-02-02", ret_C=1.0)},
-    ]
+    a = with_books(card(instrument="A"), C=book("C", "clock", E + 3 * DAY, 96.0, -4.0))
+    b = with_books(card(instrument="B"), C=book("C", "censored"))
+    c = with_books(
+        card(instrument="C", entry={"t": T0 + 32 * DAY, "price": 100.0}),
+        C=book("C", "clock", T0 + 35 * DAY, 101.0, 1.0),
+    )
     out = run_js(
-        f"const m = ST.calendarDays({json.dumps(items)}, 'C', 1000); out.jan = ST.monthSummary(m, {T0}, {T0 + 31 * DAY}); out.feb = ST.monthSummary(m, {T0 + 31 * DAY}, {T0 + 59 * DAY});"
-        f"out.none = ST.monthSummary(ST.calendarDays([{{coin:'X', t:{json.dumps(row(ret_C=None, status='censored'))}}}], 'C', 1000), {T0}, {T0 + 31 * DAY});"
+        f"const m = ST.calendarDays({_items(a, b, c)}, 'C', 1000); out.jan = ST.monthSummary(m, {T0}, {T0 + 31 * DAY}); out.feb = ST.monthSummary(m, {T0 + 31 * DAY}, {T0 + 59 * DAY});"
+        f"out.none = ST.monthSummary(ST.calendarDays({_items(b)}, 'C', 1000), {T0}, {T0 + 31 * DAY});"
     )
     assert out["jan"] == {"n": 2, "filled": 1, "usd": -40.0, "avg": -4.0}
     assert out["feb"]["n"] == 1 and out["feb"]["avg"] == 1.0
     assert out["none"]["n"] == 1 and out["none"]["filled"] == 0 and out["none"]["avg"] is None
 
 
+def test_universe_table_decodes_into_rows_with_book_entries():
+    u = {
+        "epoch": "2020-01-01",
+        "instruments": ["X", "Y"],
+        "books": ["C", "A"],
+        "codes": {
+            "bar": ["D", "W", "M"],
+            "kind": ["reversal", "continuation", "inside", "outside"],
+            "dir": ["up", "down"],
+            "how": ["target", "one_r", "stop", "clock", "cap", "censored", "none"],
+            "class": ["plain"],
+            "x:flag": ["none", "third"],
+        },
+        "n": 2,
+        "cols": {
+            "instrument": [0, 1],
+            "date": [2200, 2201],
+            "bar": [0, 1],
+            "kind": [0, 2],
+            "dir": [0, 1],
+            "class": [0, -1],
+            "t1": [1, 0],
+            "C:ret": [1.0, None],
+            "C:how": [3, 5],
+            "C:days": [3, -1],
+            "C:hit": [-1, -1],
+            "A:ret": [3.0, None],
+            "A:how": [0, 5],
+            "A:days": [2, -1],
+            "A:hit": [1, -1],
+            "x:liquid": [1, 0],
+            "x:flag": [0, 1],
+        },
+    }
+    out = run_js(
+        f"const rows = ST.fromUniverse({json.dumps(u)}); out = {{ a: rows[0], b: rows[1], r: ST.retOf(rows[0], 'A'), d: ST.daysOf(rows[0], 'C'), h: ST.hitOf(rows[0], 'A') }};"
+    )
+    assert (
+        out["a"]["coin"] == "X"
+        and out["a"]["tf"] == "D"
+        and out["a"]["kind"] == "reversal"
+        and out["a"]["liquid"] is True
+        and out["a"]["flag"] == "none"
+    )
+    assert (
+        out["b"]["tf"] == "W"
+        and out["b"]["direction"] == "down"
+        and out["b"]["cls"] is None
+        and out["b"]["flag"] == "third"
+        and out["b"]["t1"] is None
+    )
+    assert out["r"] == 3.0 and out["d"] == 3 and out["h"] is True
+    assert out["b"]["byBook"]["C"]["how"] == "censored" and out["b"]["byBook"]["C"]["ret"] is None
+
+
 # ---------------------------------------------------------------- story.js
 
 
-def _story(t: dict, book: str, n_days: int = 40) -> str:
+def _story(c: dict, book: str, n_days: int = 40, hourly: bool = False) -> str:
     return run_js(
-        f"const cal = C.makeCalendar({{ daily: {json.dumps(_daily(n_days))}, hourly: [] }});"
-        f"out.s = S.narrate({{ t: {json.dumps(t)}, coin: 'X', cal, book: '{book}', size: 1000, p: 2 }});"
+        f"const cal = C.makeCalendar({{ daily: {json.dumps(_daily(n_days))}, hourly: {json.dumps(_hourly(n_days) if hourly else [])} }});"
+        f"out.s = S.narrate({{ t: prep({json.dumps(c)}, cal), coin: 'X', cal, book: '{book}', size: 1000, p: 2 }});"
     )["s"]
 
 
@@ -322,63 +451,160 @@ def _book_paragraph(s: str, book: str) -> str:
     return s.split("What book " + book + " did.")[1].split("</p>")[0].replace("</b>", "").strip()
 
 
-def test_hourly_clock_is_worded_in_the_trade_s_own_colours():
-    """TVB-40 F3: BTC 2026-03-18 daily short shape: a short leaves on a GREEN hour in a GREEN day."""
-    short = row(direction="down", status_h="exit", entry_h=11, exit_h=37, ret_C_h=-1.2)
-    long_ = row(status_h="exit", entry_h=2, exit_h=5, ret_C_h=0.4)
-    assert "first green hour while the day is green" in _story(short, "C")
-    assert "first red hour while the day is red" in _story(long_, "C")
-
-
-def test_open_row_without_a_target_is_not_told_it_left_with_the_clock():
-    """TVB-40 F3: ADA 2024-01-30 book A shape: open at the cap, T1 never touched."""
-    t = row(
-        status="open", exit_k=None, days=20, ret_C=0.5, ret_A=0.5, days_A=20, hit_A=False, t1_k=None
+def test_book_d5_narrates_its_own_exit_day_never_book_c_s_clock():
+    """TVB-41 Codex audit F1 (BLUR 2026-07-24 W short shape): the headline is open at day 20 while
+    D5 leaves on the daily clock on day 24; the D5 paragraph names day 24 and the headline's cap,
+    never the day-20 marking sentence. A monthly unit the same; a daily unit where both clocks
+    are one exit carries no headline sentence."""
+    for unit, k in (("W", 24), ("M", 45)):
+        c = with_books(
+            card(
+                bar=unit,
+                direction="down",
+                one_r=None,
+                touches={"one_r": None, "far": None},
+                targets=[],
+            ),
+            C=book("C", "cap", E + 20 * DAY, 112.8, 12.8),
+            A=book("A", "cap", E + 20 * DAY, 112.8, 12.8, None),
+            D=book("D", "cap", E + 20 * DAY, 112.8, 12.8, False),
+            D5=book("D5", "clock", E + k * DAY, 113.1, 13.1, False),
+            ref=book("ref", "cap", E + 35 * DAY, 101.5, 1.5, False),
+        )
+        para = _book_paragraph(_story(c, "D5", n_days=70), "D5")
+        assert (
+            f"on day {k}" in para
+            and "past the headline's cap (day 20)" in para
+            and "book c is marked open" in para.lower()
+        )
+        assert "marked at the cap" not in para.split("That is past")[0] and "+13.10%" in para
+    same = _book_paragraph(
+        _story(with_books(card(), D5=book("D5", "clock", E + 3 * DAY, 101.0, 1.0, False)), "D5"),
+        "D5",
     )
-    s = _story(t, "A")
-    assert "left with the daily clock" not in s
-    assert "marked at the day-20 close" in s
+    assert (
+        "on day 3" in same
+        and "headline" not in same
+        and "One R at 102.00 was not touched before the exit" in same
+    )
+
+
+def test_hourly_clock_is_worded_in_the_trade_s_own_colours():
+    """TVB-40 F3 (BTC 2026-03-18 daily short shape): the hour's close is read against its open in
+    the trade's direction; the entry hour and the hours held come from the card."""
+    tape_up = _hourly(40)
+    tape_up[9 * 24 + 7][4] = (
+        100.5  # the exit hour for the short closes above its open: green, against a short
+    )
+    short = with_books(
+        card(direction="down"),
+        C_h=book("C_h", "clock", E + 7 * HOUR, 100.5, -0.5, entry=E + 2 * HOUR),
+    )
+    s = run_js(
+        f"const cal = C.makeCalendar({{ daily: {json.dumps(_daily(40))}, hourly: {json.dumps(tape_up)} }});"
+        f"out.s = S.narrate({{ t: prep({json.dumps(short)}, cal), coin: 'X', cal, book: 'C_h', size: 1000, p: 2 }});"
+    )["s"]
+    para = _book_paragraph(s, "C_h")
+    assert (
+        "5 hours after its entry hour" in para and "closed green at 100.50, above its open" in para
+    )
+    assert "Hourly clock (entered at 2026-01-10 02:00 UTC): exit only: out after 5 h, -0.50%." in s
+    # a one-R fill known only to the day inside an hourly book: no hours are claimed for it
+    dayres = with_books(
+        short,
+        D_h=book(
+            "D_h",
+            "one_r",
+            E + 2 * HOUR,
+            98.0,
+            2.0,
+            True,
+            entry=E + 2 * HOUR,
+            resolution="day",
+            note="the touch hour is not in the row; the day is (day resolution)",
+        ),
+    )
+    s2 = run_js(
+        f"const cal = C.makeCalendar({{ daily: {json.dumps(_daily(40))}, hourly: {json.dumps(tape_up)} }});"
+        "C.setRun(Object.assign({}, C.getRun(), { books: C.getRun().books.concat([{ id: 'D_h', name: 'one R, hourly clock', role: 'clock', resolution: 'hour', group: 'hourly clock', target: 'one_r', rule: 'One R or the hourly exit.' }]) }));"
+        f"out.s = S.narrate({{ t: prep({json.dumps(dayres)}, cal), coin: 'X', cal, book: 'D_h', size: 1000, p: 2 }});"
+    )["s"]
+    assert "one R: one R on the entry day, +2.00%" in s2 and "after -" not in s2
+    assert "One R at 98.00 was touched on the entry day" in _book_paragraph(s2, "D_h")
+
+
+def test_open_card_without_a_target_is_not_told_it_left_with_the_clock():
+    """TVB-40 F3 (ADA 2024-01-30 book A shape): open at the cap, T1 never touched."""
+    c = with_books(
+        card(targets=[{"name": "T1", "price": 103.0, "source": "anchor", "touched": None}]),
+        C=book("C", "cap", E + 20 * DAY, 100.5, 0.5),
+        A=book("A", "cap", E + 20 * DAY, 100.5, 0.5, False),
+    )
+    para = _book_paragraph(_story(c, "A"), "A")
+    assert "T1 at 103.00 was never touched inside the window, so it rode the exit" in para
+    assert "marked at the cap on day 20" in para and "exit clock fired" not in para
 
 
 def test_same_day_stop_and_one_r_tie_is_not_told_as_stop_first():
-    """TVB-40 F3: BTC 2023-04-09 chance-book shape: stop_k = one_r_k = 0."""
-    t = row(out5="stop", stop_k=0, one_r_k=0, days_ref=0)
-    s = _story(t, "ref")
-    assert "before one R" not in s
-    assert "cannot say which came first" in s and "takes the stop" in s
-    later = _story(row(out5="stop", stop_k=1, one_r_k=3), "ref")
+    """TVB-40 F3 (BTC 2023-04-09 chance-book shape): the stop and one R touched the same day."""
+    tie = with_books(
+        card(touches={"one_r": E, "far": E}), ref=book("ref", "stop", E, 98.0, -2.0, False)
+    )
+    s = _story(tie, "ref")
+    assert "before one R" not in s and "cannot say which came first" in s and "takes the stop" in s
+    later = _story(
+        with_books(
+            card(touches={"one_r": E + 3 * DAY, "far": E + DAY}),
+            ref=book("ref", "stop", E + DAY, 98.0, -2.0, False),
+        ),
+        "ref",
+    )
     assert "before one R" in later
-    never = _story(row(out5="stop", stop_k=1, one_r_k=None), "ref")
+    never = _story(
+        with_books(
+            card(touches={"one_r": None, "far": E + DAY}),
+            ref=book("ref", "stop", E + DAY, 98.0, -2.0, False),
+        ),
+        "ref",
+    )
     assert "before one R" not in never and "never touched" in never
 
 
 def test_missing_book_is_named_not_borrowed():
     """TVB-39 F6 in words: the chance book censored while book C exited at -1.09% on day 1; the
     chance paragraph names its own status and carries none of book C's figures."""
-    t = row(ret5=None, days_ref=None, out5=None, status5="censored", ret_C=-1.09, exit_k=1, days=1)
-    para = _book_paragraph(_story(t, "ref"), "ref")
+    c = with_books(card(), C=book("C", "clock", E + DAY, 98.91, -1.09), ref=book("ref", "censored"))
+    para = _book_paragraph(_story(c, "ref"), "ref")
     assert para.startswith("The chance book has no result")
-    assert "-1.09" not in para and "daily-close" not in para and "day 1" not in para
-    d5 = row(
-        status="censored",
-        exit_k=None,
-        ret_C=None,
-        ret_D5=None,
-        days_D5=None,
-        hit_D5=None,
-        status5=None,
+    assert "-1.09" not in para and "exit clock" not in para and "day 1" not in para
+    d5 = with_books(
+        card(),
+        C=book("C", "censored"),
+        D5=book("D5", "none", note="not scored: the headline row is censored"),
     )
-    assert "not scored" in _book_paragraph(_story(d5, "D5"), "D5")
+    assert "not scored: the headline row is censored" in _book_paragraph(_story(d5, "D5"), "D5")
 
 
-def test_travel_is_labelled_as_book_c_s_window():
+def test_travel_is_labelled_as_the_headline_window():
     """TVB-40 F4: the travel columns are measured through the headline exit whatever book is selected."""
-    assert "book C's exit" in _story(row(), "ref")
+    assert "book C's exit (the headline window" in _story(card(), "ref")
 
 
 def test_stack_sentence_names_the_converged_subset_and_the_far_level_apart():
     """TVB-39 F7 in words: D = W exact (near_tf W), M far."""
-    t = row(cls="exact_shared", stack="D+W+M", near_tf="W", level=100.0, date="2026-01-21")
+    c = card(
+        **{
+            "class": "exact_shared",
+            "stack": [{"bar": "D"}, {"bar": "W"}, {"bar": "M"}],
+            "entry": {"t": T0 + 20 * DAY, "price": 100.0},
+        }
+    )
+    c["extras"]["near_tf"] = "W"
+    for b in c["books"]:
+        if b["at"] is not None:
+            b["at"] += 11 * DAY
+    c["targets"][0]["touched"] += 11 * DAY
+    c["touches"] = {"one_r": T0 + 21 * DAY, "far": T0 + 21 * DAY}
     # a tape from December 2025 so a complete week and month sit before the entry; every high is 100, so the day's and
     # the week's levels are 100 (exact); the month before is then given a high of 130 (far)
     daily = _daily(70, start=T0 - 31 * DAY)
@@ -388,7 +614,7 @@ def test_stack_sentence_names_the_converged_subset_and_the_far_level_apart():
         f"const daily = {json.dumps(daily)}; const cal = C.makeCalendar({{ daily, hourly: [] }});"
         "const i = cal.dayIdx.get('2026-01-21'); const m = cal.months.find(b => b.days.includes(i));"
         "const mi = cal.months.indexOf(m); cal.months[mi - 1].h = 130.0;"
-        f"out.levels = C.stackLevels({json.dumps(t)}, i, cal); out.s = S.narrate({{ t: {json.dumps(t)}, coin: 'X', cal, book: 'C', size: 1000, p: 2 }});"
+        f"const t = prep({json.dumps(c)}, cal); out.levels = C.stackLevels(t, i, cal); out.s = S.narrate({{ t, coin: 'X', cal, book: 'C', size: 1000, p: 2 }});"
     )
     assert [lv["price"] for lv in out["levels"]] == [100.0, 100.0, 130.0]
     assert "the week's level 100.00 (same price" in out["s"]
@@ -396,8 +622,63 @@ def test_stack_sentence_names_the_converged_subset_and_the_far_level_apart():
     assert "not part of the converged stack" in out["s"]
 
 
-def test_app_wiring_resort_cell_index_entry_hour_no_fallback():
-    """TVB-40 F6 / F2 and the cold review's M1 in app.js (DOM-bound, so checked at the source)."""
+def test_unreachable_one_r_is_said_in_words_not_as_a_price():
+    """339 shorts carry a one R at or below zero: the card has no one-R price; the plan says why,
+    the D book says it rides the exit."""
+    c = with_books(
+        card(
+            direction="down",
+            far=260.0,
+            one_r=None,
+            r_pct=160.0,
+            touches={"one_r": None, "far": None},
+            extras={
+                "liquid": True,
+                "flag": "none",
+                "anchor": "anchor",
+                "dex": "main",
+                "one_r_raw": -60.0,
+            },
+        ),
+        D=book(
+            "D",
+            "clock",
+            E + 3 * DAY,
+            99.0,
+            1.0,
+            None,
+            note="one R lies at or below zero for this short: no one-R fill is possible",
+        ),
+    )
+    s = _story(c, "D")
+    assert "one R would lie at or below zero" in s and "the engine's figure: -60.00" in s
+    para = _book_paragraph(s, "D")
+    assert "This trade has no one R (it lies at or below zero), so the book rides the exit" in para
+
+
+def test_ladder_lists_ladder_books_then_groups_and_the_playbook_reads_the_run():
+    out = run_js(
+        f"const cal = C.makeCalendar({{ daily: {json.dumps(_daily(40))}, hourly: [] }});"
+        f"const t = prep({json.dumps(card())}, cal); out.l = S.ladder({{ t, cal, book: 'A', size: 1000, p: 2 }}); out.p = S.playbook(C.getRun());"
+    )
+    ladder = out["l"]
+    assert (
+        ladder.index('data-book="C"')
+        < ladder.index('data-book="A"')
+        < ladder.index('data-book="ref"')
+        < ladder.index("hourly clock")
+        < ladder.index('data-book="C_h"')
+    )
+    assert (
+        "all out at T1" in ladder
+        and "not scored: outside the venue's hourly window" in ladder
+        and "book A fills at 103.00" in ladder
+    )
+    assert "<h1>a test run</h1>" in out["p"] and "takes T1" in out["p"] and "00:00 UTC" in out["p"]
+
+
+def test_app_wiring_resort_cell_index_entry_hour_no_fallback_runs():
+    """TVB-40 F6 / F2, the cold review's M1 and stage 2 in app.js (DOM-bound, so checked at the source)."""
     src = (VIEWER / "app.js").read_text(encoding="utf-8")
     set_book = src.split("function setBook(b) {")[1].split("}")[0]
     assert "sortItems();" in set_book
@@ -407,5 +688,14 @@ def test_app_wiring_resort_cell_index_entry_hour_no_fallback():
         "?? ks[0]" not in src and "|| ks[0]" not in src
     )  # no first-candle fallback for a touch marker
     assert (
-        "t.entry_h * HOUR)" in src and "bs[k].h > t.level" in src
-    )  # the 1H entry arrow at the engine's entry hour, else a strict break
+        "hourEntry(t, st)" in src and "bs[k].h > t.level" in src
+    )  # the 1H entry arrow at the recorded entry hour, else a strict break
+    assert (
+        'fetch("data/runs.json")' in src and '"data/runs/" + id + "/"' in src
+    )  # the page reads runs
+    assert (
+        "ret_C" not in src and "exit_k" not in src and "status_h" not in src
+    )  # no engine column names survive in the page
+    for f in ("core.js", "story.js", "stats.js"):
+        js = (VIEWER / f).read_text(encoding="utf-8")
+        assert "ret_C" not in js and "hit_A" not in js and "status5" not in js, f

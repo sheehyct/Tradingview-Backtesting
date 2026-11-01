@@ -118,10 +118,21 @@ backslash escapes through Bash, use the Edit / Write tools for source.
 - [x] The viewer row contract, stage 1 (see the section above): spec confirmed by the owner,
       validator / importer / exporter / check built, the management book imported as run one
       with no differences against the page's data.
-- [ ] Stage 2 (the page reads runs: the picker, `core.js` over `run.books`, the story and the
-      ladder from the card, markers from timestamps, the node tests moved to the card shape, the
-      audits' named rows re-checked) and stage 3 (Compare per run, the flat layout retired, a
-      hand-written single-file run imported end to end as the phone test): on the owner's word.
+- [x] Stage 2, 2026-11-01 on the owner's word ("Stage 2 now: the page reads runs"): the run
+      picker, `core.js` over the run's books (roles, groups, colours), `prep` deriving day
+      offsets from the card's times against the run's bars, the story / ladder / markers /
+      Compare reading the card's book entries, the node tests on the card shape (21), the
+      audits' named rows re-checked under node and in Chrome (BLUR D5 day 24 past the cap, ACE
+      hourly entry 02:00 / exit 03:00, ATOM one-R circle and out arrow on one bar, BTC weekly
+      stop and out on one bar, Compare universe 179,498 rows with book C's drawdown -629,820,
+      no console errors). Two contract additions (`target` on a book definition; `entry` and an
+      entry-level `resolution` on a book entry), the second after the validator refused the
+      re-export on 2Z 2026-08-12 (an hourly one-R fill known only to the day sat before the
+      book's entry hour; the exporter now records the latest time known to be at or before the
+      fill). Write-up: `analysis/domino/viewer/NOTES.md`, "stage 2". No engine column name
+      survives in any page module (a test asserts it). Suite 471 passed, 2 skipped.
+- [ ] Stage 3 (the flat layout and `build` retired; Compare across runs; the phone-made
+      single-file run on the page end to end): on the owner's word.
 - [ ] The one-instrument bench after the contract
 - [ ] The with-trend inside break's T1 STOP-and-ASK; the viewer list; the hierarchy rulings; the
       carried items (see the TVB-41 entry)

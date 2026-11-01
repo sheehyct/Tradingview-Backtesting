@@ -1,7 +1,9 @@
-/* core.js: constants, the census calendar, formatting and the row geometry (settle / tradeSpan /
-   stackLevels / setupDays: the reference viewer's logic with the calendar passed in instead of
-   read from a global), plus the STRAT type of the last CLOSED week and month before an entry.
-   Nothing here re-runs trade logic: every price, day and fill is read off the row. */
+/* core.js: the run registry (the books a run declares, with roles and colours), the census
+   calendar, formatting and the card geometry (prep / settle / tradeSpan / stackLevels /
+   setupDays: the reference viewer's logic over the run contract's cards), plus the STRAT type of
+   the last CLOSED week and month before an entry. Nothing here re-runs trade logic: every price,
+   time and fill is read off the card (viewer/CONTRACT.md); the page only derives day offsets
+   from the recorded times against the run's own bars. */
 window.DV = window.DV || {};
 (function (DV) {
   "use strict";
@@ -13,32 +15,65 @@ window.DV = window.DV || {};
     level: "#3b82f6", exit: "#f43f5e", target: "#22c55e", oneR: "#a78bfa", stop: "#9ca3af", mm: "#f59e0b",
     week: "#38bdf8", violet: "#a78bfa",
   };
-  const BOOKS = ["C", "A", "B", "D", "D5", "ref"];
-  const BOOK_RET = { C: "ret_C", A: "ret_A", B: "ret_B", D: "ret_D", D5: "ret_D5", ref: "ret5" };
-  const BOOK_HIT = { A: "hit_A", B: "hit_B", D: "hit_D", D5: "hit_D5" };
-  const BOOK_DAYS = { A: "days_A", B: "days_B", D: "days_D", D5: "days_D5", ref: "days_ref" };
-  const BOOK_NAME = { C: "C: exit only", A: "A: all out at T1", B: "B: hold through T2", D: "D: one R or the exit", D5: "D5: one R or the exit, 5 bars", ref: "Chance book: setup-bar stop" };
-  const BOOK_SHORT = { C: "exit only", A: "all out at T1", B: "hold through T2", D: "one R or the exit", D5: "one R or the exit, 5 bars", ref: "chance book" };
-  const BOOK_LINE = {
-    C: "No target. Hold until a daily close goes against the trade with the week against it at that close.",
-    A: "Everything out at T1, the pattern's own magnitude. Otherwise the exit.",
-    B: "Hold through T2 with the exit live. T1 is not a decision.",
-    D: "One R or the exit, whichever comes first, inside the 20-day cap.",
-    D5: "One R or the exit inside five bars: the chance book's own horizon, so only the stop differs.",
-    ref: "The chance book itself: one R or the setup-bar stop, marked at bar five.",
-  };
-  const BOOK_COL = { C: "#3b82f6", A: "#22c55e", B: "#a78bfa", D: "#f59e0b", D5: "#fb923c", ref: "#9ca3af" };
+  // ladder books take the classic six colours in the run's order; grouped books share their group's colour
+  const LADDER_PALETTE = ["#3b82f6", "#22c55e", "#a78bfa", "#f59e0b", "#fb923c", "#9ca3af", "#38bdf8", "#f472b6", "#34d399", "#fbbf24"];
+  const GROUP_PALETTE = ["#f59e0b", "#a78bfa", "#38bdf8", "#f472b6", "#34d399", "#c084fc", "#fbbf24", "#60a5fa"];
+  const ROLE_WORD = { headline: "headline", target: "target book", stop: "stop book", clock: "another clock", reference: "reference" };
+  const HOW_SHORT = { target: "at its target", one_r: "one R", stop: "its stop", clock: "clock exit", cap: "marked at the cap", censored: "censored (data ends)", none: "not scored" };
   const CLS_LABEL = { exact_shared: "same price", exact_plain: "same price", near: "near, within 0.25%", within1: "within 1%", spread: "spread, more than 1% apart", plain: "plain, no fresh higher level within 1%" };
   const KIND_LABEL = { reversal: "2-2 reversal", continuation: "2-2 continuation", inside: "inside break", outside: "outside break" };
   const KIND_SHORT = { reversal: "Rev", continuation: "Cont", inside: "Inside", outside: "Outside" };
   const TF_LABEL = { D: "daily", W: "weekly", M: "monthly" };
   const TF_WORD = { D: "day", W: "week", M: "month" };
+  const tfLabel = (tf) => TF_LABEL[tf] || tf;
+  const tfWord = (tf) => TF_WORD[tf] || tf;
   const DASH = { 0: [], 1: [1, 3], 2: [5, 3], 3: [9, 4], 4: [2, 6] };
   const INTERVAL = { "1H": { timeUnit: "hour", count: 1 }, "1D": { timeUnit: "day", count: 1 }, "1W": { timeUnit: "week", count: 1 }, "1M": { timeUnit: "month", count: 1 } };
   const BT_CLASS = { "1": "t1", "2U": "t2u", "2D": "t2d", "3": "t3", "?": "tq" };
   const BT_WORD = { "1": "inside bar", "2U": "2 up (broke the high only)", "2D": "2 down (broke the low only)", "3": "outside bar", "?": "unknown" };
 
   const $ = (id) => document.getElementById(id);
+
+  // ---------------------------------------------------------------- the run: its books, roles, colours
+  const RUN = { run: null, ids: [], byId: {}, ladder: [], groups: [], head: null, ref: null, col: {} };
+  function setRun(run) {
+    RUN.run = run; RUN.ids = []; RUN.byId = {}; RUN.ladder = []; RUN.groups = []; RUN.head = null; RUN.ref = null; RUN.col = {};
+    let li = 0;
+    for (const b of run.books || []) {
+      RUN.ids.push(b.id); RUN.byId[b.id] = b;
+      if (b.role === "headline" && !RUN.head) RUN.head = b.id;
+      if (b.role === "reference" && !RUN.ref) RUN.ref = b.id;
+      if (b.group) {
+        if (!RUN.groups.includes(b.group)) RUN.groups.push(b.group);
+        RUN.col[b.id] = GROUP_PALETTE[RUN.groups.indexOf(b.group) % GROUP_PALETTE.length];
+      } else if (["headline", "target", "stop", "reference"].includes(b.role)) {
+        RUN.ladder.push(b.id);
+        RUN.col[b.id] = b.role === "reference" ? "#9ca3af" : LADDER_PALETTE[li++ % LADDER_PALETTE.length];
+      } else {
+        RUN.col[b.id] = GROUP_PALETTE[0];
+      }
+    }
+    return RUN;
+  }
+  const getRun = () => RUN.run;
+  const bookIds = () => RUN.ids.slice();
+  const ladderBooks = () => RUN.ladder.slice();
+  const groupNames = () => RUN.groups.slice();
+  const groupBooks = (g) => RUN.ids.filter((id) => RUN.byId[id].group === g);
+  const bookOf = (id) => RUN.byId[id] || null;
+  const bookName = (id) => (RUN.byId[id] ? RUN.byId[id].name : id);
+  const bookRule = (id) => (RUN.byId[id] ? RUN.byId[id].rule : "");
+  const bookRole = (id) => (RUN.byId[id] ? RUN.byId[id].role : null);
+  const bookGroup = (id) => (RUN.byId[id] ? RUN.byId[id].group || null : null);
+  const bookTarget = (id) => (RUN.byId[id] ? RUN.byId[id].target || null : null);
+  const bookCol = (id) => RUN.col[id] || "#9ca3af";
+  const bookRes = (id) => (RUN.byId[id] && RUN.byId[id].resolution) || (RUN.run && RUN.run.clock && RUN.run.clock.resolution) || "day";
+  // a book entry on a card may be known less finely than its book (CONTRACT.md section 3): the entry's own resolution wins
+  const entryRes = (id, b) => (b && b.resolution) || bookRes(id);
+  const headline = () => RUN.head;
+  const reference = () => RUN.ref;
+  // "Book A" for the house books, the name for the chance book and the grouped ones
+  const bookLabel = (id) => (bookRole(id) === "reference" ? "The " + bookName(id) : "Book " + id);
 
   // ---------------------------------------------------------------- calendar (census rules)
   function weekStart(t) { const dse = Math.floor(t / DAY); const wd = (dse + 4) % 7; return (dse - (wd + 6) % 7) * DAY; }
@@ -61,10 +96,11 @@ window.DV = window.DV || {};
     return out;
   }
   function makeCalendar(d) {
-    // per-coin day index + week / month buckets + the week's open for any day
-    const weeks = aggregate(d.daily, "W"), months = aggregate(d.daily, "M");
-    const wo = new Map(); for (const w of weeks) for (const di of w.days) wo.set(d.daily[di][0], w.o);
-    return { daily: d.daily, hourly: d.hourly || [], dayIdx: new Map(d.daily.map((b, i) => [iso(b[0]), i])), weeks, months, weekOpenAt: (t) => wo.get(t - (t % DAY)) ?? null };
+    // per-instrument day index + week / month buckets + the week's open for any day; `d` is { daily, hourly } or a run file ({ bars })
+    const daily = d.daily || (d.bars && d.bars["1d"]) || [], hourly = d.hourly || (d.bars && d.bars["1h"]) || [];
+    const weeks = aggregate(daily, "W"), months = aggregate(daily, "M");
+    const wo = new Map(); for (const w of weeks) for (const di of w.days) wo.set(daily[di][0], w.o);
+    return { daily, hourly, dayIdx: new Map(daily.map((b, i) => [iso(b[0]), i])), weeks, months, weekOpenAt: (t) => wo.get(t - (t % DAY)) ?? null };
   }
   const iso = (t) => new Date(t * 1000).toISOString().slice(0, 10);
   const isoH = (t) => new Date(t * 1000).toISOString().slice(0, 16).replace("T", " ");
@@ -89,40 +125,66 @@ window.DV = window.DV || {};
   const cls = (x) => x == null ? "flat" : x > 0 ? "pos" : x < 0 ? "neg" : "flat";
   const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 
-  // ---------------------------------------------------------------- trade geometry (from the row)
+  // ---------------------------------------------------------------- the card, prepared for the page
+  function prep(t, cal) {
+    // the page's derived view of a card: flat aliases for the setup fields the words and the filters read, and the
+    // day offset of every recorded time against the run's own bars (the inverse of the exporter: an offset is bars, not
+    // calendar days, because the census fills no gaps). Nothing here changes what the card says.
+    const t0 = t.entry.t;
+    t.date = iso(t0); t.tf = t.bar; t.level = t.entry.price; t.stop = t.far == null ? null : t.far;
+    t.cls = t.class == null ? null : t.class;
+    const ex = t.extras || {};
+    t.near_tf = ex.near_tf == null ? null : ex.near_tf; t.liquid = !!ex.liquid; t.flag = ex.flag == null ? "none" : ex.flag;
+    t.anchor = ex.anchor == null ? null : ex.anchor; t.dex = ex.dex == null ? null : ex.dex; t.one_r_raw = ex.one_r_raw == null ? null : ex.one_r_raw;
+    const cx = t.context || {}, tv = t.travel || {};
+    t.w_support = cx.week_side == null ? null : cx.week_side; t.m_support = cx.month_side == null ? null : cx.month_side;
+    t.mfe_x = tv.mfe == null ? null : tv.mfe; t.mae_x = tv.mae == null ? null : tv.mae; t.next_bar = tv.next_bar == null ? null : tv.next_bar;
+    t.window = tv.window || RUN.head;
+    const i = cal ? cal.dayIdx.get(t.date) : null;
+    const kOf = (ts) => {
+      if (ts == null) return null;
+      if (cal && i != null) { const j = cal.dayIdx.get(iso(ts)); if (j != null) return j - i; }
+      return Math.floor((ts - t0) / DAY);
+    };
+    t.kOf = kOf;
+    const byName = {}; for (const tg of t.targets || []) byName[tg.name] = tg;
+    for (const [name, key, kk] of [["T1", "t1", "t1_k"], ["T2", "t2", "t2_k"], ["T3", "t3", "t3_k"], ["mm", "mm_t1", "mm1_k"]]) {
+      const x = byName[name];
+      t[key] = x ? x.price : null; t[key + "_src"] = x ? x.source : null; t[kk] = x ? kOf(x.touched) : null;
+    }
+    const tc = t.touches || {};
+    t.one_r_k = kOf(tc.one_r); t.stop_k = kOf(tc.far);
+    t.stackList = (t.stack || []).map((s) => (typeof s === "string" ? s : s.bar));
+    t.stackStr = t.stackList.length ? t.stackList.join("+") : t.tf;
+    t.byBook = {};
+    for (const b of t.books || []) t.byBook[b.id] = Object.assign({}, b, { k: kOf(b.at), entry_k: kOf(b.entry) });
+    return t;
+  }
+  function targetName(t, price) {
+    if (price == null) return null;
+    const tg = (t.targets || []).find((x) => x.price != null && Math.abs(x.price - price) <= Math.abs(price) * 1e-9);
+    return tg ? tg.name : null;
+  }
+  function howWords(t, b) {
+    // the ladder's "how it left" words from the vocabulary; the book's rule says what they mean for that book
+    if (b.how === "target") { const n = targetName(t, b.price); return "all out at " + (n || "its target"); }
+    if (b.how === "none") return "not scored" + (b.note ? ": " + b.note : "");
+    return HOW_SHORT[b.how] || b.how;
+  }
+
+  // ---------------------------------------------------------------- trade geometry (from the card)
   function settle(t, book) {
-    const b = book || "C";
-    const long = t.direction === "up";
-    const fill = (ret) => ret == null ? null : t.level * (1 + (long ? 1 : -1) * ret / 100);
-    const head = { book: "C", k: t.exit_k != null ? t.exit_k : t.days != null ? t.days : CAP, ret: t.ret_C, target: false,
-      how: t.status === "exit" ? "daily-close exit" : t.status === "open" ? "marked at the 20-day cap" : "censored (data ends)" };
-    head.price = t.status === "exit" || t.status === "open" ? fill(t.ret_C) : null;
-    head.stop = false; head.at = null; head.missing = t.status !== "exit" && t.status !== "open";
-    const ret = t[BOOK_RET[b]];
-    if (b === "C") return head;
-    if (ret == null || t[BOOK_DAYS[b]] == null) {
-      // TVB-39 audit F6: a selected book without a result keeps its own identity (no silent fall-back to book C) and
-      // borrows no window (k = 0: the entry day only); the reason is the row's own status for that book
-      let how = "no result";
-      if (b === "ref") how = t.status5 === "censored" || t.out5 == null ? "no result (the five-bar window runs past the data)" : "no result";
-      else if (b === "D5") how = t.status5 === "censored" ? "no result (the five-bar window runs past the data)" : t.status === "censored" ? "no result (not scored: the headline row is censored)" : "no result";
-      else how = t.status === "censored" ? "no result (censored: the data ends inside the 20-day window)" : "no result";
-      return { book: b, k: 0, ret: null, target: false, stop: false, missing: true, price: null, at: null, how };
-    }
-    const k = t[BOOK_DAYS[b]];
+    const id = book || RUN.head;
+    const b = t.byBook ? t.byBook[id] : null;
+    const base = { book: id, k: 0, ret: null, target: false, stop: false, missing: true, price: null, at: null, t: null, entry: null, res: entryRes(id, b) };
+    if (!b) return Object.assign(base, { absent: true, how: "does not apply to this trade" });
+    if (b.how === "none" || b.how === "censored") return Object.assign(base, { how: howWords(t, b), note: b.note || null });
+    const touch = b.how === "target" || b.how === "one_r" || b.how === "stop";
     // `at` is the recorded price the book left on (the target, one R or the stop as the engine wrote it): the marker
-    // search uses it, never the fill reconstructed from the return (TVB-39 audit F4)
-    let how, target = false, stop = false, at = null;
-    if (b === "A") { target = !!t.hit_A; how = target ? "all out at T1" : head.how; at = target ? t.t1 : null; }
-    else if (b === "B") { target = !!t.hit_B; how = target ? "all out at T2" : head.how; at = target ? t.t2 : null; }
-    else if (b === "D") { target = !!t.hit_D; how = target ? "one R" : head.how; at = target ? oneR(t) : null; }
-    else if (b === "D5") { target = !!t.hit_D5; how = target ? "one R" : t.status5 === "exit" ? "daily-close exit" : "marked at the 5-bar horizon"; at = target ? oneR(t) : null; }
-    else {
-      target = t.out5 === "one_r"; stop = t.out5 === "stop";
-      how = stop ? "setup-bar stop" : target ? "one R" : t.out5 === "neither" ? "marked at bar 5" : "censored (data ends)";
-      at = target ? oneR(t) : stop ? t.stop : null;
-    }
-    return { book: b, k, ret, target, stop, how, price: fill(ret), at };
+    // search uses it; a clock exit's price is the bar's close, found by time (TVB-39 audit F4)
+    return { book: id, k: b.k == null ? 0 : b.k, ret: b.ret, target: b.how === "target" || b.how === "one_r", stop: b.how === "stop", missing: false,
+      how: howWords(t, b), price: b.price == null ? null : b.price, at: touch ? b.price : null, t: b.at == null ? null : b.at, entry: b.entry == null ? null : b.entry,
+      cap: b.how === "cap", clock: b.how === "clock", hit: b.hit == null ? null : b.hit, note: b.note || null, res: entryRes(id, b) };
   }
   function tradeSpan(t, book, cal) {
     const i = cal.dayIdx.get(t.date);
@@ -133,7 +195,7 @@ window.DV = window.DV || {};
   function stackLevels(t, i, cal) {
     const long = t.direction === "up";
     const out = [];
-    for (const tf of (t.stack || t.tf).split("+")) {
+    for (const tf of (t.stackList && t.stackList.length ? t.stackList : [t.tf])) {
       let bar = null;
       if (tf === "D") { if (i - 1 >= 0) bar = { h: cal.daily[i - 1][2], l: cal.daily[i - 1][3] }; }
       else { const buckets = tf === "W" ? cal.weeks : cal.months; const bi = buckets.findIndex((b) => b.days.includes(i)); if (bi > 0) bar = buckets[bi - 1]; }
@@ -151,11 +213,11 @@ window.DV = window.DV || {};
     return { setup, ref };
   }
   function stackSubset(t, levels) {
-    // TVB-39 audit F7: `stack` lists every level that broke on the entry day; the class (`cls`) describes a PAIR. For a
-    // daily row it is the daily level against the nearest fresh higher level at entry (`near_tf`, chance.entry_class);
-    // for a weekly / monthly row it is the unit's own level against the daily level (chance.stack_class). The converged
+    // TVB-39 audit F7: `stack` lists every level that broke on the entry day; the class describes a PAIR. For a daily
+    // card it is the daily level against the nearest fresh higher level at entry (`near_tf`, chance.entry_class); for a
+    // weekly / monthly card it is the unit's own level against the daily level (chance.stack_class). The converged
     // stack is that pair when both broke; the other same-day breaks are listed apart with their distance from the entry.
-    // Read from the row (near_tf, cls, tf): no band is re-derived here.
+    // Read from the card (near_tf, class, bar): no band is re-derived here.
     const long = t.direction === "up";
     const out = levels.map((l) => ({ ...l, gap: t.level ? (long ? l.price - t.level : t.level - l.price) / t.level * 100 : null }));
     const pairTf = t.tf === "D" ? (t.cls && t.cls !== "plain" && t.cls !== "spread" ? t.near_tf : null) : "D";
@@ -168,7 +230,7 @@ window.DV = window.DV || {};
     const { conv, far } = stackSubset(t, levels);
     const convTxt = conv.length > 1 ? conv.map((l) => l.tf).join("+") + " " + (CLS_LABEL[t.cls] || t.cls) : null;
     const farTxt = far.map((l) => l.tf + " " + (l.gap == null ? "" : (l.gap >= 0 ? "+" : "") + l.gap.toFixed(2) + "%") + " beyond, broke the same day");
-    return { conv, far, text: [convTxt, ...farTxt].filter(Boolean).join("; ") || t.stack };
+    return { conv, far, text: [convTxt, ...farTxt].filter(Boolean).join("; ") || t.stackStr };
   }
   function cellIndex(bs, tMs) {
     // TVB-40 audit F2: the bar whose axis cell holds the time (the last bar opening at or before it), not the bar whose
@@ -177,7 +239,8 @@ window.DV = window.DV || {};
     for (let i = 0; i < bs.length; i++) { if (bs[i].t * MS <= tMs) k = i; else break; }
     return k;
   }
-  function oneR(t) { if (t.stop == null || t.level == null) return null; const r = Math.abs(t.level - t.stop); return t.direction === "up" ? t.level + r : t.level - r; }
+  // one R as the card records it (null when the engine's one R is unreachable, e.g. below zero for a short)
+  function oneR(t) { return t.one_r == null ? null : t.one_r; }
 
   // ---------------------------------------------------------------- the week's / month's bar type at entry (closed bars only)
   function barType(b, p) {
@@ -190,16 +253,16 @@ window.DV = window.DV || {};
     // the bar the entry sits in is still forming, so it is never typed here (closed bars only)
     const buckets = tf === "W" ? cal.weeks : cal.months;
     const bi = buckets.findIndex((b) => b.days.includes(i));
-    if (bi < 2 || !buckets[bi - 1].complete || !buckets[bi - 2].complete) return { code: "?", title: "no two complete " + TF_LABEL[tf] + " bars before the entry (the data starts too late)" };
+    if (bi < 2 || !buckets[bi - 1].complete || !buckets[bi - 2].complete) return { code: "?", title: "no two complete " + tfLabel(tf) + " bars before the entry (the data starts too late)" };
     const bar = buckets[bi - 1], prev = buckets[bi - 2];
     const code = barType(bar, prev);
-    return { code, bar, prev, title: "last closed " + TF_LABEL[tf] + " bar (" + iso(bar.t) + " to " + iso(bar.end - DAY) + "): " + BT_WORD[code] +
-      " against the " + TF_LABEL[tf] + " bar before it (high " + bar.h + " vs " + prev.h + ", low " + bar.l + " vs " + prev.l + ")" };
+    return { code, bar, prev, title: "last closed " + tfLabel(tf) + " bar (" + iso(bar.t) + " to " + iso(bar.end - DAY) + "): " + BT_WORD[code] +
+      " against the " + tfLabel(tf) + " bar before it (high " + bar.h + " vs " + prev.h + ", low " + bar.l + " vs " + prev.l + ")" };
   }
   function btChip(tf, r) { return '<span class="chip bt ' + BT_CLASS[r.code] + '" title="' + esc(r.title) + '">' + tf + " " + r.code + "</span>"; }
 
-  DV.core = { DAY, HOUR, CAP, MS, COL, BOOKS, BOOK_RET, BOOK_HIT, BOOK_DAYS, BOOK_NAME, BOOK_SHORT, BOOK_LINE, BOOK_COL, CLS_LABEL, KIND_LABEL, KIND_SHORT,
-    TF_LABEL, TF_WORD, DASH, INTERVAL, BT_CLASS, BT_WORD, $, weekStart, monthStart, nextMonth, aggregate, makeCalendar, iso, isoH, dateMs, longDate, shortDate,
-    monthName, weekdayOf, decimalsOf, precisionFor, fmtPrice, fmtPct, fmtUsd, fmtUsd0, cls, esc, settle, tradeSpan, stackLevels, setupDays, oneR, barType, htfType, btChip,
-    stackSubset, stackWords, cellIndex };
+  DV.core = { DAY, HOUR, CAP, MS, COL, ROLE_WORD, HOW_SHORT, CLS_LABEL, KIND_LABEL, KIND_SHORT, TF_LABEL, TF_WORD, tfLabel, tfWord, DASH, INTERVAL, BT_CLASS, BT_WORD, $,
+    setRun, getRun, bookIds, ladderBooks, groupNames, groupBooks, bookOf, bookName, bookRule, bookRole, bookGroup, bookTarget, bookCol, bookRes, entryRes, headline, reference, bookLabel,
+    weekStart, monthStart, nextMonth, aggregate, makeCalendar, iso, isoH, dateMs, longDate, shortDate, monthName, weekdayOf, decimalsOf, precisionFor, fmtPrice, fmtPct, fmtUsd, fmtUsd0, cls, esc,
+    prep, targetName, howWords, settle, tradeSpan, stackLevels, setupDays, oneR, barType, htfType, btChip, stackSubset, stackWords, cellIndex };
 })(window.DV);

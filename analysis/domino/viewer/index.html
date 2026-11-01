@@ -153,7 +153,10 @@
   .ctx .cv { text-align: right; }
 
   /* ---- compare */
-  #kpis { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin: 8px; }
+  #kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; margin: 8px; }
+  #run { max-width: 300px; }
+  table.ladder tr.grp td { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; padding-top: 6px; cursor: default; }
+  table.ladder tr.grp:hover td { background: transparent; }
   .kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; cursor: pointer; min-width: 0; }
   .kpi:hover { border-color: var(--dim); }
   .kpi.sel { border-color: var(--blue); box-shadow: 0 0 0 1px var(--blue) inset; }
@@ -204,6 +207,7 @@
 <body class="tab-trade">
 <header>
   <div class="brand"><span class="mark">D</span><span class="name">Domino</span><span class="sub">trade viewer</span></div>
+  <div class="field"><span class="lab">Run</span><select id="run" title="the imported runs (data/runs.json); every instrument, card and book on this page belongs to the chosen run"></select></div>
   <div class="field"><span class="lab">Coin</span><input id="coinBox" type="text" list="coinList" placeholder="BTC" autocomplete="off"><datalist id="coinList"></datalist></div>
   <div class="field"><span class="lab">or day</span><input id="dateBox" type="date"></div>
   <nav class="tabs" id="tabs"><button data-v="trade" class="on">Trade</button><button data-v="compare">Compare books</button><button data-v="playbook">Playbook</button></nav>
@@ -219,14 +223,7 @@
     <section class="card">
       <h3>Book and filters</h3>
       <div class="frow">
-        <select id="book">
-          <option value="C">C: exit only</option>
-          <option value="A">A: all out at T1</option>
-          <option value="B">B: hold through T2</option>
-          <option value="D">D: one R or the exit</option>
-          <option value="D5">D5: one R or the exit, 5-bar window</option>
-          <option value="ref">Chance book (setup-bar stop, 5 bars)</option>
-        </select>
+        <select id="book" title="the run's books: the ladder books first, then the grouped ones (the same book on another clock or target)"></select>
         <span class="lab">Size $</span><input id="size" type="number" value="1000" min="1" step="100">
       </div>
       <div class="frow"><span class="lab">Unit</span><span class="seg multi small" id="fTf"><button data-v="D" class="on">Daily</button><button data-v="W" class="on">Weekly</button><button data-v="M" class="on">Monthly</button></span>
