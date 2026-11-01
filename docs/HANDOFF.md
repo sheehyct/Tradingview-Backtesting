@@ -5,15 +5,19 @@
 
 ---
 
-## Session TVB-42: the TVB-41 audit folded (D5 narration, the rerun prose), the cc menu's viewer entry repaired and proven, the viewer row contract (IN PROGRESS)
+## Session TVB-42: the TVB-41 audit folded, the cc menu's viewer entry repaired, the viewer row contract designed with the owner and built through stage 2 (the page reads runs) (COMPLETE)
 
-**Date:** 2026-10-31
-**Status:** IN PROGRESS. The TVB-41 Codex audit (returned 2026-10-30, NEEDS-CHANGES, two MEDIUM)
-adjudicated and both findings repaired; the cc menu's viewer entries, which had never worked, repaired
-and exercised end to end; then the viewer row contract designed with the owner (below, as it lands).
-Mid-session the owner switched the account to purchased API credits (the subscription's usage
-window ran out; the credits expire within a month); Remote Control and the claude.ai artifacts tools
-dropped with the switch, nothing on this session's list needs either.
+**Date:** 2026-10-31 to 2026-11-01
+**Status:** COMPLETE. The TVB-41 Codex audit (NEEDS-CHANGES, two MEDIUM) adjudicated and both
+findings repaired. The cc menu's viewer entries, which had never worked (two control bytes in two
+paths), repaired, extended with `cc viewer` / `cc viewer stop` and exercised end to end. The run and
+trade-card contract (`analysis/domino/viewer/CONTRACT.md`) designed with the owner in trader terms
+and confirmed before code; stage 1 (validator, importer, the management book as run one, checked
+row for row) and stage 2 (the page reads runs: a run picker, the run's books with roles, cards as
+the row, markers from timestamps) built, verified under node and in Chrome, committed and pushed.
+Stage 3 waits for the owner's word. Mid-session the owner switched the account to purchased API
+credits (the subscription's window ran out; the credits expire within a month) and later back;
+nothing on the list needed Remote Control or the artifacts tools.
 
 ### TVB-41 audit: critical synthesis (F1-F2)
 
@@ -140,7 +144,38 @@ backslash escapes through Bash, use the Edit / Write tools for source.
 
 ### External Review (for Codex / cloud review agents)
 
-- Review status: pending (filled at session end)
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb42-codex-audit.md.
+> See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: `2f3a3a8..{close-out sha}` on `main` (2f3a3a8 is the TVB-41 close-out the
+  session started from; 75626b7 the audit fold; bc79aa4 the contract spec; cba482e stage 1;
+  ef5be09 stage 2; the close-out commit after it is docs only). Pinned after the push.
+  Sanity-check: `git diff --name-status 2f3a3a8..HEAD`.
+- Scope / what changed: `analysis/domino/contract.py` (new: validate, derive, import),
+  `analysis/domino/run_export.py` (new: the management book's mapping, `check_run`),
+  `analysis/domino/trade_viewer.py` (four subcommands), the four page modules rewritten to the
+  card shape, `index.html` (run picker), `CONTRACT.md` and `NOTES.md`, the viewer and contract
+  tests (21 + 32), the TVB-41 audit's two repairs (story.js, receipt, ledger), the cc-menu repair
+  (outside the repo).
+- Focus areas (scrutinize these): the mapping in `card_from_row` against the engine's columns
+  (CONTRACT.md section 9), especially the clock variants (`C_u` / `C_own` / `C_long` and their
+  A / D books), the measured-move book, `days_ref` for the chance book, and the hourly books'
+  `entry` / `at` (the day-resolution one-R fill recorded at the latest time known to be at or
+  before it); whether `check_run` compares enough (it covers the six ladder books, the headline's
+  / D5's / chance book's reason and day, T1 and one R touch days, the hourly clock; it does NOT
+  compare the clock variants' days or the A / D variants) and whether the universe table's hit
+  convention (null = no target) is stated everywhere it matters; `prep`'s day offsets when the
+  exit time's day is missing from the bars (the arithmetic fallback); `settle`'s `at` for a
+  cap mark; the story's `pre` sentence for a target book whose touch time is before the exit
+  yet `hit` is false (should not occur; say if it does); the validator's rules against the
+  spec (section 3 and 5), the `entry <= at` rule, the single-file split, the zip path, the
+  in-place import; the page's run switch (Compare charts disposed and rebuilt; `state.book`
+  kept only when the new run declares it); the hourly pane's entry arrow (`hourEntry`) and the
+  group squares; hygiene (no private link, data and vendor gitignored, ruff clean, 471 passed).
+- Reviewed by: pending
+- Findings: {blank until docs/reviews/tvb42-codex-audit.md exists}
 
 ---
 
