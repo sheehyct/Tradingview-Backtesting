@@ -31,7 +31,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `8a5806c..HEAD` (8a5806c is the TVB-42 close-out the session started from; 70bacdf the audit fold; 7111720 stage 3; 4140285 the prereg draft; b05c7da the page's session-calendar support; 95f6a50 a pin; the bench commit after it carries the engine's session calendar, the ES tape and runner, the receipt, the HANDOFF archive; the pin commit after that is docs only and names the exact end here). Verify with `git diff --name-status 8a5806c..HEAD`. |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `8a5806c..f3bb795` (8a5806c is the TVB-42 close-out the session started from; 70bacdf the audit fold; 7111720 stage 3; 4140285 the prereg draft; b05c7da the page's session-calendar support; 95f6a50 a pin; the bench commit after it carries the engine's session calendar, the ES tape and runner, the receipt, the HANDOFF archive; the pin commit after that is docs only and names the exact end here). Verify with `git diff --name-status 8a5806c..HEAD`. |
 
 No sibling-repo commits. The viewer's data folder (`analysis/domino/viewer/data/`, the runs
 included) and the vendored chart library are gitignored; `uv run python -m
