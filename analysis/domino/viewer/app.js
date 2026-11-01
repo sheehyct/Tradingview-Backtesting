@@ -21,7 +21,8 @@
     layout: "single", tab: "trade", showSys: true, showMan: true,
     calScope: "coin", calY: null, calM: null,
     panes: {}, cmp: null, cmpDirty: true, cmpScope: "shown", playbookDone: false, hover: "a",
-    uni: null, uniItems: null,
+    uni: null, uniItems: null, uniLoading: null, uniError: null,
+    gen: 0,                               // bumped on every run switch; an async load compares it before writing state
     proof: { seed: false, then: null, ray: null },
   };
   const tradeRet = (t) => ST.retOf(t, state.book);
@@ -478,14 +479,36 @@
     return ST.calendarDays(state.items, state.book, state.size);
   }
   async function loadUniverse() {
-    // runs/<id>/universe.json: every instrument's cards, decoded once; the filters apply to it like to an instrument's cards
-    if (!state.uni) {
+    // runs/<id>/universe.json: every instrument's cards, decoded once; the filters apply to it like to an instrument's cards.
+    // One fetch in flight at a time, tied to the run that started it: a table that arrives after the run changed is
+    // dropped, never assigned under the new run's label (TVB-42 audit F7)
+    if (state.uni) return state.uni;
+    if (!state.base) return null;           // a run switch is in flight: its own loadRun reloads the table when it lands
+    if (!state.uniLoading) {
+      const gen = state.gen, base = state.base;
+      state.uniError = null;
       $("meta").textContent = "loading the universe table...";
-      state.uni = ST.fromUniverse(await (await fetch(state.base + "universe.json")).json());
-      state.uniItems = null;
-      $("meta").textContent = state.uni.length.toLocaleString("en-US") + " rows across " + new Set(state.uni.map((t) => t.coin)).size + " instruments loaded";
+      const p = (async () => {
+        let rows;
+        try {
+          const r = await fetch(base + "universe.json");
+          if (!r.ok) throw new Error("HTTP " + r.status + " for " + base + "universe.json");
+          rows = ST.fromUniverse(await r.json());
+        } catch (e) {
+          // a failed load is said, not spun on: Compare and the calendar show the failure instead of "loading..."
+          if (gen === state.gen) { state.uniError = String(e && e.message || e); $("meta").textContent = "the universe table failed to load: " + state.uniError; }
+          return null;
+        }
+        if (gen !== state.gen) return null;
+        state.uni = rows; state.uniItems = null;
+        $("meta").textContent = rows.length.toLocaleString("en-US") + " rows across " + new Set(rows.map((t) => t.coin)).size + " instruments loaded";
+        return rows;
+      })();
+      state.uniLoading = p;
+      const done = () => { if (state.uniLoading === p) state.uniLoading = null; };
+      p.then(done, done);
     }
-    return state.uni;
+    return state.uniLoading;
   }
   function universeItems() {
     if (!state.uni) return [];
@@ -623,13 +646,14 @@
     try { state.cmp.r1.dispose(); state.cmp.r2.dispose(); } catch (e) { /* already gone */ }
     state.cmp = null;
   }
+  const fmtCount = (n) => n == null ? "-" : n >= 10000 ? (n / 1000).toFixed(0) + "k" : n >= 1000 ? (n / 1000).toFixed(1) + "k" : String(n);
   function kpiCard(s, b, sel) {
     const g = (label, val) => "<div><i>" + label + "</i>" + val + "</div>";
     return '<div class="kpi' + (sel ? " sel" : "") + '" data-book="' + esc(b) + '"><div class="kh"><span class="dot" style="background:' + bookCol(b) + '"></span>' + esc(b + ": " + bookName(b)) + "</div>" +
       '<div class="kbig ' + cls(s.avg) + '">' + fmtPct(s.avg) + "</div><div class=\"ksub\">avg per trade &middot; " + s.filled + " filled" + (s.filled !== s.n ? " of " + s.n : "") + "</div>" +
       '<div class="kgrid">' + g("green", s.win == null ? "-" : (s.win * 100).toFixed(0) + "%") + g("median", '<span class="' + cls(s.med) + '">' + fmtPct(s.med) + "</span>") +
       g("total USD", '<span class="' + cls(s.total) + '">' + fmtUsd0(s.total) + "</span>") + g("max drawdown", '<span class="neg">' + (s.maxDD ? "-" + fmtUsd0(s.maxDD).slice(1) : "0") + "</span>") +
-      g("at target", s.target == null ? "-" : (s.target * 100).toFixed(0) + "%") + g("median days", s.medDays == null ? "-" : s.medDays) +
+      g("at target", s.target == null ? "-" : (s.target * 100).toFixed(0) + '% <span class="ksub">of ' + fmtCount(s.withTarget) + " with one</span>") + g("median days", s.medDays == null ? "-" : s.medDays) +
       g("avg win / loss", (s.avgWin == null ? "-" : fmtPct(s.avgWin, 1)) + " / " + (s.avgLoss == null ? "-" : fmtPct(s.avgLoss, 1))) + g("best / worst", (s.best == null ? "-" : fmtPct(s.best, 1)) + " / " + (s.worst == null ? "-" : fmtPct(s.worst, 1))) +
       "</div></div>";
   }
@@ -640,7 +664,8 @@
     const books = ladderBooks();
     const universe = state.cmpScope === "universe" && state.uni;
     const items = universe ? universeItems() : state.items;
-    $("cmpScopeNote").textContent = universe ? items.length.toLocaleString("en-US") + " rows across every instrument, filters applied (returns to three decimals in the universe table)" : state.cmpScope === "universe" ? "loading the universe table..." : "";
+    $("cmpScopeNote").textContent = universe ? items.length.toLocaleString("en-US") + " rows across every instrument, filters applied (returns to three decimals in the universe table)"
+      : state.cmpScope === "universe" ? (state.uniError ? "the universe table failed to load (" + state.uniError + "); showing this instrument / day. Pick the scope again to retry." : "loading the universe table...") : "";
     const stats = ST.allBooks(items, state.size);
     $("kpis").innerHTML = books.map((b) => kpiCard(stats[b], b, b === state.book)).join("");
     $("kpis").querySelectorAll(".kpi").forEach((k) => { k.onclick = () => setBook(k.dataset.book); });
@@ -667,7 +692,7 @@
     $("bySetup").innerHTML = '<table class="setup"><thead><tr><th>setup</th><th>trades</th>' + books.map((b) => "<th>" + esc(b + ": " + bookName(b)) + "</th>").join("") + (pair ? "<th>" + esc(pair[0] + " - " + pair[1]) + "</th>" : "") + "</tr></thead><tbody>" +
       rows.map((r, k) => "<tr" + (k === 0 ? ' class="head"' : "") + "><td>" + esc(r.label) + "</td><td>" + r.n + "</td>" + books.map((b) => cell(r.avg[b], r["n" + b])).join("") + (pair ? cell(r.swap, r.swapN) : "") + "</tr>").join("") + "</tbody></table>";
     $("cmpNote").innerHTML = "Equal-size trades at the size box, no leverage, fees or funding; totals are sums, never an account. Each book settles on its own horizon (the run's rule card says which); " +
-      "\"at target\" is the share of filled trades that left at the book's target. Grouped books (the other clocks) are on the cards and in the ladder, not here." + (pair ? " The last column pairs " + esc(pair[0]) + " against " + esc(pair[1]) + " on the rows that have both (the stop swap)." : "");
+      "\"at target\" is the share of the book's filled trades that had a target (one R for the one-R books) and left there; the count beside it is that denominator, and a trade with no target is not in it. Grouped books (the other clocks) are on the cards and in the ladder, not here." + (pair ? " The last column pairs " + esc(pair[0]) + " against " + esc(pair[1]) + " on the rows that have both (the stop swap)." : "");
   }
 
   // ---------------------------------------------------------------- tabs, data, selection
@@ -692,9 +717,12 @@
     return cal;
   }
   async function loadCoin(coin) {
+    if (!state.index || !state.base) return false;  // a run switch is in flight
     const entry = state.index.instruments.find((c) => c.instrument === coin);
     if (!entry) return false;
+    const gen = state.gen;
     const d = await (await fetch(state.base + entry.file)).json();
+    if (gen !== state.gen) return false;  // the run changed while this instrument was in flight
     const cal = prepFile(coin, d);
     state.coin = coin; state.data = d; state.cal = cal;
     $("meta").textContent = coin + ": " + d.daily.length + " daily bars " + (d.daily.length ? iso(d.daily[0][0]) + " to " + iso(d.daily[d.daily.length - 1][0]) : "") + (d.hourly.length ? ", hourly from " + isoH(d.hourly[0][0]) : ", no hourly bars") + ", " + d.trades.length + " trades, run " + state.runId;
@@ -704,7 +732,7 @@
   async function select(k) {
     const it = state.items[k];
     if (!it) return;
-    if (state.coin !== it.coin) await loadCoin(it.coin);
+    if (state.coin !== it.coin && !(await loadCoin(it.coin))) return;  // the run changed under this selection
     state.sel = k; state.cur = it.t;
     calGoto(it.t.date);
     draw(); renderTable(); renderCalendar();
@@ -744,9 +772,14 @@
     rebuildItems();
     draw(); renderTable(); renderCalendar(); renderCompare();
   }
-  async function loadDates() { if (!state.dates) state.dates = await (await fetch(state.base + "dates.json")).json(); return state.dates; }
+  async function loadDates() {
+    if (!state.base) return null;
+    if (!state.dates) { const gen = state.gen; const d = await (await fetch(state.base + "dates.json")).json(); if (gen !== state.gen) return null; state.dates = d; }
+    return state.dates;
+  }
   async function applyDate(date) {
-    await loadDates();
+    const gen = state.gen;
+    if (!(await loadDates()) || gen !== state.gen || !state.index) return;
     const rows = state.dates[date] || [];
     const want = [];
     for (const r of rows) {
@@ -760,9 +793,12 @@
       if (entry) byCoin.set(w.coin, fetch(state.base + entry.file).then((r) => r.json()));
     }
     const items = [];
+    const docs = new Map();
+    for (const [coin, p] of byCoin) docs.set(coin, await p);
+    if (gen !== state.gen) return;         // the run changed while the instrument files were in flight: commit nothing
     for (const w of want) {
-      if (!byCoin.has(w.coin)) continue;
-      const d = await byCoin.get(w.coin);
+      if (!docs.has(w.coin)) continue;
+      const d = docs.get(w.coin);
       prepFile(w.coin, d);
       const t = d.trades.find((x) => x.date === date && x.tf === w.tf && x.direction === w.direction);
       if (t && (!state.liquid || t.liquid) && (!state.hasT1 || t.t1 != null)) items.push({ coin: w.coin, t });
@@ -798,11 +834,21 @@
   }
   async function loadRun(id) {
     const base = "data/runs/" + id + "/";
-    const run = await (await fetch(base + "run.json")).json();
-    const index = await (await fetch(base + "index.json")).json();
+    const gen = ++state.gen;              // every load in flight for the previous run is now stale
+    const prev = { runId: state.runId, base: state.base, index: state.index };
+    state.runId = null; state.base = null; state.index = null;  // while the switch is in flight no loader has a run to read
+    let run, index;
+    try {
+      run = await (await fetch(base + "run.json")).json();
+      index = await (await fetch(base + "index.json")).json();
+    } catch (e) {
+      if (gen === state.gen) { Object.assign(state, prev); $("meta").textContent = "failed to load run " + id + ": " + (e && e.message || e); }
+      return false;
+    }
+    if (gen !== state.gen) return false;  // a later run switch overtook this one
     C.setRun(run);
     state.runId = id; state.run = run; state.base = base; state.index = index;
-    state.cals = new Map(); state.uni = null; state.uniItems = null; state.dates = null; state.data = null; state.cal = null; state.coin = null;
+    state.cals = new Map(); state.uni = null; state.uniItems = null; state.uniLoading = null; state.dates = null; state.data = null; state.cal = null; state.coin = null;
     state.cur = null; state.sel = -1; state.dateMode = null; state.playbookDone = false; state.items = [];
     dropCompareCharts();
     if (!bookOf(state.book)) state.book = headline();
@@ -814,6 +860,9 @@
     $("run").value = id;
     $("meta").textContent = index.instruments.length + " instruments, " + index.trades.toLocaleString() + " trades, as of " + index.as_of + " (" + esc(run.name) + ")";
     try { localStorage.setItem("domino-run", id); } catch (e) { /* storage off */ }
+    // a retained universe scope (Compare on every instrument, the all-instrument calendar) needs the NEW run's table
+    if (state.cmpScope === "universe" || state.calScope === "all") await loadUniverse();
+    return gen === state.gen;
   }
   async function openCoin(coin) {
     state.dateMode = null; $("dateBox").value = "";
@@ -848,8 +897,8 @@
     try { stored = localStorage.getItem("domino-run"); } catch (e) { /* storage off */ }
     const runId = [want.run, stored].find((id) => id && state.runs.some((r) => r.id === id)) || state.runs[0].id;
     if (want.book) state.book = want.book;
-    await loadRun(runId);
-    rs.onchange = async (e) => { await loadRun(e.target.value); const first = state.index.instruments.find((c) => c.instrument === "BTC") || state.index.instruments[0]; if (first) { $("coinBox").value = first.instrument; await openCoin(first.instrument); } };
+    if (!(await loadRun(runId))) throw new Error("run " + runId + " could not be loaded (data/runs/" + runId + "/run.json and index.json)");
+    rs.onchange = async (e) => { if (!(await loadRun(e.target.value))) return; const first = state.index.instruments.find((c) => c.instrument === "BTC") || state.index.instruments[0]; if (first) { $("coinBox").value = first.instrument; await openCoin(first.instrument); } };
     seg("fKind", () => { state.kind = setOf("fKind"); refilter(); }, true);
     seg("fDir", () => { state.dir = setOf("fDir"); refilter(); }, true);
     seg("fLiq", (v, on) => { state.liquid = on; refilter(); }, true);

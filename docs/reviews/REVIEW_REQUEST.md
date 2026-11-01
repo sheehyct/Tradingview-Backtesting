@@ -10,7 +10,7 @@
 
 ## Status
 
-- Status: REQUESTED
+- Status: RETURNED (audit written 2026-11-01; synthesis pending in the TVB-43 HANDOFF entry)
   <!-- REQUESTED | RETURNED (audit file written) | ADDRESSED | N/A -->
 - Session under review: TVB-42 (2026-10-31 to 2026-11-01) -- the TVB-41 Codex audit folded (two
   MEDIUM: book D5's story sentence, the rerun prose); the run and trade-card contract

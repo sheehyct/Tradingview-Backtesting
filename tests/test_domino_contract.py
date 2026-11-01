@@ -279,6 +279,205 @@ def test_zip_and_folder_import_and_in_place_reimport(tmp_path: Path):
     assert (dest / "X.json").exists() and (dest / "universe.json").exists()
 
 
+@pytest.mark.parametrize(
+    "bad", [".", "..", "-x", ".hidden", "", "a/b", "a\\b", "x.", "run-", "CON", "nul.run", "com1"]
+)
+def test_ids_that_could_name_a_folder_outside_the_runs_are_refused(bad):
+    """TVB-42 audit F1: "." named the whole runs folder and ".." its parent, both of which the
+    importer removed before importing. An id starts and ends with a letter or a digit (Windows
+    drops a trailing dot, so "x." and "x" would be one folder) and is not a Windows device name."""
+    assert not K.valid_id(bad)
+    assert any("id must be" in p for p in K.validate_run(run_doc(id=bad)))
+    assert K.valid_id("management-book-20261010") and K.valid_id("2Z.run_1")
+
+
+def test_ids_differing_only_by_case_are_one_listing(tmp_path: Path):
+    """In-session Codex review of the fold (#2): Foo and foo are one folder on Windows, so the
+    listing treats them as one run; the newer id's words win."""
+    root = tmp_path / "data"
+    root.mkdir()
+    K.register(root, {"id": "Foo", "built": "2026-01-01T00:00:00Z"})
+    runs = K.register(root, {"id": "foo", "built": "2026-01-02T00:00:00Z"})
+    assert [r["id"] for r in runs] == ["foo"]
+    runs = K.register(root, {"id": "bar", "built": "2026-01-03T00:00:00Z"})
+    assert sorted(r["id"] for r in runs) == ["bar", "foo"]
+
+
+def test_an_interrupted_swap_is_repaired_by_the_next_import(tmp_path: Path):
+    """In-session Codex review of the fold (#1): an import that died between its two renames
+    left the old run under `.old-<id>-<stamp>` as the ONLY copy, and the next import's sweep
+    deleted it. `recover` puts such a run back; staging folders go; a completed swap's leftover
+    goes too."""
+    root = tmp_path / "data"
+    K.import_run(_single_file(tmp_path), root, log=lambda s: None)
+    runs_dir = root / "runs"
+    dest = runs_dir / "test-run"
+    files = {p.name: p.read_bytes() for p in dest.iterdir()}
+    # the interrupted shape: the run stepped aside, nothing took its name, a staging folder left
+    dest.rename(runs_dir / (".old-test-run-" + K._stamp("2026-11-01T14:11:21Z")))
+    (runs_dir / ".import-abc123").mkdir()
+    assert not dest.exists()
+    msgs: list[str] = []
+    K.recover(runs_dir, msgs.append)
+    assert dest.exists() and {p.name: p.read_bytes() for p in dest.iterdir()} == files
+    assert not list(runs_dir.glob(".import-*")) and not list(runs_dir.glob(".old-*"))
+    assert msgs == ["run test-run: restored from an interrupted import"]
+    # a leftover beside a run that exists (the swap had completed) is just removed
+    (runs_dir / ".old-test-run-20260101T000000Z").mkdir()
+    K.recover(runs_dir, lambda s: None)
+    assert dest.exists() and not list(runs_dir.glob(".old-*"))
+    # the stamp carries no dash, so an id with dashes splits off cleanly
+    assert K._stamp("2026-11-01T14:11:21Z") == "20261101T141121Z"
+
+
+def test_a_failed_second_rename_puts_the_old_run_back(tmp_path: Path, monkeypatch):
+    """In-session Codex review of the fold (#1): if the staged folder cannot take the run's
+    name, the stepped-aside run is renamed back and the listing is left as it was."""
+    root = tmp_path / "data"
+    K.import_run(_single_file(tmp_path), root, log=lambda s: None)
+    dest = root / "runs" / "test-run"
+    before = {p.name: p.read_bytes() for p in dest.iterdir()}
+    listing = (root / "runs.json").read_bytes()
+    real = Path.rename
+
+    def flaky(self, target):
+        if self.name.startswith(".import-"):
+            raise OSError("simulated: the staged folder cannot be renamed")
+        return real(self, target)
+
+    monkeypatch.setattr(Path, "rename", flaky)
+    with pytest.raises(OSError):
+        K.import_run(_single_file(tmp_path), root, log=lambda s: None)
+    monkeypatch.undo()
+    assert {p.name: p.read_bytes() for p in dest.iterdir()} == before
+    assert (root / "runs.json").read_bytes() == listing
+    assert not list((root / "runs").glob(".import-*")) and not list((root / "runs").glob(".old-*"))
+
+
+def test_instrument_names_map_to_plain_file_names_inside_the_run_folder():
+    """TVB-42 audit F1: a Windows path in an instrument name resolved outside the run folder."""
+    assert K._fname("BTC") == "BTC.json" and K._fname("xyz:MU") == "xyz_MU.json"
+    assert K._fname("a/b") == "a_b.json"
+    outside = K._fname("..\\..\\outside")
+    assert "\\" not in outside and "/" not in outside and K._plain_name(outside)
+    assert Path(outside).name == outside
+    assert K._fname("run") == "run_instrument.json" and K._fname("index") == "index_instrument.json"
+    assert K._fname("RUN") == "RUN_instrument.json"  # Windows folds RUN.json onto run.json
+    assert K._fname("...") == "instrument.json"
+    assert K._fname("NUL") == "_NUL.json" and K._fname("com1.x") == "_com1.x.json"  # device names
+    assert not K._plain_name("../x.json") and not K._plain_name("x\\y.json")
+    assert not K._plain_name("..json") and not K._plain_name("x.txt")
+    assert not K._plain_name("NUL.json") and not K._plain_name("INDEX.json")
+    doc = run_doc()
+    doc["instruments"] = [
+        {"instrument": "a:b", "bars": {}, "trades": []},
+        {"instrument": "a/b", "bars": {}, "trades": []},
+    ]
+    with pytest.raises(K.ContractError) as e:
+        K._split_single(doc)
+    assert "would share the file a_b.json" in e.value.problems[0]
+    doc["instruments"] = [
+        {"instrument": "BTC", "bars": {}, "trades": []},
+        {"instrument": "btc", "bars": {}, "trades": []},
+    ]
+    with pytest.raises(K.ContractError) as e:
+        K._split_single(doc)
+    assert "would share the file" in e.value.problems[0]
+
+
+def test_a_refused_replacement_leaves_the_old_run_and_its_listing_untouched(tmp_path: Path):
+    """TVB-42 audit F2: importing a bad run under an existing id used to remove the old run
+    first, then refuse the new one, leaving runs.json pointing at files that were gone."""
+    root = tmp_path / "data"
+    K.import_run(_single_file(tmp_path), root, log=lambda s: None)
+    dest = root / "runs" / "test-run"
+    before = {p.name: p.read_bytes() for p in dest.iterdir()}
+    bad = run_doc()
+    c = card()
+    c["books"][1]["price"] = None
+    bad["instruments"] = [{"instrument": "X", "bars": {"1d": bars(10)}, "trades": [c]}]
+    p = tmp_path / "bad.json"
+    p.write_text(json.dumps(bad), encoding="utf-8")
+    with pytest.raises(K.ContractError):
+        K.import_run(p, root, log=lambda s: None)
+    assert {q.name: q.read_bytes() for q in dest.iterdir()} == before
+    runs = json.loads((root / "runs.json").read_text())
+    assert [r["id"] for r in runs] == ["test-run"] and (dest / "X.json").exists()
+    assert not list((root / "runs").glob(".import-*")) and not list((root / "runs").glob(".old-*"))
+    # a good replacement swaps in whole: the new files, the listing updated, nothing stepped aside left
+    K.import_run(_single_file(tmp_path), root, log=lambda s: None)
+    assert (dest / "universe.json").exists()
+    assert not list((root / "runs").glob(".import-*")) and not list((root / "runs").glob(".old-*"))
+
+
+def test_in_place_import_from_the_run_json_file_reads_before_it_writes(tmp_path: Path):
+    """TVB-42 audit F2: `import <dest>/run.json` compared the FILE with the destination folder,
+    took the import for a replacement and removed the folder it was about to read."""
+    root = tmp_path / "data"
+    K.import_run(_single_file(tmp_path), root, log=lambda s: None)
+    dest = root / "runs" / "test-run"
+    assert K.import_run(dest / "run.json", root, log=lambda s: None) == "test-run"
+    assert (dest / "X.json").exists() and (dest / "index.json").exists()
+    assert json.loads((dest / "index.json").read_text())["trades"] == 1
+
+
+def test_an_inline_run_inside_a_zip_or_a_folder_imports_its_cards(tmp_path: Path):
+    """TVB-42 audit F3: a zip holding only the single-file flavour imported zero cards (the zip
+    branch went through the folder branch, which never split inline instruments)."""
+    inline = _single_file(tmp_path)
+    z = tmp_path / "inline.zip"
+    with zipfile.ZipFile(z, "w") as zf:
+        zf.write(inline, "phone/run.json")
+    root = tmp_path / "data"
+    K.import_run(z, root, log=lambda s: None)
+    idx = json.loads((root / "runs" / "test-run" / "index.json").read_text())
+    assert idx["trades"] == 1 and idx["instruments"][0]["file"] == "X.json"
+    folder = tmp_path / "inline_folder"
+    folder.mkdir()
+    (folder / "run.json").write_text(inline.read_text(encoding="utf-8"), encoding="utf-8")
+    assert K.import_run(folder, root, run_id="from-folder", log=lambda s: None) == "from-folder"
+    assert json.loads((root / "runs" / "from-folder" / "index.json").read_text())["trades"] == 1
+    # the two flavours in one folder are refused, not silently merged
+    (folder / "Y.json").write_text(json.dumps(files_doc()["X.json"]), encoding="utf-8")
+    with pytest.raises(K.ContractError) as e:
+        K.load_source(folder)
+    assert "use one flavour" in e.value.problems[0]
+    # the direct file, the zipped file and the folder give the same card count
+    direct = K.import_run(inline, root, run_id="direct", log=lambda s: None)
+    assert json.loads((root / "runs" / direct / "index.json").read_text())["trades"] == 1
+
+
+def test_an_extras_key_first_seen_on_a_later_card_stays_on_that_card():
+    """TVB-42 audit F4: a new extras column started empty, so the second card's flag landed on
+    the first row ([1, -1] instead of [-1, 1]) and the universe filter picked the wrong trades."""
+    run = run_doc()
+    d = K.Derive(run)
+    a = card(id="a", extras={})
+    b = card(id="b", extras={"liquid": True, "label": "present"})
+    d.add("X.json", {"instrument": "X", "bars": {"1d": bars(10)}, "trades": [a, b]})
+    u = d.universe()
+    assert u["cols"]["x:liquid"] == [-1, 1] and u["cols"]["x:label"] == [-1, 0]
+    assert u["codes"]["x:label"] == ["present"]
+    # across files, the same: a third card in another file without the keys gets the absent mark
+    c = card(id="c", instrument="Y", extras={"other": False})
+    d.add("Y.json", {"instrument": "Y", "bars": {"1d": bars(10)}, "trades": [c]})
+    u = d.universe()
+    assert u["cols"]["x:liquid"] == [-1, 1, -1] and u["cols"]["x:label"] == [-1, 0, -1]
+    assert u["cols"]["x:other"] == [-1, -1, 0] and u["n"] == 3
+    assert all(len(v) == 3 for v in u["cols"].values())
+
+
+def test_export_run_refuses_an_id_that_would_leave_the_runs_folder():
+    """TVB-42 audit F1: `export-run --id ..` built its destination before any check."""
+    from analysis.domino import trade_viewer as TV
+
+    with pytest.raises(SystemExit) as e:
+        TV.main(["export-run", "--as-of", "2026-10-10", "--id", ".."])
+    assert "id must be" in str(e.value)
+    with pytest.raises(ValueError):
+        X.export_run(1_791_504_000_000, Path("unused"), "..")
+
+
 def test_an_unfit_run_is_refused_with_the_problems(tmp_path: Path):
     doc = run_doc()
     bad = card()

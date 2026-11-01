@@ -84,24 +84,28 @@ window.DV = window.DV || {};
     return b.k === 0 ? "on the entry day" : "on day " + b.k;
   }
   const hoursWord = (h) => h + (h === 1 ? " hour" : " hours");
+  // every stated price relationship is read off the two values compared, never off the trade's direction or a
+  // book's rule (TVB-42 audit F5: a long's under-water exit can close green, and did on 10,814 cards)
+  const relWord = (a, b) => a > b ? "above" : a < b ? "below" : "level with";
+  const colourWord = (close, open) => close < open ? "red" : close > open ? "green" : "flat";
   function clockWords(t, cal, i, p, b, hourly) {
     // the clock sentence for a book entry: a reading of the bar at the recorded exit time (never the rule)
-    const long = t.direction === "up", w = words(long);
     if (b.how === "clock") {
       if (hourly && b.at != null) {
         const hb = cal.hourly.find((x) => x[0] === b.at);
         const held = hoursHeld(b);
-        const colour = hb ? (hb[4] < hb[1] ? "red" : hb[4] > hb[1] ? "green" : "flat") : null;
         const di = cal.dayIdx.get(iso(b.at)), day = di != null ? cal.daily[di] : null;
-        const dayColour = day ? (day[4] < day[1] ? "red" : day[4] > day[1] ? "green" : "flat") : null;
+        // the day's side AT THAT HOUR is the exit hour's close against the day's open; the day's final close is
+        // later information and is not what the clock saw
+        const dayAt = hb && day ? colourWord(hb[4], day[1]) : null;
         return "The exit clock fired" + (held != null ? (held === 0 ? " on its entry hour" : " " + hoursWord(held) + " after its entry hour") : "") + ", at " + isoH(b.at) + " UTC" +
-          (hb ? ": that hour closed " + colour + " at " + fmtPrice(hb[4], p) + ", " + w.below + " its open " + fmtPrice(hb[1], p) + (dayColour ? ", with the day " + dayColour + " too" : "") : "") + ".";
+          (hb ? ": that hour closed " + colourWord(hb[4], hb[1]) + " at " + fmtPrice(hb[4], p) + ", " + relWord(hb[4], hb[1]) + " its open " + fmtPrice(hb[1], p) +
+            (dayAt ? ", with the day " + dayAt + " at that hour (" + relWord(hb[4], day[1]) + " the day's open " + fmtPrice(day[1], p) + ")" : "") : "") + ".";
       }
       const k = b.k == null ? 0 : b.k, j = Math.min(i + k, cal.daily.length - 1), bar = cal.daily[j], wo = cal.weekOpenAt(bar[0]);
       const monday = C.weekStart(bar[0]) === bar[0];
-      const colour = bar[4] < bar[1] ? "red" : bar[4] > bar[1] ? "green" : "flat";
-      return "The exit clock fired " + (k === 0 ? "on the entry day" : "on day " + k) + ", " + weekdayOf(iso(bar[0])) + " " + shortDate(iso(bar[0])) + ": that day closed " + colour + " at " + fmtPrice(bar[4], p) +
-        ", " + w.below + " its open " + fmtPrice(bar[1], p) + (monday ? " (a Monday, so the day's open is the week's open and the two tests are one)" : wo != null ? " and " + w.below + " the week's open " + fmtPrice(wo, p) : "") + ".";
+      return "The exit clock fired " + (k === 0 ? "on the entry day" : "on day " + k) + ", " + weekdayOf(iso(bar[0])) + " " + shortDate(iso(bar[0])) + ": that day closed " + colourWord(bar[4], bar[1]) + " at " + fmtPrice(bar[4], p) +
+        ", " + relWord(bar[4], bar[1]) + " its open " + fmtPrice(bar[1], p) + (monday ? " (a Monday: the day's open is also the week's open)" : wo != null ? " and " + relWord(bar[4], wo) + " the week's open " + fmtPrice(wo, p) : "") + ".";
     }
     if (b.how === "cap") {
       if (hourly && b.at != null) return "Nothing fired inside the book's horizon, so the row is marked at the cap hour, " + isoH(b.at) + " UTC.";

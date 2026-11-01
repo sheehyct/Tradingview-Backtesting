@@ -533,6 +533,101 @@ def test_hourly_clock_is_worded_in_the_trade_s_own_colours():
     assert "One R at 98.00 was touched on the entry day" in _book_paragraph(s2, "D_h")
 
 
+def test_clock_sentences_read_the_bar_not_the_trade_direction():
+    """TVB-42 audit F5 (0G 2025-10-01 daily long, under water): the exit day closed GREEN above
+    its open, yet the sentence said "below its open" because the word came from the trade's
+    direction. Every stated relationship now comes from the two prices compared. The hourly
+    branch says which side the day was on AT THE EXIT HOUR (the hour's close against the day's
+    open), not where the day finally closed."""
+    daily = _daily(40)
+    daily[9 + 3][1] = 100.0
+    daily[9 + 3][4] = 101.0  # day 3 closes green, above its open
+    c = with_books(card(), C_u=book("C_u", "clock", E + 3 * DAY, 99.0, -1.0))
+    s = run_js(
+        f"const cal = C.makeCalendar({{ daily: {json.dumps(daily)}, hourly: [] }});"
+        f"out.s = S.narrate({{ t: prep({json.dumps(c)}, cal), coin: 'X', cal, book: 'C_u', size: 1000, p: 2 }});"
+    )["s"]
+    para = _book_paragraph(s, "C_u")
+    assert "closed green at 101.00, above its open 100.00" in para
+    assert "below its open" not in para and "two tests are one" not in para
+    # the hourly branch: the exit hour closes above the day's open while the day's final close is below it
+    hourly = _hourly(40)
+    k = 9 * 24 + 7
+    hourly[k][4] = 100.5  # the exit hour closes green, above the day's open 100
+    daily2 = _daily(40)
+    daily2[9][4] = 99.0  # the day later closes red
+    short = with_books(
+        card(direction="down"),
+        C_h=book("C_h", "clock", E + 7 * HOUR, 100.5, -0.5, entry=E + 2 * HOUR),
+    )
+    s2 = run_js(
+        f"const cal = C.makeCalendar({{ daily: {json.dumps(daily2)}, hourly: {json.dumps(hourly)} }});"
+        f"out.s = S.narrate({{ t: prep({json.dumps(short)}, cal), coin: 'X', cal, book: 'C_h', size: 1000, p: 2 }});"
+    )["s"]
+    para2 = _book_paragraph(s2, "C_h")
+    assert "with the day green at that hour (above the day's open 100.00)" in para2
+    assert "with the day red" not in para2
+    # a flat hour reads level with its open, never a direction word
+    hourly[k][4] = 100.0
+    s3 = run_js(
+        f"const cal = C.makeCalendar({{ daily: {json.dumps(daily2)}, hourly: {json.dumps(hourly)} }});"
+        f"out.s = S.narrate({{ t: prep({json.dumps(short)}, cal), coin: 'X', cal, book: 'C_h', size: 1000, p: 2 }});"
+    )["s"]
+    assert "closed flat at 100.00, level with its open" in _book_paragraph(s3, "C_h")
+
+
+def test_target_share_carries_its_denominator():
+    """TVB-42 audit F6: "at target" divides by the filled trades that HAD a target (hit null =
+    no target), so the page shows that count beside the share and names it in the note."""
+    a = with_books(card(instrument="A"), B=book("B", "clock", E + 3 * DAY, 101.0, 1.0, None))
+    b = with_books(
+        card(
+            instrument="B",
+            targets=[
+                {"name": "T1", "price": 103.0, "source": "anchor", "touched": E + 2 * DAY},
+                {"name": "T2", "price": 105.0, "source": "W", "touched": E + 2 * DAY},
+            ],
+        ),
+        B=book("B", "target", E + 2 * DAY, 105.0, 5.0, True),
+    )
+    out = run_js(f"const s = ST.bookStats({_items(a, b)}, 'B', 1000); out = s;")
+    assert out["filled"] == 2 and out["withTarget"] == 1 and out["targets"] == 1
+    assert out["target"] == 1.0 and out["targetAll"] == 0.5
+    src = (VIEWER / "app.js").read_text(encoding="utf-8")
+    assert "fmtCount(s.withTarget)" in src and "with one" in src
+    assert "share of the book's filled trades that had a target" in src
+    assert "share of filled trades that left at the book's target" not in src
+
+
+def test_run_switch_reloads_the_universe_and_drops_stale_loads():
+    """TVB-42 audit F7 (DOM-bound, checked at the source): loadRun bumps a generation every
+    async load compares before writing state, and reloads the universe when a retained scope
+    (Compare on every instrument, the all-instrument calendar) needs it."""
+    src = (VIEWER / "app.js").read_text(encoding="utf-8")
+    load_run = src.split("async function loadRun(id) {")[1].split("async function openCoin")[0]
+    assert "++state.gen" in load_run and "if (gen !== state.gen) return false;" in load_run
+    assert 'state.cmpScope === "universe" || state.calScope === "all"' in load_run
+    assert "await loadUniverse()" in load_run
+    uni = src.split("async function loadUniverse() {")[1].split("function universeItems")[0]
+    assert "const gen = state.gen" in uni and "if (gen !== state.gen) return null;" in uni
+    assert "state.uniLoading" in uni
+    coin = src.split("async function loadCoin(coin) {")[1].split("async function select")[0]
+    assert "if (gen !== state.gen) return false;" in coin
+    assert "if (!(await loadRun(e.target.value))) return;" in src
+    # the in-session Codex review of the fold (#5-#7): while a switch is in flight no loader has a
+    # base to read (the generation alone was not enough: a load could capture the new generation
+    # with the old address); select and applyDate commit nothing when the run changed under them;
+    # a failed universe load is said on the page, not spun on
+    assert "state.runId = null; state.base = null; state.index = null;" in load_run
+    assert "if (!state.base) return null;" in uni and "state.uniError" in uni
+    assert "if (!state.index || !state.base) return false;" in coin
+    sel = src.split("async function select(k) {")[1].split("function syncHash")[0]
+    assert "!(await loadCoin(it.coin))) return;" in sel
+    apply = src.split("async function applyDate(date) {")[1].split("// ---")[0]
+    assert "if (gen !== state.gen) return;" in apply
+    assert "the universe table failed to load" in src
+
+
 def test_open_card_without_a_target_is_not_told_it_left_with_the_clock():
     """TVB-40 F3 (ADA 2024-01-30 book A shape): open at the cap, T1 never touched."""
     c = with_books(

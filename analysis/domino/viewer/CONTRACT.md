@@ -214,10 +214,18 @@ uv run python -m analysis.domino.trade_viewer serve [--port 8765] [--no-open]
 
 `validate` says what is wrong in plain words with the card named ("BTC card
 BTC-2026-03-16-W-reversal-up: book A left by target but has no price"); `import` refuses a run
-that does not validate. `check-run <id>` compares an imported run with the flat viewer data
-row for row (the level, each ladder book's return / reason / day, the touch days, the hourly
-clock) and prints every kind of difference with examples; it is the stage-1 regression guard
-and goes away with the flat layout.
+that does not validate, builds the run in a staging folder and swaps it in only when every card
+has passed (a refused replacement leaves the run it would have replaced, and the listing,
+untouched); the source may be the destination folder or its `run.json`. Run ids start with a
+letter or a digit; instrument names become plain file names (a colon, slash or backslash turns
+into an underscore), so nothing a run writes can land outside its folder. `check-run <id>`
+compared an imported run with the flat viewer data row for row and was the stage-1 regression
+guard; its exact coverage was the level, the six ladder books' returns, the A / B / D / D5 hit
+flags, the headline's / D5's / chance book's reason and day, T1's price and touch day, one R's
+touch day, and the hourly clock's reason and return. It did NOT compare the A / B / D books'
+reasons or days, the hourly books' entry and exit hours, or the clock variants (`C_u`, `C_own`,
+`C_long` and their A / D books), and it walked only the instruments in the imported index
+(TVB-42 audit F8). Retired with the flat layout in stage 3.
 Checks: the contract version; one headline book; every book id on a card declared in the run;
 `how` in the vocabulary and the `at` / `price` / `ret` rules of section 3; prices positive;
 times at or after the entry; a touched target's time at or before the book that filled on it;
@@ -267,8 +275,11 @@ touch day; `D_h`'s one-R fill carries the touch DAY (the row has no touch hour f
 a note saying so. Prices of clock exits and cap marks are recovered from the recorded return
 (`level * (1 + sign * ret / 100)`), which is the engine's own definition of the return. The
 `A_h`, `D_h`, `A_u`, `D_u`, `A_own`, `A_long` and `A_mm` variants are exported as grouped books.
-`check-run` compares the imported run with the page's current flat data row for row before the
-flat `viewer/data/*.json` layout is retired (stage 3).
+`check-run` compared the imported run with the page's flat data row for row before the flat
+`viewer/data/*.json` layout was retired (stage 3); section 7 states exactly what it covered.
+The TVB-42 audit's independent probe (the typed CSV rows against every card: 4,314,995 field
+checks, zero differences, including the clock variants' returns and times that `check-run` did
+not cover) is the broader receipt for run one.
 
 ## 10. Build stages (each lands on its own, tested, before the next)
 

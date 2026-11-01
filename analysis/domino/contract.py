@@ -57,8 +57,37 @@ def _price(v) -> bool:
     return _num(v) and v > 0
 
 
+# Windows names a file or folder by these words whatever follows the dot (NUL.json is the device)
+RESERVED = (
+    {"CON", "PRN", "AUX", "NUL"} | {f"COM{i}" for i in range(10)} | {f"LPT{i}" for i in range(10)}
+)
+
+
+def _reserved(stem: str) -> bool:
+    return stem.split(".")[0].upper() in RESERVED
+
+
 def _slug(s) -> bool:
-    return isinstance(s, str) and bool(s) and all(ch.isalnum() or ch in "._-" for ch in s)
+    """A run or book id: letters, digits, dot, dash or underscore, STARTING and ENDING with a
+    letter or a digit, and not a Windows device name. So no id can name the runs folder itself or
+    anything above it ("." and ".." are refused, TVB-42 audit F1) and no two accepted ids fold
+    onto one folder by a trailing dot (Windows drops it); ids that differ only by case are one
+    folder on Windows and are treated as one run by the listing (`register`)."""
+    return (
+        isinstance(s, str)
+        and bool(s)
+        and s[0].isalnum()
+        and s[-1].isalnum()
+        and all(ch.isalnum() or ch in "._-" for ch in s)
+        and not _reserved(s)
+    )
+
+
+valid_id = _slug
+ID_RULE = (
+    "id must be letters, digits, dot, dash or underscore, starting and ending with a letter or "
+    "digit (not a Windows device name)"
+)
 
 
 def iso(t: int | None) -> str:
@@ -95,7 +124,7 @@ def validate_run(run: dict) -> list[str]:
             f"run: contract version {run.get('contract')!r}; this page reads version {CONTRACT}"
         )
     if not _slug(run.get("id")):
-        p.append("run: id must be letters, digits, dot, dash or underscore")
+        p.append("run: " + ID_RULE)
     for key in ("name", "as_of"):
         if not isinstance(run.get(key), str) or not run[key]:
             p.append(f"run: {key} missing")
@@ -131,7 +160,7 @@ def validate_run(run: dict) -> list[str]:
             continue
         bid = b.get("id")
         if not _slug(bid):
-            p.append(f"{tag}: id must be letters, digits, dot, dash or underscore")
+            p.append(f"{tag}: {ID_RULE}")
         elif bid in ids:
             p.append(f"{tag}: id {bid!r} is declared twice")
         else:
@@ -438,6 +467,7 @@ class Derive:
         # flags and short categorical strings become columns; the rest stays on the cards
         for key, v in ex.items():
             spec = self.extras.get(key)
+            col = "x:" + key
             if spec is None:
                 if isinstance(v, bool) or v is None:
                     spec = {"kind": "flag"}
@@ -446,7 +476,11 @@ class Derive:
                 else:
                     spec = {"kind": "skip"}
                 self.extras[key] = spec
-            col = "x:" + key
+                if spec["kind"] != "skip":
+                    # a key first seen on this card was absent on every card before it: the
+                    # column starts with that many "absent" marks, so values stay on their own
+                    # rows (TVB-42 audit F4)
+                    self.cols[col] = [-1] * self.n
             if spec["kind"] == "flag":
                 if v is None or isinstance(v, bool):
                     self.cols[col].append(-1 if v is None else int(v))
@@ -505,14 +539,59 @@ class Derive:
 
 
 def _fname(instrument: str) -> str:
-    return instrument.replace(":", "_").replace("/", "_") + ".json"
+    """The file an instrument's cards live under: every character that is not a letter, digit,
+    dot, dash or underscore becomes an underscore (a colon, a slash, a backslash, a space), so
+    the name is a plain file name inside the run folder and never a path; leading and trailing
+    dots go; a name the importer reserves gets a suffix (TVB-42 audit F1)."""
+    stem = "".join(ch if ch.isalnum() or ch in "._-" else "_" for ch in instrument).strip(".")
+    stem = stem or "instrument"
+    if _reserved(stem):
+        stem = "_" + stem  # NUL.json would be the Windows device, not a file
+    name = stem + ".json"
+    if _reserved_file(name):
+        name = stem + "_instrument.json"
+    return name
+
+
+def _reserved_file(fname: str) -> bool:
+    """run.json and the derived files, compared without case (Windows folds RUN.json onto run.json)."""
+    return fname.casefold() in {n.casefold() for n in ("run.json", *DERIVED)}
+
+
+def _plain_name(fname: str) -> bool:
+    """A file name the importer will write: a single path component ending in .json, not a
+    reserved file and not a Windows device name."""
+    return (
+        isinstance(fname, str)
+        and fname.endswith(".json")
+        and fname not in (".json", "..json")
+        and "/" not in fname
+        and "\\" not in fname
+        and fname.strip(".") != ""
+        and Path(fname).name == fname
+        and not _reserved(fname)
+        and not _reserved_file(fname)
+    )
 
 
 def _split_single(doc: dict) -> tuple[dict, dict[str, dict]]:
-    """A single-file run: `instruments` entries carry their bars and trades inline."""
+    """A single-file run: `instruments` entries carry their bars and trades inline. Two
+    instruments whose names map to one file are refused (the second would overwrite the first)."""
     files: dict[str, dict] = {}
+    owner: dict[str, str] = {}
     for item in doc.get("instruments", []):
-        files[_fname(item["instrument"])] = {
+        if not isinstance(item, dict) or not isinstance(item.get("instrument"), str):
+            raise ContractError(["run: every inline instrument needs an instrument name"])
+        name = _fname(item["instrument"])
+        key = name.casefold()  # BTC.json and btc.json are one file on Windows
+        if key in owner:
+            raise ContractError(
+                [
+                    f"run: instruments {owner[key]!r} and {item['instrument']!r} would share the file {name}"
+                ]
+            )
+        owner[key] = item["instrument"]
+        files[name] = {
             "instrument": item["instrument"],
             "bars": item.get("bars") or {},
             "trades": item.get("trades") or [],
@@ -543,6 +622,18 @@ def load_source(path: Path | str) -> tuple[dict, Callable[[], Iterator[tuple[str
         names = sorted(
             p.name for p in path.glob("*.json") if p.name != "run.json" and p.name not in DERIVED
         )
+        if isinstance(run, dict) and _is_inline(run):
+            # the single-file flavour sitting in a folder (or a zip): split it like a direct
+            # file; a folder that mixes the two flavours is refused (TVB-42 audit F3)
+            if names:
+                raise ContractError(
+                    [
+                        f"{path}: run.json carries its instruments inline and the folder also holds "
+                        f"instrument files ({', '.join(names[:3])}); use one flavour"
+                    ]
+                )
+            run, files = _split_single(run)
+            return run, lambda: iter(files.items())
 
         def folder() -> Iterator[tuple[str, dict]]:
             for name in names:
@@ -580,13 +671,59 @@ def _write(path: Path, doc) -> None:
 
 
 def register(root: Path, entry: dict) -> list[dict]:
-    """Add or replace a run in `runs.json`; newest built first."""
+    """Add or replace a run in `runs.json`; newest built first. Ids that differ only by case
+    are one folder on Windows, so they are one listing too (the newer id's words win)."""
     listing = root / "runs.json"
     runs = json.loads(listing.read_text(encoding="utf-8")) if listing.exists() else []
-    runs = [r for r in runs if r.get("id") != entry["id"]] + [entry]
+    key = str(entry["id"]).casefold()
+    runs = [r for r in runs if str(r.get("id")).casefold() != key] + [entry]
     runs.sort(key=lambda r: r.get("built", ""), reverse=True)
     _write(listing, runs)
     return runs
+
+
+def _inside(path: Path, folder: Path) -> bool:
+    """True when `path` resolves to a child of `folder` (never the folder itself)."""
+    try:
+        rel = path.resolve().relative_to(folder.resolve())
+    except ValueError:
+        return False
+    return str(rel) not in ("", ".")
+
+
+def _source_dir(path: Path) -> Path | None:
+    """The folder a source reads its instrument files from: the folder itself, or the parent of
+    a folder-style `run.json`; None for a zip or an inline single file (read whole, up front)."""
+    if path.is_dir():
+        return path
+    if path.suffix.lower() == ".json" and path.name == "run.json" and path.exists():
+        try:
+            doc = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return None
+        return None if isinstance(doc, dict) and _is_inline(doc) else path.parent
+    return None
+
+
+def _stamp(built: str) -> str:
+    return built.replace(":", "").replace("-", "")  # no dash: the id before it may hold dashes
+
+
+def recover(runs_dir: Path, log: Callable[[str], None] = print) -> None:
+    """Repair what an interrupted import left behind. A staging folder (`.import-*`) is never the
+    only copy of anything and goes. A stepped-aside run (`.old-<id>-<stamp>`) is the ONLY copy
+    when the import died between its two renames: if `runs/<id>` is missing, the old run is put
+    back under its name; if `runs/<id>` exists, the swap had completed and the old copy goes."""
+    for p in runs_dir.glob(".import-*"):
+        shutil.rmtree(p, ignore_errors=True)
+    for p in runs_dir.glob(".old-*"):
+        rid = p.name[len(".old-") :].rsplit("-", 1)[0]
+        dest = runs_dir / rid
+        if rid and not dest.exists():
+            p.rename(dest)
+            log(f"run {rid}: restored from an interrupted import")
+        else:
+            shutil.rmtree(p, ignore_errors=True)
 
 
 def import_run(
@@ -598,52 +735,80 @@ def import_run(
 ) -> str:
     """Validate a run and lay it out under `root/runs/<id>/` with its derived files; refuse it
     with every problem named. `bars_lookup(instrument)` may supply bars for a file that ships
-    none. The source may already be the destination folder (an export in place)."""
+    none.
+
+    The run is built in a staging folder beside the runs and swapped in only after every card
+    has passed, so a refused replacement never disturbs the run it would have replaced, and the
+    listing names only runs whose files exist (TVB-42 audit F2). The source may be the
+    destination folder itself, or its `run.json` (an export in place): its files are read
+    before the swap. Problems stop after the instrument file that takes the count past 200."""
+    source = Path(source)
     run, factory = load_source(source)
     if run_id:
         run["id"] = run_id
     problems = validate_run(run)
     if problems:
         raise ContractError(problems)
-    dest = root / "runs" / run["id"]
-    in_place = Path(source).resolve() == dest.resolve() if Path(source).exists() else False
-    if dest.exists() and not in_place:
-        shutil.rmtree(dest)
-    dest.mkdir(parents=True, exist_ok=True)
-    built = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    derive = Derive(run)
-    seen: set[str] = set()
-    warnings: list[str] = []
-    written: list[str] = []
-    for fname, doc in factory():
-        if bars_lookup and isinstance(doc, dict) and not any((doc.get("bars") or {}).values()):
-            found = bars_lookup(doc.get("instrument", ""))
-            if found:
-                doc["bars"] = found
-                log(f"{doc.get('instrument')}: bars filled from the cache")
-        p, w = validate_file(run, fname, doc, seen)
-        warnings += w
-        if p:
-            problems += p
-            if len(problems) > 200:
-                break
-            continue
-        derive.add(fname, doc)
-        _write(dest / fname, doc)
-        written.append(fname)
-    if problems:
-        if not in_place:
-            shutil.rmtree(dest, ignore_errors=True)
-        raise ContractError(problems)
-    for w in warnings:
-        log("warning: " + w)
-    index = derive.index(built)
-    run["built"] = built
-    run["instruments"] = index["instruments"]
-    _write(dest / "run.json", run)
-    _write(dest / "index.json", index)
-    _write(dest / "dates.json", dict(derive.dates))
-    _write(dest / "universe.json", derive.universe())
+    runs_dir = root / "runs"
+    dest = runs_dir / run["id"]
+    if not _inside(dest, runs_dir):  # _slug already refuses "." and ".."; belt and braces
+        raise ContractError([f"run: id {run['id']!r} does not name a folder inside {runs_dir}"])
+    runs_dir.mkdir(parents=True, exist_ok=True)
+    recover(runs_dir, log)
+    stage: Path | None = Path(tempfile.mkdtemp(prefix=".import-", dir=runs_dir))
+    try:
+        built = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        derive = Derive(run)
+        seen: set[str] = set()
+        warnings: list[str] = []
+        for fname, doc in factory():
+            if not _plain_name(fname) or not _inside(stage / fname, stage):
+                problems.append(f"{fname}: not a plain file name inside the run folder")
+                continue
+            if bars_lookup and isinstance(doc, dict) and not any((doc.get("bars") or {}).values()):
+                found = bars_lookup(doc.get("instrument", ""))
+                if found:
+                    doc["bars"] = found
+                    log(f"{doc.get('instrument')}: bars filled from the cache")
+            p, w = validate_file(run, fname, doc, seen)
+            warnings += w
+            if p:
+                problems += p
+                if len(problems) > 200:
+                    break
+                continue
+            derive.add(fname, doc)
+            _write(stage / fname, doc)
+        if problems:
+            raise ContractError(problems)
+        for w in warnings:
+            log("warning: " + w)
+        index = derive.index(built)
+        run["built"] = built
+        run["instruments"] = index["instruments"]
+        _write(stage / "run.json", run)
+        _write(stage / "index.json", index)
+        _write(stage / "dates.json", dict(derive.dates))
+        _write(stage / "universe.json", derive.universe())
+        # the swap: the old run (if any) steps aside, the staged one takes its name, the old one
+        # goes. If the second rename fails the old run is put straight back; if the process dies
+        # between the two, the next import's `recover` puts it back.
+        old: Path | None = None
+        if dest.exists():
+            old = runs_dir / (".old-" + run["id"] + "-" + _stamp(built))
+            dest.rename(old)
+        try:
+            stage.rename(dest)
+        except OSError:
+            if old is not None and not dest.exists():
+                old.rename(dest)
+            raise
+        stage = None
+        if old is not None:
+            shutil.rmtree(old, ignore_errors=True)
+    finally:
+        if stage is not None:
+            shutil.rmtree(stage, ignore_errors=True)
     register(
         root,
         {

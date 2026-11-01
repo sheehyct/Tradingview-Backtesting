@@ -48,9 +48,12 @@ window.DV = window.DV || {};
     rets.sort((a, b) => a - b); days.sort((a, b) => a - b);
     const filled = rows.length;
     const avgWin = rets.filter((r) => r > 0), avgLoss = rets.filter((r) => r < 0);
+    // "at target" is conditional: the share of the filled trades that HAD a target (hit is null where the book has
+    // none) and left there; withTarget is that denominator and targetAll the share of every filled trade, so the
+    // page can show the one it names (TVB-42 audit F6)
     return {
       book, n: items.length, filled, win: filled ? wins / filled : null, avg: filled ? sum / filled : null, med: median(rets), total: cum, maxDD: dd,
-      target: withTarget ? targets / withTarget : null, medDays: median(days), curve,
+      target: withTarget ? targets / withTarget : null, withTarget, targets, targetAll: filled ? targets / filled : null, medDays: median(days), curve,
       avgWin: avgWin.length ? avgWin.reduce((a, b) => a + b, 0) / avgWin.length : null, avgLoss: avgLoss.length ? avgLoss.reduce((a, b) => a + b, 0) / avgLoss.length : null,
       best: rets.length ? rets[rets.length - 1] : null, worst: rets.length ? rets[0] : null,
     };

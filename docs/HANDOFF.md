@@ -148,7 +148,7 @@ backslash escapes through Bash, use the Edit / Write tools for source.
 > below) and write a verbatim assessment to docs/reviews/tvb42-codex-audit.md.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: REQUESTED
+- Review status: RETURNED (docs/reviews/tvb42-codex-audit.md, 2026-11-01; critical synthesis in the TVB-43 entry)
 - Commits to review: `2f3a3a8..57c054c` on `main` (2f3a3a8 is the TVB-41 close-out the
   session started from; 75626b7 the audit fold; bc79aa4 the contract spec; cba482e stage 1;
   ef5be09 stage 2; the close-out commit after it is docs only). Pinned after the push.
@@ -174,8 +174,8 @@ backslash escapes through Bash, use the Edit / Write tools for source.
   in-place import; the page's run switch (Compare charts disposed and rebuilt; `state.book`
   kept only when the new run declares it); the hourly pane's entry arrow (`hourEntry`) and the
   group squares; hygiene (no private link, data and vendor gitignored, ruff clean, 471 passed).
-- Reviewed by: pending
-- Findings: {blank until docs/reviews/tvb42-codex-audit.md exists}
+- Reviewed by: Codex (local tools, Python and Node probes), 2026-11-01
+- Findings: NEEDS-CHANGES. Two HIGH: F1 run ids "." / ".." and backslash instrument names escape the runs folder before rmtree; F2 a refused replacement import destroys the old run, and a run.json-form in-place import deletes its own source. Five MEDIUM: F3 a zipped inline run imports zero cards; F4 a sparse extras column lands on earlier cards; F5 clock sentences pick above/below from the trade direction and read the final daily close at an hourly exit; F6 Compare "at target" divides by target-eligible trades while the note says all filled; F7 a run switch keeps the universe scope without reloading and accepts stale universe responses. One LOW: F8 check-run compares less than the contract states. Held: 4,314,995 saved-row field checks, zero differences; both TVB-41 repairs hold; 471 passed. Lead spot-checked F1-F6 against the cited lines at session start: all six confirmed by reading.
 
 ---
 

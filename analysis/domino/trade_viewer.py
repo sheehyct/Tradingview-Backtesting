@@ -415,6 +415,10 @@ def main(argv: list[str] | None = None) -> None:
 
         as_of_ms = parse_as_of(args.as_of)
         run_id = run_card(as_of_ms, args.id)["id"]
+        if not contract.valid_id(run_id):
+            # checked BEFORE any folder is made: an id like ".." would otherwise name the data
+            # folder itself as the export's destination (TVB-42 audit F1)
+            sys.exit("run " + contract.ID_RULE)
         folder = export_run(as_of_ms, DATA / "runs" / run_id, args.id)
         try:
             contract.import_run(folder, DATA)

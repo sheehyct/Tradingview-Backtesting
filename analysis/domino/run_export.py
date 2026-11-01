@@ -659,9 +659,11 @@ def run_card(as_of_ms: int, run_id: str | None = None) -> dict:
 
 def export_run(as_of_ms: int, out: Path, run_id: str | None = None, log=print) -> Path:
     """Write the run folder (run.json + one file per coin) from the rows and the cached bars."""
+    run = run_card(as_of_ms, run_id)
+    if not K.valid_id(run["id"]):
+        raise ValueError(f"run {K.ID_RULE} (got {run['id']!r})")
     out.mkdir(parents=True, exist_ok=True)
     rows = load_rows()
-    run = run_card(as_of_ms, run_id)
     n = 0
     for meta in cached_universe(as_of_ms):
         coin = meta["coin"]
