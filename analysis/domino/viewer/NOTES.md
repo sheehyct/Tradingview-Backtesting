@@ -268,3 +268,15 @@ the hand-written single-file phone run has been imported in a test, not on the p
    retired page's rays imported into it once.
 3. **An hourly archive**: the venue serves ~208 days of hours; `hourly` runs appended to a
    cache keyed by month would let the 1H view and the hourly clock reach older trades.
+
+## 2026-11-02 (TVB-44): the gap sentence, the comparison restart
+
+- A card whose session opened past the trigger (the bench's `extras.gap`: open / untraded, with
+  `extras.session_open`) says so in its first paragraph (`story.gapWords`; `core.prep` reads the
+  two keys). Run one's cards carry neither key and read as before. The open-fill and
+  missed-entry BOOKS are not on the page (the receipt and the tables carry them); a run group
+  for them is a carried viewer item.
+- `loadRun` restarts a comparison that was still loading (or failed) when the run switched,
+  after `fillRunCompare` has dropped one that became the current run (TVB-43 audit F3).
+- The design-off prototype folder `proto_codex/` and the old flat files under `data/*.json`
+  were deleted on the owner's word; `data/runs/` and `data/runs.json` are all the page reads.

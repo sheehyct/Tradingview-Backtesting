@@ -72,18 +72,27 @@ def _reserved(stem: str) -> bool:
     return stem.split(".")[0].upper() in RESERVED
 
 
+def _plain_char(ch: str) -> bool:
+    """An ASCII letter or digit. Ids and file names are ASCII only: the listing folds case with
+    casefold() and Windows folds it with its own table, and the two disagree outside ASCII (a
+    KELVIN SIGN casefolds to k while NTFS keeps it apart: two folders, one listing; TVB-43 audit
+    F5). ASCII is the alphabet both fold the same way."""
+    return ch.isascii() and ch.isalnum()
+
+
 def _slug(s) -> bool:
-    """A run or book id: letters, digits, dot, dash or underscore, STARTING and ENDING with a
-    letter or a digit, and not a Windows device name. So no id can name the runs folder itself or
-    anything above it ("." and ".." are refused, TVB-42 audit F1) and no two accepted ids fold
-    onto one folder by a trailing dot (Windows drops it); ids that differ only by case are one
-    folder on Windows and are treated as one run by the listing (`register`)."""
+    """A run or book id: ASCII letters, digits, dot, dash or underscore, STARTING and ENDING with
+    a letter or a digit, and not a Windows device name. So no id can name the runs folder itself
+    or anything above it ("." and ".." are refused, TVB-42 audit F1), no two accepted ids fold
+    onto one folder by a trailing dot (Windows drops it), and ids that differ only by case are
+    one folder on Windows and one run in the listing (`register`), with no unicode spelling that
+    the listing folds and the filesystem does not (`_plain_char`)."""
     return (
         isinstance(s, str)
         and bool(s)
-        and s[0].isalnum()
-        and s[-1].isalnum()
-        and all(ch.isalnum() or ch in "._-" for ch in s)
+        and _plain_char(s[0])
+        and _plain_char(s[-1])
+        and all(_plain_char(ch) or ch in "._-" for ch in s)
         and not _reserved(s)
     )
 
@@ -578,11 +587,12 @@ class Derive:
 
 
 def _fname(instrument: str) -> str:
-    """The file an instrument's cards live under: every character that is not a letter, digit,
-    dot, dash or underscore becomes an underscore (a colon, a slash, a backslash, a space), so
+    """The file an instrument's cards live under: every character that is not an ASCII letter or
+    digit, dot, dash or underscore becomes an underscore (a colon, a slash, a backslash, a space,
+    any unicode letter: the listing's and the filesystem's case folding agree only on ASCII), so
     the name is a plain file name inside the run folder and never a path; leading and trailing
     dots go; a name the importer reserves gets a suffix (TVB-42 audit F1)."""
-    stem = "".join(ch if ch.isalnum() or ch in "._-" else "_" for ch in instrument).strip(".")
+    stem = "".join(ch if _plain_char(ch) or ch in "._-" else "_" for ch in instrument).strip(".")
     stem = stem or "instrument"
     if _reserved(stem):
         stem = "_" + stem  # NUL.json would be the Windows device, not a file

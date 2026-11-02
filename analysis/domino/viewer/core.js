@@ -175,6 +175,8 @@ window.DV = window.DV || {};
     const ex = t.extras || {};
     t.near_tf = ex.near_tf == null ? null : ex.near_tf; t.liquid = !!ex.liquid; t.flag = ex.flag == null ? "none" : ex.flag;
     t.anchor = ex.anchor == null ? null : ex.anchor; t.dex = ex.dex == null ? null : ex.dex; t.one_r_raw = ex.one_r_raw == null ? null : ex.one_r_raw;
+    // a session tape can open past the trigger (the bench's extras.gap: "open" / "untraded"); run one's cards carry neither key
+    t.gap = ex.gap == null ? null : ex.gap; t.session_open = ex.session_open == null ? null : ex.session_open;
     const cx = t.context || {}, tv = t.travel || {};
     t.w_support = cx.week_side == null ? null : cx.week_side; t.m_support = cx.month_side == null ? null : cx.month_side;
     t.mfe_x = tv.mfe == null ? null : tv.mfe; t.mae_x = tv.mae == null ? null : tv.mae; t.next_bar = tv.next_bar == null ? null : tv.next_bar;

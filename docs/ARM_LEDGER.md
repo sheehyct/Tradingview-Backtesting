@@ -714,26 +714,45 @@ settings at $1 risk, but with 26 fills they stay unread as arms.
 - **Confounds named up front:** the contract roll (flagged and split, never dropped); one rising
   index over fifteen years (longs and shorts reported apart); short sessions and the 16:15
   break; the page's session labels (a Sunday-evening open is Monday's session).
-- **Numbers (2026-11-01, `analysis/bench/BENCH_RECEIPT.md`; percent per trade, equal size,
-  no fees; both directions):** on the Globex day (3,824 session units) every management book
-  sits within a few hundredths of zero (exit only -0.05 [-0.11, +0.00]) and the chance book is
-  the one line clearly below (-0.11 [-0.15, -0.06]); on the regular-hours day (3,797) every
-  book, the chance book included, sits a few hundredths above zero with the intervals clear
-  (exit only +0.08 [+0.03, +0.14], chance +0.06). The stop swap (D5 minus the chance book, same
-  rows) replicates in direction on the daily unit of both days (+0.11 [+0.08, +0.15] and +0.04
-  [+0.01, +0.06]) at a fifth to a tenth of crypto's size, is flat on weekly units and REVERSES
-  on monthly units (-0.97 and -1.06, intervals clear). Longs carry both days (+0.15 / +0.21);
-  shorts lose on both (-0.32 / -0.09); the index rose five-fold over the sample. A roll inside
-  the window adds about a point to every book (a contract switch scored as a move; flagged on
-  every card, never dropped); without a roll the sign difference between the two days survives
-  (-0.11 against +0.05). The continuity ladder as a split: the complement (the week against or
-  unknown) reads HIGHER than the gated rung for the exit-only book on both days (RTH +0.21
-  [+0.11, +0.31] against +0.04); a gate would have removed the better-reading half. The hourly
-  clock halves the losers on both days and is the one clock with every setup's interval clear
-  of zero on the regular-hours day (+0.16 to +0.20; hold two to three traded hours). T1 is
-  reached at run one's rates (about two thirds of reversals and inside breaks, a third of
-  continuations and outside breaks). Runs `es-globex-2011-2025` and `es-rth-2011-2025` sit
-  beside run one on the viewer, Compare by role.
+- **Amendment 2026-11-02 (owner-ruled, prereg section 9): the entry fill.** The TVB-43 audit
+  found that a session can OPEN past the trigger (a gap up for a long) and the engine still
+  fills at the trigger, a price the session did not offer; on a 24/7 tape that cannot happen.
+  The owner ruled both fixes as a declared pair beside the control, none picked: **open-fill**
+  (the same trade filled at the session's open; a target the open had already passed is reached
+  at the entry, zero) and **missed-entry** (the trade is not taken; the book on the units that
+  did not gap). Computed in the runner from the control's rows, no engine change; every card
+  carries `extras.gap` (open / untraded / null) and `extras.session_open`.
+- **Numbers (2026-11-01, regenerated 2026-11-02, `analysis/bench/BENCH_RECEIPT.md`; percent
+  per trade, equal size, no fees; both directions).** At the trigger (the control): on the
+  Globex day (3,824 session units) every management book sits within a few hundredths of zero
+  (exit only -0.05 [-0.11, +0.00]) and the chance book is the one line clearly below (-0.11
+  [-0.15, -0.06]); on the regular-hours day (3,797) every book, the chance book included, sits a
+  few hundredths above zero with the intervals clear (exit only +0.08 [+0.03, +0.14], chance
+  +0.06). **The fill (1b):** 1,610 of the regular-hours day's units open past the trigger (581
+  never print it); from the open its exit-only line is -0.08 [-0.13, -0.03] and on the units
+  that did not gap -0.08 [-0.15, -0.01], the same reading as the Globex day (-0.05 at the
+  trigger, -0.07 from the open; 204 gap units); the hourly clock's +0.16 is -0.00 from the open.
+  The two days do not read a different sign once the fill is one the session offered. The gap
+  units themselves, both ways: where the trigger never printed the line is the strongest under
+  both fills (RTH +1.06 at the trigger, +0.42 [+0.27, +0.58] from the open), where the gap
+  filled back through the trigger inside the session it is the losing line from the open (RTH
+  1,029 units, -0.36); longs +0.06 and shorts -0.25 from the open on the regular-hours day. The
+  stop swap (D5 minus the chance book, same rows) replicates in direction on the daily unit of
+  both days (+0.11 [+0.08, +0.15] and +0.04 [+0.01, +0.06]) at a fifth to a tenth of crypto's
+  size, is flat on weekly units and REVERSES on monthly units (-0.97 and -1.06, intervals
+  clear). Longs carry both days at the trigger (+0.15 / +0.21); shorts lose on both (-0.32 /
+  -0.09); the index rose five-fold over the sample. The roll: the units with a roll inside C's
+  window read about a point higher, but that cohort is selected by how long C stays open, so
+  the split does not size the roll's contribution (a back-adjusted rerun would); the flag is
+  C's window only, the chance book's own window is read as a diagnostic (`extras.roll_ref`),
+  and the sign difference between the two days' no-roll lines was the gap, not the roll. The
+  continuity ladder as a split (at the trigger): the complement (the week against or unknown)
+  reads HIGHER than the gated rung for the exit-only book on both days (RTH +0.21 [+0.11, +0.31]
+  against +0.04); a gate would have removed the better-reading half. The hourly clock halves
+  the losers on both days (an exit reading, survives the fill); its "every setup clear of zero
+  on the regular-hours day" does not. T1 is reached at run one's rates (about two thirds of
+  reversals and inside breaks, a third of continuations and outside breaks). Runs
+  `es-globex-2011-2025` and `es-rth-2011-2025` sit beside run one on the viewer, Compare by role.
 
 ## Maintenance rule
 

@@ -571,6 +571,29 @@ def test_export_run_refuses_an_id_that_would_leave_the_runs_folder():
         X.export_run(1_791_504_000_000, Path("unused"), "..")
 
 
+def test_run_ids_and_file_names_are_ascii_so_the_listing_and_the_folder_fold_alike():
+    """TVB-43 audit F5: `register` folds ids with casefold() and Windows folds names with its own
+    table; a KELVIN SIGN casefolds to k while NTFS keeps it apart, so K and KELVIN SIGN were two
+    folders and one listing. The accepted alphabet is ASCII, where the two agree; an instrument
+    name outside it maps to an underscore and the casefold collision check refuses the pair."""
+    kelvin = chr(0x212A)
+    assert K._slug("K") and K._slug("k-2.0_x")
+    assert not K._slug(kelvin) and not K._slug("run" + kelvin) and not K._slug("e" + chr(0x0301))
+    assert K._fname("K") == "K.json" and K._fname(kelvin) == "_.json"
+    # the in-session Codex pass (TVB-44): two coins whose names map to one file (ABC + KELVIN SIGN and
+    # ABC + e-acute both become ABC_.json; BTC and btc one file on Windows) are refused by the crypto
+    # exporter instead of the second being written over the first
+    assert X.file_names(["BTC", "ETH", "xyz:AAPL"]) == {
+        "btc.json": "BTC",
+        "eth.json": "ETH",
+        "xyz_aapl.json": "xyz:AAPL",
+    }
+    with pytest.raises(ValueError, match="would share the file"):
+        X.file_names(["ABC" + kelvin, "ABC" + chr(0xE9)])
+    with pytest.raises(ValueError, match="would share the file"):
+        X.file_names(["BTC", "btc"])
+
+
 def test_an_unfit_run_is_refused_with_the_problems(tmp_path: Path):
     doc = run_doc()
     bad = card()

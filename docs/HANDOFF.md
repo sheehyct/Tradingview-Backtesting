@@ -5,6 +5,223 @@
 
 ---
 
+## Session TVB-44: the TVB-43 audit folded in code, the entry-fill pair owner-ruled and run as a prereg amendment, the receipt and ledger re-read both ways, the card's gap label, housekeeping (COMPLETE)
+
+**Date:** 2026-11-02
+**Status:** COMPLETE. Commits on `main`: see the close-out pin in `docs/reviews/REVIEW_REQUEST.md`.
+Suite 517 passed, 2 skipped; ruff clean; `node --check` clean; the crypto gate (`manage.py --as-of
+2026-10-10`, then `git diff` on `results/manage.json` and `manage_tables.md`) EMPTY after the
+rerun through the touched `manage.py`. The owner's direction at the start: run `/session-start`;
+the brief's three forks were answered in one message: audit F1's declared comparison = "Both, as
+a pair"; next after the fold = the owner's reading of the bench receipt; housekeeping = delete
+`proto_codex/` and the old flat viewer files. Everything below was done the same session, on
+the standing direction (fold audits in code, in-session Codex pass before the commit, few
+check-ins). OpenMemory was unavailable (429) for the whole session; the memory index carried.
+
+### TVB-43 audit: critical synthesis (F1-F5 and the smaller items), all ACCEPTED and repaired
+
+Every finding was re-read against the cited lines and the saved rows before acting; all held.
+None was disputed.
+
+- **F1 HIGH, gap-through entries credited at a trigger the session never offered:** CONFIRMED
+  by an independent count on the saved rows and the tape (Globex 204 of 3,824 session units
+  open past the trigger, 39 never print it; regular hours 1,610 of 3,797, 581 never print it;
+  the 2011-01-12 example holds: session low 1,276.00, trigger 1,273.75). The mechanism: the
+  hourly walker's entry is `high > level` on the first hour and every book measures from
+  `level`; a 24/7 tape always trades through the trigger, a session tape excises the overnight.
+  The repair is NOT an engine change. The owner ruled the declared comparison as a pair
+  (`docs/experiments/tvb43_bench_prereg.md` section 9, written BEFORE the code): F1 open-fill
+  (the fill at the session's open where it opened past the trigger; every price and exit path
+  the control's; a target the open had passed is reached at the entry, zero; the under-water
+  books excluded because their exit reads the entry price) and F2 missed-entry (the unit not
+  taken; the control on the units that did not gap). Built in the runner (`run_bench.gap_flags`,
+  `open_fill`, `fill_blocks`, `table_fill`, `_at_entry`): the exit price is recovered exactly
+  from the control's return and re-measured from the open; non-gap units keep the control's
+  bytes; the control rows in the regenerated tables are byte-identical (git diff shows only the
+  header line, the footer, the relabeled roll rows and the new blocks). Labels at three levels:
+  the run card's entry rule and notes (counts), `extras.gap` (open / untraded / null) and
+  `extras.session_open` on every card, and the card's plain-words story ("The session opened
+  at 1,278.50, above the trigger, so a fill at the trigger was not on offer at the open ...";
+  `story.gapWords`, `core.prep` reads the two keys; run one's cards carry neither). The
+  reviewer's exits-fixed sensitivity reproduced (RTH exit only +0.08 to -0.08; the hourly clock
+  +0.16 to -0.00). Readings in the next block.
+- **F2 MEDIUM, the bench exporter truncated the live run before the staged importer:** CONFIRMED
+  in code (`export_run` opened `data/runs/<id>/run.json` for writing). Now the source is a
+  `tempfile.mkdtemp(prefix=".export-", dir=data)` folder handed to `import_run` and removed in
+  `finally`; `export_run` takes `data=` for tests. Test: a `json.dump` failure on the instrument
+  file during a rerun leaves the registered run's files and `runs.json` byte-identical and no
+  `.export-*` / `.import-*` debris; a clean rerun replaces through the staged swap with one
+  listing entry.
+- **F3 MEDIUM, a run switch stranded a pending comparison in "loading run B...":** CONFIRMED in
+  code (`loadOther` dropped the stale response by generation and nothing cleared `loading`).
+  `loadRun` now, after `fillRunCompare` (which drops a comparison that became the current run),
+  restarts `loadOther` for a comparison that has no table yet (loading or failed) under the new
+  generation. Source-level test (DOM-bound). In Chrome: Compare against run one restored from
+  the address, then the RUN select switched to the Globex run: the by-role table re-rendered
+  for the new run (4,823 rows against 179,498), no console errors. The pending-race shape itself
+  was the reviewer's Node reproduction; it was not timed by hand in the browser.
+- **F4 MEDIUM, the roll split is the headline window and "adds about a point" was causal:**
+  AGREED. The 235 Globex and 202 regular-hours null-flag rows whose reference window crosses a
+  roll reproduced exactly (D 36 / 23, W 107 / 89, M 92 / 90). `roll_flags` now also writes
+  `roll_ref` (the chance book's own window, `days_ref`); the splits read "no roll through C's
+  window (headline)", "roll inside C's window" and add a diagnostic row (no roll through C's nor
+  the chance book's window: 3,574 / 3,547 session units; the chance book moves a hundredth or
+  two). The receipt and the ledger withdraw the "adds about a point" reading (the cohort is
+  selected by how long C stays open) and name a back-adjusted rerun as the declared way to
+  size the roll. `extras.roll_ref` on every card.
+- **F5 LOW, unicode casefold merged two ids into one listing:** CONFIRMED (`_slug` accepted any
+  unicode alphanumeric; `register` casefolds; KELVIN SIGN folds to k). Ids and instrument file
+  stems are ASCII only (`_plain_char`; `_fname` maps a unicode letter to an underscore, and the
+  casefold collision check then refuses K beside KELVIN SIGN). Test with U+212A and a combining
+  mark.
+- **Smaller, all CONFIRMED and fixed:** the receipt's RTH hours 26,900 -> 26,570 (120 early
+  closes); "twelve of fifteen years" -> thirteen positive (2012 within a hundredth of zero) and
+  two negative; the crypto footer under the ES candidates table -> `manage.table_candidates(cands,
+  footer=...)` with the default text byte-identical (the gate proves it) and a bench footer
+  (no 208-day window, no dex taker fee, gross of every cost); `bench_*.json` strict (`_finite`
+  maps NaN / inf to null, `allow_nan=False`; 12 literal NaN before, 0 after); "the intervals are
+  honest" -> descriptive, overlapping trades are not independent observations.
+- **Held by the audit and not re-done:** the crypto gate hashes, the ES rows reproduced to
+  1e-12, the calendar and tape checks, the export-time mapping (21,838 checks), the earlier
+  importer and viewer repairs on the named cards. The reviewer's browser host was unavailable;
+  this session's Chrome pass covered the ES card, the Compare restore and the run switch.
+
+### The entry-fill pair: what the bench reads now (both ways; `analysis/bench/BENCH_RECEIPT.md` section 1b, the ledger card)
+
+- **The regular-hours day's positive sign was the fill, not the trade.** At the trigger the
+  exit-only book reads +0.08 [+0.03, +0.14] per trade; from the open -0.08 [-0.13, -0.03]; on
+  the 2,187 units that did not gap -0.08 [-0.15, -0.01]. The hourly clock's +0.16, the one clock
+  with every setup clear of zero, is -0.00 from the open and +0.02 on the no-gap units. Both
+  read as the Globex day does (-0.05 at the trigger, -0.07 from the open, 204 gap units): the two
+  days do not read a different sign once the fill is one the session offered.
+- **The gap units themselves, both ways:** where the trigger never printed, the strongest line
+  under BOTH fills (RTH +1.06 at the trigger, +0.42 [+0.27, +0.58] from the open; Globex +1.28
+  and +0.85): a gap that holds all session carries on. Where the gap filled back through the
+  trigger inside the session, the losing line from the open (RTH 1,029 units -0.36; Globex 165
+  -0.52). A declared-arm path and a kill test, named, not picked; "holds all session" is known
+  at the close.
+- **Longs and shorts from the open (RTH):** longs +0.06 (from +0.21), shorts -0.25 (from -0.09):
+  the gap is directional on a rising index. **Targets the open had passed:** RTH 343 of 1,610 A
+  fills, 162 one-R fills, 150 chance-book one-R fills (wins at the trigger, zero from the open).
+  **Paired difference on gap units:** +0.38 [+0.36, +0.40] per RTH session unit, +0.24 Globex;
+  +0.41 / +0.33 per weekly unit. Weekly RTH +0.01 -> -0.13; monthly +0.15 -> +0.04.
+- **What survives the fill:** the setup-bar stop loses on session units (the swap keeps its
+  direction by the row means), the monthly reversal of the swap, the hourly clock halving the
+  losers (an exit reading), the T1 reach rates. **What does not:** the "different sign by day
+  definition" reading, the regular-hours hourly clock clear of zero, and the roll's "survives
+  the roll split" sign difference (it was the gap).
+
+### Housekeeping (owner's word 2026-11-02)
+
+`analysis/domino/viewer/proto_codex/` deleted (19 MB, untracked); the 295 old flat files under
+`viewer/data/*.json` deleted (302 MB, gitignored; `data/runs/` and `data/runs.json` stay); the
+`.gitignore` line for `proto_codex/vendor/` dropped. `User_Notes.md` stays untracked.
+
+### In-session Codex pass on the diff (before the commit): 5 items, all folded
+
+Run through the `codex:codex-rescue` agent as a read-only background job (7 min; the agent
+itself is a forwarder, the report came back through the runtime's `status` / `result`).
+
+- **REPAIRED, verified by the reviewer:** F1's arithmetic on mirrored never-printed probes
+  (long 102/105 from a 100 trigger = +2.941%, short 98/95 = +3.061%), targets behind the open
+  zero, the chance book's hit on `out5`, all nine fill columns and both fill tables reproduced;
+  every gap row's hourly entry is hour zero whose open is the session open; the control rows
+  and the legacy summary values unchanged; F2 under an injected write failure AND an actual
+  Windows open handle on the destination `run.json` (PermissionError, old run and listing
+  byte-identical, no debris); F4 `roll` identical on all 9,611 saved rows, `roll_ref`
+  recomputed; F5 K accepted, U+212A refused, `run_export.export_run` refuses the id before
+  writing; the default crypto footer identical and both crypto artifact diffs empty; strict
+  JSON; 516 passed at that point, ruff and `node --check` clean.
+- **DISPUTED (incomplete repairs), all folded the same hour:**
+  1. **F3, a FAILED run switch still stranded the comparison** (the catch restored the old run
+     and nobody restarted the pending load). Now `resumeOther(gen)` runs on the failure path
+     and on the success path alike.
+  2. **F3, an older request for the same run could win** (a restart beside the select's own
+     request shared one generation; a late rejection turned a success into an error). Every
+     `loadOther` request carries its own number (`state.otherReq`); a request writes only when
+     generation, id AND number are still its own.
+  3. **F3, the restart's await let a later switch's metadata be overwritten.** The restart now
+     comes after the page's metadata and `localStorage` writes (no await between the generation
+     check and those writes) and re-checks the generation before the universe load.
+  4. **F5, the crypto exporter folded two instrument names onto one file** (`ABC` + KELVIN SIGN
+     and `ABC` + e-acute both become `ABC_.json`; the second was written over the first).
+     `run_export.file_names` refuses any pair that shares a file, compared without case (the
+     inline importer's rule), before anything is written.
+  5. **F1 reporting, longs and shorts were shown for the open-fill only** though section 9 asks
+     for them under both variants. The fill blocks carry "longs / shorts, missed-entry" rows;
+     both variants regenerated (control rows still byte-identical); the receipt's 1b bullet
+     has the numbers (RTH missed-entry longs +0.04, shorts -0.22; Globex +0.15, -0.31).
+- **UNVERIFIED by the reviewer:** F3 at runtime (source-level only; this session's Chrome pass
+  covered the loaded-comparison switch, not the pending race); the full regeneration (done
+  here: both variants rerun, the crypto gate empty); the receipt and ledger prose.
+- Source-level tests updated for 1-3 (`test_run_switch_restarts_a_pending_comparison_under_the_new_generation`)
+  and 4 (`test_run_ids_and_file_names_are_ascii_so_the_listing_and_the_folder_fold_alike`).
+
+### Files created/modified (TVB-44)
+
+- `analysis/bench/run_bench.py` (gap flag, open-fill, fill blocks and table, `roll_ref`, the
+  relabeled splits, the staged export, strict JSON, the bench footer, the run card's entry rule
+  and notes, the extras), `analysis/bench/BENCH_RECEIPT.md` (section 1b, every section
+  re-read), `analysis/bench/results/bench_*.json`, `bench_*_tables.md` (regenerated; control
+  rows byte-identical)
+- `analysis/domino/contract.py` (`_plain_char`, ASCII `_slug` / `_fname`), `analysis/domino/manage.py`
+  (`table_candidates(footer=)`), `analysis/domino/viewer/app.js` (the comparison restart),
+  `core.js` (`gap`, `session_open`), `story.js` (`gapWords`)
+- `tests/test_domino_bench_runner.py` (new, 6), `tests/test_domino_contract.py` (+1),
+  `tests/test_domino_viewer_js.py` (+2)
+- `docs/experiments/tvb43_bench_prereg.md` (section 9, the amendment), `docs/ARM_LEDGER.md`
+  (the bench card: the amendment bullet, the numbers re-read), `docs/reviews/tvb43-codex-audit.md`
+  (committed as RETURNED), `docs/reviews/REVIEW_REQUEST.md`, `.gitignore`,
+  `.session_startup_prompt.md`, this file
+- Deleted (untracked / ignored): `analysis/domino/viewer/proto_codex/`, `viewer/data/*.json`
+  except `runs.json`
+
+### Open
+
+- [x] The TVB-43 audit folded in code the same session; the entry-fill pair owner-ruled,
+      prereg'd, built, run, received and carded; the card's gap label; housekeeping.
+- [ ] **The owner's reading of `BENCH_RECEIPT.md`**, now with section 1b: which lines become
+      declared arms (the never-printed gap units? the hourly exit?) and which kill tests (the
+      gap-that-fills units; the regular-hours sign; the monthly stop swap). Candidate declared
+      variants if asked (prereg amendment first, one change each): a back-adjusted series (the
+      declared way to size the roll); NQ / RTY / the micros from the same cache; a retest fill
+      or a next-session entry for the gap units; the session-time against traded-time hold.
+- [ ] The with-trend inside break's T1 STOP-and-ASK (open since TVB-39; the owner rules; A3
+      before code); the exit and hierarchy rulings (carried).
+- [ ] Viewer: the open-fill and missed-entry books as a GROUP on the page (today the pair lives
+      in the receipt and the tables; a card shows the gap sentence and the extras); the other
+      run's curve on its own axis in Compare across runs; drawing persistence across coin
+      switches proven in a live browser; the journal layer; the hourly archive.
+- [ ] Carried: the phone review page's four Codex findings; the paper rule set for the other
+      workspace; the monthly broadening-formation target; the Friday-close oracle / SOXL
+      research; fresh wallet and executor restart checklist; scanner STRAT rulings.
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range below) and write
+> a verbatim assessment to docs/reviews/tvb44-codex-audit.md. See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+> The next session folds it IN CODE the same session (owner's direction 2026-11-01).
+
+- Review status: REQUESTED
+- Commits to review: `5ee9b84..HEAD` on `main` (5ee9b84 is the TVB-43 close-out pin; the exact
+  end is pinned in `docs/reviews/REVIEW_REQUEST.md`).
+- Scope / what changed: see "Files created/modified" above.
+- Focus areas: **the entry-fill pair** (`run_bench.gap_flags` strictness and direction;
+  `open_fill`'s exit recovery and the targets-behind-the-open rule, shorts mirrored; the hourly
+  books' entry hour on a gap unit; `_at_entry` against `open_fill`; the control rows
+  byte-identical in the regenerated tables; the receipt's section 1b against the tables and the
+  JSON, both directions, nothing promoted); **the staged export** (`.export-*` under `data`, the
+  importer's `recover` untouched by it; an open handle on the destination during a rerun);
+  **the comparison restart** (`loadRun` after `fillRunCompare`; the old response can never win;
+  `cmpRun` restore in `init`); **the roll diagnostic** (`roll_ref` for the entry case; `roll`
+  unchanged for every row); **ASCII ids** (`_plain_char` everywhere an id or stem is accepted);
+  **the card's gap sentence** (`gapWords` reads `w.above` for the trade's side; run one's cards
+  unchanged); hygiene (ruff, 517 passed, 2 skipped; no secrets; data and vendor gitignored).
+- Reviewed by: pending
+- Findings: {blank until docs/reviews/tvb44-codex-audit.md exists}
+
+---
+
 ## Session TVB-43: the TVB-42 audit folded in code with an in-session Codex pass, the contract's stage 3 built and verified in Chrome, the session calendar built into the engine with the crypto book byte-identical, the ES bench run as runs two and three with its receipt (COMPLETE)
 
 **Date:** 2026-11-01
@@ -256,7 +473,7 @@ JSON with `cache: "no-cache"`.
 > The next session folds it IN CODE the same session (owner's direction 2026-11-01); it does not
 > block the bench.
 
-- Review status: REQUESTED
+- Review status: RETURNED (audit written 2026-11-02; to be folded IN CODE in TVB-44)
 - Commits to review: `8a5806c..HEAD` on `main` (8a5806c is the TVB-42 close-out; 70bacdf the
   audit fold; 7111720 stage 3; 4140285 the prereg draft; b05c7da the page's session-calendar
   support; 95f6a50 a pin; then the bench commit and its pin). The exact end is pinned in
@@ -277,8 +494,8 @@ JSON with `cache: "no-cache"`.
   run (nothing may move for run one: ATOM 2026-05-09, ACE 2026-04-29 hourly, BTC 2026-03-16 W,
   BLUR 2026-07-24 W) and against the ES runs (a Friday-to-Monday hold is one bar; an hour after
   midnight UTC stays with its session); `Derive`'s bar offsets; Compare across runs by role.
-- Reviewed by: pending
-- Findings: {blank until docs/reviews/tvb43-codex-audit.md exists}
+- Reviewed by: Codex, local CLI, 2026-11-02 (`docs/reviews/tvb43-codex-audit.md`)
+- Findings: NEEDS-CHANGES. F1 HIGH gap-through entries on the ES tapes are credited at a trigger price the session never traded (RTH 1,610 of 3,797 daily units open beyond the trigger, 581 never trade it; counts reproduced in TVB-44); F2 MEDIUM the bench exporter truncates the live run before the staged importer; F3 MEDIUM a run switch strands a pending Compare load; F4 MEDIUM the roll split is the headline window only, the "adds a point" reading is not causal; F5 LOW unicode casefold merges two ids into one listing; smaller: RTH hours 26,900 should read 26,570, 13 positive years not twelve, the crypto table footer, NaN in bench_rth.json, interval wording. Default crypto path, ES arithmetic, calendar, export times and the earlier repairs all CLEAN. Synthesis in the TVB-44 entry.
 
 ---
 

@@ -912,3 +912,82 @@ def test_app_wiring_resort_cell_index_entry_hour_no_fallback_runs():
     for f in ("core.js", "story.js", "stats.js"):
         js = (VIEWER / f).read_text(encoding="utf-8")
         assert "ret_C" not in js and "hit_A" not in js and "status5" not in js, f
+
+
+def test_run_switch_restarts_a_pending_comparison_under_the_new_generation():
+    """TVB-43 audit F3 (DOM-bound, checked at the source): a comparison load that a run switch
+    overtook was dropped by its generation check and nobody cleared its loading state, so Compare
+    read "loading run B..." until the user touched the select. loadRun now restarts a comparison
+    that has no table yet (loading or failed) under the new generation, after fillRunCompare has
+    dropped one that became the current run."""
+    src = (VIEWER / "app.js").read_text(encoding="utf-8")
+    load_run = src.split("async function loadRun(id) {")[1].split("async function openCoin")[0]
+    # the in-session Codex pass (TVB-44): the restart runs on the FAILED switch too (the catch restored the
+    # old run and left the comparison loading), it comes after the page's metadata writes (no await between
+    # the generation check and those writes, so a later switch cannot be overwritten), and it re-checks the
+    # generation before the universe load
+    catch_path = load_run.split("} catch (e) {")[1].split("if (gen !== state.gen) return false;")[0]
+    assert "Object.assign(state, prev);" in catch_path and "await resumeOther(gen);" in catch_path
+    after = load_run.split("fillRunCompare();")[1]
+    meta, rest = after.split("await resumeOther(gen);")
+    code = "\n".join(ln for ln in meta.splitlines() if not ln.strip().startswith("//"))
+    assert (
+        '$("meta").textContent' in code
+        and 'localStorage.setItem("domino-run", id)' in code
+        and "await " not in code
+    )
+    assert rest.lstrip().startswith("if (gen !== state.gen) return false;")
+    resume = src.split("async function resumeOther(gen) {")[1].split("function renderByRole")[0]
+    assert "state.other.uni" in resume and "await loadOther(oid);" in resume
+    assert "if (oid === state.runId) { state.other = null; return; }" in resume
+    # every comparison request carries its own number: a stale request for the SAME run under the same
+    # generation can neither overwrite a newer success nor turn it into an error
+    other = src.split("async function loadOther(id) {")[1].split("async function resumeOther")[0]
+    assert "req = ++state.otherReq" in other and "state.other.req === req" in other
+    assert (
+        "if (!mine()) return null;" in other
+        and "if (mine()) state.other = { id, req, error:" in other
+    )
+    assert "otherReq: 0" in src
+    fill = src.split("function fillRunCompare() {")[1].split("sel.value = state.other")[0]
+    assert "if (state.other && state.other.id === state.runId) state.other = null;" in fill
+
+
+def test_a_card_whose_session_opened_past_the_trigger_says_so():
+    """TVB-43 audit F1, the card side (the bench's prereg amendment 2026-11-02): a session tape
+    can open past the trigger; the card carries `extras.gap` (open / untraded) and
+    `extras.session_open`, and the story says the fill at the trigger was not on offer at the
+    open, in the trade's own words (a short's gap opens BELOW the trigger). Run one's cards carry
+    neither key and read as before."""
+    daily = _daily(40)
+    cal_js = f"const cal = C.makeCalendar({{ daily: {json.dumps(daily)}, hourly: [] }});"
+    c = card()
+    c["extras"] = dict(c.get("extras") or {}, gap="untraded", session_open=102.0)
+    s = run_js(
+        cal_js
+        + f"out.s = S.narrate({{ t: prep({json.dumps(c)}, cal), coin: 'X', cal, book: 'C', size: 1000, p: 2 }});"
+    )["s"]
+    assert (
+        "The session opened at 102.00, above the trigger, so a fill at the trigger was not on offer at the open"
+        in s
+    )
+    assert "did not print at all that session" in s and "open-fill and missed-entry" in s
+    o = card()
+    o["extras"] = dict(o.get("extras") or {}, gap="open", session_open=101.0)
+    s2 = run_js(
+        cal_js
+        + f"out.s = S.narrate({{ t: prep({json.dumps(o)}, cal), coin: 'X', cal, book: 'C', size: 1000, p: 2 }});"
+    )["s"]
+    assert "The session opened at 101.00, above the trigger" in s2 and "did not print" not in s2
+    sh = card(direction="down")
+    sh["extras"] = dict(sh.get("extras") or {}, gap="open", session_open=98.0)
+    s3 = run_js(
+        cal_js
+        + f"out.s = S.narrate({{ t: prep({json.dumps(sh)}, cal), coin: 'X', cal, book: 'C', size: 1000, p: 2 }});"
+    )["s"]
+    assert "The session opened at 98.00, below the trigger" in s3
+    plain = run_js(
+        cal_js
+        + f"out.s = S.narrate({{ t: prep({json.dumps(card())}, cal), coin: 'X', cal, book: 'C', size: 1000, p: 2 }});"
+    )["s"]
+    assert "session opened" not in plain

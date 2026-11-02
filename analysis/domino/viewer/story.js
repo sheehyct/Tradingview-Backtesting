@@ -178,6 +178,14 @@ window.DV = window.DV || {};
   }
 
   // ---------------------------------------------------------------- the whole story for one trade
+  function gapWords(t, p, w) {
+    // a session that opened past the trigger (extras.gap, the bench's prereg amendment 2026-11-02): the card still measures
+    // from the trigger, a price the session did not offer at the open; the receipt re-measures it from the open and without the trade
+    if (!t.gap || t.session_open == null) return "";
+    return " The session opened at " + fmtPrice(t.session_open, p) + ", " + w.above + " the trigger, so a fill at the trigger was not on offer at the open" +
+      (t.gap === "untraded" ? " and the trigger did not print at all that session" : "") +
+      " (this card measures from the trigger; the receipt's open-fill and missed-entry readings re-measure it).";
+  }
   function narrate(c) {
     const { t, coin, cal, book, size, p } = c;
     const long = t.direction === "up", w = words(long);
@@ -198,7 +206,7 @@ window.DV = window.DV || {};
     const week = t.w_support === "with" ? "The week was on the trade's side at entry (price " + w.above + " Monday's open)." : t.w_support === "against" ? "The week was against the trade at entry (price " + w.below + " Monday's open)." : "";
     const paras = [];
     paras.push("<p><b>" + esc(coin) + " " + w.side + ", " + tfLabel(t.tf) + " " + (KIND_LABEL[t.kind] || esc(t.pattern || t.kind)) + ".</b> " + setupWords(t) + " Entered " + longDate(t.date) + " at " + fmtPrice(t.level, p) +
-      ", the instant the " + tfWord(t.tf) + "'s level broke." + stack + (week ? " " + week : "") + "</p>");
+      ", the instant the " + tfWord(t.tf) + "'s level broke." + gapWords(t, p, w) + stack + (week ? " " + week : "") + "</p>");
     paras.push("<p><b>The plan at entry.</b> " + targetWords(t, p, cal, i) + "</p>");
     paras.push("<p><b>What book " + esc(book) + " did.</b> " + bookWords(t, book, cal, i, p, size) + "</p>");
     const others = otherClocks(t, cal, i, p);

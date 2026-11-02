@@ -14,7 +14,7 @@
     bookName, bookCol, bookOf, bookRes, ladderBooks, groupNames, groupBooks, headline, reference } = C;
 
   const state = {
-    runs: [], runId: null, run: null, base: "", index: null, dates: null, coin: null, data: null, cal: null, cals: new Map(),
+    runs: [], runId: null, otherReq: 0, run: null, base: "", index: null, dates: null, coin: null, data: null, cal: null, cals: new Map(),
     tf: new Set(["D", "W", "M"]), kind: new Set(["reversal", "continuation", "inside", "outside"]), dir: new Set(["up", "down"]),
     liquid: false, hasT1: false, book: null, size: 1000,
     items: [], sel: -1, cur: null, dateMode: null, sort: "date-desc",
@@ -659,18 +659,31 @@
     // another run's card and universe table, for the by-role table and the dashed headline curve
     if (!id) { state.other = null; return null; }
     if (state.other && state.other.id === id && state.other.uni) return state.other;
-    const gen = state.gen, base = "data/runs/" + id + "/";
-    state.other = { id, loading: true };
+    // every request carries its own number: two requests for the same run under one generation (a restart after a run
+    // switch beside the select's own request) cannot overwrite each other's outcome (in-session Codex pass, TVB-44)
+    const gen = state.gen, base = "data/runs/" + id + "/", req = ++state.otherReq;
+    state.other = { id, loading: true, req };
+    const mine = () => gen === state.gen && !!state.other && state.other.id === id && state.other.req === req;
     try {
       const run = await getJson(base + "run.json");
       const u = await getJson(base + "universe.json");
-      if (gen !== state.gen || !state.other || state.other.id !== id) return null;
-      state.other = { id, run, uni: ST.fromUniverse(u), units: (u.codes && u.codes.bar) || [], books: (run.books || []).filter((b) => u.books.includes(b.id)) };
+      if (!mine()) return null;
+      state.other = { id, req, run, uni: ST.fromUniverse(u), units: (u.codes && u.codes.bar) || [], books: (run.books || []).filter((b) => u.books.includes(b.id)) };
     } catch (e) {
-      if (gen === state.gen && state.other && state.other.id === id) state.other = { id, error: String((e && e.message) || e) };
+      if (mine()) state.other = { id, req, error: String((e && e.message) || e) };
       return null;
     }
     return state.other;
+  }
+  async function resumeOther(gen) {
+    // a comparison that has no table yet (still loading, or failed) when a run switch settled is re-requested under the
+    // current generation; its earlier request is stale by generation. A comparison that became the current run is dropped.
+    // Called on the switch's success path and on its failure path alike (TVB-43 audit F3; the in-session pass found the
+    // failed switch left it loading for ever)
+    if (gen !== state.gen || !state.other || state.other.uni || !state.runId) return;
+    const oid = state.other.id;
+    if (oid === state.runId) { state.other = null; return; }
+    await loadOther(oid);
   }
   function renderByRole() {
     const card = $("byRoleCard"), o = state.other, otherS = state.cmp && state.cmp.otherS;
@@ -921,7 +934,7 @@
       run = await getJson(base + "run.json");
       index = await getJson(base + "index.json");
     } catch (e) {
-      if (gen === state.gen) { Object.assign(state, prev); $("meta").textContent = "failed to load run " + id + ": " + (e && e.message || e); }
+      if (gen === state.gen) { Object.assign(state, prev); $("meta").textContent = "failed to load run " + id + ": " + (e && e.message || e); await resumeOther(gen); }
       return false;
     }
     if (gen !== state.gen) return false;  // a later run switch overtook this one
@@ -940,6 +953,10 @@
     fillRunCompare();
     $("meta").textContent = index.instruments.length + " instruments, " + index.trades.toLocaleString() + " trades, as of " + index.as_of + " (" + esc(run.name) + ")";
     try { localStorage.setItem("domino-run", id); } catch (e) { /* storage off */ }
+    // nothing above awaited since the generation check, so no later switch can have written the page under this one; a
+    // comparison that was still loading when the run switched is restarted now, under the new generation (TVB-43 audit F3)
+    await resumeOther(gen);
+    if (gen !== state.gen) return false;
     // a retained universe scope (Compare on every instrument, the all-instrument calendar) needs the NEW run's table
     if (state.cmpScope === "universe" || state.calScope === "all") await loadUniverse();
     return gen === state.gen;

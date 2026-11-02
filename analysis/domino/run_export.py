@@ -691,6 +691,23 @@ def run_card(as_of_ms: int, run_id: str | None = None) -> dict:
     }
 
 
+def file_names(coins: list[str]) -> dict[str, str]:
+    """The file each coin's cards go to (`contract._fname`), refused when two coins would share one:
+    the mapper turns every character outside ASCII letters, digits, dot, dash and underscore into
+    an underscore, and Windows folds case, so the keys are compared without case (the inline
+    importer's own collision rule; the in-session Codex pass of TVB-44 found the exporter wrote
+    the second coin over the first)."""
+    out: dict[str, str] = {}
+    for coin in coins:
+        key = K._fname(coin).casefold()
+        if key in out:
+            raise ValueError(
+                f"{coin!r} and {out[key]!r} would share the file {K._fname(coin)} (case-folded)"
+            )
+        out[key] = coin
+    return out
+
+
 def export_run(as_of_ms: int, out: Path, run_id: str | None = None, log=print) -> Path:
     """Write the run folder (run.json + one file per coin) from the rows and the cached bars."""
     run = run_card(as_of_ms, run_id)
@@ -698,8 +715,12 @@ def export_run(as_of_ms: int, out: Path, run_id: str | None = None, log=print) -
         raise ValueError(f"run {K.ID_RULE} (got {run['id']!r})")
     out.mkdir(parents=True, exist_ok=True)
     rows = load_rows()
+    universe = list(cached_universe(as_of_ms))
+    file_names(
+        [m["coin"] for m in universe]
+    )  # two coins that would share a file are refused, never silently merged
     n = 0
-    for meta in cached_universe(as_of_ms):
+    for meta in universe:
         coin = meta["coin"]
         daily = compact(normalize(json.load(open(cache_path(coin, "1d", as_of_ms))), as_of_ms))
         hp = cache_path(coin, "1h", as_of_ms)

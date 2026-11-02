@@ -177,3 +177,71 @@ cap) is NOT in this file and does not run.
 - Confirm the roll handling: flag and split, never drop. **Confirmed.**
 - Confirm the engine change in section 2.1 may be built (Plan Mode), with the byte-identical
   crypto regression as its gate. **Confirmed.**
+
+## 9. Amendment 2026-11-02 (TVB-44; owner-ruled before code): the entry fill when the session opens past the trigger
+
+**What was found (TVB-43 audit F1, counts reproduced in TVB-44).** The engine fills every unit
+at the trigger (the level) and measures every book from it. A 24/7 tape always trades through
+the trigger, so that fill exists. A session tape excises the overnight, so a session can OPEN
+past the trigger: the bar is a 2U at the open, the only fill a trader could have had is the open,
+and sometimes the trigger never prints in that session at all. On the Globex day 204 of 3,824
+session units open past the trigger (39 never print it); on the regular-hours day 1,610 of
+3,797 (581 never print it). The books on those units are theoretical level-to-exit
+measurements, not fills. Holding the recorded exits fixed and re-measuring from the open turns
+the regular-hours exit-only line from +0.08 to about -0.08 per trade (the reviewer's
+sensitivity; the pair below is the declared version of that reading).
+
+**The owner's ruling (2026-11-02): "Both, as a pair."** Two declared variants beside the
+control, each one change, none picked:
+
+- **F0, the control (unchanged):** the fill at the trigger, as run one. The engine's rows; the
+  run cards' books; every table in the receipt as published. Nothing moves.
+- **F1, open-fill:** on a unit whose entry session opens strictly beyond the trigger in the
+  trade direction, the fill is the session's open (long: the higher of trigger and open; short:
+  the lower). Every price the control fixed at entry stays the control's (T1 / T2 / T3, one R,
+  the setup-bar stop, the measured move), and every exit path stays the control's (the exit
+  rules read closes against opens and target touches, never the entry price), so only the
+  entry price changes. A target the open has already passed counts as reached at the entry:
+  the trade opens and closes at the open, return zero. Books whose exit rule reads the entry
+  price (under water: C_u, A_u, D_u) are NOT re-measured; they would be a different path.
+  Measured for the six ladder books and the hourly clock's three (C, A, B, D, D5, the chance
+  book, C_h, A_h, D_h); the own clock, the long cap and the measured-move books are not.
+- **F2, missed-entry:** a unit whose entry session opens strictly beyond the trigger is not
+  entered. The book is the control on the remaining units. The receipt also names the
+  sub-count where the trigger never printed in the session (the open-beyond units a patient
+  trader could NOT have been filled on at the trigger even later in the day).
+
+**Not declared, does not run:** a retest fill (waiting for price to come back to the trigger),
+a next-session entry, a limit a tick past the open, any slippage or cost model.
+
+**Mechanics.** Computed in the runner (`analysis/bench/run_bench.py`) from the control's rows
+and the session opens; no engine change, so the crypto gate is untouched by construction (a
+24/7 tape has no open-beyond units). Each book's recorded exit price is recovered exactly from
+the control's return and the trigger (the return is percent of the trigger), then re-measured
+from the open. Units that do not gap keep the control's bytes. The hourly clock's entry hour on
+a gap unit is already the session's first hour (its open is the session's open), so the pair
+and the control share every exit hour.
+
+**Outputs.** On every card `extras.gap` (`open` when the session opens past the trigger,
+`untraded` when the trigger never printed, null otherwise) and `extras.session_open`; the run
+card's entry rule says so. In `bench_<variant>_tables.md` and `bench_<variant>.json` a block
+per unit timeframe: every book under the control, the open-fill and the missed-entry, on all
+units, on the gap units alone (with the paired difference control minus open-fill on the same
+rows), on the never-printed units, longs and shorts apart. A section in `BENCH_RECEIPT.md`
+and the ledger card. Both directions; nothing picked.
+
+**Kill tests and confounds.** The gap is directional on a rising index (a gap up is a long
+entry): longs and shorts are shown apart. One R is a shorter distance from the open than from
+the trigger under the open-fill (the control's price kept: that is the one change). The open
+is the first minute's print; a fill at the open is itself optimistic for size. A unit that
+gaps past T1 is a zero under the open-fill and a win under the control; the count of such
+units is reported.
+
+**Also folded here (audit F4, no prereg change):** the roll flag in section 2.5 is the HEADLINE
+window (the entry session through C's exit or cap). Other books hold across different windows,
+so a null flag does not say that the chance book's own window avoided a roll (235 Globex and
+202 regular-hours null-flag rows have a reference window that crosses a roll session). The
+runner adds `roll_ref` (the chance book's own window) as a diagnostic beside it, and the
+receipt says "no roll through C's window", never "no roll". The "a roll adds about a point"
+reading is withdrawn: the roll-in-window cohort is selected by how long C stays open, so its
+mean difference is not the roll's contribution.

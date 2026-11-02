@@ -1542,7 +1542,7 @@ def _pr(x: dict) -> str:
     return f"{_f(x['diff'])} [{_f(x['lo'])}, {_f(x['hi'])}]"
 
 
-def table_candidates(cands: dict) -> list[str]:
+def table_candidates(cands: dict, footer: str | None = None) -> list[str]:
     lines = [
         "### Amendment A2: the lead's five candidates, plain daily, the book cohort (declared variants, one change each)",
         "",
@@ -1611,16 +1611,18 @@ def table_candidates(cands: dict) -> list[str]:
             f"{_sh(u['tail_u'])} / {_sh(u['tail_d'])} | {_ci_s(u['C_u'])} | {_ci_s(u['C_d'])} | {_pr(u['C'])} | "
             f"{_ci_s(u['A_u'])} | {_ci_s(u['A_d'])} | {_pr(u['A'])} | {_ci_s(u['D_u'])} | {_ci_s(u['D_d'])} | {_pr(u['D'])} |"
         )
-    lines += [
-        "",
-        "Each candidate is one change to the headline on the same rows (prereg amendment A2); the paired "
-        "differences are mean and normal 95% interval of the per-trade difference. The hourly arm is the "
-        "subset of rows inside the venue's hourly window (about 208 days) whose entry day had an hour that "
-        "reached the level; its targets fill only from the entry hour on, so it differs from the daily "
-        "books by the clock AND by that ordering. Fees: two fills at the dex's taker rate (main 0.0432%, "
-        "xyz 0.0125%, TVB-2 by the venue's own flag); the stop-swap difference is fee-neutral.",
-        "",
-    ]
+    # the footer names run one's window and fee model; a caller on another tape passes its own
+    # (the bench: no 208-day window, no dex taker fee; TVB-43 audit, smaller items)
+    if footer is None:
+        footer = (
+            "Each candidate is one change to the headline on the same rows (prereg amendment A2); the paired "
+            "differences are mean and normal 95% interval of the per-trade difference. The hourly arm is the "
+            "subset of rows inside the venue's hourly window (about 208 days) whose entry day had an hour that "
+            "reached the level; its targets fill only from the entry hour on, so it differs from the daily "
+            "books by the clock AND by that ordering. Fees: two fills at the dex's taker rate (main 0.0432%, "
+            "xyz 0.0125%, TVB-2 by the venue's own flag); the stop-swap difference is fee-neutral."
+        )
+    lines += ["", footer, ""]
     return lines
 
 
