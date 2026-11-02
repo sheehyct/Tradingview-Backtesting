@@ -8,8 +8,9 @@
 ## Session TVB-44: the TVB-43 audit folded in code, the entry-fill pair owner-ruled and run as a prereg amendment, the receipt and ledger re-read both ways, the card's gap label, housekeeping (COMPLETE)
 
 **Date:** 2026-11-02
-**Status:** COMPLETE. Commits on `main`: see the close-out pin in `docs/reviews/REVIEW_REQUEST.md`.
-Suite 517 passed, 2 skipped; ruff clean; `node --check` clean; the crypto gate (`manage.py --as-of
+**Status:** COMPLETE. Commits on `main`, pushed: `099025c` (the whole session's work: the audit
+fold, the entry-fill pair, the receipt and ledger, the viewer, the tests) and the docs-only
+close-out pin after it. Suite 517 passed, 2 skipped; ruff clean; `node --check` clean; the crypto gate (`manage.py --as-of
 2026-10-10`, then `git diff` on `results/manage.json` and `manage_tables.md`) EMPTY after the
 rerun through the touched `manage.py`. The owner's direction at the start: run `/session-start`;
 the brief's three forks were answered in one message: audit F1's declared comparison = "Both, as
@@ -203,8 +204,9 @@ itself is a forwarder, the report came back through the runtime's `status` / `re
 > The next session folds it IN CODE the same session (owner's direction 2026-11-01).
 
 - Review status: REQUESTED
-- Commits to review: `5ee9b84..HEAD` on `main` (5ee9b84 is the TVB-43 close-out pin; the exact
-  end is pinned in `docs/reviews/REVIEW_REQUEST.md`).
+- Commits to review: `5ee9b84..099025c` on `main` (5ee9b84 is the TVB-43 close-out pin; 099025c
+  the session's one working commit; the pin commit after it is docs only), as pinned in
+  `docs/reviews/REVIEW_REQUEST.md`.
 - Scope / what changed: see "Files created/modified" above.
 - Focus areas: **the entry-fill pair** (`run_bench.gap_flags` strictness and direction;
   `open_fill`'s exit recovery and the targets-behind-the-open rule, shorts mirrored; the hourly
