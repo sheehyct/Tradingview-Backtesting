@@ -252,19 +252,28 @@ def main() -> None:
         for name, rows in groups.items():
             res[name] = stats(rows)
             print(line(name, res[name]))
+
         # POST-HOC ADDENDUM (see the module docstring): not in the a-priori list.
         def _raw(rows):
-            return [dict(t=r["t"], fwd={hz: r["fwd"][hz] * r["sign"] for hz in HORIZONS}) for r in rows]
+            return [
+                dict(t=r["t"], fwd={hz: r["fwd"][hz] * r["sign"] for hz in HORIZONS}) for r in rows
+            ]
 
         print("  -- post-hoc: RAW price-direction forward returns (drift vs momentum) --")
-        for name, rows in (("drift: all bars, raw", _raw(base)), ("after sharp UP bars, raw", _raw([x for x in ev if x["sign"] > 0])), ("after sharp DOWN bars, raw", _raw([x for x in ev if x["sign"] < 0]))):
+        for name, rows in (
+            ("drift: all bars, raw", _raw(base)),
+            ("after sharp UP bars, raw", _raw([x for x in ev if x["sign"] > 0])),
+            ("after sharp DOWN bars, raw", _raw([x for x in ev if x["sign"] < 0])),
+        ):
             res["posthoc " + name] = stats(rows)
             print(line(name, res["posthoc " + name]))
         print("  -- post-hoc: direction x band break (signed by event direction) --")
         for d, dn in ((1.0, "up"), (-1.0, "down")):
             for bb in (True, False):
                 name = f"{dn} x beyond band {'yes' if bb else 'no'}"
-                res["posthoc " + name] = stats([x for x in ev if x["sign"] == d and x["band_break"] == bb])
+                res["posthoc " + name] = stats(
+                    [x for x in ev if x["sign"] == d and x["band_break"] == bb]
+                )
                 print(line(name, res["posthoc " + name]))
         print("  -- post-hoc: by calendar month, all sharp events (signed by event direction) --")
         bym = collections.defaultdict(list)

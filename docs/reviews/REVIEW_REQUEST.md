@@ -20,6 +20,16 @@
   ES runs regenerated with the control rows byte-identical; `BENCH_RECEIPT.md` section 1b and
   every section re-read both ways; the ledger card; the card's gap sentence on the viewer;
   housekeeping (the prototype folder and the flat viewer files deleted on the owner's word).
+  THEN the matched-pair study (`docs/experiments/tvb44_matched_pairs_prereg.md`, the twelve
+  variables and the theme rule frozen by the owner before any row was read): `analysis/pairs/`
+  (`features.py`, `cells.py`, `run_pairs.py`), `tests/test_pairs.py`, `analysis/pairs/results/`
+  (tables and JSON), `analysis/pairs/PAIRS_RECEIPT.md`, the ledger card. An in-session Codex
+  pass found ten things (prereg section 12) and all were folded before the receipt: the reach
+  outcome over units WITH a target and "has a target" read beside it, liquidity withdrawn, the
+  month side of weekly / monthly units from the unit's own trigger, `r_pct` as the expansion
+  numerator, venue-era bars, the ladder's depth and the nearest level's timeframe, "other"
+  cells shown. Three themes by the rule (late entry; an expanded setup bar; room to T1, a
+  construction): the receipt's claims are in scope; do not re-find the ten.
 - Requested: 2026-11-02
 - Write the audit to: `docs/reviews/tvb44-codex-audit.md` (copy `docs/reviews/_TEMPLATE.md`)
 - Note: the TVB-43 audit's findings are ADDRESSED in the TVB-44 HANDOFF entry (every one
@@ -90,8 +100,16 @@ must be empty (it was, after this session's `manage.py` change).
 - **The card's gap sentence**: `gapWords` uses the trade's side words (`w.above`); run one's
   cards unchanged (no `gap` key); the sentence on a real ES card (2011-01-12 RTH long
   continuation: "opened at 1,278.50, above the trigger ... did not print at all that session").
-- **Hygiene**: ruff clean; 517 passed, 2 skipped; `node --check` on every viewer module; no
-  secrets; no private link; data and vendor gitignored; `User_Notes.md` untracked.
+- **The matched-pair study against its prereg**: leakage (every bar variable strictly before
+  the entry session; the setup index for weekly and monthly units; bitcoin's PREVIOUS day only;
+  the week position under the session calendar); the within-cell terciles and the
+  cell-stratified pooled difference; the theme rule as the owner ruled it; the two themes
+  recomputed from the row files; whether room-to-T1's reach reading is said to be construction
+  everywhere it appears; whether the receipt reports every variable both ways and promotes
+  nothing; the by-direction and by-unit splits in the receipt against the rows.
+- **Hygiene**: ruff clean; 523 passed, 2 skipped; `node --check` on every viewer module; no
+  secrets; no private link; data, vendor and the study's row files gitignored; `User_Notes.md`
+  untracked.
 
 ## What is NOT in scope
 

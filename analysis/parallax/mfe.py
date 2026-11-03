@@ -138,8 +138,15 @@ for label, pref in ACC.items():
         c = []
         for iv in ("1m", "5m", "15m", "1h"):
             c = candles(t["coin"], t["entry_ts"] - 60000, t["exit_ts"] + 60000, iv)
-            exp = (t["exit_ts"] - t["entry_ts"]) / {"1m": 6e4, "5m": 3e5, "15m": 9e5, "1h": 3.6e6}[iv]
-            if c and len(c) >= 0.9 * exp and int(c[0]["t"]) <= t["entry_ts"] + {"1m": 6e4, "5m": 3e5, "15m": 9e5, "1h": 3.6e6}[iv]:
+            exp = (t["exit_ts"] - t["entry_ts"]) / {"1m": 6e4, "5m": 3e5, "15m": 9e5, "1h": 3.6e6}[
+                iv
+            ]
+            if (
+                c
+                and len(c) >= 0.9 * exp
+                and int(c[0]["t"])
+                <= t["entry_ts"] + {"1m": 6e4, "5m": 3e5, "15m": 9e5, "1h": 3.6e6}[iv]
+            ):
                 break
         t["interval"] = iv
         ep = float(t["entry_px"])

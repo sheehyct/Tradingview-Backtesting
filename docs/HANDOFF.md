@@ -118,6 +118,72 @@ None was disputed.
 `viewer/data/*.json` deleted (302 MB, gitignored; `data/runs/` and `data/runs.json` stay); the
 `.gitignore` line for `proto_codex/vendor/` dropped. `User_Notes.md` stays untracked.
 
+### The owner's reading, and the matched-pair study (the second half of the session)
+
+The owner opened the viewer for the first time and said so plainly: clunky to navigate, the
+charts messy, the candles without their real colour context; the run names and the catalogue
+of exit tweaks impossible to keep track of; not enough footing to decide anything, review
+still paramount; a thought of naming the strategies on a reference card and viewing them on
+the TradingView backtester again. The question the owner wanted answered: out of everything
+run, is there really no correlation that says why a trade of the same pattern and continuity
+went one way once and the other way another time. The honest answer given: there are
+correlations, but almost all of them are known AFTER the trigger (the fill, the first hour,
+the exit); the pre-entry variables tried so far do not separate, or separate the wrong way;
+the study not yet done is matched pairs. The owner chose it ("if we can find correlations
+about why something did something once but not at another time, it could lead to
+something"), asked for a different class (bitcoin against ES) and for candle sizes before the
+move. The reference card and the plain chart mode (or the TradingView route) were offered and
+not yet chosen.
+
+**Prereg first** (`docs/experiments/tvb44_matched_pairs_prereg.md`): the cell (pattern x unit
+x direction x week side x month side), the outcomes (T1 reached before the exit; the exit-only
+book; the one-R book as the construction check), twelve pre-entry variables, the tapes (292
+coins, bitcoin alone, ES both days clean-fill first), the theme rule. The owner froze the
+twelve and chose the theme rule in one message ("Freeze the twelve as drafted"; "Same direction
+on crypto AND an ES day"). Built as `analysis/pairs/` (`features.py`: the variables on the
+unit's own timeframe with the windows strictly before the entry session; `cells.py`: the match,
+the within-cell terciles, the cell-stratified pooled difference, the theme rule;
+`run_pairs.py`: the run, the tables, the JSON, the book view); `tests/test_pairs.py` (6: the
+windows on hand vectors, weekly units, room / week position / the index state, a known split
+recovered, the theme rule). Run in about ninety seconds; no engine change.
+
+**The in-session Codex pass on the study (before the commit; read-only, 7 minutes through the
+runtime's `status` / `result`) changed the reading, and was folded before the receipt was
+written.** VERIFIED by the reviewer: every bar window strictly before the entry session (all
+189,109 rows recomputed, no discrepancy), the terciles, the pooled arithmetic, the headline
+differences reproduced, the card fields' provenance. DISPUTED and folded, all ten:
+(1) HIGH, the reach outcome mixed "no target exists" (the engine's `t1` null, stored as not
+reached) with "target not reached"; late entries lack a target far more often, and excluding
+them REVERSED the travel theme on all three tapes: the reach outcome is now read over units
+with a target and "has a target" is its own reading beside it; (2) HIGH, `liquid` is computed
+from the snapshot's last 30 days and copied onto history: withdrawn; (3) HIGH, the engine's
+`m_support` on weekly and monthly units compared the daily trigger (1,632 W + 372 M crypto
+rows, 62 + 86 ES): rebuilt from the unit's own trigger (`features.month_side`), the engine's
+label kept as `m_support_engine`; (4) MEDIUM, room-to-T1 is a target-definition effect and its
+ES money points the other way inside the interval: said so; (5) MEDIUM, travel not uniform by
+direction, unit or outcome: the splits are in the receipt; (6) MEDIUM, small cells vanished
+instead of "other": shown; (7) MEDIUM, the expansion variable used the setup bar's range over
+its close instead of `r_pct`: fixed; (8) MEDIUM, pre-venue index candles (3,164 units): the
+bars trimmed with the engine's `venue_era`; (9) MEDIUM, `ladder_len` and `near_tf` declared but
+unreported: added; `stack` excluded as outcome-side; (10) LOW, an all-missing book level read
+as 0.0 and the tape's last week cannot know it is the last: the first fixed, the second named.
+UNVERIFIED: clustered intervals (named as a limit). Prereg section 12 records the fold.
+
+**The readings after the fold** (`analysis/pairs/PAIRS_RECEIPT.md`, the ledger card): three
+themes by the rule, two of them saying less than their label. Late entry is first of all "no
+target ahead" (the late third has a structural target 76% of the time on the 292 coins against
+95% for the early third; 58% against 90% on ES), reaches the target it has slightly MORE (+2 pp
+crypto, +7 to +9 pp ES) and makes less on crypto (-0.31 per trade) and the Globex day (-0.19).
+An expanded setup bar reaches its target a little more on every tape (+3 to +7 pp) and on
+crypto has fewer targets and makes less (-0.59; shorts -1.58, longs +0.47); ES money nil. Room
+to T1 is construction on reach with crypto-only money. The candle-size answer is unchanged: a
+loud run-up (-9.9 pp of reach, -0.67 per trade), a big setup bar (-1.08 per trade) and heavy
+volume (-0.33) matter on the 292 coins and not on ES. New: open air (no target at all) is not
+bad money on crypto (+0.38 per trade on 14% of units; ES -0.17). Crypto-only readings as
+before: the shared level (+0.76), Sunday (-0.45, reach 40.8%), bitcoin's day (1.3 points of
+money, no reach effect), the main dex (+0.47). Nothing anywhere: hammer or shooter on money,
+the anchor beyond construction, the week's position on ES. Paths named, none run.
+
 ### In-session Codex pass on the diff (before the commit): 5 items, all folded
 
 Run through the `codex:codex-rescue` agent as a read-only background job (7 min; the agent
@@ -176,11 +242,22 @@ itself is a forwarder, the report came back through the runtime's `status` / `re
   `.session_startup_prompt.md`, this file
 - Deleted (untracked / ignored): `analysis/domino/viewer/proto_codex/`, `viewer/data/*.json`
   except `runs.json`
+- The study: `analysis/pairs/__init__.py`, `features.py`, `cells.py`, `run_pairs.py`,
+  `PAIRS_RECEIPT.md`, `results/pairs.json`, `results/pairs_tables.md` (new; the row files
+  ignored), `tests/test_pairs.py` (new, 6), `docs/experiments/tvb44_matched_pairs_prereg.md`
+  (new), `docs/ARM_LEDGER.md` (the study's card), `.gitignore`
 
 ### Open
 
 - [x] The TVB-43 audit folded in code the same session; the entry-fill pair owner-ruled,
       prereg'd, built, run, received and carded; the card's gap label; housekeeping.
+- [x] The matched-pair study: prereg frozen by the owner, built, run, received, carded.
+- [ ] **The two offers the owner has not chosen** (2026-11-02): a one-screen strategy
+      reference card; a plain chart mode on the viewer or the TradingView route. Ask once,
+      bundled.
+- [ ] **The owner's reading of `analysis/pairs/PAIRS_RECEIPT.md`**: which named paths become
+      declared arms ("early in the move", both tapes) or kill tests ("a loud run-up", "the
+      weekend sessions", crypto); a direction-relative bitcoin variable as an amendment.
 - [ ] **The owner's reading of `BENCH_RECEIPT.md`**, now with section 1b: which lines become
       declared arms (the never-printed gap units? the hourly exit?) and which kill tests (the
       gap-that-fills units; the regular-hours sign; the monthly stop swap). Candidate declared

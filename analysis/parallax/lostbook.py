@@ -37,7 +37,14 @@ def fetch(coin, iv, start, end):
     last = None
     for attempt in range(6):
         try:
-            r = httpx.post(INFO, json={"type": "candleSnapshot", "req": {"coin": coin, "interval": iv, "startTime": start, "endTime": end}}, timeout=30)
+            r = httpx.post(
+                INFO,
+                json={
+                    "type": "candleSnapshot",
+                    "req": {"coin": coin, "interval": iv, "startTime": start, "endTime": end},
+                },
+                timeout=30,
+            )
             if r.status_code == 429:
                 time.sleep(12 * (attempt + 1))
                 last = "429"

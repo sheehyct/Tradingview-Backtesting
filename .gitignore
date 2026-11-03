@@ -120,3 +120,7 @@ analysis/domino/viewer/vendor/
 !analysis/strat_ml/snapshots/
 !analysis/strat_ml/snapshots/**
 analysis/bench/results/*.csv.gz
+
+# TVB-44 matched-pair study: the rows with the variables (regenerable); tables and JSON are committed
+analysis/pairs/results/pairs_rows_*.csv.gz
+analysis/pairs/results/pairs_cells.json

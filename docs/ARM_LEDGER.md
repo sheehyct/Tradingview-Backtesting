@@ -754,6 +754,70 @@ settings at $1 risk, but with 26 fills they stay unread as arms.
   reversals and inside breaks, a third of continuations and outside breaks). Runs
   `es-globex-2011-2025` and `es-rth-2011-2025` sit beside run one on the viewer, Compare by role.
 
+### TVB-44 the matched-pair study (prereg 2026-11-02, `docs/experiments/tvb44_matched_pairs_prereg.md`, CONFIRMED by the owner the same day, before any row was read) -- a data product, no arm, no selector
+
+- **In trader terms:** take trades that looked identical at the trigger (same pattern, same
+  timeframe, same direction, the week and the month on the same side) and ask what ELSE was
+  visible at the trigger that differed between the ones that reached their first target and
+  the ones that did not. Twelve things a trader could have seen: the setup bar's size, the
+  setup bar against the instrument's normal range, whether volatility was building in the
+  three bars before, how far price had already run (late entry), room to the first target in
+  R, a weekly or monthly level at the trigger, how the targets were anchored, hammer or
+  shooter, volume on the setup bar against normal, where in the week, bitcoin's day before
+  (for crypto), liquidity and venue.
+- **Why:** every surface so far says the trigger plus continuity does not pick the good trade;
+  the information that does arrives after the trigger (the first hour, the fill). This asks
+  whether anything BEFORE the trigger separates, and whether the same thing separates on an
+  index future and on the altcoin universe (the owner's question: a common theme, or each
+  tape its own story).
+- **Declared, side by side, none picked:** the 292-coin run, bitcoin alone, ES Globex and ES
+  regular hours on the clean-fill units (the trigger was an available fill). Every variable is
+  reported whether it separates or not, with its direction and size. A variable is a THEME
+  only if it separates the same way on the 292-coin run and on at least one ES day, both
+  intervals clear of zero (the owner's rule); otherwise it is a reading on one tape.
+- **What it is not:** no engine change, no filter, no composite score, nothing from after the
+  trigger. A separation is a path worth naming; a non-separation is a path worth closing.
+- **Confounds named up front:** twelve variables times three terciles will throw up chance
+  separations (the theme rule is the guard); the fill on ES (clean-fill units first); the
+  drift (longs and shorts are separate cells); bitcoin alone is a small sample; the altcoin
+  universe is the coins listed as of 2026-10-10; the target ladder is the engine's (the one-R
+  book is the check).
+- **Built as fourteen, after the in-session Codex pass (prereg section 12):** liquidity
+  withdrawn (the engine computes it from the snapshot's last 30 days: not known at the
+  trigger); the ladder's depth and the nearest level's timeframe added as the prereg named
+  them; the reach outcome read over the units that HAVE a first target, with "has a target"
+  read beside it (the engine stores "no target" as "not reached", and the first run's
+  late-entry theme was mostly that); the month side of weekly and monthly units from the
+  unit's own trigger; the setup bar's size as the engine's `r_pct`; venue-era bars; small
+  cells shown as "other".
+- **Numbers (2026-11-02, `analysis/pairs/PAIRS_RECEIPT.md`; high third against low third
+  inside the cells; both directions):** three variables met the theme rule. **Late entry (how
+  far price had already run) is, first, "no target ahead":** the late third has a structural
+  target far less often on every tape (292 coins 76% against 95%, ES 58% against 90%); when it
+  has one it reaches it a little MORE (+2 pp crypto, +9 and +7 pp ES, the theme by the rule);
+  and the exit-only book is worse when late on crypto (-0.31 per trade) and the Globex day
+  (-0.19), inside the interval on RTH; the late crypto long makes more (+0.29, the drift), the
+  late crypto short is the loser (-0.87); the equal-size book on the 292 coins +0.2k USD early
+  against -166k late. **An expanded setup bar** reaches its target a little more on every tape
+  (+3 to +7 pp, the one clean reach theme) and on crypto has fewer targets and makes less
+  (-0.59; shorts -1.58, longs +0.47); on ES no money either way. **Room to T1 in R** is a theme
+  by the rule and a construction (76 to 81 percent against 24 to 29 everywhere); its money is a
+  crypto reading only (-0.74 per trade high against low, +144k against -240k USD; ES a few
+  hundredths the other way). **The candle-size question:** on the 292 coins a loud run-up
+  reaches less (-9.9 pp, longs and shorts alike, every unit) and makes less (-0.67 per trade),
+  a big setup bar makes less (-1.08, the largest money effect of all) and heavy volume too
+  (-0.33); on ES none of the three moves reach or money. Candle sizes before the move matter on
+  crypto and not on the index future. **Open air is not bad money on crypto:** units with no
+  target at all (14% of crypto, 22% of ES) read +0.38 per trade on the exit-only book on crypto,
+  -0.17 on ES. Also crypto-only: the shared daily-and-weekly level earns +0.76 per trade
+  against -0.05 for a plain break (ES nothing); Sunday entries reach 40.8% and read -0.45,
+  Thursday +1.25; bitcoin's previous day moves the exit-only book by 1.3 points between its
+  states but not the reach rate; the main dex earns +0.47 per trade more than xyz. Nothing
+  separated anywhere: hammer or shooter on money; the anchor beyond its construction; the
+  week's position on ES. Paths named, none run: "early in the move" as a declared arm on both
+  tapes; "a loud run-up", "an expanded setup bar before a short" and "the weekend sessions" as
+  kill tests on crypto; a direction-relative bitcoin variable as an amendment.
+
 ## Maintenance rule
 
 Every round: add a card per new arm (trader terms FIRST, then numbers),
