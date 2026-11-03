@@ -41,7 +41,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `5ee9b84..099025c` (5ee9b84 is the TVB-43 close-out pin the session started from; 099025c carries the whole session's work in one commit; the docs-only pin commit after it names this range). Verify with `git diff --name-status 5ee9b84..099025c`. |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `5ee9b84..c8e4a6f` (5ee9b84 is the TVB-43 close-out pin the session started from; 099025c the audit fold and the entry-fill pair; 29b9faa a docs pin; c8e4a6f the matched-pair study with its Codex fold; the docs-only pin commit after it names this range). Verify with `git diff --name-status 5ee9b84..c8e4a6f`. |
 
 No sibling-repo commits. The viewer's data folder (`analysis/domino/viewer/data/`, the runs
 included) and the vendored chart library are gitignored; `uv run python -m
