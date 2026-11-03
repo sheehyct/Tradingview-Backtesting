@@ -259,7 +259,10 @@ itself is a forwarder, the report came back through the runtime's `status` / `re
       HANDOFF archived to 1,008 lines on the owner's word (`docs/session_archive/HANDOFF_TVB39-TVB40.md`).
 - [ ] **The first TradingView port, on the owner's word:** the management book's headline (exit
       only C) as a parity-gated `strategy()` mirror on BTC and ES; then the hourly clock; then
-      the chance book. Prereg the parity cells first; STOP-and-ASK on the bar logic.
+      the chance book. Prereg the parity cells first; STOP-and-ASK on the bar logic. The owner ruled the headline first (2026-11-02); the mirror's prereg is DRAFTED at
+      `docs/experiments/tvb45_headline_mirror_prereg.md` (the rules verbatim from the engine, seven
+      gate cells, the gapped-session fill as a declared residual; section 7 asks four rulings).
+      TradingView Desktop was not up on CDP 9222 at the session's end.
 - [ ] **The owner's reading of `analysis/pairs/PAIRS_RECEIPT.md`**: which named paths become
       declared arms ("early in the move", both tapes) or kill tests ("a loud run-up", "the
       weekend sessions", crypto); a direction-relative bitcoin variable as an amendment.
