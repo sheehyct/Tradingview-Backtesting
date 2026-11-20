@@ -30,7 +30,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `{pending push}` |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `a914880..04d8612` (a914880 is the commit the session started from; 3095029 the first look, its message says TVB-46 by mistake; 04d8612 the cushion and stayed-out checks and the close-out docs). `git diff --name-status a914880..04d8612` lists every file the session touched. The docs-only pin after 04d8612 only names this range. |
 
 No sibling-repo commits. Raw daily bars (`analysis/sector/data/`, `analysis/sector/members/`)
 and the row files the scripts write (`*.csv`) are gitignored and re-fetchable; the run commands

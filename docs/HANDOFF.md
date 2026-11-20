@@ -181,7 +181,10 @@ level. A CRACK is the day it stops being so. Eleven sector funds, daily closes, 
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
 - Review status: REQUESTED
-- Commits to review: `{pending push}`
+- Commits to review: `a914880..04d8612` on `main` (a914880 is the commit the session started
+  from; 3095029 the first look; 04d8612 the two checks and the close-out docs; the docs-only pin
+  after it names this range). `git diff --name-status a914880..04d8612` lists every file the
+  session touched.
 - Scope / what changed: a new exploratory folder, `analysis/sector/` (count-only scripts and a
   receipt), plus the session docs. No engine, no Pine, no test changed.
 - Focus areas (scrutinize these): the level-state code in `common.py` (period keys, shared
