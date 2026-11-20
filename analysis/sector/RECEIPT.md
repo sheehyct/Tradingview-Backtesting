@@ -1,4 +1,7 @@
-# Sector continuity breadth: first look -- RECEIPT (TVB-46, 2026-11-19)
+# Sector continuity breadth: first look -- RECEIPT (TVB-45, 2026-11-19)
+
+> Numbering note: the first commit of this work (3095029) says TVB-46 in its message. The
+> session is TVB-45; the commit message is wrong and is left as pushed.
 
 **Status: EXPLORATORY.** No prereg, no tests, no external audit. Definitions were agreed with
 the owner in conversation before each count was run and are restated below. Everything here is
@@ -44,7 +47,11 @@ uv run --no-project --with yfinance --with pandas python analysis/sector/holding
 uv run --no-project --with pandas --with numpy python analysis/sector/inside.py analysis/sector
 uv run --no-project --with yfinance --with pandas --with numpy python analysis/sector/themes.py analysis/sector
 uv run --no-project --with yfinance --with pandas --with numpy python analysis/sector/followers.py analysis/sector
+uv run --no-project --with pandas --with numpy --with scikit-learn python analysis/sector/cushion.py analysis/sector
+uv run --no-project --with pandas --with numpy python analysis/sector/stayed_out.py analysis/sector
 ```
+
+`stayed_out.py` reads the files `inside.py` and `cushion.py` write, so run it last.
 
 `census.py` and `refine.py` are the first two passes, kept because they hold the TRAP below.
 `probe.py` is the feasibility probe for theme funds and one follower example.
@@ -96,9 +103,7 @@ agreement up:
 
 Looking forward, the DAY a theme first cracks carries no lift: a deep sector crack began within
 ten days 13% to 18% of the time against 16% to 22% on any full-agreement day. The lift sits in
-the theme having stayed out. The printed shares imply roughly 19% to 25% when the theme is out
-against 13% to 19% when it is in; that split was worked out from the shares, not counted
-directly.
+the theme having stayed out; item 7 counts that directly.
 
 **5. Followers.** A follower is a liquid name outside the parent sector fund's ten largest whose
 beta to that fund is 1.5 or higher (owner's rule). The first attempt, "highest beta among a
@@ -120,13 +125,64 @@ the neocloud and miner names (NBIS 2.50 down / 1.80 up, IREN 2.23 / 1.28, HUT 1.
 with short histories. On days after the sector had lost two or more levels, the sector and the
 followers averaged UP; followers did not fall by more than their calm-day beta predicts.
 
+**6. Kill test: is the count of large names just the sector fund's own cushion? (`cushion.py`)**
+The cushion is measured the day before the crack in units of the fund's own daily swing (20-day
+standard deviation of daily returns): to the nearest level, and to the THIRD level, the line a
+crack has to reach to count as deep.
+
+| leaving full agreement up, 2,846 cracks since 2010 | thin cushion | middle | thick |
+|---|---|---|---|
+| deep rate by cushion to the nearest level (medians 0.1 / 0.6 / 1.7 daily swings) | 22% | 17% | 13% |
+| deep rate by cushion to the third level (medians 3.2 / 7.1 / 13.5 daily swings) | 31% | 12% | 10% |
+
+Inside each third-level band, the deep rate by count of large names already out (0-2 / 3-4 /
+5-6 / 7-10): thin 23% / 26% / 30% / 35%; middle 8% / 12% / 12% / 12%; thick 9% / 8% / 10% / 13%.
+The count and the cushion move together (correlation -0.46 with the nearest level). A model fit
+on cracks before 2019 and scored on the cracks after ranks them 0.694 with the cushion alone
+and 0.694 with the count added (0.50 is a coin flip; the count alone 0.589). **On breakdowns
+the count is mostly arithmetic: it adds a little only when the cushion is already thin.** On
+recoveries out of full agreement down (1,056 cracks) the count holds up better: 0.664 cushion
+only, 0.670 with the count, 0.646 the count alone, and its weight in the joint model stays
+clearly above zero when whole dates are resampled (+0.13 to +0.43).
+
+The strongest single read in this whole look is the cushion to the third level: how tightly the
+levels are stacked under price.
+
+**7. The theme fund staying out, counted directly (`stayed_out.py`).** On days the sector is in
+full agreement up, the share of days followed by a DEEP sector crack within ten trading days:
+
+| state of the theme fund | semis / technology | software / technology | regional banks / financials | homebuilders / discretionary |
+|---|---|---|---|---|
+| in full agreement | 14% | 13% | 19% | 15% |
+| cracked today | 13% | 14% | 18% | 18% |
+| out 2 to 5 days | 13% | 22% | 24% | 16% |
+| out 6 to 20 days | 26% | 29% | 36% | 26% |
+| out 21 days or more | 28% | 25% | 20% | 16% |
+
+The day the theme cracks and the first few days after carry nothing. Out for 6 to 20 days about
+doubles the rate in all four pairs; beyond that it fades for banks and homebuilders. When a
+sector does crack, a theme that had been out six or more days goes with 21% to 28% deep against
+11% to 17% when the theme was in agreement. Technology with both themes out two or more days:
+29% deep, one of two 20%, neither 9% (70 / 162 / 202 cracks). The two reads stack (cracks since
+2010, four pairs pooled): neither 10% deep, large names only 17%, theme only 18%, both 26%.
+
+Against the cushion (third-level bands, theme out six or more days against not): thin 38%
+against 29%, middle 17% against 9%, thick 6% against 10%. The theme read keeps part of its lift
+where the cushion is thin or middling and none where it is thick; a theme that has stayed out
+goes with a thinner cushion (median 5.3 daily swings against 8.4), so part of it is the cushion
+too. The days in each row come in runs (between 66 and 445 separate spells per row), so the
+rows are fewer independent observations than their day counts.
+
 ## Read both ways
 
-- A path worth naming: the count of large names already out, and a theme fund that has stayed
-  out, both raise the odds that a sector crack goes deep. The lift is modest.
-- A kill test worth naming: a sector fund is the weighted sum of its members, so part of the
-  by-count gradient is arithmetic (how close the fund already sits to its own level), not
-  foresight. Whether the count adds anything beyond the fund's own cushion is NOT yet checked.
+- A path worth naming: how tightly the levels are stacked under price (the cushion to the third
+  level) separates shallow from deep cracks better than anything else here, and it is known
+  before the crack.
+- A path worth naming: a theme fund that has been out for one to four weeks about doubles the
+  odds of a deep sector crack, in all four pairs, and keeps part of that inside thin and
+  middling cushions.
+- A kill test that landed: on breakdowns the count of large names already out is mostly the
+  cushion seen from the inside. It does not improve the ranking of cracks it has not seen.
 - A kill test worth naming: on daily closes the follower adds size, not information. Weakness
   did not carry into the next day on average.
 - Not settled either way: the trade the owner describes happens inside the day, during the

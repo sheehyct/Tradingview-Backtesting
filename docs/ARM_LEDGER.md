@@ -818,6 +818,37 @@ settings at $1 risk, but with 26 fills they stay unread as arms.
   tapes; "a loud run-up", "an expanded setup bar before a short" and "the weekend sessions" as
   kill tests on crypto; a direction-relative bitcoin variable as an amendment.
 
+### TVB-45 the sector continuity breadth look (2026-11-19) -- EXPLORATORY, a count, no arm, no P&L, no prereg
+
+- **Trader terms:** take each of the eleven sector funds and ask, at every daily close, whether
+  price is above the open of the week, the month, the quarter, the half-year and the year.
+  Above all of them = the sector is in full agreement up. The day it stops being so is a CRACK.
+  Then watch what a crack does: heal (back above everything) or go deep (lose three or more
+  of those opens). Periods that opened at the same price count as ONE level. Nothing is bought
+  or sold; this is a census of states, built in conversation with the owner, who chose the
+  stack (hourly out, quarter and up in) and the scope (all sectors, as breadth and rotation).
+- **Why it exists:** the owner's belief that any edge sits in continuity as regime
+  identification, and the observation that conflict between timeframes may be where to look
+  first.
+- **Numbers (`analysis/sector/RECEIPT.md`; both directions):** about half of cracks heal after
+  one level; each further level is LESS likely than the last (47%, 37%, 28%); every level lost
+  6 to 9%. **How tightly the levels are stacked under price is the strongest read:** third
+  level about three daily swings away 31% deep, thirteen swings away 10%. **A subsector fund
+  that has stayed out for one to four weeks** about doubles the chance of a deep sector crack
+  within ten days (26 to 36% against 13 to 19%, four pairs); the day it first cracks carries
+  nothing. **The count of large names already cracked** looks like a tell (10% deep with 0 to
+  2 out, 23% with 7 to 10) and is mostly the cushion seen from inside: it does not improve the
+  ranking of unseen cracks (0.694 with or without it). **High-beta followers** (beta 1.5 or
+  more against the sector, not a top weight) amplify about as much up as down; after a sector
+  had lost two or more levels the next day averaged up. A counting trap is recorded: counting
+  shared opens separately made each further level look more likely, the opposite of the truth.
+- **Paths named, none run:** the stacked-levels cushion and the stayed-out subsector as fields
+  on a watch table or notice, logged forward; the leader and follower trade inside the day
+  (the daily look cannot see it). **Kill tests that landed:** the count of large names as
+  independent information on breakdowns; the follower as information beyond size.
+- **Limits:** today's holdings and today's high-beta names (hindsight); sectors crack on the
+  same dates (few independent events); daily closes only; no tests, no audit yet.
+
 ## Maintenance rule
 
 Every round: add a card per new arm (trader terms FIRST, then numbers),

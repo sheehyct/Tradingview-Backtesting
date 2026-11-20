@@ -5,6 +5,195 @@
 
 ---
 
+## Session TVB-45: a re-grounding session after the pause; TheStrat Suite read; sector continuity breadth, first look (COMPLETE)
+
+**Date:** 2026-11-18 / 19
+**Status:** COMPLETE. The owner returned after a pause (too many variations to follow, the
+entry and exit wording no longer readable) to re-establish a baseline, not to build. No arm was
+run and no engine was touched. One exploratory data product was built on the owner's direction
+during the conversation and committed: `analysis/sector/` (count only, no prereg, no tests, no
+audit; `RECEIPT.md` is the record). Suite 525 passed, 2 skipped; ruff clean; secret scan clean.
+The planned TVB-45 work (the headline mirror prereg, `docs/experiments/tvb45_headline_mirror_prereg.md`)
+was NOT started and stays a draft. Numbering: the first commit's message (3095029) says TVB-46 by
+mistake; the session is TVB-45. OpenMemory refused the session summary (429), as in TVB-44; the
+memory index carries it.
+
+### The owner's direction, in the owner's terms
+
+- Tweaking stops. The patterns are an aid for a human eye choosing a discretionary entry and
+  exit; alone they do not help; trading experience bridges the gap. The original indicator
+  (`pine/strat_magnitude_targets_plus.pine`) was meant to fill the discretionary side and did
+  not.
+- Where an edge might be (belief, untested): timeframe continuity, possibly as regime
+  identification.
+- Domino = multiple levels breaking together. The owner's observation from the recent tape
+  (untested): when they all break, the common case is short-term exhaustion and a bounce, with
+  continuation perhaps the next session; the real break is less frequent and violent.
+- Destination as the owner sees it: (a) a hybrid system, likely options and perps, where an
+  entry is allowed only after the owner's quick review of a notice; or (b) regime-specific
+  algorithms, continuity used for regime change, the edge being knowing when to turn things
+  off. The owner thinks fixing the ATLAS workspace and bringing this workspace's research into
+  it may be the best starting point.
+- For any breadth or regime read combined with continuity: the hourly is out (noise), the day
+  may be too noisy, and higher context goes in: quarter at minimum, half-year and year. The
+  stack agreed for the look: week, month, quarter, half-year, year.
+- Conflict (a sector or name up on one timeframe and down on another) may be where to look
+  first: a sector in agreement, then one timeframe flips, then another follows; then look at
+  the most liquid names. It runs both ways.
+- The leader and follower thought (one of several, the owner says it is not a true pairs
+  trade): when several heavyweights in a sector crack, trade a high-beta name that is NOT a top
+  weight but still moves with them, ideally inside the weakest subsector. The edge is not the
+  delay between the two (seconds or less); it is identifying developing weakness and using the
+  amplified name. Subsectors can be read through thematic funds instead of scanning names.
+
+### What was read
+
+- **TheStrat Suite** (github.com/345-strategies/thestrat-suite, MPL-2.0, found by the owner):
+  a maintained Pine v6 six-timeframe indicator, a screener for TradingView's Pine Screener, and
+  a separate grammar spec with a Python reference and parity tests. It keeps "what a candle is"
+  apart from "what to trade". Two target levels only (magnitude = the far side of the bar two
+  back; exhaustion = the nearest untested swing; a continuation has spent its magnitude);
+  continuity built only from close against open; the continuity filter is a veto, not a
+  prerequisite; seven signal families. Its research note: an NQ study, reproduced by the
+  maintainer and re-run on ES, finds the combo label alone does not beat a random break of the
+  prior bar. Same conclusion as this repo's daily census and ES bench. It is a vocabulary and a
+  chart surface, not a strategy. Its "Domino" means stacked inside bars across timeframes, not
+  levels breaking together.
+- **One wording conflict inside the STRAT skill, flagged, not ruled:** section 4.1 defines bias
+  as price against the timeframe's own open; section 4.3 scores continuity with bar type first
+  and colour second. The suite uses colour only. Section 8 (VectorBT Pro) is stale.
+- **The uncommitted Codex work:** `artifacts/visualizations/` (BTC case cards, decide before
+  the reveal), `docs/strategy-assessment-2026-11-02.md`. Left untracked, untouched.
+- **The ATLAS workspace** (a read-only sweep; five key points spot-checked): the Telegram
+  approve / reject gate exists in code and was switched off on the server in March 2026; the
+  pattern detector passed its cross-check in June; the open defect is the LIVE trigger, which
+  uses the bid-ask midpoint as "price" for breaks and stops (root cause confirmed there in
+  July, fix never started). On the owner's word the three unused services on that server were
+  stopped and disabled (the equity paper daemon, a crypto daemon that had been crash-looping,
+  and the exit manager, which was only polling a sandbox). Paper and sandbox positions were
+  left open and unmanaged; records stay on disk.
+
+### The sector look, in plain words (`analysis/sector/RECEIPT.md` has every number)
+
+A LEVEL here is a period's opening price (week, month, quarter, half-year, year), not a prior
+bar's high or low. A sector fund is in FULL AGREEMENT UP when its daily close is above every
+level. A CRACK is the day it stops being so. Eleven sector funds, daily closes, 1998 to
+2026-11-19.
+
+1. **A counting trap.** Periods that share one opening price are one level, not several
+   (quarter, half-year and year share all of the first quarter; five distinct levels exist only
+   in November and December). Counted separately, each further level looked MORE likely to
+   break than the last. Counted once, it reverses. The owner agreed the one-level rule "for
+   now"; it is the skill's coupling rule.
+2. **Most cracks are nothing.** About half heal after losing one level, usually within three
+   days. Of cracks that lose one level 47% lose a second; of those 37% a third; of those 28% a
+   fourth. Every level lost: 6 to 9%.
+3. **The strongest read found: how tightly the levels are stacked under price.** With the third
+   level about three daily swings away, 31% of cracks go deep (three or more levels); with it
+   thirteen swings away, 10%. This is known before the crack.
+4. **The count of large names already cracked is mostly that same cushion seen from inside.**
+   On its face it works (0 to 2 of the ten largest already out: 10% deep; 7 to 10 out: 23%).
+   But a fund is the sum of its members: adding the count to a cushion-only model does not
+   improve its ranking of cracks it has not seen (0.694 both). It adds a little only where the
+   cushion is already thin, and it holds up better on recoveries than on breakdowns.
+5. **A subsector that has STAYED out is a real tell; the day it cracks is not.** A theme fund
+   (semiconductors, software, regional banks, homebuilders) that has been out of agreement for
+   one to four weeks about doubles the chance of a deep sector crack in the next ten days (26
+   to 36% against 13 to 19%), in all four pairs. The day the theme first cracks and the few
+   days after carry nothing. It keeps part of its lift inside thin and middling cushions. For
+   technology, both themes out: 29% deep; neither: 9%.
+6. **High-beta followers are a size tool on daily closes.** With a beta floor of 1.5 against
+   the parent sector the rule picks the intended kind of name (technology: NBIS, HUT, CRWV,
+   MRVL, IREN, ENTG, LRCX, HOOD; financials: AFRM, HOOD, SOFI, COIN, SHOP, CRCL, COF, XYZ;
+   discretionary: W, CVNA, KSS; no regional bank or homebuilder passes). They amplify the
+   sector about as much up as down. The "dragged down harder" lean shows only in the neocloud
+   and miner names, on short histories. After a sector had lost two or more levels, the sector
+   and the followers averaged UP the next day.
+7. **What the daily look cannot see:** the move inside the day, during the crack, which is
+   where the owner's trade happens.
+8. **The state on 2026-11-19:** all eleven sectors in conflict (about one day in ten for the
+   nine long-history sectors). Crack order this autumn: industrials 08-17, technology 10-08,
+   energy 11-02, materials 11-05, real estate 11-12, discretionary 11-13, financials, health
+   care and staples 11-16. Technology's crack began with only two of its ten largest names
+   out and still lost four levels: the no-warning kind.
+
+### Context for next session
+
+- Everything in `analysis/sector/` is EXPLORATORY. Before any of it becomes a watch table, a
+  notice field or an arm, it needs a prereg with the owner, tests on the level-state code
+  (`common.py`) and an external review. One cross-check exists: the states printed for
+  2026-11-19 match a hand calculation from TradingView monthly bars.
+- Hindsight is built in: today's ten largest holdings, today's high-beta names. Sectors crack
+  on the same dates, so the counts overstate the number of independent events.
+- Tooling facts learned: the second TradingView connector serves `change_from_open` per
+  timeframe through the month (quarter, half-year and year opens come from monthly bars); its
+  screener silently ignores filters on timeframe-suffixed columns and on industry and market
+  cap; its headless Pine runner failed on both published suite scripts. `yfinance` is not a
+  project dependency: run the sector scripts with `uv run --no-project --with yfinance ...`.
+- The safety hook blocks any command containing the live Tradier hostname, even as a search
+  pattern; count the non-sandbox lines instead.
+- ARM_LEDGER has a card for the look under "Data products"; STRATEGY_CARD row 12 names it.
+
+### Files created/modified
+
+- `analysis/sector/`: `common.py` (level state, cracks), `fetch.py`, `levels.py`, `holdings.py`,
+  `inside.py`, `themes.py`, `followers.py`, `cushion.py`, `stayed_out.py`, `census.py` and
+  `refine.py` (the first passes, kept for the trap), `probe.py`, `holdings.json` and
+  `followers.json` (the selection receipts), `RECEIPT.md`. Raw bars and row files gitignored.
+- `docs/HANDOFF.md`, `docs/ARM_LEDGER.md`, `docs/STRATEGY_CARD.md`, `.session_startup_prompt.md`,
+  `docs/reviews/REVIEW_REQUEST.md`.
+
+### Open
+
+- [ ] **The owner reads `analysis/sector/RECEIPT.md`** and says which lines become something:
+      the stacked-levels cushion and the stayed-out subsector are the two paths worth naming;
+      the count of large names and the follower-as-information are the two kill tests that
+      landed.
+- [ ] **Candidate next explorations, none started, each needs the owner's word and a prereg:**
+      (a) the intraday version of the leader and follower trade (needs intraday bars for a few
+      dozen names; the daily look cannot confirm or kill it); (b) the cushion and the
+      stayed-out subsector as two fields on a watch table or notice, logged forward; (c) more
+      themes, chosen up front, and holdings as they stood at the time instead of today's lists;
+      (d) the same read on recoveries, where the inside count held up better; (e) whether the
+      neocloud names' downside lean is real or a short-history artifact; (f) a private chart
+      page of the sector strip over time (the owner reads charts).
+- [ ] **The ATLAS workspace:** fix the live trigger (trade-confirmed breaks, a design-with-the-
+      owner item under the STRAT rules), then switch the approval gate back on with a better
+      notice (the case card is the model). The three server services are stopped and disabled;
+      bring one back with `sudo systemctl enable --now <name>`. Sessions for that work run in
+      that workspace.
+- [ ] **The strat-methodology skill:** the owner expects removals and simplifications (the
+      example given: Motor City Madhouse); the 4.1 against 4.3 continuity wording needs the
+      owner's ruling; section 8 is stale.
+- [ ] **The case review with Codex** (`artifacts/visualizations/`, untracked) may continue in
+      this workspace; the cards could adopt the suite's vocabulary.
+- [ ] Carried unchanged from TVB-44: the first TradingView port (prereg drafted, section 7
+      asks four rulings); the owner's readings of `PAIRS_RECEIPT.md` and `BENCH_RECEIPT.md`;
+      the with-trend inside break's T1 STOP-and-ASK; the viewer items; the exit and hierarchy
+      rulings.
+- [ ] The `docs/reviews/tvb44-codex-audit.md` check was not done this session (no
+      `/session-start`); next session looks for it.
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb45-codex-audit.md.
+> See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: REQUESTED
+- Commits to review: `{pending push}`
+- Scope / what changed: a new exploratory folder, `analysis/sector/` (count-only scripts and a
+  receipt), plus the session docs. No engine, no Pine, no test changed.
+- Focus areas (scrutinize these): the level-state code in `common.py` (period keys, shared
+  opens as one level, the tie at the open); look-ahead in every "day before" read
+  (`inside.py`, `cushion.py`, `stayed_out.py`); the forward tables' horizon; whether each
+  sentence in `RECEIPT.md` is supported by a script's output; whether the kill tests are
+  stated as strongly as the paths.
+- Reviewed by: pending
+- Findings:
+
+---
+
 ## Session TVB-44: the TVB-43 audit folded in code, the entry-fill pair owner-ruled and run as a prereg amendment, the receipt and ledger re-read both ways, the card's gap label, housekeeping (COMPLETE)
 
 **Date:** 2026-11-02

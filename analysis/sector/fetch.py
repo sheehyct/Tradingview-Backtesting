@@ -1,9 +1,22 @@
+"""Cache daily bars (unadjusted open / high / low / close) for the sector look.
+
+Run:  uv run --no-project --with yfinance --with pandas \
+          python analysis/sector/fetch.py analysis/sector/data [TICKER ...]
+
+With no tickers it fetches the eleven sector funds, SPY, RSP and the four theme funds.
+"""
+
 import sys
-import yfinance as yf
+
 import pandas as pd
+import yfinance as yf
+
+SECTORS = ["XLK", "XLE", "XLF", "XLV", "XLY", "XLP", "XLI", "XLB", "XLU", "XLRE", "XLC"]
+REFERENCE = ["SPY", "RSP"]
+THEMES = ["SMH", "IGV", "KRE", "ITB"]
 
 out = sys.argv[1]
-syms = ["XLK", "XLE", "XLF", "XLV", "XLY", "XLP", "XLI", "XLB", "XLU", "XLRE", "XLC", "SPY", "RSP"]
+syms = sys.argv[2:] or SECTORS + REFERENCE + THEMES
 for s in syms:
     df = yf.download(s, start="1998-01-01", auto_adjust=False, progress=False, threads=False)
     if isinstance(df.columns, pd.MultiIndex):
