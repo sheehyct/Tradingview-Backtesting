@@ -848,6 +848,23 @@ settings at $1 risk, but with 26 fills they stay unread as arms.
   independent information on breakdowns; the follower as information beyond size.
 - **Limits:** today's holdings and today's high-beta names (hindsight); sectors crack on the
   same dates (few independent events); daily closes only; no tests, no audit yet.
+- **Addendum, TVB-46 (2026-11-21), the November 2026 drop (receipt items 8 to 11; still a
+  count, no arm):** the owner asked whether the read would have warned of the fall and which
+  vehicle would have carried it. **It did not call the top:** SPY made its high close on 10-06
+  with only 2 of 11 sectors in full agreement up, but in history a narrow tape at a high was
+  followed by FEWER 7% drops than a broad one (6% against 14%). **Shorting every crack since
+  June was flat:** 87 healed cracks cost about 1% each, 12 that did not heal paid it back
+  (+5.8% over 99); technology was seven small losses then +24.7%, and the false alarms carried
+  the same semiconductor flag as the real one. **Vehicles, with hindsight:** the ten largest
+  names tracked the fund; the high-beta followers made about twice the fund (size again); the
+  pair against SPY paid only where the sector was the source (technology +13.8%,
+  communications +12.6%); the spread between names inside technology (AAPL -1% to INTC +52%)
+  was wider than between vehicles and nothing here picks the name. **All nine sectors in
+  conflict for five sessions or more** (27 earlier cases since 1999): SPY higher 20 sessions
+  later 23 of 27 times, +3.4% on average against +0.75% for an ordinary day, in every
+  distance-off-the-high band; but most deep cases entered from below after a low, and this
+  spell entered from above with SPY down 8.6% inside it, outside the sample. Without the week
+  level the market was not in the state on 11-20 (staples still held).
 
 ## Maintenance rule
 

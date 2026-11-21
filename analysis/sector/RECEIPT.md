@@ -173,8 +173,116 @@ goes with a thinner cushion (median 5.3 daily swings against 8.4), so part of it
 too. The days in each row come in runs (between 66 and 445 separate spells per row), so the
 rows are fewer independent observations than their day counts.
 
+## Addendum, TVB-46 (2026-11-21): the November 2026 drop and the all-in-conflict state
+
+Same status: EXPLORATORY, count only, no prereg, no tests, no audit. The owner's question: after
+the sharp fall in the indices, would this read have warned of anything in advance, and would
+the trade have been a pair, the big names or the sector fund? Bars were re-fetched through
+2026-11-20 into `nov_data/` (gitignored). The definitions for item 11 were written down before
+that count was run.
+
+```
+uv run --no-project --with yfinance --with pandas --with numpy python analysis/sector/nov_fetch.py analysis/sector
+uv run --no-project --with pandas --with numpy python analysis/sector/nov_drop.py analysis/sector
+uv run --no-project --with pandas --with numpy python analysis/sector/conflict_state.py analysis/sector
+```
+
+**8. The tape (`nov_drop.py` A to C, F).** SPY's high close was 2026-10-06; at the 11-20 close
+it was 11.5% below it, QQQ 19.9%. The equal-weight S&P fund held its high until 11-04 (7.1%
+below at the end); small caps peaked 08-14 (15.7% below). At the SPY high only 2 of 11 sector
+funds were in full agreement up. Communications had been out since 04-21, utilities since
+07-27, industrials since 08-17, and none returned. The semiconductor fund was below its
+half-year open through the whole run-up (68 sessions out at the SPY high). Technology cracked
+on 10-08, two sessions after the high; the day before, its cushion to the third level was 6.9
+daily swings (the middle band) and 2 of its 10 largest names were out. The other seven sectors
+cracked between 11-02 and 11-16. Nine of the eleven last cracks have lost three or more levels.
+
+Read the other way. A narrow tape at an index high has not been a warning: on the 2,318 days
+since 1999 that SPY closed within 1% of its one-year high, a close 7% or more lower came within
+40 sessions 6.2% of the time when 0 to 2 of nine sectors were in full agreement up, 9.8% with 3
+to 4, 11.7% with 5 to 6 and 13.7% with 7 to 9 (10.0% over all such days). The read did not call
+the top.
+
+**9. Would acting on the cracks have paid? (`nov_drop.py` D.)** Short the sector fund at the
+close of EVERY crack since 2026-06-01 and cover at the close of the day it heals (equal size,
+no leverage, no fees): 99 cracks; 87 healed, costing 1.04% each on average (90.4% in total,
+median two sessions, 17% of them profitable); the 12 that did not heal made 96.2%; the book
++5.8%. Technology alone: seven healed cracks cost 6.9%, the eighth made 24.7%. Six of those
+seven false alarms had the semiconductor fund out 24 sessions or more, the same flag the real
+crack carried. Split by what was known the day before, the only row not carried by one trade
+is the thick cushion: 33 cracks, 3 deep, the book -27.4%. The "theme fund out six or more
+days" row (+27.6% over 15 cracks) and the "0 to 2 large names out" row (+23.7% over 8) are the
+single technology trade.
+
+**10. Which vehicle? (`nov_drop.py` E; HINDSIGHT, each sector's last crack is by construction
+the one that did not heal.)** Short from the crack-day close to the 11-20 close:
+
+| sector, crack day | fund | ten largest names, equal weight | followers | short the fund, long SPY |
+|---|---|---|---|---|
+| communications 04-21 | +14.1% | +11.8% | none | +12.6% |
+| utilities 07-27 | +5.9% | +5.2% | none | -0.6% |
+| industrials 08-17 | +15.8% | +19.1% | none | +5.3% |
+| technology 10-08 | +24.7% | +28.3% | +48.4% (8 names) | +13.8% |
+| energy 11-02 | +10.0% | +9.8% | none | +1.7% |
+| materials 11-05 | +7.6% | +7.5% | none | +1.7% |
+| real estate 11-12 | +4.3% | +4.4% | none | -4.6% |
+| discretionary 11-13 | +6.3% | +4.1% | +11.3% (3 names) | -2.3% |
+| financials 11-16 | +6.2% | +7.3% | +14.5% (8 names) | -0.6% |
+| staples 11-16 | +2.3% | +2.2% | none | -4.5% |
+| health care 11-16 | +5.7% | +5.6% | none | -1.1% |
+
+The largest names tracked their fund within a few points. The followers made about twice the
+fund, in line with their beta; they were not priced on the false alarms. Inside technology the
+spread between names was wider than the spread between vehicles: among the ten largest, INTC
++52.1%, NVDA +45.5%, MU +42.6% down to MSFT +7.1% and AAPL -0.7%; among the followers, IREN
++66.9% and NBIS +63.0% down to ENTG +23.2%. Nothing in this look selects the name. The pair
+against SPY paid where the sector was the source of the weakness (technology, communications,
+industrials) and gave the gain back in the November cracks, when the whole market fell.
+
+**11. All nine long-history sectors in conflict, as a state (`conflict_state.py`).** A day on
+which no sector is in full agreement up or down: 10.6% of days since 1999, 362 separate
+spells, median length one session (the week's open resets on Monday). A spell of five or more
+sessions happened 27 times before this one; 2026-11-20 was day five of the 28th.
+
+| SPY after | next 20 sessions | next 40 sessions | a close 5%+ lower within 20 |
+|---|---|---|---|
+| every day | +0.75%, higher 64% | +1.49%, higher 67% | 18.2% |
+| first day of a spell (362) | +1.16%, higher 68% | +2.19%, higher 70% | 17.1% |
+| day five of a long spell (27 with a future) | +3.36%, higher 23 of 27 | +5.61%, higher 23 of 27 | 2 of 27 |
+
+The lowest close inside the next 20 sessions was never more than 5.9% below day five. The
+state is not only the pullback seen from inside: with SPY more than 10% off its high, day five
+of a long spell averaged +4.46% over 20 sessions (12 cases, 10 higher) against +0.22% on other
+days that far down; within 3% of the high +2.19% (7 cases) against +0.48%; between, +2.73% (8
+cases) against +1.32%.
+
+Read the other way, and why this spell only partly fits. Most of the deep-drawdown cases
+entered the state from BELOW, sectors climbing out of full agreement down after a low was
+already in (October and November 2001, March 2009, March and April 2020). This spell entered
+from above and SPY fell 8.6% during its five sessions; the largest fall inside any earlier
+long spell was 5.5% (November 2011, the closest twin: entered from above, SPY 11.7% off its
+high and at a 20-day low on day five; +4.8% over 20 sessions, +11.1% over 40). Eight earlier
+long spells entered from above with SPY at a 20-day low on day five: seven were higher 20
+sessions later, six at 40 (the two that were not: -6.2% November 2015, -1.1% June 2007); six
+of the eight were shallow pullbacks, under 5% off the high. The worst 40-session outcome
+after any long spell was -7.7% (December 2002). Long spells cluster in a few years (2001-02,
+2011, 2013, 2020), so 27 is fewer independent events than it reads.
+
+Without the week level (month, quarter, half-year, year) the state is rarer: 3.3% of days, 93
+spells, 14 of five sessions or more; SPY after a spell start +1.87% over 20 sessions. On
+2026-11-20 the market was NOT in that state: staples was still above its month, quarter,
+half-year and year opens and below only the week. The count of sectors in full agreement whips
+within a week (5, 1, 5) for the same reason: on Monday the week's level is the day.
+
 ## Read both ways
 
+- A path worth naming (addendum): a persisting all-in-conflict state has been followed by a
+  stronger SPY than an ordinary day, inside every distance-off-the-high band. A kill test for
+  it: the favourable cases were mostly recoveries entered from below; the November 2026 spell
+  entered from above at a speed outside the sample.
+- A kill test that landed (addendum): a narrow tape at an index high was not followed by more
+  drops than a broad one; and shorting every crack was flat (many small losses, a few large
+  gains), with nothing here telling the real crack from the false ones in advance.
 - A path worth naming: how tightly the levels are stacked under price (the cushion to the third
   level) separates shallow from deep cracks better than anything else here, and it is known
   before the crack.
