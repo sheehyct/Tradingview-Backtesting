@@ -38,17 +38,11 @@ Before forming today's priorities, check whether the previous session was review
 
 See `docs/EXTERNAL_REVIEW_PROTOCOL.md`.
 
-## Step 2: Query OpenMemory
+## Step 2: Output session brief
 
-Call `mcp__openmemory__openmemory_query` with:
-- `query`: "{previous session ticket, e.g. TVB-0} {2-3 domain keywords: timeframe continuity, TFO, perps}"
-- `k`: 5
-
-Do NOT use a generic query -- old high-salience sessions outrank recent ones. Anchor on the
-latest `TVB-*` ticket + domain terms. Extract the most recent 1-2 summaries, any blockers, and
-any decisions that constrain today's work.
-
-## Step 3: Output session brief
+(The OpenMemory query that used to sit here was retired 2026-11-21 on the owner's word:
+HANDOFF plus the auto-loaded memory index carry cross-session context. Do not call
+`mcp__openmemory__*` from this sequence.)
 
 ```
 SESSION STARTUP COMPLETE
@@ -64,7 +58,7 @@ TODAY'S PRIORITIES:
 
 RECENT CONTEXT:
 - {key point from HANDOFF.md}
-- {key point from OpenMemory}
+- {standing decision or constraint from the memory index, if one bears on today}
 
 EXTERNAL REVIEW (prior session):
 - {RETURNED: verdict + top finding(s), folded into priorities | PENDING: awaiting review of {range} | N/A}
@@ -78,7 +72,7 @@ REMINDERS:
 Awaiting user direction...
 ```
 
-## Step 4: Wait for user direction
+## Step 3: Wait for user direction
 
 Do NOT start any development work until the user provides direction.
 

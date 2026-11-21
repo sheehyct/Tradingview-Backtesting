@@ -105,30 +105,25 @@ Both are written in this step, from the same fields, so they cannot drift.
 - Status: REQUESTED; session TVB-{N} + title + request date.
 - Audit output path: `docs/reviews/tvb{N}-codex-audit.md`.
 - Commits to review: leave as `{pending push}` here; PIN concrete shas after the
-  commit/push in Step 5, following the RANGE-PIN RULE above (`{first}^..{head}`;
+  commit/push in Step 4, following the RANGE-PIN RULE above (`{first}^..{head}`;
   verify with `git diff --name-status`). Include sibling-repo commits (with local
   paths) marked "local transport only".
 - Scope + focus areas: same content as the HANDOFF block.
 - Keep the read-first list and output contract sections (they are boilerplate;
   update only if the protocol changed).
 
-## Step 3: Store in OpenMemory
+## Step 3: Commit
 
-Call `mcp__openmemory__openmemory_store` with a structured summary (session number, date, key
-accomplishments, decisions, blockers).
-- `tags`: ["TVB-{N}", "tradingview-backtesting", "{relevant-topic}", ...]
-- `metadata`: {"session": "TVB-{N}", "date": "{YYYY-MM-DD}", "project": "tradingview-backtesting"}
-
-Confirm the return shows a memory id before continuing.
-
-## Step 4: Commit
+(The OpenMemory store that used to precede this step was retired 2026-11-21 on the owner's
+word: the HANDOFF entry is the session record. Do not call `mcp__openmemory__*` from this
+sequence.)
 
 Commit with a conventional-commit message (include the message + `git diff --stat` in the
-Step 6 summary). Commits and pushes are AUTONOMOUS -- no per-commit user confirmation
+Step 5 summary). Commits and pushes are AUTONOMOUS -- no per-commit user confirmation
 (rule retired 2026-07-03; it predated auto mode). The blocking check is the secret-scan
-gate in Step 5, not the user.
+gate in Step 4, not the user.
 
-## Step 5: Secret-Scan Gate and Push
+## Step 4: Secret-Scan Gate and Push
 
 The remote is PUBLIC and feeds cloud review, so "pushed and current" is the default
 end state. After the commit is made, gate then push:
@@ -150,7 +145,7 @@ end state. After the commit is made, gate then push:
 Reviews can also be produced locally (Codex CLI) -- either way they land in
 `docs/reviews/tvb{N}-codex-audit.md`. See `docs/EXTERNAL_REVIEW_PROTOCOL.md`.
 
-## Step 6: Output session summary
+## Step 5: Output session summary
 
 A short ACCOMPLISHED / BLOCKERS / NEXT PRIORITIES / PLAN MODE recommendation block.
 
