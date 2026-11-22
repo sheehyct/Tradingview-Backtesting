@@ -866,6 +866,33 @@ settings at $1 risk, but with 26 fills they stay unread as arms.
   spell entered from above with SPY down 8.6% inside it, outside the sample. Without the week
   level the market was not in the state on 11-20 (staples still held).
 
+### TVB-46 the near-miss study (2026-11-21) -- EXPLORATORY, a count with a theoretical book, no arm, no prereg
+
+- **Trader terms:** the owner is weighing an exit 5 to 10% short of the target, because the
+  targets (a prior day's high or low and the like) act as exhaustion points that price often
+  nears without tagging. So take daily reversal patterns that triggered, did not go outside on
+  the entry day, and were stopped out before reaching their target, and measure how far toward
+  the target each one got. Three families whose stop and target are unambiguous: the 2-2
+  reversal, the 2-1-2 reversal and the 3-1-2 (target = the far wick of the bar before the setup
+  bar or of the 2 or 3 before the inside bar; stop = that bar's other extreme). 142 names (the
+  sector funds, their ten largest holdings, the high-beta followers), daily bars since 2000.
+- **Numbers (`analysis/nearmiss/RECEIPT.md`; both directions):** 34,940 failed patterns got 43%
+  of the way at the median. Only 6.6% got within the last 10% and 2.9% within the last 5%; the
+  share thins steadily toward the target with **no pile-up just short of it**. Moving the exit
+  to 95% or 90% of the way rescues 3% or 7% of the losers and gives up slightly more on the
+  winners (-0.012% and -0.015% per trade); the full target is best in every family and split.
+  The target is close (0.4 to 1% of price) and the stop far (about 2%), so three in four
+  entries that did not go outside on the entry day win, mostly the same day: +0.200% per trade
+  on that cohort. **Put back the 22% of entries whose entry day went outside** (unknowable at
+  entry) and the book is -0.234% per trade, or -0.081% if every such day that also touched the
+  target is counted as a win.
+- **Paths named, none run:** the same measure on the week's and month's targets, where the
+  observation may belong; the order of breaks inside the entry day (intraday bars) and what at
+  the entry predicts a went-outside day. **Kill test that landed:** the early exit on the
+  pattern's own daily target.
+- **Limits:** today's names (survivors); daily bars cannot order events inside a bar; fills at
+  the level; rev strats and the 3-2-2 held out until the owner rules their stop.
+
 ## Maintenance rule
 
 Every round: add a card per new arm (trader terms FIRST, then numbers),
