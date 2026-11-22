@@ -898,6 +898,13 @@ settings at $1 risk, but with 26 fills they stay unread as arms.
   20% of the way). The books sit near zero (week -0.062% per trade, month +0.131%) and split
   by side with the survivor names' drift. Week targets were reached in a median of one to two
   sessions, month targets in three to nine.
+- **The owner's what-if (receipt item 10; a curiosity, one point on a curve):** take profit at
+  40% of the way to the target and only trade setups with 4% or more to the target. Week:
+  9,903 trades, 68% wins, average win +3.0% against average loss -6.7%, -0.14% per trade (the
+  same trades held to the target: 47% wins, -0.25%). Month: 75% wins, +3.8% against -11.1%,
+  +0.01% (held: 56%, +0.24%). Quarter: 77% wins, +5.2% against -18.3%, -0.21% (held: 60%,
+  -0.21%). The win rate lands within about a point and a half of the break-even rate each
+  time; longs gain and shorts lose under both exits (survivor names).
 - **Paths named, none run:** what at the entry anticipates the bar going outside (one in ten on
   the week and above, one in five on the day); the holding period an option on a week or month
   target would need. **Kill test that landed:** the exit 5 to 10% short of the target, on the

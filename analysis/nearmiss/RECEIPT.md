@@ -171,6 +171,33 @@ for the reversals off a 2 or an inside bar, and about one stop distance for the 
 because its stop sits nearer than the setup bar's other side. Per trade: week +0.038%, month
 -0.233%, quarter +0.468%. Its failures got the least of the way (median 26 to 27%).
 
+**10. The owner's what-if (same day): out at 40% of the way, and only setups with 4% or more
+of price between entry and target (`whatif.py --exit 0.40 --min-target 4`).** Asked out of
+curiosity; one point on a curve, never a rule. The stop and the went-3 exit stay where the
+pattern puts them.
+
+| pattern timeframe | trades (share of all entries) | out at 40%: wins | average win | average loss | per trade | held to the target: wins | average win | average loss | per trade |
+|---|---|---|---|---|---|---|---|---|---|
+| week | 9,903 (23%) | 67.7% | +2.96% | -6.66% | -0.14% | 47.4% | +7.32% | -7.07% | -0.25% |
+| month | 5,493 (52%) | 74.7% | +3.78% | -11.11% | +0.01% | 56.3% | +9.30% | -11.44% | +0.24% |
+| quarter | 2,327 (70%) | 76.9% | +5.20% | -18.25% | -0.21% | 59.5% | +12.63% | -19.06% | -0.21% |
+
+Per trade by side, out at 40% then held to the target: week longs +0.26% / +0.62%, shorts
+-0.53% / -1.06%; month longs +0.79% / +2.14%, shorts -0.66% / -1.39%; quarter longs +2.44% /
++5.50%, shorts -2.31% / -4.72% (the survivor names' drift again). On the day 8,069 entries (5%)
+qualify: 72.3% wins, +2.53% against -4.90%, +0.47% per trade at 40% and +0.65% held to the
+target, with the caution of item 4 (the entry days that went outside are left out, one in five).
+
+The win rate sits within about a point and a half of what the sizes of the wins and losses
+need to break even: out at 40% the week needs 69.2% and gets 67.7%, the month needs 74.6% and
+gets 74.7%, the quarter needs 77.8% and gets 76.9%; held to the target they need 49.1%, 55.2%
+and 60.1% and get 47.4%, 56.3% and 59.5%. Moving the exit moves the win rate and the size of
+the win together.
+
+A private chart page (ten example trades on daily candles, picked by a stated rule from a fixed
+list of names; the how-far bars; this table) is built by `chart_page.py`. Its link is not
+recorded in this public repo.
+
 ## Read both ways
 
 - A kill test that landed on every timeframe: failed patterns do not cluster just under the

@@ -34,7 +34,7 @@ STEPS = [(-9, 0.25), (0.25, 0.50), (0.50, 0.75), (0.75, 0.90), (0.90, 0.95), (0.
 STEP_NAMES = ["under 25%", "25-50%", "50-75%", "75-90%", "90-95%", "95%+"]
 
 
-def build() -> tuple[pd.DataFrame, pd.DataFrame]:
+def build(ks: tuple[float, ...] = KS) -> tuple[pd.DataFrame, pd.DataFrame]:
     uni = json.load(open(DATA / "universe.json"))
     kind = {s: "fund" for s in uni["funds"] + uni["index"]} | {s: "name" for s in uni["names"]}
     funnel, rows = [], []
@@ -65,7 +65,7 @@ def build() -> tuple[pd.DataFrame, pd.DataFrame]:
                     dist_pct=100 * abs(cd.target - entry) / entry,
                     risk_pct=100 * abs(entry - cd.stop) / entry,
                 )
-                for k in KS:
+                for k in ks:
                     w = walk_sub(o, h, l, c, cd, e, entry, d1, k)
                     tag = f"{k:.2f}"
                     row[f"out_{tag}"] = w.outcome
