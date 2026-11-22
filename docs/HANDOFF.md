@@ -5,6 +5,144 @@
 
 ---
 
+## Session TVB-46: the November drop through the sector read, the near-miss study on four timeframes, the owner's 40% what-if and a chart page of real trades (COMPLETE)
+
+**Date:** 2026-11-21
+**Status:** COMPLETE. The owner ran `/session-start`, kept the work in this workspace and asked
+questions; each answer was a count, built in conversation with definitions agreed first. Three
+exploratory products, all committed and pushed. No engine, no Pine, no prereg. Suite 564
+passed, 2 skipped (39 new hand-vector tests); ruff clean on tracked files; secret scan clean on
+every push.
+
+### The owner's direction, in the owner's terms
+
+- The work stays in this workspace ("the most up to date").
+- No external reviews for now: the past sessions' pieces may be reused, "we shall see".
+- OpenMemory is retired from the session-start and session-end sequences.
+- All eleven sectors in conflict is "a fairly major sign", almost a regime state of its own.
+  Survivorship in exploration is accepted as how strategy development works.
+- The pipeline he wants: identify the crack (up or down); find sector rotation or divergence
+  for early weakness or strength; look inside that sector for the candidate (more weak or
+  strong names helped, guaranteed nothing); trade it as a basic STRAT daily options strategy,
+  timeframe undecided; exit within 5 to 10% of the distance to a target such as a prior high
+  or low. STRAT is "just basic day/week/month lows/highs for purposes of an exit".
+- Both sides of a crack stay in view (with it and against it): "just data points".
+- The higher timeframes "definitely interest me more".
+- **Rulings:** "failed" = triggered, did not go 3, stopped before the target. The 3-2-2's stop
+  is the 3 bar's extreme; that the reversing 2 traded through it before the entry does not
+  matter, no trade was on yet.
+- **At the close, a flag for the future:** he is leaning toward analysing actual trades
+  instead of "countless tests", on the model of a paper trader of our own (our own fill
+  simulator and ledger, option fills at the quote, a positions and trade-log screen). A
+  direction to design with him, not yet a request.
+
+### What was built and what it said
+
+- **Housekeeping:** the OpenMemory query and store steps removed from `.claude/commands/`
+  session-start and session-end, steps renumbered (60f5c1c).
+- **The November 2026 drop (`analysis/sector/` `nov_fetch.py`, `nov_drop.py`,
+  `conflict_state.py`; receipt items 8 to 11).** SPY's high close was 10-06; at the 11-20 close
+  it was 11.5% below, QQQ 19.9%. At the high only 2 of 11 sectors were in full agreement up;
+  three had been out for months; semiconductors sat below the half-year open for the whole
+  run-up. The read did not call the top: a narrow tape at a high was followed by FEWER 7%
+  drops than a broad one (6% against 14%). Shorting every crack since June: 99 cracks, 87
+  healed at about -1% each, 12 paid it back, +5.8% in all. With hindsight the vehicles ranked
+  fund, ten largest names (about the same), followers (about twice the fund); the pair against
+  SPY paid only where the sector was the source. All nine long-history sectors in conflict for
+  five sessions or more: 27 earlier cases, SPY higher 20 sessions later 23 times, +3.4% on
+  average; this spell entered from above with SPY down 8.6% inside it, outside the sample.
+- **The near-miss study (`analysis/nearmiss/` `core.py`, `htf.py`, `run.py`, `run_htf.py`,
+  `fetch.py`; receipt items 1 to 9).** 142 names since 2000. Daily: 34,940 failed patterns got
+  43% of the way at the median; 6.6% within the last tenth; no pile-up under the target. The
+  daily book is +0.20% per trade only while the 22% of entries whose entry day went outside
+  are left out; put back it is -0.23% (or -0.08% if every such day that also tagged the target
+  is a win). Week, month and quarter, walked on daily bars so going 3 after the entry is a
+  real exit: the same answer (stopped trades 41 to 43% of the way; 5 to 7% in the last tenth);
+  about 68% reach the target; one in ten goes 3 after entry and dies early (20% of the way);
+  the early exit costs more the higher the timeframe; books near zero and split by side with
+  the survivor names' drift. The 3-2-2 with the owner's stop wins about half the time with a
+  target about as far as the stop.
+- **The what-if (`whatif.py`; receipt item 10).** Out at 40% of the way, only setups with 4%+
+  to the target: week 9,903 trades, 67.7% wins, +2.96% against -6.66%, -0.14% per trade; month
+  74.7%, +3.78% against -11.11%, +0.01%; quarter 76.9%, +5.20% against -18.25%, -0.21%. The win
+  rate lands within about a point and a half of the break-even rate each time.
+- **The chart page (`chart_page.py`).** A private page: ten real weekly and monthly trades on
+  daily candles with the pattern's bars boxed, the levels and both exits marked, a five-line
+  story each, the how-far bars and the what-if table. Examples are picked by a stated rule
+  (the most recent of each kind among 17 fixed names). Its link is in the memory index, not
+  here.
+
+### Context for next session
+
+- Everything is EXPLORATORY: no prereg, no audit, today's names and holdings (survivors and
+  hindsight), clustered dates, daily bars, fills at the levels.
+- Extreme numbers that were checked rather than reported: the 73 to 89% daily win rates (a
+  close target, a far stop, and a filter that removes the entry days that went outside); the
+  near-zero heat on shorts from each sector's last crack (the last crack is by construction
+  the one that did not heal, so every crack was priced instead).
+- The daily near-miss code and the higher-timeframe code are held equal by a randomized test:
+  run on one daily bar per period the new walker reproduces the daily study to the trade.
+- The three small bar charts on the chart page had a layout bug at the one look; it was fixed
+  and not re-checked.
+- Data depth on the hosted TradingView connector: stock 5-minute bars about one year, hourly
+  several years, listed option contracts back to their listing, expired contracts gone.
+- `uv run` failed over SSH from the laptop (untrusted mount point) and works on the
+  workstation.
+
+### Files created/modified
+
+- `.claude/commands/session-start.md`, `.claude/commands/session-end.md`.
+- `analysis/sector/`: `nov_fetch.py`, `nov_drop.py`, `conflict_state.py`, `RECEIPT.md`.
+- `analysis/nearmiss/`: `__init__.py`, `core.py`, `htf.py`, `fetch.py`, `run.py`, `run_htf.py`,
+  `whatif.py`, `chart_page.py`, `RECEIPT.md`. Raw bars, row files and the page output are
+  gitignored.
+- `tests/test_nearmiss.py` (39 cases).
+- `docs/ARM_LEDGER.md`, `docs/STRATEGY_CARD.md`, `docs/HANDOFF.md`, `.session_startup_prompt.md`,
+  `docs/reviews/REVIEW_REQUEST.md`.
+
+### Open
+
+- [ ] **The owner reviews** the two receipts and the chart page (and says whether the page's
+      three small bar charts render correctly).
+- [ ] **The paper-trade direction** (the owner's flag at the close): a design conversation
+      first; which workspace, which setups, what a trade record holds, option fills at the
+      quote.
+- [ ] **The rev strats' stop** (the trap bar's far side or the inside bar's): unruled, so the
+      1-2-2, 1-3-2 and 1-3 are held out of the near-miss study.
+- [ ] **Offered, not run:** how often price comes within 5 to 10% of a prior week's or month's
+      high or low and turns, with no pattern required.
+- [ ] **Paths named, none run:** what at the entry anticipates the bar going outside; the
+      holding period an option on a week or month target needs; anything that picks the name
+      inside a sector; the sector strip without the week level.
+- [ ] **OpenMemory's remaining wiring** (`.mcp.json`, `.claude/settings.json`, README, the MCP
+      setup guide, the cloud context note, `/adhd`): offered, not removed.
+- [ ] Carried unchanged: the first TradingView port prereg draft; the owner's readings of
+      `PAIRS_RECEIPT.md` and `BENCH_RECEIPT.md`; the with-trend inside break's T1 STOP-and-ASK;
+      the viewer items; the exit and hierarchy rulings; the skill's removals and its 4.1
+      against 4.3 wording; the ATLAS live-trigger fix.
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb46-codex-audit.md.
+> See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: N/A (the owner's word, 2026-11-21: no external reviews while the work is
+  exploratory; a review is requested when a line is about to become a notice field or a rule)
+- Commits to review: none requested. For the record the session is `3594558..dd70032` on
+  `main` plus the docs-only close-out after it (3594558 is the commit the session started
+  from).
+- Scope / what changed: two exploratory analysis folders, one test file, the two session
+  commands, the session docs. No engine, no Pine.
+- Focus areas (if a review is ever asked for): the pattern levels and the walk in
+  `analysis/nearmiss/core.py` and `htf.py` (strict breaks, the gap rule, the order of events
+  inside the entry bar, the 3-2-2's stop); the level state reused in `analysis/sector/`;
+  whether each receipt sentence is carried by a script's output.
+- Reviewed by: none
+- Findings:
+
+---
+
 ## Session TVB-45: a re-grounding session after the pause; TheStrat Suite read; sector continuity breadth, first look (COMPLETE)
 
 **Date:** 2026-11-18 / 19
@@ -171,8 +309,9 @@ level. A CRACK is the day it stops being so. Eleven sector funds, daily closes, 
       asks four rulings); the owner's readings of `PAIRS_RECEIPT.md` and `BENCH_RECEIPT.md`;
       the with-trend inside break's T1 STOP-and-ASK; the viewer items; the exit and hierarchy
       rulings.
-- [ ] The `docs/reviews/tvb44-codex-audit.md` check was not done this session (no
-      `/session-start`); next session looks for it.
+- [x] The `docs/reviews/tvb44-codex-audit.md` check was not done this session (no
+      `/session-start`); next session looks for it. (TVB-46: looked, no file exists; reviews
+      set aside on the owner's word.)
 
 ### External Review (for Codex / cloud review agents)
 
@@ -180,7 +319,8 @@ level. A CRACK is the day it stops being so. Eleven sector funds, daily closes, 
 > below) and write a verbatim assessment to docs/reviews/tvb45-codex-audit.md.
 > See docs/EXTERNAL_REVIEW_PROTOCOL.md.
 
-- Review status: REQUESTED
+- Review status: N/A (2026-11-21, TVB-46: the owner's word, no external reviews while the work
+  is exploratory; no audit file was ever written)
 - Commits to review: `a914880..04d8612` on `main` (a914880 is the commit the session started
   from; 3095029 the first look; 04d8612 the two checks and the close-out docs; the docs-only pin
   after it names this range). `git diff --name-status a914880..04d8612` lists every file the
