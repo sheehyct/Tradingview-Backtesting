@@ -207,3 +207,150 @@ def test_walk_short_side_mirrors():
     w = run([[0, 0, 0, 0], [102, 103, 94, 95], [95, 111, 91, 110]], st=st)
     assert (w.outcome, w.fill) == ("failed", 110.0)
     assert w.p_lo == pytest.approx(0.6) and w.p_hi == pytest.approx(0.9)
+
+
+# ----------------------------------------------------------------------------- higher timeframes
+
+import pandas as pd  # noqa: E402
+
+from analysis.nearmiss.htf import Cand, aggregate, candidates, enter, walk_sub  # noqa: E402
+
+
+def test_aggregate_weeks_first_open_last_close_and_extremes():
+    dates = pd.bdate_range("2024-01-01", periods=10)  # two full ISO weeks
+    o = np.arange(10, 20, dtype=float)
+    h, l, c = o + 2, o - 2, o + 1
+    big_o, big_h, big_l, big_c, first, last = aggregate(dates, o, h, l, c, "W")
+    assert list(first) == [0, 5] and list(last) == [4, 9]
+    assert list(big_o) == [10, 15] and list(big_c) == [15, 20]
+    assert list(big_h) == [16, 21] and list(big_l) == [8, 13]
+
+
+def test_322_bull_levels_stop_is_the_3s_extreme():
+    # owner's ruling 2026-11-21: stop = the 3 bar's extreme, though the 2D traded through it
+    o, h, l, c = bars(
+        [[105, 108, 102, 104], [104, 110, 100, 103], [103, 109, 98, 100], [100, 109.5, 99, 109]]
+    )
+    cd = [x for x in candidates(o, h, l, c) if x.side == 1]
+    assert len(cd) == 1
+    assert (cd[0].family, cd[0].trigger, cd[0].target, cd[0].stop, cd[0].other) == (
+        "3-2-2 reversal",
+        109,
+        110,
+        100,
+        98,
+    )
+
+
+def test_one_day_per_bar_reproduces_the_daily_study():
+    rng = np.random.default_rng(7)
+    n = 3000
+    c = np.round(100 + np.cumsum(rng.normal(0, 1, n)), 1)
+    o = np.round(np.r_[100, c[:-1]] + rng.normal(0, 0.3, n), 1)
+    h = np.round(np.maximum(o, c) + np.abs(rng.normal(0, 0.6, n)), 1)
+    l = np.round(np.minimum(o, c) - np.abs(rng.normal(0, 0.6, n)), 1)
+    daily = {(s.i, s.family, s.side): s for s in find_setups(o, h, l, c)}
+    seen = 0
+    for cd in candidates(o, h, l, c):
+        if cd.family == "3-2-2 reversal":
+            continue
+        s = daily[(cd.i, cd.family, cd.side)]
+        status, e, entry = enter(cd, o, h, l, c, cd.i, cd.i)
+        if s.status == "triggered" and s.went3:
+            assert status == "same day both"
+        elif s.status == "flat setup bar":
+            assert status == "stop beyond trigger"
+        elif s.status == "not triggered":  # the daily study does not split this status
+            assert status in ("not triggered", "other side first")
+        else:
+            assert status == s.status
+        if status != "triggered":
+            continue
+        seen += 1
+        assert (e, entry) == (cd.i, cd.trigger)
+        for k in (1.0, 0.9):
+            a, b = walk(o, h, l, s, k), walk_sub(o, h, l, c, cd, e, entry, cd.i, k)
+            assert (a.outcome, a.j) == (b.outcome, b.j)
+            assert a.p_lo == pytest.approx(b.p_lo) and a.p_hi == pytest.approx(b.p_hi)
+            if a.outcome != "open":
+                assert a.fill == pytest.approx(b.fill)
+    assert seen > 300
+
+
+# a weekly 2-1-2 long: trigger 104, target 108, stop 95, the inside week's low (other) 97
+WEEK = Cand("2-1-2 reversal", 1, 0, 104.0, 108.0, 95.0, 97.0)
+
+
+def days(rows):
+    return bars(rows)
+
+
+def test_enter_first_day_through_the_trigger():
+    o, h, l, c = days([[100, 103, 99, 102], [102, 105, 101, 104.5], [104, 106, 103, 105]])
+    assert enter(WEEK, o, h, l, c, 0, 2) == ("triggered", 1, 104.0)
+
+
+def test_enter_mid_bar_gap_fills_at_the_open_but_a_bar_open_gap_is_missed():
+    o, h, l, c = days([[100, 103, 99, 102], [105, 106, 104.5, 105.5]])
+    assert enter(WEEK, o, h, l, c, 0, 1) == ("triggered", 1, 105.0)
+    assert enter(WEEK, o, h, l, c, 1, 1)[0] == "gap past trigger"
+
+
+def test_enter_other_side_first_is_not_this_pattern():
+    o, h, l, c = days([[100, 103, 96, 98], [98, 105, 97.5, 104.5]])
+    assert enter(WEEK, o, h, l, c, 0, 1)[0] == "other side first"
+
+
+def test_enter_one_day_breaking_both_is_set_apart():
+    o, h, l, c = days([[100, 105, 96, 98]])
+    assert enter(WEEK, o, h, l, c, 0, 0)[0] == "same day both"
+
+
+def test_walk_sub_other_side_inside_the_entry_bar_is_went_3():
+    # entry day 0; day 1 is still inside the entry week (d1 = 1) and takes 97
+    o, h, l, c = days([[100, 105, 99, 104.5], [104, 106, 96, 97]])
+    w = walk_sub(o, h, l, c, WEEK, 0, 104.0, 1)
+    assert (w.outcome, w.j, w.fill) == ("went3", 1, 97.0)
+    assert w.p_lo == pytest.approx(0.25) and w.p_hi == pytest.approx(0.5)
+
+
+def test_walk_sub_after_the_entry_bar_closes_only_the_stop_counts():
+    # the same two days, but the entry week ended on day 0: 96 is above the stop at 95
+    o, h, l, c = days([[100, 105, 99, 104.5], [104, 106, 96, 97], [97, 98, 94, 94.5]])
+    w = walk_sub(o, h, l, c, WEEK, 0, 104.0, 0)
+    assert (w.outcome, w.j, w.fill) == ("failed", 2, 95.0)
+    assert w.p_lo == pytest.approx(0.5)
+
+
+def test_walk_sub_target_first_wins():
+    o, h, l, c = days([[100, 105, 99, 104.5], [104, 108, 103, 107]])
+    assert walk_sub(o, h, l, c, WEEK, 0, 104.0, 1).outcome == "won"
+
+
+# a 3-2-2 long: trigger 109, target 115, stop 100 (the 3's low), the 2D's low (other) 98
+T322 = Cand("3-2-2 reversal", 1, 0, 109.0, 115.0, 100.0, 98.0)
+
+
+def test_322_entry_day_that_opened_under_the_stop_is_not_stopped_by_its_own_open():
+    o, h, l, c = days([[99, 110, 98.5, 109.5]])
+    status, e, entry = enter(T322, o, h, l, c, 0, 0)
+    assert (status, entry) == ("triggered", 109.0)
+    assert walk_sub(o, h, l, c, T322, 0, 109.0, 0).outcome == "open"
+
+
+def test_322_entry_day_closing_beyond_the_stop_failed_that_day():
+    o, h, l, c = days([[101, 110, 99, 99.5]])
+    assert enter(T322, o, h, l, c, 0, 0)[0] == "triggered"
+    w = walk_sub(o, h, l, c, T322, 0, 109.0, 0)
+    assert (w.outcome, w.j, w.fill) == ("failed", 0, 100.0)
+
+
+def test_322_entry_day_dipping_through_the_stop_and_closing_back_is_set_apart():
+    o, h, l, c = days([[101, 110, 99, 105]])
+    assert enter(T322, o, h, l, c, 0, 0)[0] == "same day both"
+
+
+def test_322_stop_applies_inside_the_entry_bar_too():
+    o, h, l, c = days([[101, 110, 100.5, 109.5], [109, 111, 99.5, 100.2]])
+    w = walk_sub(o, h, l, c, T322, 0, 109.0, 1)
+    assert (w.outcome, w.fill) == ("failed", 100.0)

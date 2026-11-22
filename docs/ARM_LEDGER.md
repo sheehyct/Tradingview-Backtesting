@@ -886,12 +886,24 @@ settings at $1 risk, but with 26 fills they stay unread as arms.
   on that cohort. **Put back the 22% of entries whose entry day went outside** (unknowable at
   entry) and the book is -0.234% per trade, or -0.081% if every such day that also touched the
   target is counted as a win.
-- **Paths named, none run:** the same measure on the week's and month's targets, where the
-  observation may belong; the order of breaks inside the entry day (intraday bars) and what at
-  the entry predicts a went-outside day. **Kill test that landed:** the early exit on the
-  pattern's own daily target.
-- **Limits:** today's names (survivors); daily bars cannot order events inside a bar; fills at
-  the level; rev strats and the 3-2-2 held out until the owner rules their stop.
+- **The week, month and quarter (same day, the owner's direction; receipt items 6 to 9):** the
+  same patterns on weekly, monthly and quarterly bars, walked on the daily bars inside them so
+  the order of events is known and going outside after the entry is a real exit. Owner's
+  ruling folded: the 3-2-2's stop is the 3 bar's extreme. **Same answer on every timeframe:**
+  stopped-out patterns got 41 to 43% of the way at the median, 5 to 7% of them within the last
+  tenth, and the share thins toward the target with no pile-up. The early exit costs more the
+  higher the timeframe (week -0.014% / -0.017% per trade at 95% / 90% of the way; month
+  -0.050% / -0.091%; quarter -0.174% / -0.276%). About two in three entries reach the target
+  (week 68%, month 69%); one in ten goes outside after the entry and those die early (median
+  20% of the way). The books sit near zero (week -0.062% per trade, month +0.131%) and split
+  by side with the survivor names' drift. Week targets were reached in a median of one to two
+  sessions, month targets in three to nine.
+- **Paths named, none run:** what at the entry anticipates the bar going outside (one in ten on
+  the week and above, one in five on the day); the holding period an option on a week or month
+  target would need. **Kill test that landed:** the exit 5 to 10% short of the target, on the
+  day, week, month and quarter.
+- **Limits:** today's names (survivors); daily bars cannot order events inside one day; fills
+  at the level; the rev strats still held out until the owner rules their stop.
 
 ## Maintenance rule
 

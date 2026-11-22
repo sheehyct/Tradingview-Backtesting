@@ -102,8 +102,86 @@ the hopeful end of the 2-1-2 reversal (-0.007%). The early exits do not change t
 (survivors: today's large names went up). Funds +0.147%, single names +0.205%. Since 2020
 +0.156%. Failed patterns' median progress is 42 to 43% in every split.
 
+## Addendum, same day: the week, the month and the quarter; the 3-2-2 added
+
+The owner's two rulings (2026-11-21): the 3-2-2's stop is the 3 bar's extreme (that the
+reversing 2 traded through it before the entry does not matter, no trade was on yet); and the
+higher timeframes are the ones of interest. `htf.py` finds the same families on weekly, monthly
+and quarterly bars and walks each one on the DAILY bars inside them, so the order of events
+inside the entry bar is known:
+
+- entry = the first day inside the entry bar that trades through the trigger (the open on a
+  mid-bar gap; the entry BAR opening past the trigger is still a missed entry);
+- if the setup bar's other side breaks on an earlier day than the trigger, it is not this
+  pattern (dropped);
+- **went 3 is now a real exit**: after the entry, while the entry bar is still open, a day takes
+  the setup bar's other side, out at that level. Once the entry bar closes only the stop and
+  the target remain;
+- a single day that breaks both the trigger and the other side is still unknown, but on the
+  week and above that is about 1% of entries or less (on the day it is the 22% of item 4).
+
+Run on one daily bar per period, the new code reproduces items 1 to 3 above to the trade
+(2-2 reversal: 114,584 trades, 72.7% wins, +0.195%), and a randomized test holds the two walkers
+equal (`tests/test_nearmiss.py`, 39 cases). Run: `uv run python -m analysis.nearmiss.run_htf`.
+
+**6. The same measure on each timeframe (five families, both sides).**
+
+| pattern timeframe | entries | won | stopped | went 3 after entry | stopped: median progress | went 3: median progress | stopped that got within the last 10% | sessions to a win (2-2 reversal) |
+|---|---|---|---|---|---|---|---|---|
+| day | 154,363 | 74% | 25% | not seen (one bar) | 42% | n/a | 6.4% | 0 |
+| week | 42,611 | 68% | 23% | 10% | 41% | 21% | 6.7% | 2 |
+| month | 10,610 | 69% | 21% | 10% | 43% | 20% | 5.9% | 7 |
+| quarter | 3,337 | 68% | 21% | 11% | 43% | 20% | 5.1% | 18 |
+
+Of everything that did not reach its target (stopped or went 3), the share by 10-point step of
+the way falls from the first step to the last on every timeframe: week 18.0, 14.5, 12.4, 10.9,
+9.2, 9.0, 7.7, 6.6, 6.4, 5.3; month 17.7, 15.0, 12.0, 10.6, 9.6, 8.8, 8.0, 6.6, 7.1, 4.6;
+quarter 16.9, 14.9, 13.3, 10.5, 9.4, 7.9, 7.9, 6.5, 8.4, 4.3. **No pile-up just short of the
+target on any timeframe; the last tenth of the way holds the fewest.** A pattern that goes 3
+after the entry dies early: half of them never got a quarter of the way.
+
+**7. Moving the exit in, by timeframe (every resolved entry; went-3 exits included).**
+
+| pattern timeframe | per trade at the target | at 95% of the way | at 90% | losers rescued at 95% / 90% | net of the early exit at 95% / 90% |
+|---|---|---|---|---|---|
+| day (the unknown entry days left out) | +0.204% | +0.192% | +0.189% | 2.9% / 6.7% | -0.012% / -0.015% |
+| week | -0.062% | -0.077% | -0.080% | 2.3% / 5.4% | -0.014% / -0.017% |
+| month | +0.131% | +0.081% | +0.041% | 2.1% / 4.6% | -0.050% / -0.091% |
+| quarter | -0.186% | -0.360% | -0.462% | 1.7% / 4.3% | -0.174% / -0.276% |
+
+The early exit costs more the higher the timeframe: fewer near-misses to rescue and a larger
+distance given up on each winner. The books themselves sit near zero and split by side with
+the names' drift: week longs +0.273% and shorts -0.398%; month +1.166% and -0.877%; quarter
++3.709% and -3.910% (today's large names went up for 25 years; this is the survivor list
+talking, not the pattern).
+
+**8. Geometry by timeframe (medians).** The target is always a fraction of the stop distance
+for the reversals off a 2 or an inside bar, and about one stop distance for the 3-2-2:
+
+| family | week: target / stop, % of price | month | quarter |
+|---|---|---|---|
+| 2-2 reversal | 2.07 / 4.39 | 4.38 / 9.57 | 7.38 / 16.85 |
+| 2-1-2 reversal | 1.20 / 4.77 | 2.77 / 11.33 | 4.87 / 20.38 |
+| 3-1-2 reversal | 1.86 / 4.80 | 3.39 / 10.70 | 6.18 / 21.71 |
+| 3-1-2 continuation | 0.78 / 6.06 | 1.67 / 14.73 | 3.30 / 19.06 |
+| 3-2-2 reversal | 3.06 / 2.82 | 6.60 / 6.06 | 10.38 / 11.69 |
+
+**9. The 3-2-2 with the owner's stop.** About half win on every timeframe (week 52%, month
+49%, quarter 52%) with a target about as far as the stop; it never goes 3 as a separate exit
+because its stop sits nearer than the setup bar's other side. Per trade: week +0.038%, month
+-0.233%, quarter +0.468%. Its failures got the least of the way (median 26 to 27%).
+
 ## Read both ways
 
+- A kill test that landed on every timeframe: failed patterns do not cluster just under the
+  target, on the day, week, month or quarter. The early exit rescues 2 to 7% of losers and
+  costs more than it saves, increasingly so on the higher timeframes.
+- A path worth naming: going 3 after the entry is an early death (median 20% of the way) and is
+  one trade in ten on the week and above; a rule that leaves at that moment is what this walk
+  already does, and anything that anticipates it is worth more than the exit's placement.
+- A path worth naming: time to the target when it works. Week targets (about 1 to 3% away)
+  were reached in a median of one to two sessions, month targets (about 3 to 7%) in three to
+  nine: the holding period an option on these would need.
 - A kill test that landed: on daily bars, for these families, failed patterns do not cluster
   just under the target. An exit 5 to 10% short rescues 3 to 7% of the losers and costs slightly
   more on the winners than it saves.
@@ -125,4 +203,8 @@ the hopeful end of the 2-1-2 reversal (-0.007%). The early exits do not change t
   stop fills at the open. No fees, no slippage, no option pricing.
 - Clustered dates: 142 names break on the same days; the trade count overstates independent
   events.
-- Three pattern families only; rev strats and the 3-2-2 are held out until the stop is ruled.
+- The rev strats (1-2-2, 1-3-2, 1-3) are still held out: their stop ("trap or inside bar
+  extreme") is not ruled. The 3-2-2 runs in the addendum with the owner's stop; items 1 to 5
+  are the first three families only.
+- A 3-2-2 entry day that opened beyond the stop and closed back on the trade's side is taken as
+  not stopped by its own open (the dip is read as coming before the entry).
