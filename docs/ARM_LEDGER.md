@@ -912,6 +912,30 @@ settings at $1 risk, but with 26 fills they stay unread as arms.
 - **Limits:** today's names (survivors); daily bars cannot order events inside one day; fills
   at the level; the rev strats still held out until the owner rules their stop.
 
+### TVB-47 the exit lab (2026-11-23) -- EXPLORATORY, a count with a theoretical book, no arm, no prereg
+
+- **In trader terms:** the monthly reversal trades from the near-miss study (2-2, 2-1-2, 3-1-2
+  and 3-2-2 reversals on monthly bars, entered and managed on daily bars), each run nine ways:
+  held to the pattern's own target and stop (the control), or with ONE simple exit laid on top:
+  out at 40% of the way; out when a day breaks the prior day's low; a give-back trail (Guardian's
+  trailing stop translated to the stock: on after a third of the way, out after giving back half
+  the distance); a Chandelier ATR trail; a close back through the 9 EMA; RSI closing under 50; a
+  Bollinger band tag; out after ten sessions. Every setting is the tool's usual default.
+- **What it said (receipt item 11):** 10,376 entries on 142 names since 2000. The control makes
+  +0.14% per trade (69% wins, +5.0% against -10.6%). Every added exit lands between -0.06% and
+  +0.09% per trade. They are very different trades to sit in (the prior day's low: 46% wins,
+  +2.1% against -1.8%, two sessions; 40% of the way: 83% wins, +2.2% against -10.4%), and the
+  same trade on the bottom line: what each rule saves on the losers it gives back on the
+  winners. Longs gain and shorts lose under every exit (survivor names).
+- **Both directions:** the 2-1-2 reversal and the highest-beta third of names are positive under
+  most exits; the middle-beta third and the short side are negative under all of them. None is
+  a selection.
+- **The chart tool:** `pine/reversal_exit_lab.pine`, a strategy with the exit as a toggle and a
+  table of all nine exits for the chart's own ticker. Its table matches the Python count to the
+  third decimal on the same bars.
+- **Not counted:** option prices (the shape and the holding time are most of an option trade);
+  week patterns (they need an hourly chart); continuations; the rev strats.
+
 ## Maintenance rule
 
 Every round: add a card per new arm (trader terms FIRST, then numbers),

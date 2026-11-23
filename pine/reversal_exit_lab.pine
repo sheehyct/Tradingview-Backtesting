@@ -1,0 +1,596 @@
+// This Source Code Form is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// (c) sheehyct
+//@version=6
+// =============================================================================
+// Reversal Exit Lab [TVB-47] -- EXPLORATORY. One entry, one target, nine exits.
+//
+// QUICK START
+//   1. Put it on a DAILY chart of a stock or fund (month patterns need daily
+//      bars; week patterns want an hourly chart). Regular hours.
+//   2. "Pattern timeframe" = where the STRAT pattern lives (default: month).
+//      The script builds those bars itself from the chart's bars.
+//   3. "Exit to trade and draw" = the exit the Strategy Tester trades and the
+//      chart shows. The TABLE always shows all nine side by side.
+//   4. On the chart: grey boxes = the two pattern bars; blue line = entry,
+//      violet = target, orange = the pattern's stop; the label at the end
+//      says what took the trade out and what it made, in % of price.
+//
+// WHAT IS FIXED (same as the near-miss study, analysis/nearmiss):
+//   Families  2-2 reversal, 2-1-2 reversal, 3-1-2 reversal, 3-2-2 reversal.
+//   Entry     price trades strictly through the setup bar's near side. A
+//             pattern bar that OPENS beyond the trigger is a missed entry.
+//   Target    the far wick of the bar before the setup bar.
+//   Stop      the setup 2's far side (2-2); the first bar's other extreme
+//             (2-1-2, 3-1-2, 3-2-2).
+//   Went 3    while the entry bar is still open, the setup bar's other side
+//             breaks: out at that level.
+//
+// WHAT THE TOGGLE ADDS (one more way out, default settings, never tuned):
+//   Pattern only      nothing (the control)
+//   Share of the way  out at 40% of the way to the target
+//   Prior bar         a bar trades through the previous bar's low (longs)
+//   Give-back trail   Guardian's trail in stock terms: armed a third of the
+//                     way to the target, out after giving back half the
+//                     entry-to-target distance from the best price
+//   Chandelier        a close through 3 x ATR(22) off the best price
+//   EMA               a close on the wrong side of the 9 EMA
+//   RSI               a close with RSI(14) on the wrong side of 50
+//   Bollinger tag     the bar tags the outer band: out at that close
+//   Time stop         still open 10 bars after the entry: out at that close
+//
+// TWO SETS OF NUMBERS, ON PURPOSE:
+//   TABLE  = the study's accounting. EVERY entry is taken in EVERY exit mode
+//            (trades may overlap), equal size, no fees, % of price. A bar that
+//            touches both the profit exit and an adverse level counts as the
+//            adverse one. Open trades are not counted.
+//   TESTER = TradingView's own order engine on the selected exit. One position
+//            at a time (a setup that arrives while a trade is open is skipped),
+//            a gap through the target fills at the open (the table credits only
+//            the target), and its own guess at the order of events inside a
+//            bar. A first-bar gap through the trigger that dips back and fills
+//            is closed the same bar and marked GAP FILL: it is not the pattern.
+//            Expect the tester near the table's row, not equal to it.
+//
+// The Python twin is analysis/nearmiss/exits.py (same rules, same arithmetic).
+// PARITY 2026-11-23: on the same bars the table equals the twin to the cent
+// (CRWV, week patterns on daily bars: 25 trades in each of the nine exits).
+// Nothing here is a rule, a signal or a recommendation.
+// =============================================================================
+strategy("Reversal Exit Lab [TVB-47]", shorttitle = "Exit Lab", overlay = true, initial_capital = 10000000, default_qty_type = strategy.cash, default_qty_value = 100000, commission_type = strategy.commission.percent, commission_value = 0, slippage = 0, margin_long = 0, margin_short = 0, pyramiding = 0, process_orders_on_close = true, calc_on_every_tick = false, calc_on_order_fills = false, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
+
+// ---------------------------------------------------------------- inputs
+const string G_MAIN = "Pattern and exit"
+const string G_PAR = "Exit settings (defaults = each tool's usual setting)"
+const string G_FLT = "Which setups"
+const string G_VIS = "Display"
+
+const string X_PATTERN = "Pattern only (control)"
+const string X_FRAC = "Share of the way"
+const string X_PRIOR = "Prior bar low / high"
+const string X_GIVE = "Give-back trail (Guardian)"
+const string X_CHAND = "Chandelier (ATR trail)"
+const string X_EMA = "EMA close-through"
+const string X_RSI = "RSI loses 50"
+const string X_BB = "Bollinger band tag"
+const string X_TIME = "Time stop"
+
+string ptf = input.timeframe("M", "Pattern timeframe", options = ["W", "M", "3M"], group = G_MAIN, tooltip = "Where the STRAT pattern lives. Month on a daily chart is the tested default. Week patterns resolve in about two sessions, so run those on an hourly chart or the exits have no bars to work with.")
+string exitSel = input.string(X_PATTERN, "Exit to trade and draw", options = [X_PATTERN, X_FRAC, X_PRIOR, X_GIVE, X_CHAND, X_EMA, X_RSI, X_BB, X_TIME], group = G_MAIN, tooltip = "The exit the Strategy Tester trades and the chart draws. The pattern's own target, stop and went-3 exit stay on underneath every choice. The table shows all nine regardless.")
+
+float fracPct = input.float(40.0, "Share of the way: exit at % of the way", minval = 5, maxval = 100, step = 5, group = G_PAR, tooltip = "The fallback from the near-miss study: out at this share of the distance from entry to target. 40 is the value asked about; it was never tuned.")
+float armPct = input.float(33.3, "Give-back: arms at % of the way", minval = 0, maxval = 95, step = 1, group = G_PAR, tooltip = "Guardian arms its trail at +10% of option premium against a 25 to 35% target: about a third of the way. Same ratio here, in stock terms.")
+float givePct = input.float(50.0, "Give-back: out after giving back % of the distance", minval = 5, maxval = 200, step = 5, group = G_PAR, tooltip = "Guardian trails 12 to 20% of premium against a 25 to 35% target: about half the distance. Measured from the best price since entry.")
+int atrLen = input.int(22, "Chandelier: ATR length", minval = 2, group = G_PAR, tooltip = "The Chandelier Exit's usual 22.")
+float atrMult = input.float(3.0, "Chandelier: ATR multiple", minval = 0.5, step = 0.5, group = G_PAR, tooltip = "The usual 3. The line hangs this many ATRs off the best price since entry and only tightens. Exit = a CLOSE through the line as it stood the bar before.")
+int emaLen = input.int(9, "EMA length", minval = 2, group = G_PAR, tooltip = "9 is the fast line; 21 is the common slower one. Exit = any close on the wrong side, from the entry bar on.")
+int rsiLen = input.int(14, "RSI length", minval = 2, group = G_PAR, tooltip = "Wilder's 14. Exit = a close with RSI under 50 for a long, over 50 for a short.")
+int bbLen = input.int(20, "Bollinger length", minval = 2, group = G_PAR, tooltip = "The usual 20 with 2 deviations. A take-profit: the bar's high tags the upper band (longs) and the trade is out at that close.")
+float bbMult = input.float(2.0, "Bollinger deviations", minval = 0.5, step = 0.5, group = G_PAR, tooltip = "The usual 2.")
+int timeBars = input.int(10, "Time stop: bars after entry", minval = 1, group = G_PAR, tooltip = "Month targets were reached in a median of about 7 sessions in the near-miss study; 10 is two trading weeks. Informed by that count, not tuned.")
+
+bool on22 = input.bool(true, "2-2 reversal", group = G_FLT, tooltip = "A 2, then a 2 the other way is the setup bar. The bar before the setup must itself be a 2.")
+bool on212 = input.bool(true, "2-1-2 reversal", group = G_FLT, tooltip = "A 2 against the trade, an inside bar, entry through the inside bar.")
+bool on312 = input.bool(true, "3-1-2 reversal", group = G_FLT, tooltip = "An outside bar that closed against the trade, an inside bar, entry through the inside bar. The continuation (the 3 closed with the trade) is left for a separate study.")
+bool on322 = input.bool(true, "3-2-2 reversal", group = G_FLT, tooltip = "An outside bar, a 2, entry back through the 2's near side. Stop = the 3's extreme (owner ruling 2026-11-21).")
+string sideSel = input.string("Both", "Sides", options = ["Both", "Longs only", "Shorts only"], group = G_FLT, tooltip = "Today's large names drifted up for 25 years, so longs and shorts read very differently. Look at each side on its own before trusting a total.")
+float minDist = input.float(0.0, "Minimum distance to the target, % of price", minval = 0, step = 0.5, group = G_FLT, tooltip = "0 = every setup. 4 reproduces the what-if cut from the near-miss study.")
+
+bool showTrades = input.bool(true, "Draw trades (selected exit)", group = G_VIS, tooltip = "Pattern boxes, entry / target / stop lines and the exit label for every table trade of the selected exit.")
+bool showTable = input.bool(true, "Show the nine-exit table", group = G_VIS, tooltip = "All nine exits on the same entries for this chart.")
+string tblPos = input.string("Bottom right", "Table position", options = ["Top right", "Bottom right", "Bottom left", "Top left"], group = G_VIS, tooltip = "Where the table sits.")
+string tblSize = input.string("Small", "Table text", options = ["Tiny", "Small", "Normal"], group = G_VIS, tooltip = "Table text size.")
+color colEntry = input.color(#2962ff, "Entry line", group = G_VIS, tooltip = "Colour of the entry line and the entry label.")
+color colTarget = input.color(#9c27b0, "Target line", group = G_VIS, tooltip = "Colour of the target line (dashed = the share-of-the-way exit).")
+color colStop = input.color(#ff9800, "Stop line", group = G_VIS, tooltip = "Colour of the pattern's stop line.")
+
+// ---------------------------------------------------------------- constants
+const int M_PATTERN = 0
+const int M_FRAC = 1
+const int M_PRIOR = 2
+const int M_GIVE = 3
+const int M_CHAND = 4
+const int M_EMA = 5
+const int M_RSI = 6
+const int M_BB = 7
+const int M_TIME = 8
+const int N_MODES = 9
+
+const int W_TARGET = 0
+const int W_RULE = 1
+const int W_STOP = 2
+const int W_WENT3 = 3
+const int W_TIE = 4
+
+int selMode = switch exitSel
+    X_FRAC => M_FRAC
+    X_PRIOR => M_PRIOR
+    X_GIVE => M_GIVE
+    X_CHAND => M_CHAND
+    X_EMA => M_EMA
+    X_RSI => M_RSI
+    X_BB => M_BB
+    X_TIME => M_TIME
+    => M_PATTERN
+
+float fracK = fracPct / 100.0
+float armShare = armPct / 100.0
+float giveShare = givePct / 100.0
+
+// ---------------------------------------------------------------- indicators
+float atrV = ta.atr(atrLen)
+float emaV = ta.ema(close, emaLen)
+float rsiV = ta.rsi(close, rsiLen)
+[bbMid, bbUp, bbLo] = ta.bb(close, bbLen, bbMult)
+
+// ---------------------------------------------------------------- pattern-timeframe bars, built from chart bars
+// c = the forming bar, s = the last closed bar (the setup bar), a = the one before, b = before that
+bool newP = bar_index == 0 or timeframe.change(ptf)
+var int periodCount = 0
+var float cO = na
+var float cH = na
+var float cL = na
+var float cC = na
+var int cStart = na
+var float sO = na
+var float sH = na
+var float sL = na
+var float sC = na
+var int sStart = na
+var float aO = na
+var float aH = na
+var float aL = na
+var float aC = na
+var int aStart = na
+var float bH = na
+var float bL = na
+if newP
+    bH := aH
+    bL := aL
+    aO := sO
+    aH := sH
+    aL := sL
+    aC := sC
+    aStart := sStart
+    sO := cO
+    sH := cH
+    sL := cL
+    sC := cC
+    sStart := cStart
+    cO := open
+    cH := high
+    cL := low
+    cC := close
+    cStart := bar_index
+    periodCount += 1
+else
+    cH := math.max(cH, high)
+    cL := math.min(cL, low)
+    cC := close
+
+// ---------------------------------------------------------------- setups
+barType(float h, float l, float ph, float pl) =>
+    bool up = h > ph
+    bool dn = l < pl
+    up and dn ? 3 : up ? 2 : dn ? -2 : 1
+
+// [side, family, trigger, target, stop, other]; side 0 = no setup. Families: 1 = 2-2, 2 = 2-1-2, 3 = 3-1-2, 4 = 3-2-2
+findSetup(float s_h, float s_l, float a_o, float a_h, float a_l, float a_c, float b_h, float b_l) =>
+    int tS = barType(s_h, s_l, a_h, a_l)
+    int tA = barType(a_h, a_l, b_h, b_l)
+    int side = 0
+    int fam = 0
+    if tS == 2 or tS == -2
+        if tA == 2 or tA == -2
+            side := tS == -2 ? 1 : -1
+            fam := 1
+        else if tA == 3
+            side := tS == -2 ? 1 : -1
+            fam := 4
+    else if tS == 1
+        if tA == -2
+            side := 1
+            fam := 2
+        else if tA == 2
+            side := -1
+            fam := 2
+        else if tA == 3 and a_c != a_o
+            side := a_c < a_o ? 1 : -1
+            fam := 3
+    float trig = side > 0 ? s_h : s_l
+    float tgt = side > 0 ? a_h : a_l
+    float oth = side > 0 ? s_l : s_h
+    float stp = fam == 1 ? oth : side > 0 ? a_l : a_h
+    [side, fam, trig, tgt, stp, oth]
+
+famOn(int fam) =>
+    fam == 1 ? on22 : fam == 2 ? on212 : fam == 3 ? on312 : fam == 4 ? on322 : false
+
+sideOn(int side) =>
+    sideSel == "Both" or (side > 0 and sideSel == "Longs only") or (side < 0 and sideSel == "Shorts only")
+
+okSetup(int side, int fam, float trig, float tgt, float stp) =>
+    side != 0 and famOn(fam) and sideOn(side) and side * (trig - stp) > 0 and side * (tgt - trig) > 0
+
+famName(int fam) =>
+    fam == 1 ? "2-2" : fam == 2 ? "2-1-2" : fam == 3 ? "3-1-2" : "3-2-2"
+
+// ---------------------------------------------------------------- the table's book
+type Trade
+    int mode
+    int side
+    int fam
+    float entry
+    float target
+    float stop
+    float other
+    bool stopNearer
+    int entryBar
+    int period
+    float best
+    float rest = na
+    float trail = na
+    bool done = false
+    line lnE = na
+    line lnT = na
+    line lnS = na
+    line lnK = na
+
+var array<Trade> openT = array.new<Trade>()
+var array<float> nTr = array.new<float>(N_MODES, 0)
+var array<float> nWin = array.new<float>(N_MODES, 0)
+var array<float> nTgt = array.new<float>(N_MODES, 0)
+var array<float> sumPl = array.new<float>(N_MODES, 0)
+var array<float> sumWin = array.new<float>(N_MODES, 0)
+var array<float> sumLoss = array.new<float>(N_MODES, 0)
+var array<float> sumBars = array.new<float>(N_MODES, 0)
+
+bump(array<float> arr, int i, float x) =>
+    array.set(arr, i, array.get(arr, i) + x)
+
+whyName(int why) =>
+    why == W_TARGET ? "TARGET" : why == W_RULE ? "RULE" : why == W_STOP ? "STOP" : why == W_WENT3 ? "WENT 3" : "TIE"
+
+finish(Trade t, float px, int why) =>
+    float pl = 100.0 * t.side * (px - t.entry) / t.entry
+    int m = t.mode
+    bump(nTr, m, 1)
+    bump(sumPl, m, pl)
+    bump(sumBars, m, bar_index - t.entryBar)
+    if pl > 0
+        bump(nWin, m, 1)
+        bump(sumWin, m, pl)
+    else
+        bump(sumLoss, m, pl)
+    if why == W_TARGET
+        bump(nTgt, m, 1)
+    t.done := true
+    if m == selMode and showTrades
+        line.set_x2(t.lnE, bar_index)
+        line.set_x2(t.lnT, bar_index)
+        line.set_x2(t.lnS, bar_index)
+        line.set_x2(t.lnK, bar_index)
+        string txt = whyName(why) + " " + (pl > 0 ? "+" : "") + str.tostring(pl, "#.##") + "%"
+        label.new(bar_index, px, txt, style = label.style_label_left, color = pl > 0 ? color.new(#26a69a, 10) : color.new(#ef5350, 10), textcolor = color.white, size = size.small)
+    true
+
+// the close rules, read at this bar's close
+closeRule(Trade t) =>
+    int m = t.mode
+    bool r = false
+    if m == M_EMA
+        r := t.side * (close - emaV) < 0
+    else if m == M_RSI
+        r := t.side * (rsiV - 50.0) < 0
+    else if m == M_BB
+        r := t.side > 0 ? high >= bbUp : low <= bbLo
+    else if m == M_TIME
+        r := bar_index - t.entryBar >= timeBars
+    else if m == M_CHAND
+        r := t.side * (close - t.trail) < 0
+    r
+
+// after this bar's close: the resting level for the next bar and the chandelier line
+setLines(Trade t) =>
+    int m = t.mode
+    float dist = t.target - t.entry
+    t.rest := na
+    if m == M_PRIOR
+        t.rest := t.side > 0 ? low : high
+    else if m == M_GIVE and (t.best - t.entry) / dist >= armShare
+        t.rest := t.best - giveShare * dist
+    if m == M_CHAND and not na(atrV)
+        float fresh = t.best - t.side * atrMult * atrV
+        if na(t.trail) or t.side * (fresh - t.trail) > 0
+            t.trail := fresh
+    true
+
+exitLevel(Trade t) =>
+    t.entry + (t.mode == M_FRAC ? fracK : 1.0) * (t.target - t.entry)
+
+// the entry bar
+openTrade(Trade t) =>
+    float tk = exitLevel(t)
+    if t.side * (t.best - tk) >= 0
+        finish(t, tk, W_TARGET)
+    else if t.stopNearer and t.side * (close - t.stop) < 0
+        finish(t, t.stop, W_STOP)
+    else if closeRule(t)
+        finish(t, close, W_RULE)
+    else
+        setLines(t)
+    true
+
+// every later bar
+stepTrade(Trade t) =>
+    float tk = exitLevel(t)
+    float fav = t.side > 0 ? high : low
+    float adv = t.side > 0 ? low : high
+    bool inEntryBar = periodCount == t.period and not t.stopNearer
+    float level = inEntryBar ? t.other : t.stop
+    int kind = inEntryBar ? W_WENT3 : W_STOP
+    if not na(t.rest) and t.side * (t.rest - level) > 0
+        level := t.rest
+        kind := W_RULE
+    bool hitT = t.side * (fav - tk) >= 0
+    bool hitA = t.side * (adv - level) < 0
+    if t.side * (open - level) < 0
+        finish(t, open, kind)
+    else if t.side * (open - tk) >= 0
+        finish(t, tk, W_TARGET)
+    else if hitT and hitA
+        finish(t, level, W_TIE)
+    else if hitT
+        finish(t, tk, W_TARGET)
+    else if hitA
+        finish(t, level, kind)
+    else if closeRule(t)
+        finish(t, close, W_RULE)
+    else
+        if t.side * (fav - t.best) > 0
+            t.best := fav
+        setLines(t)
+    true
+
+// 1. walk the open trades (before any new entry is added)
+float selLevel = na
+if array.size(openT) > 0
+    for i = array.size(openT) - 1 to 0
+        Trade t = array.get(openT, i)
+        stepTrade(t)
+        if t.done
+            array.remove(openT, i)
+        else if t.mode == selMode
+            selLevel := na(t.rest) ? t.trail : t.rest
+            if showTrades
+                line.set_x2(t.lnE, bar_index)
+                line.set_x2(t.lnT, bar_index)
+                line.set_x2(t.lnS, bar_index)
+                line.set_x2(t.lnK, bar_index)
+
+// 2. this pattern bar's candidate, decided on its first chart bar
+var bool candAlive = false
+var int kSide = 0
+var int kFam = 0
+var float kTrig = na
+var float kTgt = na
+var float kStop = na
+var float kOther = na
+if newP
+    candAlive := false
+    if periodCount >= 5
+        [fs, ff, ftr, ftg, fst, fot] = findSetup(sH, sL, aO, aH, aL, aC, bH, bL)
+        kSide := fs
+        kFam := ff
+        kTrig := ftr
+        kTgt := ftg
+        kStop := fst
+        kOther := fot
+        // a pattern bar that opens beyond the trigger is a missed entry; one that opens through the other side is not this pattern
+        candAlive := okSetup(fs, ff, ftr, ftg, fst) and fs * (open - ftr) <= 0 and fs * (open - fot) >= 0
+
+// 3. the entry: the first chart bar that trades strictly through the trigger
+bool enteredNow = false
+if candAlive
+    float fav = kSide > 0 ? high : low
+    float adv = kSide > 0 ? low : high
+    bool trig = kSide * (fav - kTrig) > 0
+    bool oth = kSide * (adv - kOther) < 0
+    if trig or oth
+        candAlive := false
+        if trig and not oth
+            float entry = kSide * (open - kTrig) <= 0 ? kTrig : open
+            bool nearer = kSide * (kStop - kOther) > 0
+            bool ok = kSide * (kTgt - entry) > 0 and 100.0 * math.abs(kTgt - entry) / entry >= minDist
+            // the 3-2-2: a bar that dipped through the stop and closed back cannot be ordered against the entry
+            if nearer and kSide * (adv - kStop) < 0 and kSide * (open - kStop) >= 0 and kSide * (close - kStop) >= 0
+                ok := false
+            if ok
+                enteredNow := true
+                for m = 0 to N_MODES - 1
+                    Trade t = Trade.new(m, kSide, kFam, entry, kTgt, kStop, kOther, nearer, bar_index, periodCount, fav)
+                    if m == selMode and showTrades
+                        box.new(aStart, aH, sStart - 1, aL, border_color = color.new(color.gray, 40), bgcolor = color.new(color.gray, 92))
+                        box.new(sStart, sH, cStart - 1, sL, border_color = color.new(color.gray, 40), bgcolor = color.new(color.gray, 92))
+                        t.lnE := line.new(bar_index, entry, bar_index + 1, entry, color = colEntry, width = 2)
+                        t.lnT := line.new(bar_index, kTgt, bar_index + 1, kTgt, color = colTarget, width = 2)
+                        t.lnS := line.new(bar_index, kStop, bar_index + 1, kStop, color = colStop, width = 2)
+                        if m == M_FRAC
+                            t.lnK := line.new(bar_index, exitLevel(t), bar_index + 1, exitLevel(t), color = colTarget, style = line.style_dashed)
+                        label.new(bar_index, kSide > 0 ? low : high, (kSide > 0 ? "L " : "S ") + famName(kFam), style = kSide > 0 ? label.style_label_up : label.style_label_down, color = colEntry, textcolor = color.white, size = size.small)
+                    openTrade(t)
+                    if not t.done
+                        array.push(openT, t)
+                        if m == selMode
+                            selLevel := na(t.rest) ? t.trail : t.rest
+
+// ---------------------------------------------------------------- plots
+plot(selMode == M_EMA ? emaV : na, "EMA", color = color.new(#ffb300, 0))
+plot(selMode == M_BB ? bbUp : na, "Bollinger upper", color = color.new(#78909c, 0))
+plot(selMode == M_BB ? bbLo : na, "Bollinger lower", color = color.new(#78909c, 0))
+plot(selLevel, "Trail of the latest open trade", color = color.new(#ef5350, 0), style = plot.style_linebr, linewidth = 2)
+
+// parity plots: the table's raw counts, for the Python twin (data window only)
+plot(array.get(nTr, 0), "n pattern", display = display.data_window)
+plot(array.get(sumPl, 0), "sum pattern", display = display.data_window)
+plot(array.get(nTr, 1), "n share", display = display.data_window)
+plot(array.get(sumPl, 1), "sum share", display = display.data_window)
+plot(array.get(nTr, 2), "n prior", display = display.data_window)
+plot(array.get(sumPl, 2), "sum prior", display = display.data_window)
+plot(array.get(nTr, 3), "n giveback", display = display.data_window)
+plot(array.get(sumPl, 3), "sum giveback", display = display.data_window)
+plot(array.get(nTr, 4), "n chandelier", display = display.data_window)
+plot(array.get(sumPl, 4), "sum chandelier", display = display.data_window)
+plot(array.get(nTr, 5), "n ema", display = display.data_window)
+plot(array.get(sumPl, 5), "sum ema", display = display.data_window)
+plot(array.get(nTr, 6), "n rsi", display = display.data_window)
+plot(array.get(sumPl, 6), "sum rsi", display = display.data_window)
+plot(array.get(nTr, 7), "n bollinger", display = display.data_window)
+plot(array.get(sumPl, 7), "sum bollinger", display = display.data_window)
+plot(array.get(nTr, 8), "n time", display = display.data_window)
+plot(array.get(sumPl, 8), "sum time", display = display.data_window)
+
+// ---------------------------------------------------------------- table
+modeName(int m) =>
+    m == M_PATTERN ? "Pattern only" : m == M_FRAC ? "Share of the way " + str.tostring(fracPct, "#") + "%" : m == M_PRIOR ? "Prior bar low/high" : m == M_GIVE ? "Give-back trail" : m == M_CHAND ? "Chandelier" : m == M_EMA ? "EMA " + str.tostring(emaLen) : m == M_RSI ? "RSI loses 50" : m == M_BB ? "Bollinger tag" : "Time stop " + str.tostring(timeBars)
+
+signed(float x) =>
+    na(x) ? "-" : (x > 0 ? "+" : "") + str.tostring(x, "#.##") + "%"
+
+if showTable and (barstate.islast or barstate.islastconfirmedhistory)
+    string pos = tblPos == "Top right" ? position.top_right : tblPos == "Bottom right" ? position.bottom_right : tblPos == "Bottom left" ? position.bottom_left : position.top_left
+    string sz = tblSize == "Tiny" ? size.tiny : tblSize == "Small" ? size.small : size.normal
+    color head = color.new(#131722, 0)
+    color txt = color.new(#d1d4dc, 0)
+    var table tb = table.new(pos, 8, N_MODES + 2, bgcolor = color.new(#1b1f2b, 5), border_color = color.new(#2a2e39, 0), border_width = 1, frame_color = color.new(#2a2e39, 0), frame_width = 1)
+    array<string> heads = array.from("Exit (" + ptf + " patterns)", "Trades", "Wins", "Avg win", "Avg loss", "Per trade", "At target", "Bars held")
+    for c = 0 to 7
+        table.cell(tb, c, 0, array.get(heads, c), text_color = txt, bgcolor = head, text_size = sz, text_halign = c == 0 ? text.align_left : text.align_right)
+    for m = 0 to N_MODES - 1
+        float n = array.get(nTr, m)
+        float w = array.get(nWin, m)
+        float per = n > 0 ? array.get(sumPl, m) / n : na
+        color bg = m == selMode ? color.new(#2962ff, 70) : color.new(#1b1f2b, 5)
+        color pc = na(per) ? txt : per > 0 ? color.new(#26a69a, 0) : color.new(#ef5350, 0)
+        table.cell(tb, 0, m + 1, modeName(m), text_color = txt, bgcolor = bg, text_size = sz, text_halign = text.align_left)
+        table.cell(tb, 1, m + 1, str.tostring(n, "#"), text_color = txt, bgcolor = bg, text_size = sz, text_halign = text.align_right)
+        table.cell(tb, 2, m + 1, n > 0 ? str.tostring(100 * w / n, "#") + "%" : "-", text_color = txt, bgcolor = bg, text_size = sz, text_halign = text.align_right)
+        table.cell(tb, 3, m + 1, signed(w > 0 ? array.get(sumWin, m) / w : na), text_color = txt, bgcolor = bg, text_size = sz, text_halign = text.align_right)
+        table.cell(tb, 4, m + 1, signed(n - w > 0 ? array.get(sumLoss, m) / (n - w) : na), text_color = txt, bgcolor = bg, text_size = sz, text_halign = text.align_right)
+        table.cell(tb, 5, m + 1, signed(per), text_color = pc, bgcolor = bg, text_size = sz, text_halign = text.align_right)
+        table.cell(tb, 6, m + 1, n > 0 ? str.tostring(100 * array.get(nTgt, m) / n, "#") + "%" : "-", text_color = txt, bgcolor = bg, text_size = sz, text_halign = text.align_right)
+        table.cell(tb, 7, m + 1, n > 0 ? str.tostring(array.get(sumBars, m) / n, "#.#") : "-", text_color = txt, bgcolor = bg, text_size = sz, text_halign = text.align_right)
+    table.cell(tb, 0, N_MODES + 1, "Every entry in every row, equal size, no fees, % of price. Exploratory.", text_color = color.new(#8b8f9c, 0), bgcolor = head, text_size = sz, text_halign = text.align_left)
+    table.merge_cells(tb, 0, N_MODES + 1, 7, N_MODES + 1)
+
+// ---------------------------------------------------------------- ENGINE-BEGIN
+// TradingView's own orders on the selected exit: one position at a time. Orders rest a bar ahead,
+// so the bar BEFORE a new pattern bar has to be recognised from the calendar (weekday arithmetic:
+// a holiday on the last weekday of a period hides that period's first-bar entry from the tester).
+string tz = syminfo.timezone
+int dow = dayofweek(time, tz)
+int addDays = syminfo.type == "crypto" ? 1 : dow == dayofweek.friday ? 3 : dow == dayofweek.saturday ? 2 : 1
+int nextT = time + addDays * 86400000
+bool nextNew = ptf == "W" ? weekofyear(nextT, tz) != weekofyear(time, tz) : ptf == "M" ? month(nextT, tz) != month(time, tz) : math.floor((month(nextT, tz) - 1) / 3) != math.floor((month(time, tz) - 1) / 3) or year(nextT, tz) != year(time, tz)
+bool lastBar = (timeframe.isdwm or session.islastbar) and nextNew
+
+var Trade eT = na
+var int pSide = 0
+var int pFam = 0
+var float pTrig = na
+var float pTgt = na
+var float pStop = na
+var float pOther = na
+float tick = syminfo.mintick
+
+if strategy.position_size != 0
+    int sd = strategy.position_size > 0 ? 1 : -1
+    string eid = sd > 0 ? "L" : "S"
+    float favE = sd > 0 ? high : low
+    bool gapFill = false
+    if na(eT)
+        eT := Trade.new(selMode, sd, pFam, strategy.position_avg_price, pTgt, pStop, pOther, sd * (pStop - pOther) > 0, bar_index, periodCount, favE)
+        // the pattern bar opened beyond the trigger (a missed entry) and the resting order filled on a dip back
+        gapFill := bar_index == cStart and sd * (open - pTrig) > 0
+    else if sd * (favE - eT.best) > 0
+        eT.best := favE
+    if gapFill
+        strategy.close(eid, comment = "GAP FILL")
+    else if closeRule(eT)
+        strategy.close(eid, comment = "RULE")
+    else
+        setLines(eT)
+        bool inNext = periodCount == eT.period and not lastBar and not eT.stopNearer
+        float lvl = inNext ? eT.other : eT.stop
+        string why = inNext ? "WENT 3" : "STOP"
+        if not na(eT.rest) and sd * (eT.rest - lvl) > 0
+            lvl := eT.rest
+            why := "RULE"
+        strategy.exit("X", from_entry = eid, limit = exitLevel(eT), stop = lvl - sd * tick, comment_profit = "TARGET", comment_loss = why)
+else
+    eT := na
+    strategy.cancel_all()
+    int qSide = 0
+    int qFam = 0
+    float qTrig = na
+    float qTgt = na
+    float qStop = na
+    float qOther = na
+    bool firstBar = false
+    if lastBar and periodCount >= 4
+        // the setup as it will stand if this bar closes the pattern bar: c becomes the setup bar
+        [hs, hf, htr, htg, hst, hot] = findSetup(cH, cL, sO, sH, sL, sC, aH, aL)
+        if okSetup(hs, hf, htr, htg, hst)
+            qSide := hs
+            qFam := hf
+            qTrig := htr
+            qTgt := htg
+            qStop := hst
+            qOther := hot
+            firstBar := true
+    else if candAlive
+        qSide := kSide
+        qFam := kFam
+        qTrig := kTrig
+        qTgt := kTgt
+        qStop := kStop
+        qOther := kOther
+    if qSide != 0
+        float px = qTrig + qSide * tick
+        if 100.0 * math.abs(qTgt - px) / px >= minDist and qSide * (qTgt - px) > 0
+            pSide := qSide
+            pFam := qFam
+            pTrig := qTrig
+            pTgt := qTgt
+            pStop := qStop
+            pOther := qOther
+            string eid = qSide > 0 ? "L" : "S"
+            // the first bar of a pattern bar: a gap beyond the trigger is a missed entry, so the order is a stop-limit there
+            if firstBar
+                strategy.entry(eid, qSide > 0 ? strategy.long : strategy.short, stop = px, limit = px, comment = famName(qFam))
+            else
+                strategy.entry(eid, qSide > 0 ? strategy.long : strategy.short, stop = px, comment = famName(qFam))
+            bool nearer = qSide * (qStop - qOther) > 0
+            float advE = nearer ? qStop : qOther
+            float tkE = px + (selMode == M_FRAC ? fracK : 1.0) * (qTgt - px)
+            strategy.exit("X", from_entry = eid, limit = tkE, stop = advE - qSide * tick, comment_profit = "TARGET", comment_loss = nearer ? "STOP" : "WENT 3")
+// ---------------------------------------------------------------- ENGINE-END

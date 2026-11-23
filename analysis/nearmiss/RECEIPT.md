@@ -198,8 +198,86 @@ A private chart page (ten example trades on daily candles, picked by a stated ru
 list of names; the how-far bars; this table) is built by `chart_page.py`. Its link is not
 recorded in this public repo.
 
+**11. The exit lab (TVB-47, 2026-11-23; `exits.py`, `run_exits.py`, the Pine mirror
+`pine/reversal_exit_lab.pine`).** The owner's question: the pattern gives a target and a stop and
+nothing in between; does a simple indicator exit help? MONTH patterns walked on daily bars, the
+four reversal families only (2-2, 2-1-2, 3-1-2, 3-2-2; continuations left for a separate study).
+Entry, target, stop and the went-3 exit are items 6 to 9's. Each mode adds ONE more way out at
+its usual default setting, never tuned; `exits.py` states each fill convention. A win here is a
+trade that made money. Run: `uv run python -m analysis.nearmiss.run_exits`.
+
+10,376 entries, 142 symbols, 2000-04 to 2026-11; median target 4.2% away, median stop 9.5% away.
+The same entries in every row:
+
+| exit laid over the pattern | wins | average win | average loss | per trade | median sessions held | out at the target |
+|---|---|---|---|---|---|---|
+| pattern only (the control) | 68.6% | +5.03% | -10.55% | +0.141% | 10 | 68.6% |
+| 40% of the way to the target | 82.6% | +2.18% | -10.42% | -0.007% | 2 | 82.6% (at the 40% mark) |
+| prior day's low (longs) / high (shorts) | 45.8% | +2.11% | -1.76% | +0.018% | 2 | 25.8% |
+| give-back trail (Guardian's, in stock terms: armed a third of the way, out after giving back half the distance) | 59.6% | +2.94% | -4.49% | -0.060% | 4 | 32.9% |
+| Chandelier, a close through 3 x ATR(22) | 58.9% | +4.01% | -5.79% | -0.018% | 7 | 56.2% |
+| a close through the 9 EMA | 49.6% | +3.13% | -3.08% | -0.003% | 3 | 40.0% |
+| RSI(14) closes on the wrong side of 50 | 51.3% | +3.66% | -3.85% | +0.002% | 4 | 47.6% |
+| Bollinger band tag (out at that close) | 60.2% | +1.38% | -1.95% | +0.061% | 0 | 17.9% |
+| time stop, 10 sessions | 62.3% | +3.10% | -4.87% | +0.091% | 10 | 42.1% |
+
+What each exit did to the control's winners and losers, in points per trade: every rule made
+most of the losers smaller (45 to 99% of them, +4.9 to +9.4 points each on average) and took
+that back from the winners (-2.5 to -4.5 points each on average); the net against the control
+runs from -0.05 (time stop) to -0.20 (give-back trail). **Every exit moves the win rate and the
+size of the win and the loss; none of them moves the per-trade result away from zero.**
+
+Per trade by cut (control, then the range across the eight added exits):
+
+| cut | trades | control | added exits, low to high |
+|---|---|---|---|
+| longs | 5,131 | +1.187% | +0.125% to +0.524% |
+| shorts | 5,245 | -0.883% | -0.547% to -0.066% |
+| single names, beta to SPY under 0.81 | 3,048 | +0.063% | -0.085% to +0.087% |
+| single names, beta 0.81 to 1.09 | 3,199 | +0.081% | -0.165% to -0.002% |
+| single names, beta over 1.09 | 3,069 | +0.272% | -0.019% to +0.213% |
+| 4% or more to the target | 5,437 | +0.268% | -0.091% to +0.127% |
+| since 2020 | 3,100 | +0.223% | -0.084% to +0.376% |
+| 2-2 reversal | 7,320 | +0.074% | -0.101% to +0.056% |
+| 2-1-2 reversal | 1,675 | +0.454% | +0.005% to +0.313% |
+| 3-1-2 reversal | 400 | +0.969% | -0.037% to +0.452% |
+| 3-2-2 reversal | 981 | -0.233% | -0.230% to +0.153% |
+
+Win rates do not separate by beta (within two points across the thirds in every mode except
+the Bollinger tag, 58% to 63%). The
+control's edge over the added exits is the longs' drift collected over a longer hold (longs
++1.19% against shorts -0.88%: today's large names went up for 25 years); an exit that leaves
+sooner collects less of it on both sides.
+
+**The Pine mirror.** `pine/reversal_exit_lab.pine` is a `strategy()` with the exit as a toggle and
+an on-chart table of all nine exits on that chart's own entries. Its table is this accounting
+(every entry in every row); its Strategy Tester is TradingView's order engine on the selected
+exit (one position at a time, a gap through the target fills at the open, its own ordering
+inside a bar). Parity, same bars: CRWV daily bars from TradingView, WEEK patterns, 25 trades in
+each of the nine exits, the table's trade counts and summed P/L equal this code's to the third
+decimal in all nine. That is the parity claim. On different bars (META month patterns,
+TradingView's bars against the cached Yahoo bars): counts equal in all nine (39 or 40); six
+sums within 0.03 points; the three modes where the far stop matters (the control, the give-back
+trail, Chandelier) differ by 2 to 8 points. At least one trade's family differs between the two
+vendors (August 2019: a 3-2-2 on one feed, a 2-2 on the other, so a different stop); the rest
+of that gap was NOT traced. The tester's 33 META trades were read against this code's list one
+by one: the differences are the three classes above plus setups skipped while a trade was open
+and one stray fill after a first-bar gap, which the script now closes the same bar and labels.
+
 ## Read both ways
 
+- A kill test that landed (item 11): on month patterns none of eight simple exits (a share of
+  the way, the prior day's low, a give-back trail, Chandelier, the 9 EMA, RSI 50, a Bollinger
+  tag, a time stop) moved the per-trade result away from zero. Each cut the losers and cut the
+  winners by about the same amount.
+- A path worth naming (item 11): the exits change the SHAPE of the book a great deal (win rate
+  46% to 83%, average loss -1.8% to -10.6%, median hold 0 to 10 sessions). For a long option
+  the shape and the holding time are most of the trade; that is not counted here (no option
+  prices).
+- Paths worth naming (item 11), neither a selection: the 2-1-2 reversal is positive under the
+  control and all eight added exits (+0.005% to +0.454%, 1,675 entries); the highest-beta third
+  of names is positive in the control and six of eight exits. Kill tests beside them: the
+  middle-beta third is negative in all eight added exits; shorts are negative in every row.
 - A kill test that landed on every timeframe: failed patterns do not cluster just under the
   target, on the day, week, month or quarter. The early exit rescues 2 to 7% of losers and
   costs more than it saves, increasingly so on the higher timeframes.
