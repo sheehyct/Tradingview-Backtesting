@@ -5,6 +5,147 @@
 
 ---
 
+## Session TVB-47: the exit lab on monthly reversal patterns (eight simple exits, the Pine mirror, parity on the same bars); the direction moves from counts to a paper trader that records the owner's decisions (COMPLETE)
+
+**Date:** 2026-11-23
+**Status:** COMPLETE. The owner gave his reading of TVB-46, asked for an exit toggle, and then
+chose to stop running counts and build a paper trader with Telegram approval in a separate
+private repo. One exploratory product here (committed and pushed, 65b6f85); the paper trader's
+stage 1 was written in its own repo. Suite 583 passed, 2 skipped (19 new hand-vector tests);
+ruff clean; secret scan clean on every push.
+
+### The owner's reading and direction, in the owner's terms
+
+- The sector receipt is "dense, very dense", hard to find a place to start from. The chart page
+  rendered well. "We have a basket of decent winners ... the losers are the issue. Tightening
+  stops or cutting targets just takes away from the winners so it cuts both ways."
+- The question he brought: the pattern gives a target and nothing in between; 40% of the way
+  is "a good start/fallback but its not enough". Two ideas: a Pine strategy with the exit as a
+  toggle over simple indicators, and what Guardian's exit rules would have done.
+- His intent for the indicator exits: the pattern's target comes first and the indicator is the
+  backup. That is how the count was run; the catch is that a backup is live from the entry day
+  and cannot know the target would have been reached.
+- On the result: the strategy "just doesnt seem to overfit ... we just look breakeven(ish)".
+- Scope rulings: month patterns on a daily chart first; the four reversal families only
+  (2-2, 2-1-2, 3-1-2, 3-2-2); continuations are a separate study.
+- **The direction:** he would rather "analyze trades instead of countless tests", and wants it
+  running now because the tape is volatile. Telegram approval "like the old alpaca paper
+  trading implementation", with the declined setups logged too, to find the theme in what he
+  takes against what he passes. Index layer: four indices, ideally futures (ES, NQ, RTY, YM),
+  because divergence between them is a signal. The historical tagging pass is "interesting"
+  and ranks below the paper trader.
+
+### What was built and what it said
+
+- **The exit lab (`analysis/nearmiss/exits.py`, `run_exits.py`; receipt item 11).** The monthly
+  reversal entries of the near-miss study (10,376 entries, 142 names, 2000-04 to 2026-11;
+  median target 4.2% away, stop 9.5% away), each run nine ways: the pattern alone, or with ONE
+  backup exit on top at its usual default setting. Per trade, % of price: pattern only +0.141
+  (69% wins, +5.03 against -10.55); 40% of the way -0.007; prior day's low +0.018; give-back
+  trail (Guardian's, in stock terms) -0.060; Chandelier -0.018; 9 EMA -0.003; RSI 50 +0.002;
+  Bollinger tag +0.061; ten-session time stop +0.091. Each exit made most losers smaller and
+  took about the same back from the winners (net against the control -0.05 to -0.20 points).
+  The shape changes a great deal (win rate 46% to 83%, average loss -1.8% to -10.6%); the
+  per-trade result does not move off zero. Longs +1.19 and shorts -0.88 under the control
+  (survivor names). Both directions: the 2-1-2 reversal is positive under every exit and the
+  highest-beta third under most; the middle-beta third and the short side are negative under
+  all eight added exits.
+- **A scratch count, not in the receipt:** EMA against SMA as the backup. At the same length
+  they are nearly the same trade; the length matters more (9 lets 40% reach the target, 21
+  about 47%).
+- **The Pine mirror (`pine/reversal_exit_lab.pine`).** A `strategy()` with the exit as a toggle
+  and an on-chart table of all nine exits on the chart's own entries. Built, saved and
+  backtested through the hosted TradingView connector (no Desktop, no editor tab). Parity on
+  the same bars: CRWV daily bars, week patterns, 25 trades in each of nine exits, counts and
+  summed P/L equal to the third decimal. The Strategy Tester side is TradingView's own engine
+  (one position at a time; a gap through the target fills at the open): its 33 META trades
+  were read against the Python list one by one.
+- **Setup volume (scratch count for the paper trader):** armed setups are far more than
+  triggered trades. Since 2024, all 142 names: about 110 weekly and 112 monthly setups per
+  period; the 14 funds and indices: about 11 and 12. The plain 2-2 reversal is three quarters
+  of them.
+- **The paper trader (separate PRIVATE repo `strat-paper-trader`, not this one).** Plan approved
+  by the owner in plan mode: 15 index and sector funds, weekly and monthly reversal setups, a
+  Sunday batch and a month-start batch, asked at the setup and filled on the break, yes / no /
+  no answer with one-tap reasons, every setup tracked whether taken or not, fills at the quote,
+  six option contracts per setup (two expiries, each at the money, about 0.40 delta and about
+  0.20 delta), VPS, option prices from Schwab through his market-data service. Stage 1 (ask,
+  answer, watch, ledger, on the underlying) is written with 43 tests; its setup finder matches
+  this repo's `analysis/nearmiss/htf.py` on 17,321 historical setups. It has NOT run live.
+
+### Context for next session
+
+- Everything here is EXPLORATORY: no prereg, no audit, today's names (survivors), daily bars,
+  fills at the levels, no fees.
+- All nine exits landing near zero was treated as a question first: the walker has hand
+  vectors, a randomized test holds the control and the 40% mode equal to the near-miss walker,
+  and the Pine table reproduces the totals independently.
+- NOT traced: on META month patterns the control, give-back and Chandelier totals differ by 2
+  to 8 points between TradingView's bars and the cached Yahoo bars. One trade's family differs
+  between the feeds (August 2019); the rest of the gap is unexplained.
+- NOT looked at: the Pine script's drawing (boxes, lines, labels) on a real chart. It compiles
+  and the numbers match. The account copy was pasted by hand and is not byte-checked against
+  the repo file; the repo file is the source of truth.
+- Not run: week patterns on an hourly chart (the script has the setting; no Python count);
+  a backup that acts only on a losing trade (offered, not asked for).
+- The hosted TradingView connector's limits are in the memory index (every run returns about
+  9 KB of input metadata; every save needs the whole source).
+- The paper trader's own state, gaps and next steps live in that repo's `docs/HANDOFF.md`.
+
+### Files created/modified
+
+- `analysis/nearmiss/exits.py`, `analysis/nearmiss/run_exits.py`, `analysis/nearmiss/RECEIPT.md`
+  (item 11 and four "read both ways" lines). Row files are gitignored.
+- `pine/reversal_exit_lab.pine`.
+- `tests/test_nearmiss_exits.py` (19 cases).
+- `docs/ARM_LEDGER.md` (the TVB-47 card), `docs/STRATEGY_CARD.md`, `docs/HANDOFF.md`,
+  `.session_startup_prompt.md`, `docs/reviews/REVIEW_REQUEST.md`.
+- Outside this repo: the new private repo; one row in the workstation's project map.
+
+### Open
+
+- [ ] **The paper trader goes live** (other repo): the owner creates a Telegram bot and the
+      `.env`; then a test batch, then the VPS deploy on his go-ahead. Stages 2 and 3 (option
+      prices, the six contracts) follow.
+- [ ] **The owner looks at the Pine script on a chart** and says whether the drawing is right.
+- [ ] **The META data gap** (2 to 8 points on three exits between the two feeds): not traced.
+- [ ] **The historical tagging pass** (market, sector, name, room, days left on the existing
+      10,376 entries; tags fixed before any number is read; longs and shorts apart): agreed as
+      a bounded later job, with four indices rather than SPY alone.
+- [ ] **Offered, not run:** week patterns on an hourly chart; a backup exit that acts only on a
+      losing trade; an SMA option in the script; how often NQ breaking first is followed by ES.
+- [ ] **A room floor for the paper trader's questions** (two of last week's setups had 0.1%
+      and 0.4% to the target): the owner has not asked for one.
+- [ ] Carried from TVB-46, unchanged: the rev strats' stop ruling; the count of turns near a
+      prior week's or month's high or low with no pattern; OpenMemory's remaining wiring; the
+      first TradingView port prereg draft; the owner's readings of `PAIRS_RECEIPT.md` and
+      `BENCH_RECEIPT.md`; the with-trend inside break's T1 STOP-and-ASK; the viewer items; the
+      exit and hierarchy rulings; the skill's 4.1 against 4.3 wording; the ATLAS live-trigger
+      fix.
+
+### External Review (for Codex / cloud review agents)
+
+> For Codex / other external review agents: review THIS session's work (range
+> below) and write a verbatim assessment to docs/reviews/tvb47-codex-audit.md.
+> See docs/EXTERNAL_REVIEW_PROTOCOL.md.
+
+- Review status: N/A (the owner's standing word, 2026-11-21: no external reviews while the work
+  is exploratory; a review is requested when a line is about to become a notice field or a rule)
+- Commits to review: none requested. For the record the session is `748d83b..65b6f85` on `main`
+  plus the docs-only close-out after it (748d83b is the commit the session started from).
+- Scope / what changed: one exploratory analysis module with its runner and tests, one Pine
+  strategy, the session docs. No engine change.
+- Focus areas (if a review is ever asked for): the fill conventions in
+  `analysis/nearmiss/exits.py` (a resting level uses the best price as it stood at the previous
+  close; close rules fill at that close; ties go to the adverse side); the indicator arithmetic
+  against TradingView's; the engine block of `pine/reversal_exit_lab.pine` (orders rest a bar
+  ahead, the calendar test for a period's last bar, the first-bar stop-limit); whether each
+  receipt sentence is carried by the script's output.
+- Reviewed by: none
+- Findings:
+
+---
+
 ## Session TVB-46: the November drop through the sector read, the near-miss study on four timeframes, the owner's 40% what-if and a chart page of real trades (COMPLETE)
 
 **Date:** 2026-11-21
