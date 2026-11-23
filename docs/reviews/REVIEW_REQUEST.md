@@ -25,7 +25,7 @@
 
 | Repo | Local path | Range / commits |
 |------|------------|-----------------|
-| tradingview-backtesting (this repo, `main`) | `C:\\Strat_Trading_Bot\\tradingview-backtesting` | `748d83b..65b6f85` plus the docs-only close-out after it (748d83b is the commit the session started from). |
+| tradingview-backtesting (this repo, `main`) | `C:\Strat_Trading_Bot\tradingview-backtesting` | `748d83b..65b6f85` plus the docs-only close-out after it (748d83b is the commit the session started from). |
 
 Raw bars and row files are gitignored and re-fetchable; the run command is in the receipt.
 `yfinance` is not a project dependency (`uv run --no-project --with yfinance ...`).
